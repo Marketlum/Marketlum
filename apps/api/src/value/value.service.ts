@@ -13,7 +13,9 @@ export class ValueService {
   ) {}
 
   create(createValueDto: CreateValueDto) {
-    return 'This action adds a new value';
+    const value = this.valueRepository.create(createValueDto);
+
+    return this.valueRepository.save(value);
   }
 
   update(id: string, updateValueDto: UpdateValueDto) {
