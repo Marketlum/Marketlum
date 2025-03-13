@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar"
+import { AppValueTree } from "@/components/app-value-tree"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -38,6 +39,7 @@ export default function Page() {
             </Breadcrumb>
           </div>
         </header>
+        <AppValueTree />
       </SidebarInset>
     </SidebarProvider>
   )
