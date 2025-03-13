@@ -19,16 +19,16 @@ export class ValueController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.valueService.findOne(+id);
+    return this.valueService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateValueDto: UpdateValueDto) {
-    return this.valueService.update(+id, updateValueDto);
+    return this.valueService.update(id, updateValueDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.valueService.remove(+id);
+    return this.valueService.remove(id);
   }
 }

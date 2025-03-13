@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { CreateValueDto } from './dto/create-value.dto';
 import { UpdateValueDto } from './dto/update-value.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Value } from './entities/value.entity';
 
 @Injectable()
 export class ValueService {
+  constructor(
+    @InjectRepository(Value)
+    private valueRepository: Repository<Value>,
+  ) {}
+
   create(createValueDto: CreateValueDto) {
     return 'This action adds a new value';
   }
 
-  findAll() {
-    return `This action returns all value`;
+  update(id: string, updateValueDto: UpdateValueDto) {
+    return this.valueRepository.update(id, updateValueDto);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} value`;
+  findAll(): Promise<Value[]> {
+    return this.valueRepository.find();
   }
 
-  update(id: number, updateValueDto: UpdateValueDto) {
-    return `This action updates a #${id} value`;
+  findOne(id: string): Promise<Value | null> {
+    return this.valueRepository.findOneBy({ id });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} value`;
+  async remove(id: string): Promise<void> {
+    await this.valueRepository.delete(id);
   }
 }
