@@ -1,4 +1,4 @@
-import { Users, HandHeart, Network } from "lucide-react"
+import { Users, HandHeart, Network, BookUser } from "lucide-react"
 
 import {
   Sidebar,
@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const items = [
+const marketItems = [
   {
     title: "Value",
     url: "#",
@@ -22,6 +22,13 @@ const items = [
     url: "#",
     icon: HandHeart,
   },
+  {
+    title: "Agents",
+    url: "#",
+    icon: BookUser,
+  },
+]
+const configItems = [
   {
     title: "Users",
     url: "#",
@@ -34,10 +41,27 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Market</SidebarGroupLabel>
+          <SidebarGroupLabel>MARKET</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {marketItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>CONFIGURATION</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {configItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
