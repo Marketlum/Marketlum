@@ -2,15 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ValueService } from './value.service';
 import { CreateValueDto } from './dto/create-value.dto';
 import { UpdateValueDto } from './dto/update-value.dto';
-import { UsePipes, ValidationPipe } from '@nestjs/common';
 
 @Controller('value')
 export class ValueController {
   constructor(private readonly valueService: ValueService) {}
 
-  @UsePipes(
-    new ValidationPipe(),
-  )
   @Post()
   create(@Body() createValueDto: CreateValueDto) {
     return this.valueService.create(createValueDto);

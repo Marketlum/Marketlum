@@ -8,6 +8,11 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
+  app.enableCors({ 
+    origin: 'http://localhost:3000',
+    credentials: true
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Marketlum API')
     .setDescription('Framework for conscious market development')
