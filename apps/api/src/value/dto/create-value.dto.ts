@@ -1,7 +1,11 @@
 import {
     IsNotEmpty,
     IsString,
+    IsEnum,
+    IsOptional,
 } from 'class-validator';
+
+import { ValueParentType } from '../entities/value.entity';
 
 export class CreateValueDto {
     @IsNotEmpty()
@@ -11,4 +15,12 @@ export class CreateValueDto {
     @IsNotEmpty()
     @IsString()
     description: string;
+
+    @IsNotEmpty()
+    @IsEnum(ValueParentType)
+    parentType: ValueParentType;
+
+    @IsOptional()
+    @IsString()
+    parentId: string;
 }
