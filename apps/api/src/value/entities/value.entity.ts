@@ -12,6 +12,13 @@ export enum ValueParentType {
   PART_OF = "part_of",
 }
 
+export enum ValueType {
+  PRODUCT = "product",
+  SERVICE = "service",
+  RELATIONSHIP = "relationship",
+  RIGHT = "right",
+}
+
 @Entity()
 @Tree("closure-table")
 export class Value {
@@ -21,7 +28,7 @@ export class Value {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   description: string;
 
   @TreeChildren()
@@ -36,4 +43,11 @@ export class Value {
     default: ValueParentType.ON_TOP_OF
   })
   parentType: ValueParentType = ValueParentType.ON_TOP_OF;
+
+  @Column({
+    type: "enum",
+    enum: ValueType,
+    default: ValueType.PRODUCT
+  })
+  type: ValueType = ValueType.PRODUCT;
 }

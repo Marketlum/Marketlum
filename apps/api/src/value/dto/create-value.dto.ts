@@ -5,20 +5,24 @@ import {
     IsOptional,
 } from 'class-validator';
 
-import { ValueParentType } from '../entities/value.entity';
+import { ValueType, ValueParentType } from '../entities/value.entity';
 
 export class CreateValueDto {
     @IsNotEmpty()
     @IsString()
     name: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     description: string;
 
     @IsNotEmpty()
     @IsEnum(ValueParentType)
     parentType: ValueParentType;
+
+    @IsNotEmpty()
+    @IsEnum(ValueType)
+    type: ValueType;
 
     @IsOptional()
     @IsString()
