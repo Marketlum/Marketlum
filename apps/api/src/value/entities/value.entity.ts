@@ -2,10 +2,13 @@ import {
   Entity,
   Tree,
   Column,
+  ManyToOne,
   PrimaryGeneratedColumn,
   TreeChildren,
   TreeParent,
 } from "typeorm"
+
+import { ValueStream } from "../../value_streams/entities/value_stream.entity";
 
 export enum ValueParentType {
   ON_TOP_OF = "on_top_of",
@@ -36,6 +39,9 @@ export class Value {
 
   @TreeParent()
   parent: Value;
+
+  @ManyToOne(() => ValueStream)
+  stream: ValueStream;
 
   @Column({
     type: "enum",

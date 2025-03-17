@@ -4,12 +4,16 @@ import { UpdateValueDto } from './dto/update-value.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository } from 'typeorm';
 import { Value } from './entities/value.entity';
+import { ValueStream } from 'src/value_streams/entities/value_stream.entity';
 
 @Injectable()
 export class ValueService {
   constructor(
     @InjectRepository(Value)
     private valueRepository: TreeRepository<Value>,
+
+    @InjectRepository(ValueStream)
+    private valueStreamRepository: TreeRepository<ValueStream>,
   ) {}
 
   async create(createValueDto: CreateValueDto) {
@@ -24,6 +28,15 @@ export class ValueService {
 
       value.parent = parent;
     }
+    if (createValueDto.streamId) {
+      const stream = await this.valueStreamRepository.findOneBy({ id: createValueDto.streamId });
+
+      if (!stream) {
+        throw new Error('Value stream not found.');
+      }
+
+      value.stream = stream;
+    }
 
     return this.valueRepository.save(value);
   }
@@ -33,7 +46,7 @@ export class ValueService {
   }
 
   findAll(): Promise<Value[]> {
-    return this.valueRepository.findTrees();
+    return this.valueRepository.findTrees({ relations: ["stream"] });
   }
 
   findOne(id: string): Promise<Value | null> {

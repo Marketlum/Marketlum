@@ -27,4 +27,8 @@ export class CreateValueDto {
     @IsOptional()
     @IsString()
     parentId: string;
+
+    @IsOptional()
+    @IsString()
+    streamId: string;
 }
