@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import typeorm from './config/typeorm';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { AgentsModule } from './agents/agents.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
     }),
     ValueModule,
     ValueStreamsModule,
+    AgentsModule,
   ],
 })
 export class AppModule { }
