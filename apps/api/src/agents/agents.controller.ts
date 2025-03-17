@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, DefaultValuePipe, ParseIntPipe, Query } from '@nestjs/common';
 import { AgentsService } from './agents.service';
 import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Agent } from './entities/agent.entity';
 
 @Controller('agents')
 export class AgentsController {
@@ -12,9 +14,17 @@ export class AgentsController {
     return this.agentsService.create(createAgentDto);
   }
 
-  @Get()
-  findAll() {
-    return this.agentsService.findAll();
+  @Get('')
+  async index(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ): Promise<Pagination<Agent>> {
+    limit = limit > 100 ? 100 : limit;
+    return this.agentsService.paginate({
+      page,
+      limit,
+      route: 'http://localhost:3001/agents',
+    });
   }
 
   @Get(':id')

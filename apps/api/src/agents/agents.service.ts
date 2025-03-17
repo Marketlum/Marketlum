@@ -5,6 +5,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Agent } from './entities/agent.entity';
 
+import {
+  paginate,
+  Pagination,
+  IPaginationOptions,
+} from 'nestjs-typeorm-paginate';
+
 @Injectable()
 export class AgentsService {
   constructor(
@@ -22,8 +28,8 @@ export class AgentsService {
     return this.agentRepository.update(id, updateAgentDto);
   }
 
-  findAll(): Promise<Agent[]> {
-    return this.agentRepository.find();
+  async paginate(options: IPaginationOptions): Promise<Pagination<Agent>> {
+    return paginate<Agent>(this.agentRepository, options);
   }
 
   findOne(id: string): Promise<Agent | null> {
