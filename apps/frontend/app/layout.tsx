@@ -27,7 +27,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
           <SidebarTrigger className="-ml-1 p-3" />
           <SidebarInset>
-            {children}
+            <div className="p-6">
+              {children}
+            </div>
           </SidebarInset>
         </SidebarProvider>
       </body>
