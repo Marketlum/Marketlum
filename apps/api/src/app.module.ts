@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import typeorm from './config/typeorm';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AgentsModule } from './agents/agents.module';
+import { TaxonomiesModule } from './taxonomies/taxonomies.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AgentsModule } from './agents/agents.module';
     ValueModule,
     ValueStreamsModule,
     AgentsModule,
+    TaxonomiesModule,
   ],
 })
 export class AppModule { }
