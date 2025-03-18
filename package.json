@@ -1,0 +1,37 @@
+{
+    "name": "marketlum",
+    "private": true,
+    "scripts": {
+        "prepare": "husky",
+        "dev": "turbo dev",
+        "build": "turbo build",
+        "start": "turbo start",
+        "format": "turbo format",
+        "lint": "turbo lint",
+        "test": "turbo test",
+        "generate": "turbo gen",
+        "docs": "turbo start --filter=@marketlum/docs",
+        "changeset": "changeset",
+        "version-packages": "changeset version",
+        "prerelease": "turbo run build",
+        "release": "changeset publish"
+    },
+    "devDependencies": {
+        "husky": "^9.1.7",
+        "lint-staged": "^15.5.0",
+        "prettier": "^3.5.3",
+        "turbo": "^2.4.4",
+        "typescript": "5.8.2"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "packageManager": "npm@10.2.4",
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "dependencies": {
+        "@changesets/cli": "^2.28.1"
+    }
+}

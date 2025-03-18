@@ -21,7 +21,7 @@ const AgentsPage = () => {
 
   useEffect(() => {
     fetch("http://localhost:3001/agents")
-      .then((res) => res.json())
+      .then((response) => response.json())
       .then((data) => setData(data))
       .catch((error) => console.error("Error fetching data:", error));
   }, []);

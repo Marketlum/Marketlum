@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { SelectTaxonomy } from "./select-taxonomy";
+
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
@@ -31,8 +33,6 @@ export function AppTaxonomiesForm() {
         body: JSON.stringify(data),
       });
 
-      console.log(JSON.stringify(data));
-
       if (!response.ok) throw new Error("Failed to submit");
 
       toast({ title: "Success!", description: "User created successfully." });
@@ -50,8 +50,10 @@ export function AppTaxonomiesForm() {
         {errors.name && <p className="text-red-500">{errors.name.message}</p>}
       </div>
 
+      <SelectTaxonomy />
+
       <Button type="submit" disabled={loading}>
-        {loading ? "Submitting..." : "Submit"}
+        {loading ? "Creating..." : "Create"}
       </Button>
     </form>
   );
