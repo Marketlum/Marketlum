@@ -9,6 +9,7 @@ import {
 } from "typeorm"
 
 import { ValueStream } from "../../value_streams/entities/value_stream.entity";
+import { Agent } from "../../agents/entities/agent.entity";
 
 export enum ValueParentType {
   ON_TOP_OF = "on_top_of",
@@ -42,6 +43,9 @@ export class Value {
 
   @ManyToOne(() => ValueStream)
   stream: ValueStream;
+
+  @ManyToOne(() => Agent)
+  agent: Agent;
 
   @Column({
     type: "enum",

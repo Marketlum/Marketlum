@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { CreateValueDto } from './dto/create-value.dto';
 import { UpdateValueDto } from './dto/update-value.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TreeRepository } from 'typeorm';
+import { Repository, TreeRepository } from 'typeorm';
 import { Value } from './entities/value.entity';
 import { ValueStream } from 'src/value_streams/entities/value_stream.entity';
+import { Agent } from 'src/agents/entities/agent.entity';
 
 @Injectable()
 export class ValueService {
@@ -14,6 +15,9 @@ export class ValueService {
 
     @InjectRepository(ValueStream)
     private valueStreamRepository: TreeRepository<ValueStream>,
+
+    @InjectRepository(Agent)
+    private agentRepository: Repository<Agent>,
   ) {}
 
   async create(createValueDto: CreateValueDto) {
@@ -38,6 +42,16 @@ export class ValueService {
       value.stream = stream;
     }
 
+    if (createValueDto.agentId) {
+      const agent = await this.agentRepository.findOneBy({ id: createValueDto.agentId });
+
+      if (!agent) {
+        throw new Error('Agent not found.');
+      }
+
+      value.agent = agent;
+    }
+
     return this.valueRepository.save(value);
   }
 
@@ -46,7 +60,7 @@ export class ValueService {
   }
 
   findAll(): Promise<Value[]> {
-    return this.valueRepository.findTrees({ relations: ["stream"] });
+    return this.valueRepository.findTrees({ relations: ["stream", "agent"] });
   }
 
   findOne(id: string): Promise<Value | null> {

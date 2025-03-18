@@ -30,5 +30,9 @@ export class CreateValueDto {
 
     @IsOptional()
     @IsString()
+    agentId: string;
+
+    @IsOptional()
+    @IsString()
     streamId: string;
 }
