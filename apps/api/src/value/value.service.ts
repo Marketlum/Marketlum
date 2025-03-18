@@ -63,8 +63,8 @@ export class ValueService {
     return this.valueRepository.findTrees({ relations: ["stream", "agent"] });
   }
 
-  findOne(id: string): Promise<Value | null> {
-    return this.valueRepository.findOneBy({ id });
+  async findOne(id: string): Promise<Value | null> {
+    return await this.valueRepository.findOne({ where: {"id": id}, relations: ["parent", "stream", "agent"] });
   }
 
   async remove(id: string): Promise<void> {
