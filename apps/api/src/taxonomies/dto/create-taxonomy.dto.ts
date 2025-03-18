@@ -9,7 +9,7 @@ export class CreateTaxonomyDto {
     @IsString()
     name: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     description: string;
 

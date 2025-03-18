@@ -3,15 +3,12 @@
 import * as React from "react"
 import {
   BookOpen,
-  Bot,
   Command,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
+  Diamond,
+  HandHeart,
   Send,
-  Settings2,
-  SquareTerminal,
+  Users,
+  LifeBuoy,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -37,17 +34,22 @@ const data = {
     {
       title: "Value",
       url: "/value",
-      icon: Bot,
+      icon: Diamond,
     },
     {
       title: "Agents",
       url: "/agents",
-      icon: Bot,
+      icon: Users,
+    },
+    {
+      title: "Taxonomies",
+      url: "/taxonomies",
+      icon: BookOpen,
     },
     {
       title: "Value Streams",
       url: "/value-streams",
-      icon: Bot,
+      icon: HandHeart,
     },
   ],
   navSecondary: [

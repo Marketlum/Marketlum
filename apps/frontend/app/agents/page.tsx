@@ -1,7 +1,8 @@
 "use client"
 
-import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
+
+import { AppSkeleton } from "@/components/app-skeleton";
 
 import { useEffect, useState } from "react";
 
@@ -26,13 +27,7 @@ const AgentsPage = () => {
   }, []);
 
   if (!data) return (
-    <div className="flex flex-col space-y-3">
-        <Skeleton className="h-[250px] w-[450px] rounded-xl" />
-        <div className="space-y-2">
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-        </div>
-    </div>
+    <AppSkeleton />
   )
 
   return (

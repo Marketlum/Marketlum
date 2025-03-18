@@ -25,9 +25,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SidebarProvider>
         <AppSidebar />
-          <SidebarTrigger className="-ml-1 p-3" />
           <SidebarInset>
             <div className="p-6">
+              <SidebarTrigger className="-ml-1 p-3" />
               {children}
             </div>
           </SidebarInset>
