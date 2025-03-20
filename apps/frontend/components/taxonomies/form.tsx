@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { SelectTaxonomy } from "./select-taxonomy";
+import { SelectTaxonomy } from "./select";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

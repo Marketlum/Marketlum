@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { MarketlumSidebar } from "@/components/sidebar"
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SidebarProvider>
-        <AppSidebar />
+        <MarketlumSidebar />
           <SidebarInset>
             <div className="p-6">
               <SidebarTrigger className="-ml-1 p-3" />

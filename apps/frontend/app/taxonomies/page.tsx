@@ -1,8 +1,8 @@
 "use client"
 
-import { AppSkeleton } from "@/components/app-skeleton";
-import { AppTaxonomiesTree } from "@/components/app-taxonomies-tree";
-import { AppTaxonomiesForm } from "@/components/taxonomies/app-taxonomies-form";
+import { MarketlumDefaultSkeleton } from "@/components/default-skeleton";
+import { MarketlumTaxonomiesTree } from "@/components/taxonomies/tree";
+import { MarketlumTaxonomiesForm } from "@/components/taxonomies/form";
 
 import { useEffect, useState } from "react";
 
@@ -17,16 +17,16 @@ const TaxonomiesPage = () => {
   }, []);
 
   if (!data) return (
-    <AppSkeleton />
+    <MarketlumDefaultSkeleton />
   )
 
   return (
       <div className="grid grid-cols-4 grid-rows-1 gap-4">
           <div >
-            <AppTaxonomiesTree data={data} />
+            <MarketlumTaxonomiesTree data={data} />
           </div>
           <div className="col-span-3">
-            <AppTaxonomiesForm />
+            <MarketlumTaxonomiesForm />
           </div>
       </div>
   );

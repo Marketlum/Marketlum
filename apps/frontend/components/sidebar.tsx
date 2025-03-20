@@ -11,9 +11,9 @@ import {
   LifeBuoy,
 } from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { MarketlumSidebarMainMenu } from "@/components/sidebar-main-menu"
+import { MarketlumSidebarSecondaryMenu } from "@/components/sidebar-secondary-menu"
+import { MarketlumSidebarUserMenu } from "@/components/sidebar-user-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -66,7 +66,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function MarketlumSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -87,11 +87,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <MarketlumSidebarMainMenu items={data.navMain} />
+        <MarketlumSidebarSecondaryMenu items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <MarketlumSidebarUserMenu user={data.user} />
       </SidebarFooter>
     </Sidebar>
   )

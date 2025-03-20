@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 
-import { AppSkeleton } from "@/components/app-skeleton";
+import { MarketlumDefaultSkeleton } from "@/components/default-skeleton";
 
 import { useEffect, useState } from "react";
 
@@ -27,7 +27,7 @@ const AgentsPage = () => {
   }, []);
 
   if (!data) return (
-    <AppSkeleton />
+    <MarketlumDefaultSkeleton />
   )
 
   return (

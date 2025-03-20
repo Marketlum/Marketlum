@@ -19,7 +19,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
-export function NavMain({
+export function MarketlumSidebarMainMenu({
   items,
 }: {
   items: {
