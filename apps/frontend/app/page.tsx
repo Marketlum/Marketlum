@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/sidebar"
-import { AppValueTree } from "@/components/app-value-tree"
+import { AppValueTree } from "@/components/value/tree"
 import {
   Breadcrumb,
   BreadcrumbItem,
