@@ -17,6 +17,6 @@ export function MarketlumValueStreamsView() {
     }, []);
 
     return (
-        <div>{valueStreams.length}</div>
+        <MarketlumValueStreamsTree data={valueStreams} />
     )
 }
