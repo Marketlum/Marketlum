@@ -16,7 +16,7 @@ export class ValueStream {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   purpose: string;
 
   @TreeChildren()

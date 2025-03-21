@@ -9,7 +9,7 @@ export class CreateValueStreamDto {
     @IsString()
     name: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     purpose: string;
 

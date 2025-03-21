@@ -17,6 +17,15 @@ export function MarketlumValueStreamsView() {
     }, []);
 
     return (
-        <MarketlumValueStreamsTree data={valueStreams} />
+        <>
+            <div className="grid grid-cols-4 grid-rows-1 gap-4">
+                <div className="col-span-1">
+                    <MarketlumValueStreamsTree data={valueStreams} />
+                </div>
+                <div className="col-span-3">
+                    <MarketlumValueStreamsForm update={setValueStreams} />
+                </div>
+            </div>
+        </>
     )
 }

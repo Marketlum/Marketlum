@@ -33,14 +33,34 @@ describe('MarketlumClient', () => {
 
         (axios.get as jest.Mock).mockResolvedValue({ status: 200, data: expected });
 
-        const valueStreams = await client.getValueStreams();
+        const response = await client.getValueStreams();
 
-        expect(valueStreams).toBe(expected);
+        expect(response).toBe(expected);
     });
 
-    it('should throw an error if the request fails', async () => {
+    it('should throw an error if the get request fails', async () => {
         (axios.get as jest.Mock).mockResolvedValue({ status: 500, data: { error: 'Internal server error' } });
 
         await expect(client.getValueStreams()).rejects.toThrow('Failed to fetch the value streams.');
+    });
+
+    it('should create a value stream', async () => {
+        const expected = [
+            {
+                "id": "2",
+                "name": "Sylius",
+                "purpose": "Catalyze trade with technology",
+                "children": []
+            }
+        ];
+
+        (axios.post as jest.Mock).mockResolvedValue({ status: 201, data: expected });
+
+        const response = await client.createValueStream({
+            "name": "Sylius",
+            "purpose": "Catalyze trade with technology",
+        });
+
+        expect(response).toBe(expected);
     });
 })
