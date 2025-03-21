@@ -63,4 +63,29 @@ describe('MarketlumClient', () => {
 
         expect(response).toBe(expected);
     });
+
+    it('should create a value stream with a parent', async () => {
+        const expected = [
+            {
+                "id": "2",
+                "name": "Sylius",
+                "purpose": "Catalyze trade with technology",
+                "parent": {
+                    "id": "1",
+                    "name": "Value Stream 1",
+                },
+                "children": []
+            }
+        ];
+
+        (axios.post as jest.Mock).mockResolvedValue({ status: 201, data: expected });
+
+        const response = await client.createValueStream({
+            "name": "Sylius",
+            "purpose": "Catalyze trade with technology",
+            "parentId": "1"
+        });
+
+        expect(response).toBe(expected);
+    });
 })

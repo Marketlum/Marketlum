@@ -23,7 +23,7 @@ export function MarketlumValueStreamsView() {
                     <MarketlumValueStreamsTree data={valueStreams} />
                 </div>
                 <div className="col-span-3">
-                    <MarketlumValueStreamsForm update={setValueStreams} />
+                    <MarketlumValueStreamsForm />
                 </div>
             </div>
         </>

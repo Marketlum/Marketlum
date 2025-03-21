@@ -1,3 +1,5 @@
+"use client"
+
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -7,16 +9,29 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import { useState, useEffect } from "react"
+
+import api from "@/lib/api-sdk"
+
 export function MarketlumValueStreamSelector() {
+    const [valueStreams, setValueStreams] = useState([]);
+
+    useEffect(async () => {
+        setValueStreams(await api.getValueStreams());
+    }, []);
+
+    console.log(valueStreams);
+
     return (
         <>
-            <Label htmlFor="valueStream">Parent</Label>
             <Select>
-            <SelectTrigger id="framework">
+            <SelectTrigger id="parentId">
                 <SelectValue placeholder="Select parent value stream" />
             </SelectTrigger>
             <SelectContent position="popper">
-                <SelectItem value="next">Next.js</SelectItem>
+            {valueStreams.map((valueStream) => (
+                <SelectItem value={valueStream.id}>{valueStream.name}</SelectItem>
+            ))}
             </SelectContent>
             </Select>
         </>

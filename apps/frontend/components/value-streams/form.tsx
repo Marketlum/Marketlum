@@ -45,6 +45,7 @@ export function MarketlumValueStreamsForm() {
       // TODO: Display a toast notification.
     } finally {
       setIsLoading(false)
+      window.location.reload();
     }
   }
 
@@ -78,9 +79,24 @@ export function MarketlumValueStreamsForm() {
             name="purpose"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Purpose</FormLabel>
                 <FormControl>
                   <Textarea placeholder="The overall scope, potential, or deep intention the value stream will pursue or express." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
+            </div>
+            <br />
+            <div>
+            <FormField
+            control={form.control}
+            name="parentId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Parent</FormLabel>
+                <FormControl>
+                  <MarketlumValueStreamSelector />
                 </FormControl>
                 <FormMessage />
               </FormItem>

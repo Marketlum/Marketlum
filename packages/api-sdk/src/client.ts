@@ -19,7 +19,7 @@ export class MarketlumClient {
         throw new Error("Failed to fetch the value streams.");
     }
 
-    public async createValueStream(data: { name: string, purpose: string }) {
+    public async createValueStream(data: { name: string, purpose: string, parentId?: string }) {
         const response = await axios.post(`${this.baseUrl}/value-streams`, data);
 
         if (response.status === 201) {
