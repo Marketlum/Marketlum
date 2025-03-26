@@ -31,7 +31,6 @@ export function MarketlumValueStreamsView() {
         <>
             <div className="grid grid-cols-4 grid-rows-1 gap-4">
                 <div className="col-span-1">
-                    <div>{treeSeed}</div>
                     {treeLoading ? <MarketlumTreeSkeleton /> : <MarketlumValueStreamsTree data={valueStreams} />}
                 </div>
                 <div className="col-span-3">
