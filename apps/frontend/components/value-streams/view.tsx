@@ -11,7 +11,7 @@ import api from "@/lib/api-sdk";
 
 export function MarketlumValueStreamsView() {
     const [valueStreams, setValueStreams] = useState([]);
-    const [treeSeed, setTreeSeed] = useState(0);
+    const [treeSeed, setTreeSeed] = useState(Math.random());
     const [treeLoading, setTreeLoading] = useState(true);
 
     function refreshTree() {
@@ -23,19 +23,19 @@ export function MarketlumValueStreamsView() {
             setTreeLoading(true);
             await api.getValueStreams().then(setValueStreams);
             setTreeLoading(false);
-            console.log(treeSeed);
         }
         fetchTree();
-    }, []);
+    }, [treeSeed]);
 
     return (
         <>
             <div className="grid grid-cols-4 grid-rows-1 gap-4">
                 <div className="col-span-1">
+                    <div>{treeSeed}</div>
                     {treeLoading ? <MarketlumTreeSkeleton /> : <MarketlumValueStreamsTree data={valueStreams} />}
                 </div>
                 <div className="col-span-3">
-                    <MarketlumValueStreamsForm refreshTree={refreshTree} />
+                    <MarketlumValueStreamsForm onFormSubmit={refreshTree} />
                 </div>
             </div>
         </>

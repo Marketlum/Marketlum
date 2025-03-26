@@ -22,12 +22,13 @@ import { useState, FormEvent } from "react"
 import { MarketlumValueStreamSelector } from "@/components/value-streams/selector"
 
 import api from "@/lib/api-sdk"
-import { propagateServerField } from "next/dist/server/lib/render-server"
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
+  purpose: z.string().optional(),
+  parentId: z.string().optional(),
 })
 
 export function MarketlumValueStreamsForm(props) {
@@ -38,16 +39,22 @@ export function MarketlumValueStreamsForm(props) {
   })
 
   const onSubmit = async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-
     try {
-      await api.createValueStream(values);
+      setIsLoading(true)
+
+      console.log(values);
+      await api.createValueStream({
+        name: values.name,
+        purpose: values.purpose,
+        parentId: values.parentId,
+      });
     } catch (error) {
       // TODO: Display a toast notification.
     } finally {
       setIsLoading(false)
-      props.refreshTree();
     }
+      
+      props.onFormSubmit();
   }
 
   return (
@@ -97,7 +104,7 @@ export function MarketlumValueStreamsForm(props) {
               <FormItem>
                 <FormLabel>Parent</FormLabel>
                 <FormControl>
-                  <MarketlumValueStreamSelector />
+                  <MarketlumValueStreamSelector {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

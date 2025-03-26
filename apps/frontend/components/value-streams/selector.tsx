@@ -13,7 +13,7 @@ import { useState, useEffect } from "react"
 
 import api from "@/lib/api-sdk"
 
-export function MarketlumValueStreamSelector() {
+export function MarketlumValueStreamSelector(props) {
     const [valueStreams, setValueStreams] = useState([]);
 
     useEffect(() => {
@@ -44,7 +44,7 @@ export function MarketlumValueStreamSelector() {
 
     return (
         <>
-            <Select>
+            <Select {...props}>
             <SelectTrigger id="parentId">
                 <SelectValue placeholder="Select parent value stream" />
             </SelectTrigger>
