@@ -38,4 +38,14 @@ export class MarketlumClient {
 
         throw new Error("Failed to create the value stream.");
     }
+
+    public async getFlatValue(streamId: number) {
+        const response = await axios.get(`${this.baseUrl}/value/flat/${streamId}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the value.");
+    }
 }

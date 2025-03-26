@@ -4,6 +4,8 @@ import api from "@/lib/api-sdk";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
+import { MarketlumValueList } from "@/components/value/list";
+
 export function MarketlumValueStreamsSingleView() {
     const params = useParams();
     const id = params.id as string;
@@ -19,10 +21,10 @@ export function MarketlumValueStreamsSingleView() {
     }, [id]);
 
     return (
-        <>
-            <div>
-                <h1>{valueStream.name}</h1>
-            </div>
-        </>
+        <div>
+            <h1 className="text-2xl font-bold">{valueStream.name}</h1>
+            <p className="text-sm text-muted-foreground">{valueStream.purpose}</p>
+            <MarketlumValueList streamId={id} />
+        </div>
     )
 }

@@ -17,6 +17,11 @@ export class ValueController {
     return this.valueService.findAll();
   }
 
+  @Get('flat/:streamId')
+  findFlat(@Param('streamId') streamId: string) {
+    return this.valueService.findFlat(streamId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.valueService.findOne(id);

@@ -1,0 +1,20 @@
+import api from "@/lib/api-sdk";
+import { useState, useEffect } from "react";
+
+export function MarketlumValueList(props) {
+    const streamId = props.streamId;
+    const [values, setValues] = useState([]);
+    useEffect(() => {
+        async function fetchValues() {
+            const values = await api.getFlatValue(streamId);
+            setValues(values);
+        }
+        fetchValues();
+    }, [streamId]);
+    return (
+        <div>
+            <h1>Value List</h1>
+            {values.map((value) => { return <div>{value.name}</div>})}
+        </div>
+    )
+}
