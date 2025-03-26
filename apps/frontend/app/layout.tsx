@@ -31,6 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger className="-ml-1 p-3" />
               <main>{children}</main>
             </div>
+            <Toaster />
           </SidebarInset>
         </SidebarProvider>
       </body>

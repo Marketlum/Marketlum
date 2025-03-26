@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 
 import api from "@/lib/api-sdk";
 
-export function MarketlumValueStreamsView() {
+export function MarketlumValueStreamsIndexView() {
     const [valueStreams, setValueStreams] = useState([]);
     const [treeSeed, setTreeSeed] = useState(Math.random());
     const [treeLoading, setTreeLoading] = useState(true);
@@ -29,11 +29,11 @@ export function MarketlumValueStreamsView() {
 
     return (
         <>
-            <div className="grid grid-cols-4 grid-rows-1 gap-4">
+            <div className="grid grid-cols-3 grid-rows-1 gap-4">
                 <div className="col-span-1">
                     {treeLoading ? <MarketlumTreeSkeleton /> : <MarketlumValueStreamsTree data={valueStreams} />}
                 </div>
-                <div className="col-span-3">
+                <div className="col-span-2">
                     <MarketlumValueStreamsForm onFormSubmit={refreshTree} />
                 </div>
             </div>

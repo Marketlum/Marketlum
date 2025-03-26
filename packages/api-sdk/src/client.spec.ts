@@ -88,4 +88,25 @@ describe('MarketlumClient', () => {
 
         expect(response).toBe(expected);
     });
+
+    it('it gets a value stream by id', async () => {
+        const expected = [
+            {
+                "id": "2",
+                "name": "Sylius",
+                "purpose": "Catalyze trade with technology",
+                "parent": {
+                    "id": "1",
+                    "name": "Value Stream 1",
+                },
+                "children": []
+            }
+        ];
+
+        (axios.get as jest.Mock).mockResolvedValue({ status: 200, data: expected });
+
+        const response = await client.getValueStream(2);
+
+        expect(response).toBe(expected);
+    });
 })

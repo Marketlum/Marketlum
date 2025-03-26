@@ -1,7 +1,7 @@
-import { MarketlumValueStreamsView } from "@/components/value-streams/view";
+import { MarketlumValueStreamsIndexView } from "@/components/value-streams/index-view";
 
 export default function MarketlumValueStreamsPage() {
   return (
-    <MarketlumValueStreamsView />
+    <MarketlumValueStreamsIndexView />
   )
 }

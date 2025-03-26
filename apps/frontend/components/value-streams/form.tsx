@@ -18,6 +18,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useState, FormEvent } from "react"
+import { toast } from "sonner"
 
 import { MarketlumValueStreamSelector } from "@/components/value-streams/selector"
 
@@ -49,9 +50,10 @@ export function MarketlumValueStreamsForm(props) {
         parentId: values.parentId,
       });
     } catch (error) {
-      // TODO: Display a toast notification.
+        toast.error("Failed to create value stream.")
     } finally {
       setIsLoading(false)
+        toast.success("Value stream created successfully.")
     }
       
       props.onFormSubmit();
