@@ -16,11 +16,31 @@ import api from "@/lib/api-sdk"
 export function MarketlumValueStreamSelector() {
     const [valueStreams, setValueStreams] = useState([]);
 
-    useEffect(async () => {
-        setValueStreams(await api.getValueStreams());
+    useEffect(() => {
+        async function fetchOptions() {
+            setValueStreams(await api.getValueStreams());
+        }
+        fetchOptions();
     }, []);
 
-    console.log(valueStreams);
+    let depth = 1;
+
+    function renderChildren(valueStream) {
+        const indent = "---";
+
+        if (valueStream.children.length > 0) {
+            depth++;
+
+            return valueStream.children.map((child) => (
+                <>
+                    <SelectItem key={child.id} value={child.id}>{indent.repeat(depth)} {child.name}</SelectItem>
+                    {renderChildren(child)}
+                </>
+            ))
+         } else {
+            depth--;
+         }
+    }
 
     return (
         <>
@@ -30,7 +50,10 @@ export function MarketlumValueStreamSelector() {
             </SelectTrigger>
             <SelectContent position="popper">
             {valueStreams.map((valueStream) => (
-                <SelectItem value={valueStream.id}>{valueStream.name}</SelectItem>
+                <>
+                    <SelectItem key={valueStream.id} value={valueStream.id}>{valueStream.name}</SelectItem>
+                    {renderChildren(valueStream)}
+                </>
             ))}
             </SelectContent>
             </Select>

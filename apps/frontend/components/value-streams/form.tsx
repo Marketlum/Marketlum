@@ -22,6 +22,7 @@ import { useState, FormEvent } from "react"
 import { MarketlumValueStreamSelector } from "@/components/value-streams/selector"
 
 import api from "@/lib/api-sdk"
+import { propagateServerField } from "next/dist/server/lib/render-server"
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -29,7 +30,7 @@ const formSchema = z.object({
   }),
 })
 
-export function MarketlumValueStreamsForm() {
+export function MarketlumValueStreamsForm(props) {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -45,7 +46,7 @@ export function MarketlumValueStreamsForm() {
       // TODO: Display a toast notification.
     } finally {
       setIsLoading(false)
-      window.location.reload();
+      props.refreshTree();
     }
   }
 
