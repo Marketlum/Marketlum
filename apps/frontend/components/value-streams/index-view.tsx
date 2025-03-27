@@ -6,16 +6,14 @@ import MarketlumValueStreamsTree from "@/components/value-streams/tree"
 import { MarketlumValueStreamsForm } from "@/components/value-streams/form"
 import { MarketlumTreeSkeleton } from "@/components/tree-skeleton"
 import { useState, useEffect } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 
 import api from "@/lib/api-sdk";
 import { toast } from "sonner"
 
 export function MarketlumValueStreamsView() {
-    const [treeSeed, setTreeSeed] = useState(Math.random());
-
     function refreshTree() {
-        setTreeSeed(Math.random());
+        mutate('/value-streams');
     }
 
     const fetcher = () => api.getValueStreams();
