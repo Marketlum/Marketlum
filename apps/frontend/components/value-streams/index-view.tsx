@@ -6,32 +6,30 @@ import MarketlumValueStreamsTree from "@/components/value-streams/tree"
 import { MarketlumValueStreamsForm } from "@/components/value-streams/form"
 import { MarketlumTreeSkeleton } from "@/components/tree-skeleton"
 import { useState, useEffect } from "react";
+import useSWR from "swr";
 
 import api from "@/lib/api-sdk";
+import { toast } from "sonner"
 
-export function MarketlumValueStreamsIndexView() {
-    const [valueStreams, setValueStreams] = useState([]);
+export function MarketlumValueStreamsView() {
     const [treeSeed, setTreeSeed] = useState(Math.random());
-    const [treeLoading, setTreeLoading] = useState(true);
 
     function refreshTree() {
         setTreeSeed(Math.random());
     }
 
-    useEffect(() => {
-        async function fetchTree() {
-            setTreeLoading(true);
-            await api.getValueStreams().then(setValueStreams);
-            setTreeLoading(false);
-        }
-        fetchTree();
-    }, [treeSeed]);
+    const fetcher = () => api.getValueStreams();
+    const { data, error, isLoading } = useSWR('/value-streams', fetcher);
+
+    if (error) {
+        toast.error("Cannot load the value streams tree.");
+    }
 
     return (
         <>
             <div className="grid grid-cols-3 grid-rows-1 gap-4">
                 <div className="col-span-1">
-                    {treeLoading ? <MarketlumTreeSkeleton /> : <MarketlumValueStreamsTree data={valueStreams} />}
+                    {isLoading ? <MarketlumTreeSkeleton /> : <MarketlumValueStreamsTree data={data} />}
                 </div>
                 <div className="col-span-2">
                     <MarketlumValueStreamsForm onFormSubmit={refreshTree} />

@@ -1,7 +1,7 @@
-import { MarketlumValueStreamsSingleView } from "@/components/value-streams/single-view";
+import { MarketlumValueStreamView } from "@/components/value-streams/single-view";
 
-export default function MarketlumValueStreamsSinglePage() {
+export default function MarketlumValueStreamPage() {
   return (
-    <MarketlumValueStreamsSingleView />
+    <MarketlumValueStreamView />
   )
 }

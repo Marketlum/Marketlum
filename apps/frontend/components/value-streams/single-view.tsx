@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 
 import { MarketlumValueList } from "@/components/value/list";
 
-export function MarketlumValueStreamsSingleView() {
+export function MarketlumValueStreamView() {
     const params = useParams();
     const id = params.id as string;
 
