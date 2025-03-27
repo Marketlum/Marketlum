@@ -39,13 +39,18 @@ export function MarketlumValueStreamSelector(props) {
             ))
          } else {
             depth--;
+
+            if (depth < 0) { depth = 0; }
          }
     }
 
     return (
         <>
-            <Select {...props}>
-            <SelectTrigger id="parentId">
+            <Select onValueChange={props.onChange}
+            defaultValue={props.value}
+            value={props.value}
+            {...props}>
+            <SelectTrigger>
                 <SelectValue placeholder="Select parent value stream" />
             </SelectTrigger>
             <SelectContent position="popper">
