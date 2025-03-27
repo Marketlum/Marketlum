@@ -64,7 +64,7 @@ export class ValueService {
   }
 
   findFlat(streamId: string): Promise<Value[]> {
-    return this.valueRepository.find({ where: {"streamId": streamId} });
+    return this.valueRepository.find({ where: {"stream": {"id": streamId}} });
   }
 
   async findOne(id: string): Promise<Value | null> {
