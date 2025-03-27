@@ -9,39 +9,34 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { useState, useEffect } from "react"
+import { MarketlumSelectSkeleton } from "@/components/select-skeleton"
 
 import api from "@/lib/api-sdk"
 
+import useSWR from "swr"
+
 export function MarketlumValueStreamSelector(props) {
-    const [valueStreams, setValueStreams] = useState([]);
+    const fetcher = () => api.getValueStreams();
+    const { data, error, isLoading } = useSWR('/value-streams', fetcher);
 
-    useEffect(() => {
-        async function fetchOptions() {
-            setValueStreams(await api.getValueStreams());
-        }
-        fetchOptions();
-    }, []);
+    if (error) {
+        toast.error("Cannot load the value streams tree.");
+    }
 
-    let depth = 1;
+    if (isLoading) {
+        return <MarketlumSelectSkeleton /> 
+    }
 
     function renderChildren(valueStream) {
-        const indent = "---";
-
         if (valueStream.children.length > 0) {
-            depth++;
 
             return valueStream.children.map((child) => (
                 <>
-                    <SelectItem key={child.id} value={child.id}>{indent.repeat(depth)} {child.name}</SelectItem>
+                    <SelectItem key={child.id} value={child.id}>{child.name}</SelectItem>
                     {renderChildren(child)}
                 </>
             ))
-         } else {
-            depth--;
-
-            if (depth < 0) { depth = 0; }
-         }
+        }
     }
 
     return (
@@ -54,7 +49,7 @@ export function MarketlumValueStreamSelector(props) {
                 <SelectValue placeholder="Select parent value stream" />
             </SelectTrigger>
             <SelectContent position="popper">
-            {valueStreams.map((valueStream) => (
+            {data.map((valueStream) => (
                 <>
                     <SelectItem key={valueStream.id} value={valueStream.id}>{valueStream.name}</SelectItem>
                     {renderChildren(valueStream)}
