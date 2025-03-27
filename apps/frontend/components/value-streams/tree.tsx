@@ -12,7 +12,6 @@ export default function MarketlumValueStreamsTree({ data }: { data: TreeDataItem
       item.actions = (
         <div>
           <Button variant="outline" size="icon" onClick={() => router.push(`/value-streams/${item.id}`)}><Eye /></Button>
-          <Button variant="outline" size="icon"><Pencil /></Button>
           <Button variant="outline" size="icon"><Trash /></Button>
         </div>
       );
