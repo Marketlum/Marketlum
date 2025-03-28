@@ -76,7 +76,7 @@ export function MarketlumValueStreamsForm(props) {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Name of the new value stream" {...field} />
+                  <Input placeholder="Name of the new value stream" data-testid="form-name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -114,7 +114,7 @@ export function MarketlumValueStreamsForm(props) {
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button type="submit">{isLoading ? 'Creating...' : 'Create'}</Button>
+            <Button type="submit" data-testid="form-submit">{isLoading ? 'Creating...' : 'Create'}</Button>
           </CardFooter>
         </Card>
       </form>
