@@ -1,6 +1,18 @@
 import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
 
-import { Eye, Pencil, Trash } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+import { Eye, Trash } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
  
@@ -12,7 +24,24 @@ export default function MarketlumValueStreamsTree({ data }: { data: TreeDataItem
       item.actions = (
         <div>
           <Button variant="outline" size="icon" onClick={() => router.push(`/value-streams/${item.id}`)}><Eye /></Button>
-          <Button variant="outline" size="icon"><Trash /></Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="icon"><Trash /></Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete your
+                  account and remove your data from our servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction>Continue</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         </div>
       );
 
@@ -26,6 +55,6 @@ export default function MarketlumValueStreamsTree({ data }: { data: TreeDataItem
   attachActions(data);
 
   return (
-    <TreeView data={data} expandAll={true} />
+    <TreeView data={data} expandAll={true} initialSelectedItemId={data[0].id} />
   );
 }

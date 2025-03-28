@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export class MarketlumClient {
+class MarketlumClient {
     constructor(
         private readonly apiKey: string,
         private readonly baseUrl: string = "https://api.marketlum.com"
@@ -49,3 +49,5 @@ export class MarketlumClient {
         throw new Error("Failed to fetch the value.");
     }
 }
+
+export default MarketlumClient;

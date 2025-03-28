@@ -1,18 +1,23 @@
 {
-    "name": "@marketlum/api-sdk",
-    "scripts": {
-        "test": "jest"
-    },
-    "devDependencies": {
-        "@types/jest": "^29.5.14",
-        "jest": "^29.7.0",
-        "ts-jest": "^29.2.6",
-        "typescript": "^5.8.2"
-    },
-    "engines": {
-        "node": ">=18"
-    },
-    "dependencies": {
-        "axios": "^1.8.4"
-    }
+  "name": "@marketlum/api-sdk",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.6",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "axios": "^1.8.4"
+  },
+  "version": "0.1.0",
+  "description": "Connects to Marketlum API",
+  "main": "index.ts",
+  "author": "",
+  "license": "MIT"
 }
