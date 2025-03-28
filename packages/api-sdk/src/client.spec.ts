@@ -1,5 +1,5 @@
 import axios from "axios";
-import { MarketlumClient } from "./client";
+import MarketlumClient from "./client";
 
 jest.mock('axios');
 
@@ -92,7 +92,7 @@ describe('MarketlumClient', () => {
     it('it gets a value stream by id', async () => {
         const expected = [
             {
-                "id": "2",
+                "id": "7c3041d7-a570-4e0c-aba8-f3490add9004",
                 "name": "Sylius",
                 "purpose": "Catalyze trade with technology",
                 "parent": {
@@ -105,8 +105,16 @@ describe('MarketlumClient', () => {
 
         (axios.get as jest.Mock).mockResolvedValue({ status: 200, data: expected });
 
-        const response = await client.getValueStream(2);
+        const response = await client.getValueStream("7c3041d7-a570-4e0c-aba8-f3490add9004");
 
         expect(response).toBe(expected);
+    });
+
+    it('it deletes value stream by id', async () => {
+        (axios.delete as jest.Mock).mockResolvedValue({ status: 200 });
+
+        const response = await client.deleteValueStream("7c3041d7-a570-4e0c-aba8-f3490add9004");
+
+        expect(response).toBe(true);
     });
 })

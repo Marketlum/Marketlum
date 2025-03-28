@@ -22,6 +22,6 @@ export class ValueStream {
   @TreeChildren()
   children: ValueStream[];
 
-  @TreeParent()
+  @TreeParent({ onDelete: 'CASCADE' })
   parent: ValueStream;
 }

@@ -29,6 +29,16 @@ class MarketlumClient {
         throw new Error("Failed to fetch the value stream.");
     }
 
+    public async deleteValueStream(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/value-streams/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the value stream.");
+    }
+
     public async createValueStream(data: { name: string, purpose: string, parentId?: string }) {
         const response = await axios.post(`${this.baseUrl}/value-streams`, data);
 
