@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 export function MarketlumValueListItem(props) {
     return (
-        <Card>
+        <Card className="w-100 h-50">
             <CardHeader>
                 <CardTitle>{props.details.name}</CardTitle>
                 <CardDescription>{props.details.purpose}</CardDescription>

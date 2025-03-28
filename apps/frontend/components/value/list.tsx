@@ -14,7 +14,6 @@ export function MarketlumValueList(props) {
     }, [streamId]);
     return (
         <div>
-            <h1>Value List</h1>
             {values.map((value) => { return <MarketlumValueListItem details={value} />})}
         </div>
     )

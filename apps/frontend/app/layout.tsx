@@ -25,10 +25,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SidebarProvider>
-        <MarketlumSidebar />
+          <MarketlumSidebar />
+          <SidebarTrigger className="-ml-1 p-3" />
           <SidebarInset>
             <div className="p-6">
-              <SidebarTrigger className="-ml-1 p-3" />
               <main>{children}</main>
             </div>
             <Toaster />
