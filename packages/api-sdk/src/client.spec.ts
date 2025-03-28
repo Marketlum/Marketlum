@@ -110,6 +110,14 @@ describe('MarketlumClient', () => {
         expect(response).toBe(expected);
     });
 
+    it('it updates a value stream by id', async () => {
+        (axios.patch as jest.Mock).mockResolvedValue({ status: 200 });
+
+        const response = await client.updateValueStream("7c3041d7-a570-4e0c-aba8-f3490add9004", {name: "Testing"});
+
+        expect(response).toBe(true);
+    });
+
     it('it deletes value stream by id', async () => {
         (axios.delete as jest.Mock).mockResolvedValue({ status: 200 });
 

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { MarketlumValueList } from "@/components/value/list";
+import MarketlumEditableValueStreamName from "./editable-name";
 
 export function MarketlumValueStreamView() {
     const params = useParams();
@@ -22,7 +23,7 @@ export function MarketlumValueStreamView() {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold">{valueStream.name}</h1>
+            <MarketlumEditableValueStreamName name={valueStream.name} id={valueStream.id} />
             <p className="text-sm text-muted-foreground">{valueStream.purpose}</p>
             <MarketlumValueList streamId={id} />
         </div>
