@@ -13,6 +13,7 @@ import {
   Map,
   Send,
   Users,
+  UserCog,
   LifeBuoy,
   Radio,
   Sparkles,
@@ -77,6 +78,11 @@ const data = {
       title: "Locales",
       url: "/locales",
       icon: Languages,
+    },
+    {
+      title: "Users",
+      url: "/users",
+      icon: UserCog,
     },
     {
       title: "Agreements",

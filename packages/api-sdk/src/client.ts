@@ -947,6 +947,171 @@ class MarketlumClient {
 
         throw new Error("Failed to seed locales.");
     }
+
+    // Auth methods
+
+    public async login(email: string, password: string): Promise<{
+        user: {
+            id: string;
+            email: string;
+            isActive: boolean;
+            agentId: string;
+            defaultLocaleId: string;
+            avatarFileId: string | null;
+        };
+        accessToken: string;
+    }> {
+        const response = await axios.post(`${this.baseUrl}/auth/login`, { email, password });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to login.");
+    }
+
+    public async logout(): Promise<{ ok: true }> {
+        const response = await axios.post(`${this.baseUrl}/auth/logout`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to logout.");
+    }
+
+    public async getMe(token: string): Promise<any> {
+        const response = await axios.get(`${this.baseUrl}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch current user.");
+    }
+
+    public async forgotPassword(email: string): Promise<{ ok: true }> {
+        const response = await axios.post(`${this.baseUrl}/auth/forgot-password`, { email });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to request password reset.");
+    }
+
+    public async resetPassword(token: string, newPassword: string): Promise<{ ok: true }> {
+        const response = await axios.post(`${this.baseUrl}/auth/reset-password`, { token, newPassword });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to reset password.");
+    }
+
+    // User methods
+
+    public async getUsers(params?: {
+        page?: number;
+        pageSize?: number;
+        q?: string;
+        isActive?: boolean;
+        agentId?: string;
+        localeId?: string;
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/users`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch users.");
+    }
+
+    public async getUser(id: string) {
+        const response = await axios.get(`${this.baseUrl}/users/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the user.");
+    }
+
+    public async createUser(data: {
+        email: string;
+        password: string;
+        isActive?: boolean;
+        avatarFileId?: string;
+        agentId: string;
+        relationshipAgreementId?: string;
+        birthday?: string;
+        joinedAt?: string;
+        leftAt?: string;
+        defaultLocaleId: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/users`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the user.");
+    }
+
+    public async updateUser(id: string, data: {
+        email?: string;
+        isActive?: boolean;
+        avatarFileId?: string | null;
+        agentId?: string;
+        relationshipAgreementId?: string | null;
+        birthday?: string | null;
+        joinedAt?: string | null;
+        leftAt?: string | null;
+        defaultLocaleId?: string;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/users/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the user.");
+    }
+
+    public async setUserPassword(id: string, newPassword: string): Promise<{ ok: true }> {
+        const response = await axios.post(`${this.baseUrl}/users/${id}/set-password`, { newPassword });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to set user password.");
+    }
+
+    public async deleteUser(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/users/${id}`);
+
+        if (response.status === 204) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the user.");
+    }
+
+    public async seedUsers(): Promise<{ inserted: number; skipped: number }> {
+        const response = await axios.post(`${this.baseUrl}/users/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed users.");
+    }
 }
 
 export default MarketlumClient;

@@ -15,6 +15,8 @@ import { AgreementsModule } from './agreements/agreements.module';
 import { FilesModule } from './files/files.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { LocalesModule } from './locales/locales.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { LocalesModule } from './locales/locales.module';
     FilesModule,
     LedgerModule,
     LocalesModule,
+    UsersModule,
+    AuthModule,
   ],
 })
 export class AppModule { }
