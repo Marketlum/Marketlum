@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Globe,
   HandHeart,
+  Landmark,
   Send,
   Users,
   LifeBuoy,
@@ -74,6 +75,11 @@ const data = {
       title: "Files",
       url: "/files",
       icon: FolderOpen,
+    },
+    {
+      title: "Ledger",
+      url: "/ledger",
+      icon: Landmark,
     },
   ],
   navSecondary: [

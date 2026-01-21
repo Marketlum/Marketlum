@@ -13,6 +13,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { GeographiesModule } from './geographies/geographies.module';
 import { AgreementsModule } from './agreements/agreements.module';
 import { FilesModule } from './files/files.module';
+import { LedgerModule } from './ledger/ledger.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { FilesModule } from './files/files.module';
     GeographiesModule,
     AgreementsModule,
     FilesModule,
+    LedgerModule,
   ],
 })
 export class AppModule { }

@@ -672,6 +672,184 @@ class MarketlumClient {
 
         throw new Error("Failed to seed files.");
     }
+
+    // Ledger Account methods
+
+    public async getAccounts(params?: {
+        page?: number;
+        limit?: number;
+        q?: string;
+        ownerAgentId?: string;
+        valueId?: string;
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/ledger/accounts`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch accounts.");
+    }
+
+    public async getAccount(id: string) {
+        const response = await axios.get(`${this.baseUrl}/ledger/accounts/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the account.");
+    }
+
+    public async createAccount(data: {
+        name: string;
+        ownerAgentId: string;
+        valueId: string;
+        description?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/ledger/accounts`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the account.");
+    }
+
+    public async updateAccount(id: string, data: {
+        name?: string;
+        description?: string;
+        ownerAgentId?: string;
+        valueId?: string;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/ledger/accounts/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the account.");
+    }
+
+    public async deleteAccount(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/ledger/accounts/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the account.");
+    }
+
+    // Ledger Transaction methods
+
+    public async getTransactions(params?: {
+        page?: number;
+        limit?: number;
+        accountId?: string;
+        fromAccountId?: string;
+        toAccountId?: string;
+        verified?: boolean;
+        dateFrom?: string;
+        dateTo?: string;
+        minAmount?: number;
+        maxAmount?: number;
+        q?: string;
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/ledger/transactions`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch transactions.");
+    }
+
+    public async getTransaction(id: string) {
+        const response = await axios.get(`${this.baseUrl}/ledger/transactions/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the transaction.");
+    }
+
+    public async createTransaction(data: {
+        fromAccountId: string;
+        toAccountId: string;
+        amount: number;
+        timestamp?: string;
+        verified?: boolean;
+        note?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/ledger/transactions`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the transaction.");
+    }
+
+    public async updateTransaction(id: string, data: {
+        fromAccountId?: string;
+        toAccountId?: string;
+        amount?: number;
+        timestamp?: string;
+        verified?: boolean;
+        note?: string;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/ledger/transactions/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the transaction.");
+    }
+
+    public async verifyTransaction(id: string, verified: boolean) {
+        const response = await axios.post(`${this.baseUrl}/ledger/transactions/${id}/verify`, { verified });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to verify the transaction.");
+    }
+
+    public async deleteTransaction(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/ledger/transactions/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the transaction.");
+    }
+
+    public async recalculateLedgerBalances(): Promise<{ recalculatedAccounts: number }> {
+        const response = await axios.post(`${this.baseUrl}/ledger/recalculate-balances`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to recalculate balances.");
+    }
+
+    public async seedLedger(): Promise<{ accounts: number; transactions: number }> {
+        const response = await axios.post(`${this.baseUrl}/ledger/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed ledger.");
+    }
 }
 
 export default MarketlumClient;
