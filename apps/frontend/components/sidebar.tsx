@@ -19,9 +19,10 @@ import {
   LifeBuoy,
   Radio,
   Sparkles,
+  Search,
 } from "lucide-react"
 
-import { MarketlumSidebarMainMenu } from "@/components/sidebar-main-menu"
+import { MarketlumSidebarMainMenu, type NavGroup } from "@/components/sidebar-main-menu"
 import { MarketlumSidebarSecondaryMenu } from "@/components/sidebar-secondary-menu"
 import { MarketlumSidebarUserMenu } from "@/components/sidebar-user-menu"
 import {
@@ -33,6 +34,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { Input } from "@/components/ui/input"
 
 const data = {
   user: {
@@ -40,73 +42,36 @@ const data = {
     email: "pawel@marketlum.com",
     avatar: "",
   },
-  navMain: [
+  navGroups: [
     {
-      title: "Value",
-      url: "/value",
-      icon: Diamond,
+      label: "Value & Assets",
+      items: [
+        { title: "Value", url: "/value", icon: Diamond },
+        { title: "Value Streams", url: "/value-streams", icon: HandHeart },
+        { title: "Taxonomies", url: "/taxonomies", icon: BookOpen },
+        { title: "Files", url: "/files", icon: FolderOpen },
+      ],
     },
     {
-      title: "Agents",
-      url: "/agents",
-      icon: Users,
+      label: "Organization",
+      items: [
+        { title: "Agents", url: "/agents", icon: Users },
+        { title: "Map", url: "/map", icon: Map },
+        { title: "Users", url: "/users", icon: UserCog },
+        { title: "Geography", url: "/geography", icon: Globe },
+        { title: "Locales", url: "/locales", icon: Languages },
+      ],
     },
     {
-      title: "Map",
-      url: "/map",
-      icon: Map,
+      label: "Commerce",
+      items: [
+        { title: "Offerings", url: "/offerings", icon: ShoppingCart },
+        { title: "Agreements", url: "/agreements", icon: FileSignature },
+        { title: "Ledger", url: "/ledger", icon: Landmark },
+        { title: "Channels", url: "/channels", icon: Radio },
+      ],
     },
-    {
-      title: "Taxonomies",
-      url: "/taxonomies",
-      icon: BookOpen,
-    },
-    {
-      title: "Value Streams",
-      url: "/value-streams",
-      icon: HandHeart,
-    },
-    {
-      title: "Channels",
-      url: "/channels",
-      icon: Radio,
-    },
-    {
-      title: "Geography",
-      url: "/geography",
-      icon: Globe,
-    },
-    {
-      title: "Locales",
-      url: "/locales",
-      icon: Languages,
-    },
-    {
-      title: "Users",
-      url: "/users",
-      icon: UserCog,
-    },
-    {
-      title: "Agreements",
-      url: "/agreements",
-      icon: FileSignature,
-    },
-    {
-      title: "Files",
-      url: "/files",
-      icon: FolderOpen,
-    },
-    {
-      title: "Ledger",
-      url: "/ledger",
-      icon: Landmark,
-    },
-    {
-      title: "Offerings",
-      url: "/offerings",
-      icon: ShoppingCart,
-    },
-  ],
+  ] as NavGroup[],
   navSecondary: [
     {
       title: "Support",
@@ -122,6 +87,22 @@ const data = {
 }
 
 export function MarketlumSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [searchQuery, setSearchQuery] = React.useState("")
+
+  const filteredGroups = React.useMemo(() => {
+    if (!searchQuery.trim()) return data.navGroups
+
+    const query = searchQuery.toLowerCase()
+    return data.navGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          item.title.toLowerCase().includes(query)
+        ),
+      }))
+      .filter((group) => group.items.length > 0)
+  }, [searchQuery])
+
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -140,9 +121,21 @@ export function MarketlumSidebar({ ...props }: React.ComponentProps<typeof Sideb
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-8 text-sm"
+            />
+          </div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        <MarketlumSidebarMainMenu items={data.navMain} />
+        <MarketlumSidebarMainMenu groups={filteredGroups} />
         <MarketlumSidebarSecondaryMenu items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

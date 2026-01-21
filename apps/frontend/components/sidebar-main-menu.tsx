@@ -19,60 +19,71 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
-export function MarketlumSidebarMainMenu({
-  items,
-}: {
-  items: {
+export type NavItem = {
+  title: string
+  url: string
+  icon: LucideIcon
+  isActive?: boolean
+  items?: {
     title: string
     url: string
-    icon: LucideIcon
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
   }[]
+}
+
+export type NavGroup = {
+  label: string
+  items: NavItem[]
+}
+
+export function MarketlumSidebarMainMenu({
+  groups,
+}: {
+  groups: NavGroup[]
 }) {
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>MARKET</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
-              {item.items?.length ? (
-                <>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuAction className="data-[state=open]:rotate-90">
-                      <ChevronRight />
-                      <span className="sr-only">Toggle</span>
-                    </SidebarMenuAction>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <a href={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </a>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </>
-              ) : null}
-            </SidebarMenuItem>
-          </Collapsible>
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    <>
+      {groups.map((group) => (
+        <SidebarGroup key={group.label}>
+          <SidebarGroupLabel>{group.label.toUpperCase()}</SidebarGroupLabel>
+          <SidebarMenu>
+            {group.items.map((item) => (
+              <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                  {item.items?.length ? (
+                    <>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuAction className="data-[state=open]:rotate-90">
+                          <ChevronRight />
+                          <span className="sr-only">Toggle</span>
+                        </SidebarMenuAction>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items?.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton asChild>
+                                <a href={subItem.url}>
+                                  <span>{subItem.title}</span>
+                                </a>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </>
+                  ) : null}
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   )
 }
