@@ -9,6 +9,7 @@ import {
   Send,
   Users,
   LifeBuoy,
+  Radio,
 } from "lucide-react"
 
 import { MarketlumSidebarMainMenu } from "@/components/sidebar-main-menu"
@@ -50,6 +51,11 @@ const data = {
       title: "Value Streams",
       url: "/value-streams",
       icon: HandHeart,
+    },
+    {
+      title: "Channels",
+      url: "/channels",
+      icon: Radio,
     },
   ],
   navSecondary: [

@@ -120,6 +120,80 @@ class MarketlumClient {
 
         throw new Error("Failed to delete the agent.");
     }
+
+    // Channel methods
+
+    public async getChannelsTree() {
+        const response = await axios.get(`${this.baseUrl}/channels/tree`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch channels tree.");
+    }
+
+    public async getChannels(parentId?: string, type?: string) {
+        const response = await axios.get(`${this.baseUrl}/channels`, {
+            params: { parentId, type }
+        });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch channels.");
+    }
+
+    public async getChannel(id: string) {
+        const response = await axios.get(`${this.baseUrl}/channels/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the channel.");
+    }
+
+    public async createChannel(data: { name: string; type: string; purpose?: string; parentId?: string }) {
+        const response = await axios.post(`${this.baseUrl}/channels`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the channel.");
+    }
+
+    public async updateChannel(id: string, data: { name?: string; type?: string; purpose?: string; parentId?: string }) {
+        const response = await axios.patch(`${this.baseUrl}/channels/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the channel.");
+    }
+
+    public async moveChannel(id: string, parentId: string | null) {
+        const response = await axios.post(`${this.baseUrl}/channels/${id}/move`, { parentId });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to move the channel.");
+    }
+
+    public async deleteChannel(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/channels/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the channel.");
+    }
 }
 
 export default MarketlumClient;

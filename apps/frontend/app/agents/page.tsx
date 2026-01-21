@@ -26,7 +26,7 @@ import {
 
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Pencil, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react"
+import { Pencil, Trash2, Plus, ChevronLeft, ChevronRight, Users } from "lucide-react"
 
 import api from "@/lib/api-sdk"
 
@@ -118,7 +118,10 @@ const AgentsPage = () => {
   return (
     <div className="flex flex-col space-y-3">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">AGENTS</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Users className="h-6 w-6" />
+          AGENTS
+        </h1>
         <Button onClick={() => setShowCreateForm(true)} data-testid="create-agent-button">
           <Plus className="mr-2 h-4 w-4" />
           Create Agent
