@@ -472,9 +472,12 @@ class MarketlumClient {
 
     // File methods
 
-    public async uploadFile(file: File): Promise<{ id: string; originalName: string; mimeType: string; sizeBytes: number }> {
+    public async uploadFile(file: File, folderId?: string): Promise<any> {
         const formData = new FormData();
         formData.append('file', file);
+        if (folderId) {
+            formData.append('folderId', folderId);
+        }
 
         const response = await axios.post(`${this.baseUrl}/files`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
@@ -487,6 +490,43 @@ class MarketlumClient {
         throw new Error("Failed to upload file.");
     }
 
+    public async uploadFiles(files: File[], folderId?: string): Promise<{ uploaded: any[]; failed: Array<{ originalName: string; reason: string }> }> {
+        const formData = new FormData();
+        for (const file of files) {
+            formData.append('files', file);
+        }
+        if (folderId) {
+            formData.append('folderId', folderId);
+        }
+
+        const response = await axios.post(`${this.baseUrl}/files/upload`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to upload files.");
+    }
+
+    public async getFiles(params?: {
+        page?: number;
+        limit?: number;
+        folderId?: string | null;
+        q?: string;
+        mimeGroup?: 'image' | 'video' | 'audio' | 'pdf' | 'doc' | 'other';
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/files`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch files.");
+    }
+
     public async getFile(id: string) {
         const response = await axios.get(`${this.baseUrl}/files/${id}`);
 
@@ -495,6 +535,26 @@ class MarketlumClient {
         }
 
         throw new Error("Failed to fetch the file.");
+    }
+
+    public async updateFile(id: string, data: { altText?: string | null; caption?: string | null; folderId?: string | null }) {
+        const response = await axios.patch(`${this.baseUrl}/files/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the file.");
+    }
+
+    public async moveFile(id: string, folderId: string | null) {
+        const response = await axios.post(`${this.baseUrl}/files/${id}/move`, { folderId });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to move the file.");
     }
 
     public async deleteFile(id: string) {
@@ -509,6 +569,108 @@ class MarketlumClient {
 
     public getFileDownloadUrl(id: string): string {
         return `${this.baseUrl}/files/${id}/download`;
+    }
+
+    public getFilePreviewUrl(id: string): string {
+        return `${this.baseUrl}/files/${id}/preview`;
+    }
+
+    public getFileThumbnailUrl(id: string): string {
+        return `${this.baseUrl}/files/${id}/thumbnail`;
+    }
+
+    // Image editing methods
+
+    public async cropImage(id: string, data: { x: number; y: number; width: number; height: number; outputFormat?: string }) {
+        const response = await axios.post(`${this.baseUrl}/files/${id}/edit/crop`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to crop image.");
+    }
+
+    public async resizeImage(id: string, data: { width?: number; height?: number; keepAspectRatio?: boolean }) {
+        const response = await axios.post(`${this.baseUrl}/files/${id}/edit/resize`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to resize image.");
+    }
+
+    public async grayscaleImage(id: string) {
+        const response = await axios.post(`${this.baseUrl}/files/${id}/edit/grayscale`, {});
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to convert image to grayscale.");
+    }
+
+    // Folder methods
+
+    public async getFoldersTree() {
+        const response = await axios.get(`${this.baseUrl}/files/folders/tree`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch folders tree.");
+    }
+
+    public async getFolder(id: string) {
+        const response = await axios.get(`${this.baseUrl}/files/folders/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the folder.");
+    }
+
+    public async createFolder(data: { name: string; parentId?: string }) {
+        const response = await axios.post(`${this.baseUrl}/files/folders`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the folder.");
+    }
+
+    public async updateFolder(id: string, data: { name?: string }) {
+        const response = await axios.patch(`${this.baseUrl}/files/folders/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the folder.");
+    }
+
+    public async deleteFolder(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/files/folders/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the folder.");
+    }
+
+    public async seedFiles(): Promise<{ inserted: number; skipped: number }> {
+        const response = await axios.post(`${this.baseUrl}/files/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed files.");
     }
 }
 

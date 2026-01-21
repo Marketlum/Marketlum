@@ -23,7 +23,9 @@ import {
   GATEWAY_OPTIONS,
   PARTY_ROLE_OPTIONS,
 } from "./types";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import { FilePicker } from "@/components/files/file-picker";
+import { FileUpload } from "@/components/files/types";
 import api from "@/lib/api-sdk";
 
 type Agent = {
@@ -78,16 +80,14 @@ export function AgreementForm({
       role: p.role,
     })) || []
   );
-  const [fileId, setFileId] = useState<string | null>(agreement?.fileId || null);
-  const [fileName, setFileName] = useState<string | null>(
-    agreement?.file?.originalName || null
+  const [selectedFile, setSelectedFile] = useState<FileUpload | null>(
+    agreement?.file ? (agreement.file as FileUpload) : null
   );
 
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<AgreementPartyRole | "">("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     // Fetch agents for party selection
@@ -121,27 +121,6 @@ export function AgreementForm({
     setParties(parties.filter((p) => p.agentId !== agentId));
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      const uploadedFile = await api.uploadFile(file);
-      setFileId(uploadedFile.id);
-      setFileName(uploadedFile.originalName);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setFileId(null);
-    setFileName(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -155,7 +134,7 @@ export function AgreementForm({
         content: content.trim() || undefined,
         completedAt: isCompleted ? new Date().toISOString() : null,
         parentId: parentId || agreement?.parentId || null,
-        fileId: fileId,
+        fileId: selectedFile?.id || null,
         parties: parties.map((p) => ({ agentId: p.agentId, role: p.role })),
       });
     } finally {
@@ -301,29 +280,10 @@ export function AgreementForm({
 
       <div className="space-y-2">
         <Label>Attachment</Label>
-        {fileName ? (
-          <div className="flex items-center gap-2 p-2 border rounded">
-            <span className="text-sm truncate flex-1">{fileName}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleRemoveFile}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Input
-              type="file"
-              onChange={handleFileChange}
-              disabled={isUploading}
-              className="flex-1"
-            />
-            {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
-          </div>
-        )}
+        <FilePicker
+          value={selectedFile}
+          onChange={setSelectedFile}
+        />
       </div>
 
       <div className="flex items-center space-x-2">

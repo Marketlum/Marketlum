@@ -6,6 +6,7 @@ import {
   Command,
   Diamond,
   FileSignature,
+  FolderOpen,
   Globe,
   HandHeart,
   Send,
@@ -68,6 +69,11 @@ const data = {
       title: "Agreements",
       url: "/agreements",
       icon: FileSignature,
+    },
+    {
+      title: "Files",
+      url: "/files",
+      icon: FolderOpen,
     },
   ],
   navSecondary: [
