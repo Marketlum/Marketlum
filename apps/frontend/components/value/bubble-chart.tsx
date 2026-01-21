@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Search, RotateCcw, List, ZoomIn, ZoomOut } from "lucide-react";
+import { Search, RotateCcw, List, ZoomIn, ZoomOut, Maximize, Minimize } from "lucide-react";
 
 // Color palette for value types
 const TYPE_COLORS: Record<ValueType, string> = {
@@ -30,6 +30,7 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<SVGGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fullscreenContainerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [transform, setTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity);
@@ -39,6 +40,7 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
   const [colorByType, setColorByType] = useState(true);
   const [hoveredNode, setHoveredNode] = useState<PackedNode | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Create a virtual root to handle multiple root values
   const rootData = useMemo((): Value => {
@@ -200,6 +202,40 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
     d3.select(svg).transition().duration(300).call(zoom.scaleBy, 0.67);
   }, []);
 
+  // Fullscreen toggle
+  const handleToggleFullscreen = useCallback(() => {
+    const container = fullscreenContainerRef.current;
+    if (!container) return;
+
+    if (!document.fullscreenElement) {
+      container.requestFullscreen().catch((err) => {
+        console.error("Error entering fullscreen:", err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      // Trigger a resize to update dimensions after fullscreen change
+      setTimeout(() => {
+        const container = containerRef.current;
+        if (container) {
+          const { width, height } = container.getBoundingClientRect();
+          if (width > 0 && height > 0) {
+            setDimensions({ width, height });
+          }
+        }
+      }, 100);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   // Navigate to first search match
   const handleSearchSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -275,7 +311,7 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
   const currentScale = transform.k;
 
   return (
-    <div className="flex flex-col h-full">
+    <div ref={fullscreenContainerRef} className={`flex flex-col h-full ${isFullscreen ? "bg-background" : ""}`}>
       {/* Controls */}
       <div className="flex items-center gap-4 p-4 border-b flex-wrap">
         <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-[200px] max-w-[300px]">
@@ -313,13 +349,16 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
           <Button variant="outline" size="icon" onClick={handleZoomIn} title="Zoom in">
             <ZoomIn className="h-4 w-4" />
           </Button>
+          <Button variant="outline" size="icon" onClick={handleToggleFullscreen} title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}>
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+          </Button>
           <Button variant="outline" size="sm" onClick={handleResetView}>
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>
         </div>
 
-        {onSwitchToList && (
+        {onSwitchToList && !isFullscreen && (
           <Button variant="ghost" size="sm" onClick={onSwitchToList}>
             <List className="h-4 w-4 mr-2" />
             List view
@@ -352,7 +391,7 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
       {/* Chart */}
       <div
         ref={containerRef}
-        className="flex-1 min-h-[400px] relative bg-muted/20 overflow-hidden"
+        className="flex-1 relative bg-muted/20 overflow-hidden"
       >
         <svg
           ref={svgRef}

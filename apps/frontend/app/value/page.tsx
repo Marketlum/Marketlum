@@ -412,7 +412,7 @@ const ValuePage = () => {
       )}
 
       {viewMode === "bubbles" && (
-        <div className="border rounded-lg overflow-hidden" style={{ height: "70vh" }}>
+        <div className="border rounded-lg overflow-hidden flex-1" style={{ minHeight: "calc(100vh - 220px)" }}>
           <ValueBubbleChart
             values={treeValues || []}
             onSwitchToList={() => setViewMode("list")}

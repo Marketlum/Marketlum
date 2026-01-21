@@ -70,7 +70,8 @@ type PaginatedResponse = {
   meta: PaginationMeta
 }
 
-const ITEMS_PER_PAGE = 5
+const PAGE_SIZE_OPTIONS = [5, 10, 25, 50]
+const DEFAULT_PAGE_SIZE = 10
 
 // Flatten geography tree for filter dropdown
 function flattenGeographies(geographies: Geography[], level = 0): { id: string; name: string; level: number; code: string }[] {
@@ -87,6 +88,7 @@ function flattenGeographies(geographies: Geography[], level = 0): { id: string; 
 const AgentsPage = () => {
   const [data, setData] = useState<PaginatedResponse | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null)
   const [deletingAgent, setDeletingAgent] = useState<Agent | null>(null)
@@ -94,8 +96,8 @@ const AgentsPage = () => {
   const [geographies, setGeographies] = useState<{ id: string; name: string; level: number; code: string }[]>([])
   const [filterGeographyId, setFilterGeographyId] = useState<string>("")
 
-  const fetchAgents = (page: number = currentPage, geographyId?: string) => {
-    api.getAgents(page, ITEMS_PER_PAGE, geographyId || undefined)
+  const fetchAgents = (page: number = currentPage, geographyId?: string, limit: number = itemsPerPage) => {
+    api.getAgents(page, limit, geographyId || undefined)
       .then((data) => setData(data))
       .catch((error) => console.error("Error fetching data:", error))
   }
@@ -107,22 +109,27 @@ const AgentsPage = () => {
   }, [])
 
   useEffect(() => {
-    fetchAgents(currentPage, filterGeographyId)
-  }, [currentPage, filterGeographyId])
+    fetchAgents(currentPage, filterGeographyId, itemsPerPage)
+  }, [currentPage, filterGeographyId, itemsPerPage])
 
   const handleCreateSubmit = () => {
     setShowCreateForm(false)
     setCurrentPage(1)
-    fetchAgents(1, filterGeographyId)
+    fetchAgents(1, filterGeographyId, itemsPerPage)
   }
 
   const handleEditSubmit = () => {
     setEditingAgent(null)
-    fetchAgents(currentPage, filterGeographyId)
+    fetchAgents(currentPage, filterGeographyId, itemsPerPage)
   }
 
   const handleGeographyFilterChange = (value: string) => {
     setFilterGeographyId(value)
+    setCurrentPage(1)
+  }
+
+  const handlePageSizeChange = (value: string) => {
+    setItemsPerPage(Number(value))
     setCurrentPage(1)
   }
 
@@ -137,7 +144,7 @@ const AgentsPage = () => {
       if (data && data.items.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1)
       } else {
-        fetchAgents(currentPage, filterGeographyId)
+        fetchAgents(currentPage, filterGeographyId, itemsPerPage)
       }
     } catch {
       toast.error("Failed to delete agent.")
@@ -263,13 +270,30 @@ const AgentsPage = () => {
         </TableBody>
       </Table>
 
-      {data.meta.totalPages > 1 && (
-        <div className="flex items-center justify-between px-2">
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to{" "}
-            {Math.min(currentPage * ITEMS_PER_PAGE, data.meta.totalItems)} of{" "}
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to{" "}
+            {Math.min(currentPage * itemsPerPage, data.meta.totalItems)} of{" "}
             {data.meta.totalItems} agents
           </p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Per page:</span>
+            <Select value={String(itemsPerPage)} onValueChange={handlePageSizeChange}>
+              <SelectTrigger className="w-[70px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {data.meta.totalPages > 1 && (
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -295,8 +319,8 @@ const AgentsPage = () => {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <AlertDialog open={!!deletingAgent} onOpenChange={() => setDeletingAgent(null)}>
         <AlertDialogContent>
