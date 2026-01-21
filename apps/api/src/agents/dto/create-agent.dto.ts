@@ -3,6 +3,7 @@ import {
     IsString,
     IsEnum,
     IsOptional,
+    IsUUID,
 } from 'class-validator';
 
 import { AgentType } from '../entities/agent.entity';
@@ -15,4 +16,8 @@ export class CreateAgentDto {
     @IsNotEmpty()
     @IsEnum(AgentType)
     type: AgentType;
+
+    @IsOptional()
+    @IsUUID()
+    geographyId?: string;
 }

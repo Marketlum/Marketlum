@@ -23,17 +23,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Pencil, Trash2, Plus, ChevronLeft, ChevronRight, Users } from "lucide-react"
+import { Pencil, Trash2, Plus, ChevronLeft, ChevronRight, Users, Globe } from "lucide-react"
 
 import api from "@/lib/api-sdk"
+import { Geography } from "@/components/geographies/types"
 
 type Agent = {
   id: string
   name: string
   type: string
+  geographyId?: string
+  geography?: {
+    id: string
+    name: string
+    code: string
+    level: string
+  }
 }
 
 type PaginationMeta = {
@@ -51,6 +66,18 @@ type PaginatedResponse = {
 
 const ITEMS_PER_PAGE = 5
 
+// Flatten geography tree for filter dropdown
+function flattenGeographies(geographies: Geography[], level = 0): { id: string; name: string; level: number; code: string }[] {
+  const result: { id: string; name: string; level: number; code: string }[] = []
+  for (const geo of geographies) {
+    result.push({ id: geo.id, name: geo.name, level, code: geo.code })
+    if (geo.children && geo.children.length > 0) {
+      result.push(...flattenGeographies(geo.children, level + 1))
+    }
+  }
+  return result
+}
+
 const AgentsPage = () => {
   const [data, setData] = useState<PaginatedResponse | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -58,26 +85,39 @@ const AgentsPage = () => {
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null)
   const [deletingAgent, setDeletingAgent] = useState<Agent | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [geographies, setGeographies] = useState<{ id: string; name: string; level: number; code: string }[]>([])
+  const [filterGeographyId, setFilterGeographyId] = useState<string>("")
 
-  const fetchAgents = (page: number = currentPage) => {
-    api.getAgents(page, ITEMS_PER_PAGE)
+  const fetchAgents = (page: number = currentPage, geographyId?: string) => {
+    api.getAgents(page, ITEMS_PER_PAGE, geographyId || undefined)
       .then((data) => setData(data))
       .catch((error) => console.error("Error fetching data:", error))
   }
 
   useEffect(() => {
-    fetchAgents(currentPage)
-  }, [currentPage])
+    api.getGeographiesTree()
+      .then((data) => setGeographies(flattenGeographies(data)))
+      .catch((error) => console.error("Error fetching geographies:", error))
+  }, [])
+
+  useEffect(() => {
+    fetchAgents(currentPage, filterGeographyId)
+  }, [currentPage, filterGeographyId])
 
   const handleCreateSubmit = () => {
     setShowCreateForm(false)
     setCurrentPage(1)
-    fetchAgents(1)
+    fetchAgents(1, filterGeographyId)
   }
 
   const handleEditSubmit = () => {
     setEditingAgent(null)
-    fetchAgents(currentPage)
+    fetchAgents(currentPage, filterGeographyId)
+  }
+
+  const handleGeographyFilterChange = (value: string) => {
+    setFilterGeographyId(value)
+    setCurrentPage(1)
   }
 
   const handleDelete = async () => {
@@ -91,7 +131,7 @@ const AgentsPage = () => {
       if (data && data.items.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1)
       } else {
-        fetchAgents(currentPage)
+        fetchAgents(currentPage, filterGeographyId)
       }
     } catch (error) {
       toast.error("Failed to delete agent.")
@@ -128,6 +168,25 @@ const AgentsPage = () => {
         </Button>
       </header>
 
+      <div className="flex items-center gap-2">
+        <Globe className="h-4 w-4 text-muted-foreground" />
+        <Select value={filterGeographyId || "_all"} onValueChange={(value) => handleGeographyFilterChange(value === "_all" ? "" : value)}>
+          <SelectTrigger className="w-[250px]" data-testid="geography-filter">
+            <SelectValue placeholder="Filter by geography" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">All geographies</SelectItem>
+            {geographies.map((geo) => (
+              <SelectItem key={geo.id} value={geo.id}>
+                <span style={{ paddingLeft: `${geo.level * 12}px` }}>
+                  {geo.name} ({geo.code})
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {showCreateForm && (
         <AgentForm onFormSubmit={handleCreateSubmit} />
       )}
@@ -142,6 +201,7 @@ const AgentsPage = () => {
           <TableRow>
             <TableHead className="w-[100px]">Name</TableHead>
             <TableHead>Type</TableHead>
+            <TableHead>Geography</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -151,6 +211,16 @@ const AgentsPage = () => {
               <TableCell className="font-medium">{agent.name}</TableCell>
               <TableCell>
                 <Badge variant="outline">{agent.type}</Badge>
+              </TableCell>
+              <TableCell>
+                {agent.geography ? (
+                  <span className="text-sm">
+                    {agent.geography.name}{" "}
+                    <span className="text-muted-foreground font-mono">({agent.geography.code})</span>
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
               </TableCell>
               <TableCell className="text-right space-x-2">
                 <Button

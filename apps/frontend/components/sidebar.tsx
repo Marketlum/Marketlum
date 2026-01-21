@@ -5,6 +5,7 @@ import {
   BookOpen,
   Command,
   Diamond,
+  Globe,
   HandHeart,
   Send,
   Users,
@@ -56,6 +57,11 @@ const data = {
       title: "Channels",
       url: "/channels",
       icon: Radio,
+    },
+    {
+      title: "Geography",
+      url: "/geography",
+      icon: Globe,
     },
   ],
   navSecondary: [

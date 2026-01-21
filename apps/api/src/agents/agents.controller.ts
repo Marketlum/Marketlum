@@ -18,13 +18,17 @@ export class AgentsController {
   async index(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('geographyId') geographyId?: string,
   ): Promise<Pagination<Agent>> {
     limit = limit > 100 ? 100 : limit;
-    return this.agentsService.paginate({
-      page,
-      limit,
-      route: 'http://localhost:3001/agents',
-    });
+    return this.agentsService.paginate(
+      {
+        page,
+        limit,
+        route: 'http://localhost:3001/agents',
+      },
+      { geographyId },
+    );
   }
 
   @Get(':id')

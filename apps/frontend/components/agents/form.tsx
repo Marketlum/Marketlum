@@ -29,10 +29,11 @@ import {
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
 import api from "@/lib/api-sdk"
+import { Geography } from "@/components/geographies/types"
 
 const agentTypes = [
   { value: "individual", label: "Individual" },
@@ -47,22 +48,43 @@ const formSchema = z.object({
   type: z.enum(["individual", "organization", "virtual"], {
     required_error: "Please select an agent type.",
   }),
+  geographyId: z.string().optional(),
 })
 
 type AgentFormProps = {
-  agent?: { id: string; name: string; type: string }
+  agent?: { id: string; name: string; type: string; geographyId?: string }
   onFormSubmit: () => void
+}
+
+// Flatten geography tree for select options
+function flattenGeographies(geographies: Geography[], level = 0): { id: string; name: string; level: number; code: string }[] {
+  const result: { id: string; name: string; level: number; code: string }[] = []
+  for (const geo of geographies) {
+    result.push({ id: geo.id, name: geo.name, level, code: geo.code })
+    if (geo.children && geo.children.length > 0) {
+      result.push(...flattenGeographies(geo.children, level + 1))
+    }
+  }
+  return result
 }
 
 export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [geographies, setGeographies] = useState<{ id: string; name: string; level: number; code: string }[]>([])
   const isEditing = !!agent
+
+  useEffect(() => {
+    api.getGeographiesTree()
+      .then((data) => setGeographies(flattenGeographies(data)))
+      .catch((error) => console.error("Error fetching geographies:", error))
+  }, [])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: agent?.name || "",
       type: (agent?.type as "individual" | "organization" | "virtual") || "organization",
+      geographyId: agent?.geographyId || "",
     },
   })
 
@@ -70,16 +92,20 @@ export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
     try {
       setIsLoading(true)
 
+      const geographyId = values.geographyId || undefined
+
       if (isEditing) {
         await api.updateAgent(agent.id, {
           name: values.name,
           type: values.type,
+          geographyId: geographyId || null,
         })
         toast.success("Agent updated successfully.")
       } else {
         await api.createAgent({
           name: values.name,
           type: values.type,
+          geographyId,
         })
         toast.success("Agent created successfully.")
       }
@@ -138,6 +164,33 @@ export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
                       {agentTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="geographyId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Geography (optional)</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(value === "_none" ? "" : value)} defaultValue={field.value || "_none"}>
+                    <FormControl>
+                      <SelectTrigger data-testid="agent-form-geography">
+                        <SelectValue placeholder="Select geography" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="_none">None</SelectItem>
+                      {geographies.map((geo) => (
+                        <SelectItem key={geo.id} value={geo.id}>
+                          <span style={{ paddingLeft: `${geo.level * 12}px` }}>
+                            {geo.name} ({geo.code})
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>

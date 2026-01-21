@@ -11,6 +11,10 @@ import {
   IPaginationOptions,
 } from 'nestjs-typeorm-paginate';
 
+export interface AgentFilterOptions {
+  geographyId?: string;
+}
+
 @Injectable()
 export class AgentsService {
   constructor(
@@ -28,16 +32,29 @@ export class AgentsService {
     return this.agentRepository.update(id, updateAgentDto);
   }
 
-  async paginate(options: IPaginationOptions): Promise<Pagination<Agent>> {
+  async paginate(
+    options: IPaginationOptions,
+    filters?: AgentFilterOptions,
+  ): Promise<Pagination<Agent>> {
     const queryBuilder = this.agentRepository
       .createQueryBuilder('agent')
+      .leftJoinAndSelect('agent.geography', 'geography')
       .orderBy('agent.createdAt', 'DESC');
+
+    if (filters?.geographyId) {
+      queryBuilder.andWhere('agent.geographyId = :geographyId', {
+        geographyId: filters.geographyId,
+      });
+    }
 
     return paginate<Agent>(queryBuilder, options);
   }
 
   findOne(id: string): Promise<Agent | null> {
-    return this.agentRepository.findOneBy({ id });
+    return this.agentRepository.findOne({
+      where: { id },
+      relations: ['geography'],
+    });
   }
 
   async remove(id: string): Promise<void> {

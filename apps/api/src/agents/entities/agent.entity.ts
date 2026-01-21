@@ -3,9 +3,12 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from "typeorm"
 
 import { ApiProperty } from '@nestjs/swagger';
+import { Geography } from '../../geographies/entities/geography.entity';
 
 export enum AgentType {
     INDIVIDUAL = "individual",
@@ -30,6 +33,15 @@ export class Agent {
   })
   @ApiProperty({ description: 'The type of the agent' })
   type: AgentType = AgentType.ORGANIZATION;
+
+  @ManyToOne(() => Geography, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'geographyId' })
+  @ApiProperty({ description: 'The geography associated with the agent', required: false })
+  geography?: Geography;
+
+  @Column({ type: 'uuid', nullable: true })
+  @ApiProperty({ description: 'The ID of the geography associated with the agent', required: false })
+  geographyId?: string;
 
   @CreateDateColumn()
   @ApiProperty({ description: 'The date when the agent was created' })
