@@ -49,10 +49,33 @@ const formSchema = z.object({
     required_error: "Please select an agent type.",
   }),
   geographyId: z.string().optional(),
+  street: z.string().max(255).optional(),
+  city: z.string().max(120).optional(),
+  postalCode: z.string().max(20).optional(),
+  country: z.string().max(120).optional(),
+  latitude: z.union([
+    z.number().min(-90).max(90),
+    z.string().transform((val) => val === "" ? undefined : parseFloat(val)),
+  ]).optional().nullable(),
+  longitude: z.union([
+    z.number().min(-180).max(180),
+    z.string().transform((val) => val === "" ? undefined : parseFloat(val)),
+  ]).optional().nullable(),
 })
 
 type AgentFormProps = {
-  agent?: { id: string; name: string; type: string; geographyId?: string }
+  agent?: {
+    id: string
+    name: string
+    type: string
+    geographyId?: string
+    street?: string
+    city?: string
+    postalCode?: string
+    country?: string
+    latitude?: number
+    longitude?: number
+  }
   onFormSubmit: () => void
 }
 
@@ -85,6 +108,12 @@ export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
       name: agent?.name || "",
       type: (agent?.type as "individual" | "organization" | "virtual") || "organization",
       geographyId: agent?.geographyId || "",
+      street: agent?.street || "",
+      city: agent?.city || "",
+      postalCode: agent?.postalCode || "",
+      country: agent?.country || "",
+      latitude: agent?.latitude ?? "",
+      longitude: agent?.longitude ?? "",
     },
   })
 
@@ -93,12 +122,20 @@ export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
       setIsLoading(true)
 
       const geographyId = values.geographyId || undefined
+      const latitude = typeof values.latitude === 'number' ? values.latitude : (values.latitude ? parseFloat(values.latitude as string) : undefined)
+      const longitude = typeof values.longitude === 'number' ? values.longitude : (values.longitude ? parseFloat(values.longitude as string) : undefined)
 
       if (isEditing) {
         await api.updateAgent(agent.id, {
           name: values.name,
           type: values.type,
           geographyId: geographyId || null,
+          street: values.street || null,
+          city: values.city || null,
+          postalCode: values.postalCode || null,
+          country: values.country || null,
+          latitude: !isNaN(latitude as number) ? latitude : null,
+          longitude: !isNaN(longitude as number) ? longitude : null,
         })
         toast.success("Agent updated successfully.")
       } else {
@@ -106,6 +143,12 @@ export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
           name: values.name,
           type: values.type,
           geographyId,
+          street: values.street || undefined,
+          city: values.city || undefined,
+          postalCode: values.postalCode || undefined,
+          country: values.country || undefined,
+          latitude: !isNaN(latitude as number) ? latitude : undefined,
+          longitude: !isNaN(longitude as number) ? longitude : undefined,
         })
         toast.success("Agent created successfully.")
       }
@@ -199,6 +242,126 @@ export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
                 </FormItem>
               )}
             />
+
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-sm font-medium mb-3">Address (optional)</h3>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="street"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Street</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Street address"
+                          data-testid="agent-form-street"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="City"
+                            data-testid="agent-form-city"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="postalCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Postal Code</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Postal code"
+                            data-testid="agent-form-postal-code"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Country"
+                          data-testid="agent-form-country"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="latitude"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Latitude</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="any"
+                            placeholder="-90 to 90"
+                            data-testid="agent-form-latitude"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="longitude"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Longitude</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="any"
+                            placeholder="-180 to 180"
+                            data-testid="agent-form-longitude"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button type="submit" data-testid="agent-form-submit">

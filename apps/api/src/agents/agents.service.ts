@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { Agent } from './entities/agent.entity';
 
 import {
@@ -54,6 +54,17 @@ export class AgentsService {
     return this.agentRepository.findOne({
       where: { id },
       relations: ['geography'],
+    });
+  }
+
+  async findAllWithCoordinates(): Promise<Agent[]> {
+    return this.agentRepository.find({
+      where: {
+        latitude: Not(IsNull()),
+        longitude: Not(IsNull()),
+      },
+      relations: ['geography'],
+      order: { name: 'ASC' },
     });
   }
 

@@ -163,7 +163,17 @@ class MarketlumClient {
         throw new Error("Failed to fetch the agent.");
     }
 
-    public async createAgent(data: { name: string; type: string; geographyId?: string }) {
+    public async createAgent(data: {
+        name: string;
+        type: string;
+        geographyId?: string;
+        street?: string;
+        city?: string;
+        postalCode?: string;
+        country?: string;
+        latitude?: number;
+        longitude?: number;
+    }) {
         const response = await axios.post(`${this.baseUrl}/agents`, data);
 
         if (response.status === 201) {
@@ -173,7 +183,17 @@ class MarketlumClient {
         throw new Error("Failed to create the agent.");
     }
 
-    public async updateAgent(id: string, data: { name?: string; type?: string; geographyId?: string | null }) {
+    public async updateAgent(id: string, data: {
+        name?: string;
+        type?: string;
+        geographyId?: string | null;
+        street?: string | null;
+        city?: string | null;
+        postalCode?: string | null;
+        country?: string | null;
+        latitude?: number | null;
+        longitude?: number | null;
+    }) {
         const response = await axios.patch(`${this.baseUrl}/agents/${id}`, data);
 
         if (response.status === 200) {
@@ -181,6 +201,16 @@ class MarketlumClient {
         }
 
         throw new Error("Failed to update the agent.");
+    }
+
+    public async getAgentsForMap() {
+        const response = await axios.get(`${this.baseUrl}/agents/map`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch agents for map.");
     }
 
     public async deleteAgent(id: string) {

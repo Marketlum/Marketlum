@@ -43,6 +43,30 @@ export class Agent {
   @ApiProperty({ description: 'The ID of the geography associated with the agent', required: false })
   geographyId?: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ description: 'Street address of the agent', required: false })
+  street?: string;
+
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  @ApiProperty({ description: 'City where the agent is located', required: false })
+  city?: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  @ApiProperty({ description: 'Postal code of the agent location', required: false })
+  postalCode?: string;
+
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  @ApiProperty({ description: 'Country where the agent is located', required: false })
+  country?: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  @ApiProperty({ description: 'Latitude coordinate for map display', required: false })
+  latitude?: number;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  @ApiProperty({ description: 'Longitude coordinate for map display', required: false })
+  longitude?: number;
+
   @CreateDateColumn()
   @ApiProperty({ description: 'The date when the agent was created' })
   createdAt: Date;

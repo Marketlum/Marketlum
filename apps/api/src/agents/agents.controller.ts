@@ -31,6 +31,11 @@ export class AgentsController {
     );
   }
 
+  @Get('map')
+  async getAgentsForMap(): Promise<Agent[]> {
+    return this.agentsService.findAllWithCoordinates();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.agentsService.findOne(id);

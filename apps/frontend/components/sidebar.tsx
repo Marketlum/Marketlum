@@ -9,6 +9,7 @@ import {
   Globe,
   HandHeart,
   Landmark,
+  Map,
   Send,
   Users,
   LifeBuoy,
@@ -45,6 +46,11 @@ const data = {
       title: "Agents",
       url: "/agents",
       icon: Users,
+    },
+    {
+      title: "Map",
+      url: "/map",
+      icon: Map,
     },
     {
       title: "Taxonomies",
