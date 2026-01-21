@@ -35,3 +35,6 @@ yarn-error.log*
 
 # Local history
 .lh
+
+# Uploads
+apps/api/uploads/

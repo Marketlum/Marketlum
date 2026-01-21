@@ -15,6 +15,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   Table,
   TableBody,
   TableCaption,
@@ -187,13 +193,22 @@ const AgentsPage = () => {
         </Select>
       </div>
 
-      {showCreateForm && (
-        <AgentForm onFormSubmit={handleCreateSubmit} />
-      )}
-
-      {editingAgent && (
-        <AgentForm agent={editingAgent} onFormSubmit={handleEditSubmit} />
-      )}
+      <Dialog open={showCreateForm || !!editingAgent} onOpenChange={(open) => {
+        if (!open) {
+          setShowCreateForm(false)
+          setEditingAgent(null)
+        }
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingAgent ? "Edit Agent" : "Create Agent"}</DialogTitle>
+          </DialogHeader>
+          <AgentForm
+            agent={editingAgent || undefined}
+            onFormSubmit={editingAgent ? handleEditSubmit : handleCreateSubmit}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Table>
         <TableCaption>List of agents participating in your market.</TableCaption>

@@ -11,11 +11,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -378,27 +378,25 @@ const AgreementsPage = () => {
         </Select>
       </div>
 
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
+      <Dialog open={showForm} onOpenChange={(open) => !open && handleCancelForm()}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
               {editingAgreement
                 ? "Edit Agreement"
                 : addingChildOf
                 ? "Add Annex"
                 : "Create Agreement"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AgreementForm
-              agreement={editingAgreement || undefined}
-              parentId={addingChildOf || undefined}
-              onSave={handleSave}
-              onCancel={handleCancelForm}
-            />
-          </CardContent>
-        </Card>
-      )}
+            </DialogTitle>
+          </DialogHeader>
+          <AgreementForm
+            agreement={editingAgreement || undefined}
+            parentId={addingChildOf || undefined}
+            onSave={handleSave}
+            onCancel={handleCancelForm}
+          />
+        </DialogContent>
+      </Dialog>
 
       <div className="border rounded-lg p-4">
         <AgreementsList

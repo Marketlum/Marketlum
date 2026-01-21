@@ -19,11 +19,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, Diamond, Search, TreePine, List, Database } from "lucide-react";
@@ -378,20 +378,18 @@ const ValuePage = () => {
 
       {viewMode === "list" && (
         <>
-          {(showCreateForm || editingValue) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{editingValue ? "Edit Value" : "Create Value"}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ValueInlineForm
-                  value={editingValue || undefined}
-                  onSave={editingValue ? handleSaveListEdit : handleSaveNewRoot}
-                  onCancel={handleCancelListForm}
-                />
-              </CardContent>
-            </Card>
-          )}
+          <Dialog open={showCreateForm || !!editingValue} onOpenChange={(open) => !open && handleCancelListForm()}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingValue ? "Edit Value" : "Create Value"}</DialogTitle>
+              </DialogHeader>
+              <ValueInlineForm
+                value={editingValue || undefined}
+                onSave={editingValue ? handleSaveListEdit : handleSaveNewRoot}
+                onCancel={handleCancelListForm}
+              />
+            </DialogContent>
+          </Dialog>
 
           <div className="border rounded-lg p-4">
             <ValueList

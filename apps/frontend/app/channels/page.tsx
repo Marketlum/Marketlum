@@ -14,6 +14,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -106,21 +112,25 @@ const ChannelsPage = () => {
         </Button>
       </header>
 
-      {formMode.type === "create" && (
-        <ChannelForm
-          parentId={formMode.parentId}
-          onFormSubmit={handleFormSubmit}
-          onCancel={handleCancel}
-        />
-      )}
-
-      {formMode.type === "edit" && (
-        <ChannelForm
-          channel={formMode.channel}
-          onFormSubmit={handleFormSubmit}
-          onCancel={handleCancel}
-        />
-      )}
+      <Dialog open={formMode.type !== "hidden"} onOpenChange={(open) => !open && handleCancel()}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {formMode.type === "edit"
+                ? "Edit Channel"
+                : formMode.type === "create" && formMode.parentId
+                ? "Add Sub-Channel"
+                : "Create Channel"}
+            </DialogTitle>
+          </DialogHeader>
+          <ChannelForm
+            channel={formMode.type === "edit" ? formMode.channel : undefined}
+            parentId={formMode.type === "create" ? formMode.parentId : undefined}
+            onFormSubmit={handleFormSubmit}
+            onCancel={handleCancel}
+          />
+        </DialogContent>
+      </Dialog>
 
       <div className="border rounded-lg p-4">
         <ChannelTree
