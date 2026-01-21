@@ -1,72 +1,240 @@
-import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
+"use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronRight, ChevronDown, Plus, Pencil, Trash2 } from "lucide-react";
+import { ValueStream } from "./types";
+import { ValueStreamIcon } from "./icons";
+import { ValueStreamInlineForm } from "./inline-form";
+import { cn } from "@/lib/utils";
 
-import { Eye, Trash } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useRouter } from 'next/navigation';
-import api from "@/lib/api-sdk";
-import { toast } from 'sonner';
-import { mutate } from "swr";
- 
-export default function MarketlumValueStreamsTree({ data }: { data: TreeDataItem[] }) {
-  const router = useRouter();
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
-  async function handleItemDelete(id: string) {
-      try {
-        await api.deleteValueStream(id);
-        toast.success("Value stream has been successfully deleted.")
-        mutate('/value-streams');
-      } catch(error) {
-        toast.error("Cannot delete a value stream right now.");
-      }
+type ValueStreamData = { name: string; purpose?: string; imageId?: string | null };
+
+type ValueStreamNodeProps = {
+  valueStream: ValueStream;
+  level: number;
+  editingId: string | null;
+  addingChildOf: string | null;
+  onEdit: (valueStream: ValueStream) => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (id: string, data: ValueStreamData) => Promise<void>;
+  onAddChild: (parentId: string) => void;
+  onCancelAddChild: () => void;
+  onSaveNewChild: (parentId: string, data: ValueStreamData) => Promise<void>;
+  onDelete: (valueStream: ValueStream) => void;
+};
+
+function ValueStreamNode({
+  valueStream,
+  level,
+  editingId,
+  addingChildOf,
+  onEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onAddChild,
+  onCancelAddChild,
+  onSaveNewChild,
+  onDelete,
+}: ValueStreamNodeProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const hasChildren = valueStream.children && valueStream.children.length > 0;
+  const isEditing = editingId === valueStream.id;
+  const isAddingChild = addingChildOf === valueStream.id;
+
+  if (isEditing) {
+    return (
+      <div style={{ paddingLeft: `${level * 24}px` }}>
+        <ValueStreamInlineForm
+          valueStream={valueStream}
+          onSave={(data) => onSaveEdit(valueStream.id, data)}
+          onCancel={onCancelEdit}
+        />
+      </div>
+    );
   }
 
-  const attachActions = (items => {
-    items.forEach(item => {
-      item.actions = (
-        <div>
-          <Button variant="outline" size="icon" onClick={() => router.push(`/value-streams/${item.id}`)}><Eye /></Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="icon"><Trash /></Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this value stream and associated data.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleItemDelete(item.id)}>Continue</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+  return (
+    <div>
+      <div
+        className={cn(
+          "flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted/50 group",
+        )}
+        style={{ paddingLeft: `${level * 24}px` }}
+      >
+        {/* Expand/Collapse button */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-5 h-5 flex items-center justify-center"
+          disabled={!hasChildren}
+        >
+          {hasChildren ? (
+            isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )
+          ) : (
+            <span className="w-4" />
+          )}
+        </button>
+
+        {/* Image or Icon */}
+        {valueStream.image ? (
+          <img
+            src={`${apiBaseUrl}/files/${valueStream.image.id}/thumbnail`}
+            alt={valueStream.image.altText || valueStream.name}
+            className="h-6 w-6 rounded object-cover shrink-0"
+          />
+        ) : (
+          <ValueStreamIcon className="h-4 w-4 shrink-0" />
+        )}
+
+        {/* Name */}
+        <span className="font-medium">{valueStream.name}</span>
+
+        {/* Purpose (truncated) */}
+        {valueStream.purpose && (
+          <span className="text-muted-foreground text-sm truncate max-w-[200px]">
+            — {valueStream.purpose}
+          </span>
+        )}
+
+        {/* Actions - visible on hover */}
+        <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => onAddChild(valueStream.id)}
+            title="Add child"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => onEdit(valueStream)}
+            title="Edit"
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => onDelete(valueStream)}
+            title="Delete"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
         </div>
-      );
+      </div>
 
-      if (item.children?.length > 0 ) {
-        attachActions(item.children);
-      }
-    })
+      {/* Inline add child form */}
+      {isAddingChild && (
+        <div style={{ paddingLeft: `${(level + 1) * 24}px` }}>
+          <ValueStreamInlineForm
+            onSave={(data) => onSaveNewChild(valueStream.id, data)}
+            onCancel={onCancelAddChild}
+          />
+        </div>
+      )}
 
-  })
+      {/* Children */}
+      {isExpanded && hasChildren && (
+        <div>
+          {valueStream.children!.map((child) => (
+            <ValueStreamNode
+              key={child.id}
+              valueStream={child}
+              level={level + 1}
+              editingId={editingId}
+              addingChildOf={addingChildOf}
+              onEdit={onEdit}
+              onCancelEdit={onCancelEdit}
+              onSaveEdit={onSaveEdit}
+              onAddChild={onAddChild}
+              onCancelAddChild={onCancelAddChild}
+              onSaveNewChild={onSaveNewChild}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
-  attachActions(data);
+type ValueStreamTreeProps = {
+  valueStreams: ValueStream[];
+  editingId: string | null;
+  addingChildOf: string | null;
+  addingRoot: boolean;
+  onEdit: (valueStream: ValueStream) => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (id: string, data: ValueStreamData) => Promise<void>;
+  onAddChild: (parentId: string) => void;
+  onCancelAddChild: () => void;
+  onSaveNewChild: (parentId: string, data: ValueStreamData) => Promise<void>;
+  onCancelAddRoot: () => void;
+  onSaveNewRoot: (data: ValueStreamData) => Promise<void>;
+  onDelete: (valueStream: ValueStream) => void;
+};
+
+export function ValueStreamTree({
+  valueStreams,
+  editingId,
+  addingChildOf,
+  addingRoot,
+  onEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onAddChild,
+  onCancelAddChild,
+  onSaveNewChild,
+  onCancelAddRoot,
+  onSaveNewRoot,
+  onDelete,
+}: ValueStreamTreeProps) {
+  if (valueStreams.length === 0 && !addingRoot) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No value streams yet. Add a root value stream to get started.
+      </div>
+    );
+  }
 
   return (
-    <TreeView data={data} expandAll={true} initialSelectedItemId={data[0].id} />
+    <div className="space-y-1">
+      {/* Add root form */}
+      {addingRoot && (
+        <ValueStreamInlineForm
+          onSave={onSaveNewRoot}
+          onCancel={onCancelAddRoot}
+        />
+      )}
+
+      {/* Tree nodes */}
+      {valueStreams.map((valueStream) => (
+        <ValueStreamNode
+          key={valueStream.id}
+          valueStream={valueStream}
+          level={0}
+          editingId={editingId}
+          addingChildOf={addingChildOf}
+          onEdit={onEdit}
+          onCancelEdit={onCancelEdit}
+          onSaveEdit={onSaveEdit}
+          onAddChild={onAddChild}
+          onCancelAddChild={onCancelAddChild}
+          onSaveNewChild={onSaveNewChild}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
   );
 }

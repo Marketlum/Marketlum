@@ -2,6 +2,7 @@ import {
     IsNotEmpty,
     IsString,
     IsOptional,
+    IsUUID,
 } from 'class-validator';
 
 export class CreateValueStreamDto {
@@ -16,4 +17,8 @@ export class CreateValueStreamDto {
     @IsOptional()
     @IsString()
     parentId: string;
+
+    @IsOptional()
+    @IsUUID()
+    imageId?: string;
 }

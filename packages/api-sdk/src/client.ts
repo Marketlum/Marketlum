@@ -39,17 +39,17 @@ class MarketlumClient {
         throw new Error("Failed to delete the value stream.");
     }
 
-    public async updateValueStream(id: string, data: { name?: string, purpose?: string }) {
+    public async updateValueStream(id: string, data: { name?: string, purpose?: string, imageId?: string | null }) {
         const response = await axios.patch(`${this.baseUrl}/value-streams/${id}`, data);
 
         if (response.status === 200) {
-            return true;
+            return response.data;
         }
 
         throw new Error("Failed to update the value stream.");
     }
 
-    public async createValueStream(data: { name: string, purpose: string, parentId?: string }) {
+    public async createValueStream(data: { name: string, purpose: string, parentId?: string, imageId?: string }) {
         const response = await axios.post(`${this.baseUrl}/value-streams`, data);
 
         if (response.status === 201) {
