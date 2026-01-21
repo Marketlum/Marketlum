@@ -13,6 +13,7 @@ import {
   Languages,
   Map,
   Send,
+  ShoppingCart,
   Users,
   UserCog,
   LifeBuoy,
@@ -99,6 +100,11 @@ const data = {
       title: "Ledger",
       url: "/ledger",
       icon: Landmark,
+    },
+    {
+      title: "Offerings",
+      url: "/offerings",
+      icon: ShoppingCart,
     },
   ],
   navSecondary: [

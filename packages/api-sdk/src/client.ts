@@ -1236,6 +1236,164 @@ class MarketlumClient {
 
         throw new Error("Failed to fetch dashboard stats.");
     }
+
+    // Offering methods
+
+    public async getOfferings(params?: {
+        page?: number;
+        limit?: number;
+        q?: string;
+        state?: 'draft' | 'live' | 'archived';
+        agentId?: string;
+        valueStreamId?: string;
+        active?: boolean;
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/offerings`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch offerings.");
+    }
+
+    public async getOffering(id: string) {
+        const response = await axios.get(`${this.baseUrl}/offerings/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the offering.");
+    }
+
+    public async createOffering(data: {
+        name: string;
+        description?: string;
+        purpose?: string;
+        link?: string;
+        activeFrom?: string;
+        activeUntil?: string;
+        agentId: string;
+        valueStreamId?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/offerings`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the offering.");
+    }
+
+    public async updateOffering(id: string, data: {
+        name?: string;
+        description?: string | null;
+        purpose?: string | null;
+        link?: string | null;
+        activeFrom?: string | null;
+        activeUntil?: string | null;
+        agentId?: string;
+        valueStreamId?: string | null;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/offerings/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the offering.");
+    }
+
+    public async deleteOffering(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/offerings/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the offering.");
+    }
+
+    public async transitionOffering(id: string, to: 'draft' | 'live' | 'archived') {
+        const response = await axios.post(`${this.baseUrl}/offerings/${id}/transition`, { to });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to transition the offering.");
+    }
+
+    public async addOfferingItem(offeringId: string, data: {
+        valueId: string;
+        quantity: number;
+        pricingFormula?: string;
+        pricingLink?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/offerings/${offeringId}/items`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to add item to offering.");
+    }
+
+    public async updateOfferingItem(offeringId: string, itemId: string, data: {
+        quantity?: number;
+        pricingFormula?: string;
+        pricingLink?: string;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/offerings/${offeringId}/items/${itemId}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update offering item.");
+    }
+
+    public async removeOfferingItem(offeringId: string, itemId: string) {
+        const response = await axios.delete(`${this.baseUrl}/offerings/${offeringId}/items/${itemId}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to remove item from offering.");
+    }
+
+    public async attachOfferingFile(offeringId: string, fileId: string) {
+        const response = await axios.post(`${this.baseUrl}/offerings/${offeringId}/files`, { fileId });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to attach file to offering.");
+    }
+
+    public async removeOfferingFile(offeringId: string, fileId: string) {
+        const response = await axios.delete(`${this.baseUrl}/offerings/${offeringId}/files/${fileId}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to remove file from offering.");
+    }
+
+    public async seedOfferings(): Promise<{ inserted: number; skipped: number }> {
+        const response = await axios.post(`${this.baseUrl}/offerings/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed offerings.");
+    }
 }
 
 export default MarketlumClient;

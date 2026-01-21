@@ -18,6 +18,7 @@ import { LocalesModule } from './locales/locales.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { OfferingsModule } from './offerings/offerings.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     UsersModule,
     AuthModule,
     DashboardModule,
+    OfferingsModule,
   ],
 })
 export class AppModule { }
