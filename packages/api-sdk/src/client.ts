@@ -1175,6 +1175,68 @@ class MarketlumClient {
 
         throw new Error("Failed to delete the taxonomy.");
     }
+
+    // Dashboard methods
+
+    public async getDashboardStats(): Promise<{
+        agents: {
+            total: number;
+            byType: {
+                individual: number;
+                organization: number;
+                virtual: number;
+            };
+            withLocation: number;
+        };
+        agreements: {
+            total: number;
+            open: number;
+            completed: number;
+        };
+        values: {
+            total: number;
+            byType: {
+                product: number;
+                service: number;
+                relationship: number;
+                right: number;
+            };
+        };
+        valueStreams: {
+            total: number;
+        };
+        users: {
+            total: number;
+            active: number;
+            inactive: number;
+        };
+        files: {
+            total: number;
+            totalSizeBytes: number;
+        };
+        ledger: {
+            accounts: number;
+            transactions: number;
+            verifiedTransactions: number;
+        };
+        geographies: {
+            total: number;
+        };
+        taxonomies: {
+            total: number;
+        };
+        channels: {
+            total: number;
+        };
+    }> {
+        const response = await axios.get(`${this.baseUrl}/dashboard/stats`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch dashboard stats.");
+    }
 }
 
 export default MarketlumClient;

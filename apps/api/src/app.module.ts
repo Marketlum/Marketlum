@@ -17,6 +17,7 @@ import { LedgerModule } from './ledger/ledger.module';
 import { LocalesModule } from './locales/locales.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AuthModule } from './auth/auth.module';
     LocalesModule,
     UsersModule,
     AuthModule,
+    DashboardModule,
   ],
 })
 export class AppModule { }

@@ -19,11 +19,11 @@ export class Taxonomy {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
-  description: string;
+  @Column({ type: 'varchar', nullable: true })
+  description: string | null;
 
-  @Column({ nullable: true })
-  link: string;
+  @Column({ type: 'varchar', nullable: true })
+  link: string | null;
 
   @ManyToOne(() => FileUpload, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'imageId' })
