@@ -1,5 +1,4 @@
-import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
-import { Folder } from 'lucide-react'; 
+import { TreeView, TreeDataItem } from '@/components/ui/tree-view'; 
 
 export function MarketlumTaxonomiesTree({ data }: { data: TreeDataItem[] }) {
   return (

@@ -2,6 +2,7 @@ import {
     IsNotEmpty,
     IsString,
     IsOptional,
+    IsUUID,
 } from 'class-validator';
 
 export class CreateTaxonomyDto {
@@ -11,13 +12,17 @@ export class CreateTaxonomyDto {
 
     @IsOptional()
     @IsString()
-    description: string;
+    description?: string;
 
     @IsOptional()
     @IsString()
-    link: string;
+    link?: string;
 
     @IsOptional()
-    @IsString()
-    parentId: string;
+    @IsUUID()
+    parentId?: string;
+
+    @IsOptional()
+    @IsUUID()
+    imageId?: string;
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   BookOpen,
   Diamond,
@@ -121,7 +122,7 @@ export function MarketlumSidebar({ ...props }: React.ComponentProps<typeof Sideb
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/">
+              <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-purple-500 text-sidebar-primary-foreground shadow-sm">
                   <Sparkles className="size-4" />
                 </div>
@@ -129,7 +130,7 @@ export function MarketlumSidebar({ ...props }: React.ComponentProps<typeof Sideb
                   <span className="truncate font-bold bg-gradient-to-r from-sidebar-primary to-purple-400 bg-clip-text text-transparent">Marketlum</span>
                   <span className="truncate text-xs text-sidebar-foreground/70">Conscious market development</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

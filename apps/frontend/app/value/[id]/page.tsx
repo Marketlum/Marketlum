@@ -1,14 +1,5 @@
 "use client"
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-
 import { useEffect, useState } from "react";
 
 const ValuePage = () => {

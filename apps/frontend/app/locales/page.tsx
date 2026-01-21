@@ -106,7 +106,7 @@ const LocalesPage = () => {
       } else {
         fetchLocales(currentPage, pageSize, debouncedSearch)
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete locale.")
     } finally {
       setIsDeleting(false)
@@ -136,7 +136,7 @@ const LocalesPage = () => {
       } else {
         toast.info("All seed locales already exist.")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to seed locales.")
     } finally {
       setIsSeeding(false)

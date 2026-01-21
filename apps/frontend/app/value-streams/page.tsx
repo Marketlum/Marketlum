@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MarketlumDefaultSkeleton } from "@/components/default-skeleton";
-import { ValueStreamTree } from "@/components/value-streams/tree";
-import { ValueStream } from "@/components/value-streams/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +18,26 @@ import { toast } from "sonner";
 import { Plus, HandHeart, Search } from "lucide-react";
 import axios from "axios";
 import api from "@/lib/api-sdk";
+import { GenericTree, FieldConfig, FormData, BaseTreeItem } from "@/components/shared/tree";
+import { ValueStreamIcon } from "@/components/value-streams/icons";
+import { FileUpload } from "@/components/files/types";
+
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+
+interface ValueStream extends BaseTreeItem {
+  id: string;
+  name: string;
+  purpose?: string;
+  image?: FileUpload | null;
+  imageId?: string | null;
+  children?: ValueStream[];
+}
+
+const VALUE_STREAM_FIELDS: FieldConfig[] = [
+  { name: "name", label: "Name", type: "text", required: true, minLength: 2, maxLength: 120 },
+  { name: "purpose", label: "Purpose", type: "textarea" },
+  { name: "image", label: "Image", type: "image" },
+];
 
 const ValueStreamsPage = () => {
   const [valueStreams, setValueStreams] = useState<ValueStream[] | null>(null);
@@ -85,9 +103,13 @@ const ValueStreamsPage = () => {
     setEditingId(null);
   };
 
-  const handleSaveEdit = async (id: string, data: { name: string; purpose?: string; imageId?: string | null }) => {
+  const handleSaveEdit = async (id: string, data: FormData) => {
     try {
-      await api.updateValueStream(id, data);
+      await api.updateValueStream(id, {
+        name: data.name as string,
+        purpose: data.purpose as string | undefined,
+        imageId: data.imageId as string | null,
+      });
       toast.success("Value stream updated successfully.");
       setEditingId(null);
       fetchValueStreams();
@@ -111,13 +133,13 @@ const ValueStreamsPage = () => {
     setAddingChildOf(null);
   };
 
-  const handleSaveNewChild = async (parentId: string, data: { name: string; purpose?: string; imageId?: string | null }) => {
+  const handleSaveNewChild = async (parentId: string, data: FormData) => {
     try {
       await api.createValueStream({
-        name: data.name,
-        purpose: data.purpose || "",
+        name: data.name as string,
+        purpose: (data.purpose as string) || "",
         parentId,
-        imageId: data.imageId || undefined,
+        imageId: data.imageId as string | undefined,
       });
       toast.success("Value stream created successfully.");
       setAddingChildOf(null);
@@ -142,12 +164,12 @@ const ValueStreamsPage = () => {
     setAddingRoot(false);
   };
 
-  const handleSaveNewRoot = async (data: { name: string; purpose?: string; imageId?: string | null }) => {
+  const handleSaveNewRoot = async (data: FormData) => {
     try {
       await api.createValueStream({
-        name: data.name,
-        purpose: data.purpose || "",
-        imageId: data.imageId || undefined,
+        name: data.name as string,
+        purpose: (data.purpose as string) || "",
+        imageId: data.imageId as string | undefined,
       });
       toast.success("Value stream created successfully.");
       setAddingRoot(false);
@@ -182,6 +204,28 @@ const ValueStreamsPage = () => {
     }
   };
 
+  const renderIcon = (valueStream: ValueStream) => {
+    if (valueStream.image) {
+      return (
+        <img
+          src={`${apiBaseUrl}/files/${valueStream.image.id}/thumbnail`}
+          alt={valueStream.image.altText || valueStream.name}
+          className="h-6 w-6 rounded object-cover shrink-0"
+        />
+      );
+    }
+    return <ValueStreamIcon className="h-4 w-4 shrink-0" />;
+  };
+
+  const renderSecondaryText = (valueStream: ValueStream) => {
+    if (!valueStream.purpose) return null;
+    return (
+      <span className="text-muted-foreground text-sm">
+        — {valueStream.purpose}
+      </span>
+    );
+  };
+
   if (!valueStreams) return <MarketlumDefaultSkeleton />;
 
   return (
@@ -210,11 +254,14 @@ const ValueStreamsPage = () => {
       </div>
 
       <div className="border rounded-lg p-4">
-        <ValueStreamTree
-          valueStreams={filteredValueStreams || []}
+        <GenericTree<ValueStream>
+          items={filteredValueStreams || []}
           editingId={editingId}
           addingChildOf={addingChildOf}
           addingRoot={addingRoot}
+          fields={VALUE_STREAM_FIELDS}
+          renderIcon={renderIcon}
+          renderSecondaryText={renderSecondaryText}
           onEdit={handleEdit}
           onCancelEdit={handleCancelEdit}
           onSaveEdit={handleSaveEdit}
@@ -224,6 +271,7 @@ const ValueStreamsPage = () => {
           onCancelAddRoot={handleCancelAddRoot}
           onSaveNewRoot={handleSaveNewRoot}
           onDelete={setDeletingValueStream}
+          emptyMessage="No value streams yet. Add a root value stream to get started."
         />
       </div>
 

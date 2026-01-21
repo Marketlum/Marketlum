@@ -64,7 +64,7 @@ export function ValueInlineForm({ value, defaultParentType, onSave, onCancel }: 
         parentType,
         fileIds: files.map((f) => f.id),
       });
-    } catch (error) {
+    } catch {
       // Error handling is done in parent
     } finally {
       setIsSubmitting(false);

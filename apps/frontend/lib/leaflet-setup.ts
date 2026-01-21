@@ -3,6 +3,7 @@ import L from 'leaflet';
 // Fix for default marker icons in Next.js/webpack environment
 // The default Leaflet icons don't work properly with webpack bundling
 export function setupLeafletIcons() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (L.Icon.Default.prototype as any)._getIconUrl;
 
   L.Icon.Default.mergeOptions({

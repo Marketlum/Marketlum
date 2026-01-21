@@ -109,8 +109,9 @@ export function TransactionForm({
         toast.success("Transaction created successfully");
       }
       onSuccess();
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Failed to save transaction";
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Failed to save transaction";
       toast.error(message);
     }
   };

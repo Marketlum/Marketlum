@@ -180,7 +180,17 @@ const AgreementsPage = () => {
     setAddingChildOf(null);
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: {
+    title: string;
+    category: AgreementCategory;
+    gateway: AgreementGateway;
+    link?: string;
+    content?: string;
+    completedAt?: string | null;
+    parentId?: string | null;
+    fileId?: string | null;
+    parties?: Array<{ agentId: string; role?: string }>;
+  }) => {
     try {
       if (editingAgreement) {
         await api.updateAgreement(editingAgreement.id, data);

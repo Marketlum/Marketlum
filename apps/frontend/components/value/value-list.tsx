@@ -82,8 +82,8 @@ export function ValueList({
                 <Badge variant="secondary">{getParentTypeLabel(value.parentType)}</Badge>
               </TableCell>
               <TableCell>
-                {(value as any).parent ? (
-                  <span className="text-sm">{(value as any).parent.name}</span>
+                {value.parent ? (
+                  <span className="text-sm">{value.parent.name}</span>
                 ) : (
                   <span className="text-muted-foreground">-</span>
                 )}

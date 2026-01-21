@@ -62,7 +62,7 @@ export function GeographyInlineForm({ geography, parentLevel, onSave, onCancel }
     setIsSubmitting(true);
     try {
       await onSave({ name: name.trim(), code: code.trim().toUpperCase(), level });
-    } catch (error) {
+    } catch {
       // Error handling is done in parent
     } finally {
       setIsSubmitting(false);

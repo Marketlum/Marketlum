@@ -24,7 +24,7 @@ export function MarketlumTaxonomiesForm() {
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
       const response = await fetch("http://localhost:3001/taxonomies", {
@@ -36,7 +36,7 @@ export function MarketlumTaxonomiesForm() {
       if (!response.ok) throw new Error("Failed to submit");
 
       toast({ title: "Success!", description: "User created successfully." });
-    } catch (error) {
+    } catch {
       toast({ title: "Error", description: "Submission failed.", variant: "destructive" });
     } finally {
       setLoading(false);

@@ -139,7 +139,7 @@ const AgentsPage = () => {
       } else {
         fetchAgents(currentPage, filterGeographyId)
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete agent.")
     } finally {
       setIsDeleting(false)

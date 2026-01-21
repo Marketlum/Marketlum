@@ -112,8 +112,9 @@ export function LocaleForm({ locale, onFormSubmit }: LocaleFormProps) {
       }
 
       onFormSubmit()
-    } catch (error: any) {
-      if (error?.response?.status === 409) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError?.response?.status === 409) {
         toast.error("Locale code already exists.")
       } else {
         toast.error(isEditing ? "Failed to update locale." : "Failed to create locale.")

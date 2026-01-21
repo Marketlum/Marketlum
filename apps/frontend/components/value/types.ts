@@ -18,6 +18,10 @@ export type Value = {
     id: string;
     name: string;
   };
+  parent?: {
+    id: string;
+    name: string;
+  };
   files?: FileUpload[];
   children?: Value[];
 };

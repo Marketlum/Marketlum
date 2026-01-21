@@ -316,50 +316,44 @@ export class UsersService {
     let skipped = 0;
 
     // Get or create required locales
-    let enUSLocale = await this.localeRepository.findOne({ where: { code: 'en-US' } });
-    if (!enUSLocale) {
-      enUSLocale = await this.localeRepository.save(this.localeRepository.create({ code: 'en-US' }));
+    const localeCodes = ['en-US', 'pl-PL', 'de-DE', 'fr-FR', 'es-ES'];
+    const locales: Record<string, any> = {};
+    for (const code of localeCodes) {
+      let locale = await this.localeRepository.findOne({ where: { code } });
+      if (!locale) {
+        locale = await this.localeRepository.save(this.localeRepository.create({ code }));
+      }
+      locales[code] = locale;
     }
 
-    let plPLLocale = await this.localeRepository.findOne({ where: { code: 'pl-PL' } });
-    if (!plPLLocale) {
-      plPLLocale = await this.localeRepository.save(this.localeRepository.create({ code: 'pl-PL' }));
-    }
-
-    // Get or create required agents
-    let marketlumAgent = await this.agentRepository.findOne({ where: { name: 'Marketlum' } });
-    if (!marketlumAgent) {
-      marketlumAgent = await this.agentRepository.save(
-        this.agentRepository.create({ name: 'Marketlum', type: 'organization' as any }),
-      );
-    }
-
-    let pawelAgent = await this.agentRepository.findOne({ where: { name: 'Paweł' } });
-    if (!pawelAgent) {
-      pawelAgent = await this.agentRepository.save(
-        this.agentRepository.create({ name: 'Paweł', type: 'individual' as any }),
-      );
-    }
-
-    // Seed users
-    const seedUsers = [
-      {
-        email: 'admin@marketlum.com',
-        password: 'Admin123!',
-        agentId: marketlumAgent.id,
-        defaultLocaleId: enUSLocale.id,
-        isActive: true,
-      },
-      {
-        email: 'pawel@marketlum.com',
-        password: 'Pawel123!',
-        agentId: pawelAgent.id,
-        defaultLocaleId: plPLLocale.id,
-        isActive: true,
-      },
+    // Seed user data with names, birthdays, and joined dates
+    const seedUsersData = [
+      { name: 'Admin', email: 'admin@marketlum.com', locale: 'en-US', type: 'organization', birthday: null, joinedAt: '2023-01-15', isActive: true },
+      { name: 'Paweł Jędrzejewski', email: 'pawel@marketlum.com', locale: 'pl-PL', type: 'individual', birthday: '1988-03-22', joinedAt: '2023-01-15', isActive: true },
+      { name: 'Anna Kowalska', email: 'anna.kowalska@example.com', locale: 'pl-PL', type: 'individual', birthday: '1992-07-14', joinedAt: '2023-02-10', isActive: true },
+      { name: 'John Smith', email: 'john.smith@example.com', locale: 'en-US', type: 'individual', birthday: '1985-11-30', joinedAt: '2023-03-05', isActive: true },
+      { name: 'Marie Dupont', email: 'marie.dupont@example.com', locale: 'fr-FR', type: 'individual', birthday: '1990-05-18', joinedAt: '2023-03-20', isActive: true },
+      { name: 'Hans Mueller', email: 'hans.mueller@example.com', locale: 'de-DE', type: 'individual', birthday: '1978-09-03', joinedAt: '2023-04-01', isActive: true },
+      { name: 'Sofia Garcia', email: 'sofia.garcia@example.com', locale: 'es-ES', type: 'individual', birthday: '1995-12-25', joinedAt: '2023-04-15', isActive: true },
+      { name: 'Piotr Nowak', email: 'piotr.nowak@example.com', locale: 'pl-PL', type: 'individual', birthday: '1982-02-08', joinedAt: '2023-05-01', isActive: true },
+      { name: 'Emma Wilson', email: 'emma.wilson@example.com', locale: 'en-US', type: 'individual', birthday: '1998-08-17', joinedAt: '2023-05-20', isActive: true },
+      { name: 'Lucas Martin', email: 'lucas.martin@example.com', locale: 'fr-FR', type: 'individual', birthday: '1987-04-11', joinedAt: '2023-06-10', isActive: true },
+      { name: 'Klaus Schmidt', email: 'klaus.schmidt@example.com', locale: 'de-DE', type: 'individual', birthday: '1975-01-29', joinedAt: '2023-06-25', isActive: false },
+      { name: 'Isabella Rodriguez', email: 'isabella.rodriguez@example.com', locale: 'es-ES', type: 'individual', birthday: '1993-10-05', joinedAt: '2023-07-08', isActive: true },
+      { name: 'Katarzyna Wiśniewska', email: 'kasia.wisniewska@example.com', locale: 'pl-PL', type: 'individual', birthday: '1991-06-22', joinedAt: '2023-07-22', isActive: true },
+      { name: 'Michael Brown', email: 'michael.brown@example.com', locale: 'en-US', type: 'individual', birthday: '1980-03-14', joinedAt: '2023-08-05', isActive: true },
+      { name: 'Claire Lefevre', email: 'claire.lefevre@example.com', locale: 'fr-FR', type: 'individual', birthday: '1996-11-08', joinedAt: '2023-08-18', isActive: true },
+      { name: 'Thomas Weber', email: 'thomas.weber@example.com', locale: 'de-DE', type: 'individual', birthday: '1984-07-31', joinedAt: '2023-09-02', isActive: false },
+      { name: 'Carmen Lopez', email: 'carmen.lopez@example.com', locale: 'es-ES', type: 'individual', birthday: '1989-02-19', joinedAt: '2023-09-15', isActive: true },
+      { name: 'Tomasz Zieliński', email: 'tomasz.zielinski@example.com', locale: 'pl-PL', type: 'individual', birthday: '1994-09-27', joinedAt: '2023-10-01', isActive: true },
+      { name: 'Sarah Johnson', email: 'sarah.johnson@example.com', locale: 'en-US', type: 'individual', birthday: '1997-05-06', joinedAt: '2023-10-20', isActive: true },
+      { name: 'Pierre Bernard', email: 'pierre.bernard@example.com', locale: 'fr-FR', type: 'individual', birthday: '1983-12-12', joinedAt: '2023-11-05', isActive: true },
+      { name: 'Julia Fischer', email: 'julia.fischer@example.com', locale: 'de-DE', type: 'individual', birthday: '1999-04-23', joinedAt: '2023-11-18', isActive: true },
+      { name: 'Diego Fernandez', email: 'diego.fernandez@example.com', locale: 'es-ES', type: 'individual', birthday: '1986-08-09', joinedAt: '2023-12-01', isActive: true },
     ];
 
-    for (const userData of seedUsers) {
+    for (const userData of seedUsersData) {
+      // Check if user already exists
       const existing = await this.userRepository.findOne({
         where: { email: ILike(userData.email) },
       });
@@ -369,19 +363,32 @@ export class UsersService {
         continue;
       }
 
-      // Check if agent is already used
+      // Get or create agent for this user
+      let agent = await this.agentRepository.findOne({ where: { name: userData.name } });
+      if (!agent) {
+        agent = await this.agentRepository.save(
+          this.agentRepository.create({ name: userData.name, type: userData.type as any }),
+        );
+      }
+
+      // Check if agent is already used by another user
       const agentUsed = await this.userRepository.findOne({
-        where: { agentId: userData.agentId },
+        where: { agentId: agent.id },
       });
       if (agentUsed) {
         skipped++;
         continue;
       }
 
-      const passwordHash = await this.hashPassword(userData.password);
+      const passwordHash = await this.hashPassword('Password123!');
       const user = this.userRepository.create({
-        ...userData,
+        email: userData.email.toLowerCase(),
         passwordHash,
+        isActive: userData.isActive,
+        agentId: agent.id,
+        defaultLocaleId: locales[userData.locale].id,
+        birthday: userData.birthday ? new Date(userData.birthday) : null,
+        joinedAt: userData.joinedAt ? new Date(userData.joinedAt) : null,
       });
       await this.userRepository.save(user);
       inserted++;

@@ -25,7 +25,6 @@ import {
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -63,12 +62,20 @@ import { User, PaginatedUsersResponse } from "@/components/users/types";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
+const SORT_OPTIONS = [
+  { value: "createdAt_desc", label: "Newest first" },
+  { value: "createdAt_asc", label: "Oldest first" },
+  { value: "email_asc", label: "Email A-Z" },
+  { value: "email_desc", label: "Email Z-A" },
+];
+
 const UsersPage = () => {
   const [data, setData] = useState<PaginatedUsersResponse | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("createdAt_desc");
   const [debouncedSearch] = useDebounce(searchQuery, 300);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -89,17 +96,17 @@ const UsersPage = () => {
           pageSize: size,
           q: q || undefined,
           isActive,
-          sort: "createdAt_desc",
+          sort: sortBy,
         })
         .then((response) => setData(response))
         .catch((error) => console.error("Error fetching users:", error));
     },
-    [currentPage, pageSize, activeFilter]
+    [currentPage, pageSize, activeFilter, sortBy]
   );
 
   useEffect(() => {
     fetchUsers(currentPage, pageSize, debouncedSearch);
-  }, [currentPage, pageSize, debouncedSearch, activeFilter, fetchUsers]);
+  }, [currentPage, pageSize, debouncedSearch, activeFilter, sortBy, fetchUsers]);
 
   const handleCreateSubmit = () => {
     setShowCreateForm(false);
@@ -173,6 +180,11 @@ const UsersPage = () => {
     setCurrentPage(1);
   };
 
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setCurrentPage(1);
+  };
+
   const handleSeed = async () => {
     try {
       setIsSeeding(true);
@@ -224,6 +236,20 @@ const UsersPage = () => {
     return email.substring(0, 2).toUpperCase();
   };
 
+  const calculateAge = (birthday: string | null): number | null => {
+    if (!birthday) return null;
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const needsPagination = data ? data.total > pageSize : false;
+
   if (!data) return <MarketlumDefaultSkeleton />;
 
   return (
@@ -265,24 +291,38 @@ const UsersPage = () => {
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Show:</span>
-          <Select
-            value={pageSize.toString()}
-            onValueChange={handlePageSizeChange}
-          >
-            <SelectTrigger className="w-[80px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((size) => (
-                <SelectItem key={size} value={size.toString()}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={sortBy} onValueChange={handleSortChange}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {needsPagination && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Show:</span>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={handlePageSizeChange}
+            >
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <Dialog
@@ -312,13 +352,11 @@ const UsersPage = () => {
       />
 
       <Table>
-        <TableCaption>List of users in your system.</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[60px]">Avatar</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Agent</TableHead>
             <TableHead>Locale</TableHead>
             <TableHead>Joined</TableHead>
             <TableHead>Last Login</TableHead>
@@ -328,86 +366,93 @@ const UsersPage = () => {
         <TableBody>
           {data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                 {searchQuery
                   ? "No users found matching your search."
                   : "No users yet. Create one to get started."}
               </TableCell>
             </TableRow>
           ) : (
-            data.data.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  <Avatar className="h-8 w-8">
-                    {user.avatarFileId ? (
-                      <AvatarImage
-                        src={`${apiBaseUrl}/files/${user.avatarFileId}/thumbnail`}
-                        alt={user.email}
-                      />
-                    ) : null}
-                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-                  </Avatar>
-                </TableCell>
-                <TableCell className="font-medium">{user.email}</TableCell>
-                <TableCell>
-                  <Badge variant={user.isActive ? "default" : "secondary"}>
-                    {user.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </TableCell>
-                <TableCell>{user.agent?.name || "-"}</TableCell>
-                <TableCell>
-                  <code className="text-xs">{user.defaultLocale?.code || "-"}</code>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(user.joinedAt)}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(user.lastLoginAt)}
-                </TableCell>
-                <TableCell className="text-right space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleActive(user)}
-                    disabled={isToggling === user.id}
-                    title={user.isActive ? "Deactivate" : "Activate"}
-                  >
-                    {user.isActive ? (
-                      <UserX className="h-4 w-4" />
-                    ) : (
-                      <UserCheck className="h-4 w-4" />
+            data.data.map((user) => {
+              const age = calculateAge(user.birthday);
+              return (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <Avatar className="h-8 w-8">
+                      {user.avatarFileId ? (
+                        <AvatarImage
+                          src={`${apiBaseUrl}/files/${user.avatarFileId}/thumbnail`}
+                          alt={user.email}
+                        />
+                      ) : null}
+                      <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                    </Avatar>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {user.email}
+                    {age !== null && (
+                      <span className="ml-2 text-muted-foreground text-sm">({age})</span>
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSettingPasswordUser(user)}
-                    title="Set Password"
-                  >
-                    <Key className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setShowCreateForm(false);
-                      setEditingUser(user);
-                    }}
-                    title="Edit"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeletingUser(user)}
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.isActive ? "default" : "secondary"}>
+                      {user.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <code className="text-xs">{user.defaultLocale?.code || "-"}</code>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(user.joinedAt)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(user.lastLoginAt)}
+                  </TableCell>
+                  <TableCell className="text-right space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleActive(user)}
+                      disabled={isToggling === user.id}
+                      title={user.isActive ? "Deactivate" : "Activate"}
+                    >
+                      {user.isActive ? (
+                        <UserX className="h-4 w-4" />
+                      ) : (
+                        <UserCheck className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSettingPasswordUser(user)}
+                      title="Set Password"
+                    >
+                      <Key className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowCreateForm(false);
+                        setEditingUser(user);
+                      }}
+                      title="Edit"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeletingUser(user)}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

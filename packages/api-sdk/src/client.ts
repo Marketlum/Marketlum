@@ -1112,6 +1112,69 @@ class MarketlumClient {
 
         throw new Error("Failed to seed users.");
     }
+
+    // Taxonomy methods
+
+    public async getTaxonomies() {
+        const response = await axios.get(`${this.baseUrl}/taxonomies`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch taxonomies.");
+    }
+
+    public async getTaxonomy(id: string) {
+        const response = await axios.get(`${this.baseUrl}/taxonomies/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the taxonomy.");
+    }
+
+    public async createTaxonomy(data: {
+        name: string;
+        description?: string;
+        link?: string;
+        parentId?: string;
+        imageId?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/taxonomies`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the taxonomy.");
+    }
+
+    public async updateTaxonomy(id: string, data: {
+        name?: string;
+        description?: string | null;
+        link?: string | null;
+        imageId?: string | null;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/taxonomies/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the taxonomy.");
+    }
+
+    public async deleteTaxonomy(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/taxonomies/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the taxonomy.");
+    }
 }
 
 export default MarketlumClient;

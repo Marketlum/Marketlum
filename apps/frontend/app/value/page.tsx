@@ -8,6 +8,7 @@ import { ValueTree } from "@/components/value/value-tree";
 import { ValueList } from "@/components/value/value-list";
 import { Value, ValueType, ValueParentType } from "@/components/value/types";
 import { ValueInlineForm } from "@/components/value/inline-form";
+import { ValueBubbleChart } from "@/components/value/bubble-chart";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,11 +27,11 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Diamond, Search, TreePine, List, Database } from "lucide-react";
+import { Plus, Diamond, Search, TreePine, List, Database, Circle } from "lucide-react";
 import axios from "axios";
 import api from "@/lib/api-sdk";
 
-type ViewMode = "tree" | "list";
+type ViewMode = "tree" | "list" | "bubbles";
 
 type PaginationMeta = {
   itemCount: number;
@@ -85,7 +86,7 @@ const ValuePage = () => {
   };
 
   useEffect(() => {
-    if (viewMode === "tree") {
+    if (viewMode === "tree" || viewMode === "bubbles") {
       fetchTreeValues();
     } else {
       fetchListValues(currentPage);
@@ -310,7 +311,7 @@ const ValuePage = () => {
   };
 
   // Loading state
-  if (viewMode === "tree" && !treeValues) return <MarketlumDefaultSkeleton />;
+  if ((viewMode === "tree" || viewMode === "bubbles") && !treeValues) return <MarketlumDefaultSkeleton />;
   if (viewMode === "list" && !listData) return <MarketlumDefaultSkeleton />;
 
   return (
@@ -330,6 +331,10 @@ const ValuePage = () => {
               <TabsTrigger value="list" className="flex items-center gap-2">
                 <List className="h-4 w-4" />
                 List
+              </TabsTrigger>
+              <TabsTrigger value="bubbles" className="flex items-center gap-2">
+                <Circle className="h-4 w-4" />
+                Bubbles
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -404,6 +409,15 @@ const ValuePage = () => {
             />
           </div>
         </>
+      )}
+
+      {viewMode === "bubbles" && (
+        <div className="border rounded-lg overflow-hidden" style={{ height: "70vh" }}>
+          <ValueBubbleChart
+            values={treeValues || []}
+            onSwitchToList={() => setViewMode("list")}
+          />
+        </div>
       )}
 
       <AlertDialog open={!!deletingValue} onOpenChange={() => setDeletingValue(null)}>

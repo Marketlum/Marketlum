@@ -153,8 +153,9 @@ const LedgerPage = () => {
       await api.deleteAccount(deletingAccount.id);
       toast.success("Account deleted successfully");
       fetchAccounts();
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Failed to delete account";
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Failed to delete account";
       toast.error(message);
     } finally {
       setDeletingAccount(null);
@@ -185,8 +186,9 @@ const LedgerPage = () => {
       toast.success("Transaction deleted successfully");
       fetchTransactions();
       fetchAccounts(); // Refresh balances
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Failed to delete transaction";
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Failed to delete transaction";
       toast.error(message);
     } finally {
       setDeletingTransaction(null);
@@ -198,8 +200,9 @@ const LedgerPage = () => {
       await api.verifyTransaction(transaction.id, !transaction.verified);
       toast.success(transaction.verified ? "Transaction unverified" : "Transaction verified");
       fetchTransactions();
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Failed to update verification";
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Failed to update verification";
       toast.error(message);
     }
   };
@@ -223,7 +226,7 @@ const LedgerPage = () => {
       toast.success(`Seeded ${result.accounts} accounts and ${result.transactions} transactions`);
       fetchAccounts(1);
       fetchTransactions(1);
-    } catch (error) {
+    } catch {
       toast.error("Failed to seed ledger data");
     }
   };

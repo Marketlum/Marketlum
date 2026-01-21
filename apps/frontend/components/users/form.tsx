@@ -105,7 +105,7 @@ export function UserForm({ user, onFormSubmit }: UserFormProps) {
 
   useEffect(() => {
     if (user?.avatarFile) {
-      setAvatarFile(user.avatarFile as any);
+      setAvatarFile(user.avatarFile as FileUpload);
     }
   }, [user]);
 
@@ -114,7 +114,7 @@ export function UserForm({ user, onFormSubmit }: UserFormProps) {
       setIsLoading(true);
 
       if (isEditing) {
-        const updateData: any = {
+        const updateData = {
           email: values.email,
           isActive: values.isActive,
           agentId: values.agentId,

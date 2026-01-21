@@ -94,8 +94,9 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
         toast.success("Account created successfully");
       }
       onSuccess();
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Failed to save account";
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Failed to save account";
       toast.error(message);
     }
   };

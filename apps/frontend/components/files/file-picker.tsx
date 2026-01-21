@@ -19,7 +19,7 @@ import {
   Image as ImageIcon,
   File,
 } from "lucide-react";
-import { FileUpload, Folder, formatFileSize, isImageFile } from "./types";
+import { FileUpload, formatFileSize, isImageFile } from "./types";
 import { UploadDropzone } from "./upload-dropzone";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api-sdk";
@@ -42,7 +42,7 @@ function getFileIcon(file: FileUpload) {
   return File;
 }
 
-export function FilePicker({ value, onChange, accept }: FilePickerProps) {
+export function FilePicker({ value, onChange }: FilePickerProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"library" | "upload">("library");
 

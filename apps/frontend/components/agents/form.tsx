@@ -154,7 +154,7 @@ export function AgentForm({ agent, onFormSubmit }: AgentFormProps) {
       }
 
       onFormSubmit()
-    } catch (error) {
+    } catch {
       toast.error(isEditing ? "Failed to update agent." : "Failed to create agent.")
     } finally {
       setIsLoading(false)
