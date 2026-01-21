@@ -14,7 +14,7 @@ const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
 
-export function AppTaxonomiesForm() {
+export function MarketlumTaxonomiesForm() {
   const [loading, setLoading] = useState(false);
   const {
     register,
