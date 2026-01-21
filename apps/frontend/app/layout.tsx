@@ -26,9 +26,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SidebarProvider>
           <MarketlumSidebar />
-          <SidebarTrigger className="-ml-1 p-3" />
           <SidebarInset>
-            <div className="p-6">
+            <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <div className="h-4 w-px bg-border" />
+              <div className="flex-1" />
+            </header>
+            <div className="flex-1 p-6">
               <main>{children}</main>
             </div>
             <Toaster />
@@ -36,6 +40,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </SidebarProvider>
       </body>
     </html>
-    
   )
 }

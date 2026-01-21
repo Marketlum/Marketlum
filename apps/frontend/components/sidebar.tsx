@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
   BookOpen,
-  Command,
   Diamond,
   FileSignature,
   FolderOpen,
@@ -13,6 +12,7 @@ import {
   Users,
   LifeBuoy,
   Radio,
+  Sparkles,
 } from "lucide-react"
 
 import { MarketlumSidebarMainMenu } from "@/components/sidebar-main-menu"
@@ -97,13 +97,13 @@ export function MarketlumSidebar({ ...props }: React.ComponentProps<typeof Sideb
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
+              <a href="/">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-purple-500 text-sidebar-primary-foreground shadow-sm">
+                  <Sparkles className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Acme Inc.</span>
-                  <span className="truncate text-xs">Serve as an example market</span>
+                  <span className="truncate font-bold bg-gradient-to-r from-sidebar-primary to-purple-400 bg-clip-text text-transparent">Marketlum</span>
+                  <span className="truncate text-xs text-sidebar-foreground/70">Conscious market development</span>
                 </div>
               </a>
             </SidebarMenuButton>
