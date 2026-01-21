@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CreateValueDto } from './dto/create-value.dto';
 import { UpdateValueDto } from './dto/update-value.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, TreeRepository } from 'typeorm';
+import { Repository, TreeRepository, In } from 'typeorm';
 import { Value, ValueType, ValueParentType } from './entities/value.entity';
 import { ValueStream } from 'src/value_streams/entities/value_stream.entity';
 import { Agent } from 'src/agents/entities/agent.entity';
+import { FileUpload } from 'src/files/entities/file-upload.entity';
 import {
   paginate,
   Pagination,
@@ -268,6 +269,9 @@ export class ValueService {
 
     @InjectRepository(Agent)
     private agentRepository: Repository<Agent>,
+
+    @InjectRepository(FileUpload)
+    private fileUploadRepository: Repository<FileUpload>,
   ) {}
 
   async create(createValueDto: CreateValueDto) {
@@ -302,11 +306,41 @@ export class ValueService {
       value.agent = agent;
     }
 
+    if (createValueDto.fileIds && createValueDto.fileIds.length > 0) {
+      const files = await this.fileUploadRepository.findBy({ id: In(createValueDto.fileIds) });
+      value.files = files;
+    }
+
     return this.valueRepository.save(value);
   }
 
-  update(id: string, updateValueDto: UpdateValueDto) {
-    return this.valueRepository.update(id, updateValueDto);
+  async update(id: string, updateValueDto: UpdateValueDto) {
+    const { fileIds, ...rest } = updateValueDto;
+
+    // Update basic fields
+    if (Object.keys(rest).length > 0) {
+      await this.valueRepository.update(id, rest);
+    }
+
+    // Handle files if provided
+    if (fileIds !== undefined) {
+      const value = await this.valueRepository.findOne({
+        where: { id },
+        relations: ['files'],
+      });
+
+      if (value) {
+        if (fileIds.length > 0) {
+          const files = await this.fileUploadRepository.findBy({ id: In(fileIds) });
+          value.files = files;
+        } else {
+          value.files = [];
+        }
+        await this.valueRepository.save(value);
+      }
+    }
+
+    return this.findOne(id);
   }
 
   findAll(): Promise<Value[]> {
@@ -319,6 +353,7 @@ export class ValueService {
       .leftJoinAndSelect('value.stream', 'stream')
       .leftJoinAndSelect('value.agent', 'agent')
       .leftJoinAndSelect('value.parent', 'parent')
+      .leftJoinAndSelect('value.files', 'files')
       .orderBy('value.name', 'ASC');
 
     return paginate<Value>(queryBuilder, options);
@@ -329,7 +364,7 @@ export class ValueService {
   }
 
   async findOne(id: string): Promise<Value | null> {
-    return await this.valueRepository.findOne({ where: {"id": id}, relations: ["parent", "stream", "agent"] });
+    return await this.valueRepository.findOne({ where: {"id": id}, relations: ["parent", "stream", "agent", "files"] });
   }
 
   async remove(id: string): Promise<void> {

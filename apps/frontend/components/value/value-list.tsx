@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, ChevronLeft, ChevronRight, Paperclip } from "lucide-react";
 import { Value, getValueTypeLabel, getParentTypeLabel } from "./types";
 import { ValueTypeIcon } from "./icons";
 
@@ -53,6 +53,7 @@ export function ValueList({
             <TableHead>Type</TableHead>
             <TableHead>Parent Type</TableHead>
             <TableHead>Parent</TableHead>
+            <TableHead>Files</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -83,6 +84,16 @@ export function ValueList({
               <TableCell>
                 {(value as any).parent ? (
                   <span className="text-sm">{(value as any).parent.name}</span>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </TableCell>
+              <TableCell>
+                {value.files && value.files.length > 0 ? (
+                  <div className="flex items-center gap-1 text-muted-foreground text-sm">
+                    <Paperclip className="h-3 w-3" />
+                    {value.files.length}
+                  </div>
                 ) : (
                   <span className="text-muted-foreground">-</span>
                 )}

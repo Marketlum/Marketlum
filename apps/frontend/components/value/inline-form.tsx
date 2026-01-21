@@ -13,11 +13,13 @@ import {
 import { Check, X } from "lucide-react";
 import { Value, ValueType, ValueParentType, VALUE_TYPES, VALUE_PARENT_TYPES } from "./types";
 import { ValueTypeIcon } from "./icons";
+import { MultiFilePicker } from "@/components/files/multi-file-picker";
+import { FileUpload } from "@/components/files/types";
 
 type InlineFormProps = {
   value?: Value;
   defaultParentType?: ValueParentType;
-  onSave: (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => Promise<void>;
+  onSave: (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -28,6 +30,7 @@ export function ValueInlineForm({ value, defaultParentType, onSave, onCancel }: 
   const [parentType, setParentType] = useState<ValueParentType>(
     value?.parentType || defaultParentType || "on_top_of"
   );
+  const [files, setFiles] = useState<FileUpload[]>(value?.files || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ name?: string }>({});
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -59,6 +62,7 @@ export function ValueInlineForm({ value, defaultParentType, onSave, onCancel }: 
         description: description.trim() || undefined,
         type,
         parentType,
+        fileIds: files.map((f) => f.id),
       });
     } catch (error) {
       // Error handling is done in parent
@@ -158,6 +162,14 @@ export function ValueInlineForm({ value, defaultParentType, onSave, onCancel }: 
           className="h-8 text-sm"
           disabled={isSubmitting}
         />
+
+        <div className="pt-1">
+          <MultiFilePicker
+            value={files}
+            onChange={setFiles}
+            maxFiles={10}
+          />
+        </div>
       </div>
     </div>
   );

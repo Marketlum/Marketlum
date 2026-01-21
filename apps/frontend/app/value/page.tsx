@@ -140,7 +140,7 @@ const ValuePage = () => {
     setEditingId(null);
   };
 
-  const handleSaveTreeEdit = async (id: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => {
+  const handleSaveTreeEdit = async (id: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => {
     try {
       await api.updateValue(id, data);
       toast.success("Value updated successfully.");
@@ -166,7 +166,7 @@ const ValuePage = () => {
     setAddingChildOf(null);
   };
 
-  const handleSaveNewChild = async (parentId: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => {
+  const handleSaveNewChild = async (parentId: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => {
     try {
       await api.createValue({ ...data, parentId });
       toast.success("Value created successfully.");
@@ -197,7 +197,7 @@ const ValuePage = () => {
     setAddingRoot(false);
   };
 
-  const handleSaveNewRoot = async (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => {
+  const handleSaveNewRoot = async (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => {
     try {
       await api.createValue(data);
       toast.success("Value created successfully.");
@@ -225,7 +225,7 @@ const ValuePage = () => {
     setShowCreateForm(false);
   };
 
-  const handleSaveListEdit = async (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => {
+  const handleSaveListEdit = async (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => {
     if (!editingValue) return;
     try {
       await api.updateValue(editingValue.id, data);

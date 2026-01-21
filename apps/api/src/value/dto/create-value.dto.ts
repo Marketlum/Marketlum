@@ -3,6 +3,8 @@ import {
     IsString,
     IsEnum,
     IsOptional,
+    IsArray,
+    IsUUID,
 } from 'class-validator';
 
 import { ValueType, ValueParentType } from '../entities/value.entity';
@@ -35,4 +37,9 @@ export class CreateValueDto {
     @IsOptional()
     @IsString()
     streamId: string;
+
+    @IsOptional()
+    @IsArray()
+    @IsUUID('4', { each: true })
+    fileIds?: string[];
 }

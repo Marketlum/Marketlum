@@ -2,6 +2,8 @@ export type ValueType = "product" | "service" | "relationship" | "right";
 
 export type ValueParentType = "on_top_of" | "part_of";
 
+import { FileUpload } from "../files/types";
+
 export type Value = {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export type Value = {
     id: string;
     name: string;
   };
+  files?: FileUpload[];
   children?: Value[];
 };
 

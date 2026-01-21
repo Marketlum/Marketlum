@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, ChevronDown, Plus, Pencil, Trash2 } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, Pencil, Trash2, Paperclip } from "lucide-react";
 import { Value, ValueType, ValueParentType, getValueTypeLabel, getParentTypeLabel } from "./types";
 import { ValueTypeIcon } from "./icons";
 import { ValueInlineForm } from "./inline-form";
@@ -16,10 +16,10 @@ type ValueNodeProps = {
   addingChildOf: string | null;
   onEdit: (value: Value) => void;
   onCancelEdit: () => void;
-  onSaveEdit: (id: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => Promise<void>;
+  onSaveEdit: (id: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => Promise<void>;
   onAddChild: (parentId: string) => void;
   onCancelAddChild: () => void;
-  onSaveNewChild: (parentId: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => Promise<void>;
+  onSaveNewChild: (parentId: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => Promise<void>;
   onDelete: (value: Value) => void;
 };
 
@@ -101,6 +101,14 @@ function ValueNode({
           {getParentTypeLabel(value.parentType)}
         </Badge>
 
+        {/* Files indicator */}
+        {value.files && value.files.length > 0 && (
+          <div className="flex items-center gap-1 text-muted-foreground text-xs">
+            <Paperclip className="h-3 w-3" />
+            {value.files.length}
+          </div>
+        )}
+
         {/* Actions - visible on hover */}
         <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
@@ -175,12 +183,12 @@ type ValueTreeProps = {
   addingRoot: boolean;
   onEdit: (value: Value) => void;
   onCancelEdit: () => void;
-  onSaveEdit: (id: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => Promise<void>;
+  onSaveEdit: (id: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => Promise<void>;
   onAddChild: (parentId: string) => void;
   onCancelAddChild: () => void;
-  onSaveNewChild: (parentId: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => Promise<void>;
+  onSaveNewChild: (parentId: string, data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => Promise<void>;
   onCancelAddRoot: () => void;
-  onSaveNewRoot: (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType }) => Promise<void>;
+  onSaveNewRoot: (data: { name: string; description?: string; type: ValueType; parentType: ValueParentType; fileIds?: string[] }) => Promise<void>;
   onDelete: (value: Value) => void;
 };
 

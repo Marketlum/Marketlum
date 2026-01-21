@@ -101,7 +101,7 @@ class MarketlumClient {
         throw new Error("Failed to fetch the value.");
     }
 
-    public async createValue(data: { name: string; description?: string; type: string; parentType: string; parentId?: string; streamId?: string; agentId?: string }) {
+    public async createValue(data: { name: string; description?: string; type: string; parentType: string; parentId?: string; streamId?: string; agentId?: string; fileIds?: string[] }) {
         const response = await axios.post(`${this.baseUrl}/value`, data);
 
         if (response.status === 201) {
@@ -111,7 +111,7 @@ class MarketlumClient {
         throw new Error("Failed to create the value.");
     }
 
-    public async updateValue(id: string, data: { name?: string; description?: string; type?: string; parentType?: string; parentId?: string; streamId?: string; agentId?: string }) {
+    public async updateValue(id: string, data: { name?: string; description?: string; type?: string; parentType?: string; parentId?: string; streamId?: string; agentId?: string; fileIds?: string[] }) {
         const response = await axios.patch(`${this.baseUrl}/value/${id}`, data);
 
         if (response.status === 200) {

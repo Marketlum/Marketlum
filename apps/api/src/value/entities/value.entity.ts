@@ -3,6 +3,8 @@ import {
   Tree,
   Column,
   ManyToOne,
+  ManyToMany,
+  JoinTable,
   PrimaryGeneratedColumn,
   TreeChildren,
   TreeParent,
@@ -10,6 +12,7 @@ import {
 
 import { ValueStream } from "../../value_streams/entities/value_stream.entity";
 import { Agent } from "../../agents/entities/agent.entity";
+import { FileUpload } from "../../files/entities/file-upload.entity";
 
 export enum ValueParentType {
   ON_TOP_OF = "on_top_of",
@@ -60,4 +63,12 @@ export class Value {
     default: ValueType.PRODUCT
   })
   type: ValueType = ValueType.PRODUCT;
+
+  @ManyToMany(() => FileUpload)
+  @JoinTable({
+    name: "value_files",
+    joinColumn: { name: "valueId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "fileId", referencedColumnName: "id" },
+  })
+  files: FileUpload[];
 }
