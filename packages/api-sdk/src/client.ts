@@ -880,6 +880,73 @@ class MarketlumClient {
 
         throw new Error("Failed to seed ledger.");
     }
+
+    // Locale methods
+
+    public async getLocales(params?: {
+        page?: number;
+        pageSize?: number;
+        q?: string;
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/locales`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch locales.");
+    }
+
+    public async getLocale(id: string) {
+        const response = await axios.get(`${this.baseUrl}/locales/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the locale.");
+    }
+
+    public async createLocale(data: { code: string }) {
+        const response = await axios.post(`${this.baseUrl}/locales`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the locale.");
+    }
+
+    public async updateLocale(id: string, data: { code?: string }) {
+        const response = await axios.patch(`${this.baseUrl}/locales/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the locale.");
+    }
+
+    public async deleteLocale(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/locales/${id}`);
+
+        if (response.status === 204) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the locale.");
+    }
+
+    public async seedLocales(): Promise<{ inserted: number; skipped: number }> {
+        const response = await axios.post(`${this.baseUrl}/locales/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed locales.");
+    }
 }
 
 export default MarketlumClient;

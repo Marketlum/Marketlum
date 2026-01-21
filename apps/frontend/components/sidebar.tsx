@@ -9,6 +9,7 @@ import {
   Globe,
   HandHeart,
   Landmark,
+  Languages,
   Map,
   Send,
   Users,
@@ -71,6 +72,11 @@ const data = {
       title: "Geography",
       url: "/geography",
       icon: Globe,
+    },
+    {
+      title: "Locales",
+      url: "/locales",
+      icon: Languages,
     },
     {
       title: "Agreements",
