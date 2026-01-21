@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { MarketlumSidebar } from "@/components/sidebar"
+import { BreadcrumbNav } from "@/components/breadcrumb-nav"
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -35,6 +36,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
             <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
               <SidebarTrigger className="-ml-1" />
               <div className="h-4 w-px bg-border" />
+              <BreadcrumbNav />
               <div className="flex-1" />
             </header>
             <div className="flex-1 p-6">

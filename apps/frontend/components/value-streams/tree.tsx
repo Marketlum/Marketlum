@@ -95,9 +95,9 @@ function ValueStreamNode({
         {/* Name */}
         <span className="font-medium">{valueStream.name}</span>
 
-        {/* Purpose (truncated) */}
+        {/* Purpose */}
         {valueStream.purpose && (
-          <span className="text-muted-foreground text-sm truncate max-w-[200px]">
+          <span className="text-muted-foreground text-sm">
             — {valueStream.purpose}
           </span>
         )}
