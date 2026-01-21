@@ -29,7 +29,11 @@ export class AgentsService {
   }
 
   async paginate(options: IPaginationOptions): Promise<Pagination<Agent>> {
-    return paginate<Agent>(this.agentRepository, options);
+    const queryBuilder = this.agentRepository
+      .createQueryBuilder('agent')
+      .orderBy('agent.createdAt', 'DESC');
+
+    return paginate<Agent>(queryBuilder, options);
   }
 
   findOne(id: string): Promise<Agent | null> {

@@ -2,6 +2,7 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
 } from "typeorm"
 
 import { ApiProperty } from '@nestjs/swagger';
@@ -29,4 +30,8 @@ export class Agent {
   })
   @ApiProperty({ description: 'The type of the agent' })
   type: AgentType = AgentType.ORGANIZATION;
+
+  @CreateDateColumn()
+  @ApiProperty({ description: 'The date when the agent was created' })
+  createdAt: Date;
 }

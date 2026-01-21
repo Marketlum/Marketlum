@@ -68,6 +68,58 @@ class MarketlumClient {
 
         throw new Error("Failed to fetch the value.");
     }
+
+    public async getAgents(page: number = 1, limit: number = 10) {
+        const response = await axios.get(`${this.baseUrl}/agents`, {
+            params: { page, limit }
+        });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch agents.");
+    }
+
+    public async getAgent(id: string) {
+        const response = await axios.get(`${this.baseUrl}/agents/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the agent.");
+    }
+
+    public async createAgent(data: { name: string; type: string }) {
+        const response = await axios.post(`${this.baseUrl}/agents`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the agent.");
+    }
+
+    public async updateAgent(id: string, data: { name?: string; type?: string }) {
+        const response = await axios.patch(`${this.baseUrl}/agents/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the agent.");
+    }
+
+    public async deleteAgent(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/agents/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the agent.");
+    }
 }
 
 export default MarketlumClient;
