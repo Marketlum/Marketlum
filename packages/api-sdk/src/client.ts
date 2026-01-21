@@ -338,6 +338,178 @@ class MarketlumClient {
 
         throw new Error("Failed to seed geographies.");
     }
+
+    // Agreement methods
+
+    public async getAgreements(params?: {
+        page?: number;
+        limit?: number;
+        q?: string;
+        category?: string;
+        status?: string;
+        gateway?: string;
+        agentId?: string;
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/agreements`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch agreements.");
+    }
+
+    public async getAgreementsTree() {
+        const response = await axios.get(`${this.baseUrl}/agreements/tree`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch agreements tree.");
+    }
+
+    public async getAgreementsStats(params?: { category?: string; agentId?: string }) {
+        const response = await axios.get(`${this.baseUrl}/agreements/stats`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch agreements stats.");
+    }
+
+    public async getAgreement(id: string) {
+        const response = await axios.get(`${this.baseUrl}/agreements/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the agreement.");
+    }
+
+    public async createAgreement(data: {
+        title: string;
+        category: string;
+        gateway: string;
+        link?: string;
+        content?: string;
+        completedAt?: string;
+        parentId?: string;
+        fileId?: string;
+        parties?: Array<{ agentId: string; role?: string }>;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/agreements`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the agreement.");
+    }
+
+    public async updateAgreement(id: string, data: {
+        title?: string;
+        category?: string;
+        gateway?: string;
+        link?: string | null;
+        content?: string | null;
+        completedAt?: string | null;
+        parentId?: string | null;
+        fileId?: string | null;
+        parties?: Array<{ agentId: string; role?: string }>;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/agreements/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the agreement.");
+    }
+
+    public async deleteAgreement(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/agreements/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the agreement.");
+    }
+
+    public async addAgreementParty(agreementId: string, data: { agentId: string; role?: string }) {
+        const response = await axios.post(`${this.baseUrl}/agreements/${agreementId}/parties`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to add party to agreement.");
+    }
+
+    public async removeAgreementParty(agreementId: string, agentId: string) {
+        const response = await axios.delete(`${this.baseUrl}/agreements/${agreementId}/parties/${agentId}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to remove party from agreement.");
+    }
+
+    public async seedAgreements(): Promise<{ inserted: number; skipped: number }> {
+        const response = await axios.post(`${this.baseUrl}/agreements/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed agreements.");
+    }
+
+    // File methods
+
+    public async uploadFile(file: File): Promise<{ id: string; originalName: string; mimeType: string; sizeBytes: number }> {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await axios.post(`${this.baseUrl}/files`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to upload file.");
+    }
+
+    public async getFile(id: string) {
+        const response = await axios.get(`${this.baseUrl}/files/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the file.");
+    }
+
+    public async deleteFile(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/files/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the file.");
+    }
+
+    public getFileDownloadUrl(id: string): string {
+        return `${this.baseUrl}/files/${id}/download`;
+    }
 }
 
 export default MarketlumClient;

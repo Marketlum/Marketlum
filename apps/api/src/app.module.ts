@@ -11,6 +11,8 @@ import { AgentsModule } from './agents/agents.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
 import { ChannelsModule } from './channels/channels.module';
 import { GeographiesModule } from './geographies/geographies.module';
+import { AgreementsModule } from './agreements/agreements.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { GeographiesModule } from './geographies/geographies.module';
     TaxonomiesModule,
     ChannelsModule,
     GeographiesModule,
+    AgreementsModule,
+    FilesModule,
   ],
 })
 export class AppModule { }

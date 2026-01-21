@@ -5,6 +5,7 @@ import {
   BookOpen,
   Command,
   Diamond,
+  FileSignature,
   Globe,
   HandHeart,
   Send,
@@ -62,6 +63,11 @@ const data = {
       title: "Geography",
       url: "/geography",
       icon: Globe,
+    },
+    {
+      title: "Agreements",
+      url: "/agreements",
+      icon: FileSignature,
     },
   ],
   navSecondary: [
