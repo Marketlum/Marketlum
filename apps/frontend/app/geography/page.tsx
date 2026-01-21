@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Globe, Sprout, Search } from "lucide-react";
+import { Plus, Globe, Database, Search } from "lucide-react";
 import axios from "axios";
 import api from "@/lib/api-sdk";
 
@@ -206,8 +206,8 @@ const GeographyPage = () => {
             onClick={handleSeed}
             disabled={isSeeding}
           >
-            <Sprout className="mr-2 h-4 w-4" />
-            {isSeeding ? "Seeding..." : "Seed EU + USA"}
+            <Database className="mr-2 h-4 w-4" />
+            {isSeeding ? "Loading..." : "Load sample data"}
           </Button>
           <Button onClick={handleAddRoot}>
             <Plus className="mr-2 h-4 w-4" />

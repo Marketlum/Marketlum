@@ -150,7 +150,7 @@ export class LedgerService {
 
   async updateAccount(id: string, updateAccountDto: UpdateAccountDto): Promise<Account> {
     const account = await this.findOneAccount(id);
-    const { ownerAgentId, valueId, ...data } = updateAccountDto;
+    const { valueId, ...data } = updateAccountDto;
 
     // If changing valueId, check if account has transactions
     if (valueId !== undefined && valueId !== account.valueId) {
@@ -174,14 +174,7 @@ export class LedgerService {
       account.valueId = valueId;
     }
 
-    // If changing owner, verify new owner exists
-    if (ownerAgentId !== undefined && ownerAgentId !== account.ownerAgentId) {
-      const ownerAgent = await this.agentRepository.findOne({ where: { id: ownerAgentId } });
-      if (!ownerAgent) {
-        throw new NotFoundException(`Agent with ID ${ownerAgentId} not found`);
-      }
-      account.ownerAgentId = ownerAgentId;
-    }
+    // Note: ownerAgentId cannot be changed after account creation
 
     Object.assign(account, data);
     return this.accountRepository.save(account);

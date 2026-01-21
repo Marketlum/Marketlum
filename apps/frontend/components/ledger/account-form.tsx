@@ -14,6 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Autocomplete, AutocompleteOption } from "@/components/ui/autocomplete";
 import { toast } from "sonner";
 import { Account } from "./types";
 import api from "@/lib/api-sdk";
@@ -58,6 +60,8 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
   const [values, setValues] = useState<Value[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const isEditing = !!account;
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -84,10 +88,18 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
       .finally(() => setIsLoading(false));
   }, []);
 
+  const agentOptions: AutocompleteOption[] = agents.map((agent) => ({
+    value: agent.id,
+    label: agent.name,
+    sublabel: agent.type,
+  }));
+
   const onSubmit = async (data: FormData) => {
     try {
       if (account) {
-        await api.updateAccount(account.id, data);
+        // Don't send ownerAgentId when updating - it's not allowed
+        const { ownerAgentId, ...updateData } = data;
+        await api.updateAccount(account.id, updateData);
         toast.success("Account updated successfully");
       } else {
         await api.createAccount(data);
@@ -146,20 +158,20 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Owner</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an owner" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name} ({agent.type})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Autocomplete
+                  options={agentOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Search for an agent..."
+                  disabled={isEditing}
+                />
+              </FormControl>
+              {isEditing && (
+                <FormDescription>
+                  Owner cannot be changed after account creation
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -174,7 +186,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
-                disabled={!!account}
+                disabled={isEditing}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -189,10 +201,10 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
                   ))}
                 </SelectContent>
               </Select>
-              {account && (
-                <p className="text-xs text-muted-foreground">
+              {isEditing && (
+                <FormDescription>
                   Value cannot be changed for accounts with transactions
-                </p>
+                </FormDescription>
               )}
               <FormMessage />
             </FormItem>

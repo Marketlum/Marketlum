@@ -262,7 +262,7 @@ const UsersPage = () => {
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleSeed} disabled={isSeeding}>
             <Database className="mr-2 h-4 w-4" />
-            {isSeeding ? "Seeding..." : "Load Seed Data"}
+            {isSeeding ? "Loading..." : "Load sample data"}
           </Button>
           <Button onClick={() => setShowCreateForm(true)}>
             <Plus className="mr-2 h-4 w-4" />

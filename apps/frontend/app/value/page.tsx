@@ -340,7 +340,7 @@ const ValuePage = () => {
           </Tabs>
           <Button variant="outline" onClick={handleSeed} disabled={isSeeding}>
             <Database className="mr-2 h-4 w-4" />
-            {isSeeding ? "Seeding..." : "Seed Sample Data"}
+            {isSeeding ? "Loading..." : "Load sample data"}
           </Button>
           <Button onClick={handleAddRoot}>
             <Plus className="mr-2 h-4 w-4" />

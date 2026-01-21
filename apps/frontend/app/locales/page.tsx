@@ -179,7 +179,7 @@ const LocalesPage = () => {
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleSeed} disabled={isSeeding} data-testid="seed-locales-button">
             <Database className="mr-2 h-4 w-4" />
-            {isSeeding ? "Seeding..." : "Load Seed Data"}
+            {isSeeding ? "Loading..." : "Load sample data"}
           </Button>
           <Button onClick={() => setShowCreateForm(true)} data-testid="create-locale-button">
             <Plus className="mr-2 h-4 w-4" />

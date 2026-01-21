@@ -35,6 +35,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Plus,
@@ -49,6 +56,10 @@ import {
   CheckCircle,
   Circle,
   ArrowRight,
+  Database,
+  ArrowUpDown,
+  Users,
+  Package,
 } from "lucide-react";
 import { MarketlumDefaultSkeleton } from "@/components/default-skeleton";
 import {
@@ -63,6 +74,18 @@ import { AccountForm } from "@/components/ledger/account-form";
 import { TransactionForm } from "@/components/ledger/transaction-form";
 import api from "@/lib/api-sdk";
 
+type Agent = {
+  id: string;
+  name: string;
+  type: string;
+};
+
+type Value = {
+  id: string;
+  name: string;
+  type: string;
+};
+
 const ITEMS_PER_PAGE = 10;
 
 type ViewMode = "accounts" | "transactions";
@@ -70,10 +93,17 @@ type ViewMode = "accounts" | "transactions";
 const LedgerPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("accounts");
 
+  // Filter data
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [values, setValues] = useState<Value[]>([]);
+
   // Accounts state
   const [accountsData, setAccountsData] = useState<AccountsResponse | null>(null);
   const [accountsPage, setAccountsPage] = useState(1);
   const [accountsSearch, setAccountsSearch] = useState("");
+  const [accountsOwnerFilter, setAccountsOwnerFilter] = useState<string>("");
+  const [accountsValueFilter, setAccountsValueFilter] = useState<string>("");
+  const [accountsSort, setAccountsSort] = useState<string>("updatedAt_desc");
   const [showAccountForm, setShowAccountForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
@@ -86,13 +116,33 @@ const LedgerPage = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
+  // Seeding state
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  // Fetch filter data
+  useEffect(() => {
+    Promise.all([
+      api.getAgents(1, 100),
+      api.getValuesList(1, 100),
+    ])
+      .then(([agentsData, valuesData]) => {
+        setAgents(agentsData.items);
+        setValues(valuesData.items);
+      })
+      .catch((error) => {
+        console.error("Error fetching filter data:", error);
+      });
+  }, []);
+
   // Fetch accounts
   const fetchAccounts = (page: number = accountsPage) => {
     api.getAccounts({
       page,
       limit: ITEMS_PER_PAGE,
       q: accountsSearch || undefined,
-      sort: "updatedAt_desc",
+      ownerAgentId: accountsOwnerFilter || undefined,
+      valueId: accountsValueFilter || undefined,
+      sort: accountsSort,
     })
       .then((data) => setAccountsData(data))
       .catch((error) => {
@@ -130,6 +180,14 @@ const LedgerPage = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [accountsSearch]);
+
+  // Refetch accounts when filters or sort change
+  useEffect(() => {
+    if (viewMode === "accounts") {
+      setAccountsPage(1);
+      fetchAccounts(1);
+    }
+  }, [accountsOwnerFilter, accountsValueFilter, accountsSort]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -222,12 +280,22 @@ const LedgerPage = () => {
   // Seed handler
   const handleSeed = async () => {
     try {
+      setIsSeeding(true);
       const result = await api.seedLedger();
-      toast.success(`Seeded ${result.accounts} accounts and ${result.transactions} transactions`);
+      toast.success(`Loaded ${result.accounts} accounts and ${result.transactions} transactions`);
       fetchAccounts(1);
       fetchTransactions(1);
+      // Refresh filter data too
+      const [agentsData, valuesData] = await Promise.all([
+        api.getAgents(1, 100),
+        api.getValuesList(1, 100),
+      ]);
+      setAgents(agentsData.items);
+      setValues(valuesData.items);
     } catch {
-      toast.error("Failed to seed ledger data");
+      toast.error("Failed to load sample data");
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -243,8 +311,9 @@ const LedgerPage = () => {
           LEDGER
         </h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleSeed}>
-            Seed Data
+          <Button variant="outline" onClick={handleSeed} disabled={isSeeding}>
+            <Database className="mr-2 h-4 w-4" />
+            {isSeeding ? "Loading..." : "Load sample data"}
           </Button>
           <Button onClick={() => setShowAccountForm(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -270,14 +339,72 @@ const LedgerPage = () => {
         </TabsList>
 
         <TabsContent value="accounts" className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search accounts..."
-              value={accountsSearch}
-              onChange={(e) => setAccountsSearch(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-wrap gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search accounts..."
+                value={accountsSearch}
+                onChange={(e) => setAccountsSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <Select
+              value={accountsOwnerFilter || "_all"}
+              onValueChange={(value) => setAccountsOwnerFilter(value === "_all" ? "" : value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                <SelectValue placeholder="Filter by owner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">All owners</SelectItem>
+                {agents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={accountsValueFilter || "_all"}
+              onValueChange={(value) => setAccountsValueFilter(value === "_all" ? "" : value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <Package className="mr-2 h-4 w-4 text-muted-foreground" />
+                <SelectValue placeholder="Filter by value" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">All values</SelectItem>
+                {values.map((value) => (
+                  <SelectItem key={value.id} value={value.id}>
+                    {value.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={accountsSort}
+              onValueChange={setAccountsSort}
+            >
+              <SelectTrigger className="w-[180px]">
+                <ArrowUpDown className="mr-2 h-4 w-4 text-muted-foreground" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="updatedAt_desc">Recently updated</SelectItem>
+                <SelectItem value="updatedAt_asc">Oldest updated</SelectItem>
+                <SelectItem value="name_asc">Name A-Z</SelectItem>
+                <SelectItem value="name_desc">Name Z-A</SelectItem>
+                <SelectItem value="balance_desc">Balance (high to low)</SelectItem>
+                <SelectItem value="balance_asc">Balance (low to high)</SelectItem>
+                <SelectItem value="createdAt_desc">Newest first</SelectItem>
+                <SelectItem value="createdAt_asc">Oldest first</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="border rounded-lg">

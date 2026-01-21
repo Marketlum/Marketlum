@@ -362,7 +362,7 @@ const FilesPage = () => {
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={handleSeed} disabled={isSeeding}>
             <Database className="mr-2 h-4 w-4" />
-            {isSeeding ? "Seeding..." : "Seed Sample Data"}
+            {isSeeding ? "Loading..." : "Load sample data"}
           </Button>
           <Button onClick={() => setShowUploadDialog(true)}>
             <Upload className="mr-2 h-4 w-4" />

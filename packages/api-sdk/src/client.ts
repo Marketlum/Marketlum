@@ -750,7 +750,6 @@ class MarketlumClient {
     public async updateAccount(id: string, data: {
         name?: string;
         description?: string;
-        ownerAgentId?: string;
         valueId?: string;
     }) {
         const response = await axios.patch(`${this.baseUrl}/ledger/accounts/${id}`, data);

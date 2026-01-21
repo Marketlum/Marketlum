@@ -21,10 +21,7 @@ export class UpdateAccountDto {
   @MaxLength(1000)
   description?: string;
 
-  @ApiProperty({ description: 'The ID of the agent that owns this account', required: false })
-  @IsOptional()
-  @IsUUID()
-  ownerAgentId?: string;
+  // Note: ownerAgentId is intentionally not updatable - once an account is created, its owner cannot change
 
   @ApiProperty({ description: 'The ID of the value tracked by this account', required: false })
   @IsOptional()
