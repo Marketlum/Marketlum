@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
 import { ValueService } from './value.service';
 import { CreateValueDto } from './dto/create-value.dto';
 import { UpdateValueDto } from './dto/update-value.dto';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Value } from './entities/value.entity';
 
 @Controller('value')
 export class ValueController {
@@ -15,6 +17,19 @@ export class ValueController {
   @Get()
   findAll() {
     return this.valueService.findAll();
+  }
+
+  @Get('list')
+  async list(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ): Promise<Pagination<Value>> {
+    limit = limit > 100 ? 100 : limit;
+    return this.valueService.paginate({
+      page,
+      limit,
+      route: 'http://localhost:3001/value/list',
+    });
   }
 
   @Get('flat/:streamId')
@@ -35,5 +50,10 @@ export class ValueController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.valueService.remove(id);
+  }
+
+  @Post('seed')
+  seed() {
+    return this.valueService.seed();
   }
 }

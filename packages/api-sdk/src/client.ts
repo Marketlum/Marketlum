@@ -69,6 +69,78 @@ class MarketlumClient {
         throw new Error("Failed to fetch the value.");
     }
 
+    public async getValuesTree() {
+        const response = await axios.get(`${this.baseUrl}/value`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch values tree.");
+    }
+
+    public async getValuesList(page: number = 1, limit: number = 10) {
+        const response = await axios.get(`${this.baseUrl}/value/list`, {
+            params: { page, limit }
+        });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch values list.");
+    }
+
+    public async getValue(id: string) {
+        const response = await axios.get(`${this.baseUrl}/value/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the value.");
+    }
+
+    public async createValue(data: { name: string; description?: string; type: string; parentType: string; parentId?: string; streamId?: string; agentId?: string }) {
+        const response = await axios.post(`${this.baseUrl}/value`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the value.");
+    }
+
+    public async updateValue(id: string, data: { name?: string; description?: string; type?: string; parentType?: string; parentId?: string; streamId?: string; agentId?: string }) {
+        const response = await axios.patch(`${this.baseUrl}/value/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the value.");
+    }
+
+    public async deleteValue(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/value/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the value.");
+    }
+
+    public async seedValues(): Promise<{ inserted: number; skipped: number }> {
+        const response = await axios.post(`${this.baseUrl}/value/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed values.");
+    }
+
     public async getAgents(page: number = 1, limit: number = 10, geographyId?: string) {
         const response = await axios.get(`${this.baseUrl}/agents`, {
             params: { page, limit, geographyId }
