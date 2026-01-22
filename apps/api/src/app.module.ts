@@ -21,6 +21,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { OfferingsModule } from './offerings/offerings.module';
 import { ExchangesModule } from './exchanges/exchanges.module';
 import { ChatModule } from './chat/chat.module';
+import { ValueInstancesModule } from './value-instances/value-instances.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ChatModule } from './chat/chat.module';
     OfferingsModule,
     ExchangesModule,
     ChatModule,
+    ValueInstancesModule,
   ],
 })
 export class AppModule { }

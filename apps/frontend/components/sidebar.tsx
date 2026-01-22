@@ -5,6 +5,7 @@ import Link from "next/link"
 import {
   ArrowLeftRight,
   BookOpen,
+  Boxes,
   Diamond,
   FileSignature,
   FolderOpen,
@@ -49,6 +50,7 @@ const data = {
       label: "Market",
       items: [
         { title: "Value", url: "/value", icon: Diamond },
+        { title: "Value Instances", url: "/value-instances", icon: Boxes },
         { title: "Agents", url: "/agents", icon: Users },
         { title: "Map", url: "/map", icon: Map },
         { title: "Exchanges", url: "/exchanges", icon: ArrowLeftRight },
