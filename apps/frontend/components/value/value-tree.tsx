@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, ChevronDown, Plus, Pencil, Trash2, Paperclip } from "lucide-react";
-import { Value, ValueType, ValueParentType, getValueTypeLabel, getParentTypeLabel } from "./types";
+import { Value, ValueType, ValueParentType, getParentTypeLabel } from "./types";
 import { ValueTypeIcon } from "./icons";
+import { ValueTypeBadge } from "./value-type-badge";
 import { ValueInlineForm } from "./inline-form";
 import { cn } from "@/lib/utils";
 
@@ -92,9 +93,7 @@ function ValueNode({
         )}
 
         {/* Type Badge */}
-        <Badge variant="outline" className="text-xs">
-          {getValueTypeLabel(value.type)}
-        </Badge>
+        <ValueTypeBadge type={value.type} className="text-xs" />
 
         {/* Parent Type Badge */}
         <Badge variant="secondary" className="text-xs">

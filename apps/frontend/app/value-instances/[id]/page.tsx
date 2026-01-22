@@ -64,6 +64,8 @@ import {
   getVisibilityLabel,
 } from "@/components/value-instances/types";
 import { ValueInstanceForm } from "@/components/value-instances/value-instance-form";
+import { ValueTypeBadge } from "@/components/value/value-type-badge";
+import { ValueType } from "@/components/value/types";
 import api from "@/lib/api-sdk";
 
 const getDirectionIcon = (direction: string) => {
@@ -198,9 +200,7 @@ const ValueInstanceDetailsPage = () => {
                 <label className="text-sm font-medium text-muted-foreground">Value</label>
                 <p>{instance.value?.name || "Unknown"}</p>
                 {instance.value?.type && (
-                  <Badge variant="outline" className="mt-1 text-xs">
-                    {instance.value.type}
-                  </Badge>
+                  <ValueTypeBadge type={instance.value.type as ValueType} className="mt-1 text-xs" />
                 )}
               </div>
             </div>

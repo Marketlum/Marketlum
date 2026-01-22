@@ -58,6 +58,8 @@ import { MarketlumDefaultSkeleton } from "@/components/default-skeleton";
 import { Invoice, InvoiceItem, formatDate, isOverdue } from "@/components/invoices/types";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
 import { InvoiceItemForm } from "@/components/invoices/invoice-item-form";
+import { ValueTypeBadge } from "@/components/value/value-type-badge";
+import { ValueType } from "@/components/value/types";
 import api from "@/lib/api-sdk";
 
 const InvoiceDetailsPage = () => {
@@ -330,7 +332,7 @@ const InvoiceDetailsPage = () => {
                     <TableCell className="font-medium">
                       {item.value?.name || item.valueInstance?.name || "Unknown"}
                       {item.value?.type && (
-                        <span className="text-muted-foreground ml-2">({item.value.type})</span>
+                        <ValueTypeBadge type={item.value.type as ValueType} className="ml-2 text-xs" />
                       )}
                       {item.valueInstance?.value && (
                         <span className="text-muted-foreground ml-2">

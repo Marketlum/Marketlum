@@ -11,8 +11,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Pencil, Trash2, ChevronLeft, ChevronRight, Paperclip } from "lucide-react";
-import { Value, getValueTypeLabel, getParentTypeLabel } from "./types";
+import { Value, getParentTypeLabel } from "./types";
 import { ValueTypeIcon } from "./icons";
+import { ValueTypeBadge } from "./value-type-badge";
 
 type ValueListProps = {
   values: Value[];
@@ -76,7 +77,7 @@ export function ValueList({
                 )}
               </TableCell>
               <TableCell>
-                <Badge variant="outline">{getValueTypeLabel(value.type)}</Badge>
+                <ValueTypeBadge type={value.type} />
               </TableCell>
               <TableCell>
                 <Badge variant="secondary">{getParentTypeLabel(value.parentType)}</Badge>
