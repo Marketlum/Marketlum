@@ -56,7 +56,7 @@ const ChatPage = () => {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
-  const [selectedProvider, setSelectedProvider] = useState<LlmProvider>("anthropic");
+  const [selectedProvider, setSelectedProvider] = useState<LlmProvider | "">("");
   const [selectedModel, setSelectedModel] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialMessageHandled = useRef(false);
@@ -91,8 +91,8 @@ const ChatPage = () => {
   const handleCreateChatWithMessage = async (message: string) => {
     try {
       const newChat = await api.createChat({
-        provider: selectedProvider,
-        model: selectedModel,
+        provider: selectedProvider || undefined,
+        model: selectedModel || undefined,
       });
       setChats((prev) => [newChat, ...prev]);
       setSelectedChatId(newChat.id);
@@ -187,8 +187,8 @@ const ChatPage = () => {
   const handleCreateChat = async () => {
     try {
       const newChat = await api.createChat({
-        provider: selectedProvider,
-        model: selectedModel,
+        provider: selectedProvider || undefined,
+        model: selectedModel || undefined,
       });
       setChats((prev) => [newChat, ...prev]);
       setSelectedChatId(newChat.id);
@@ -371,46 +371,48 @@ const ChatPage = () => {
       {/* Chat List Sidebar */}
       <div className="w-80 border-r flex flex-col">
         <div className="p-4 border-b space-y-3">
-          <div className="flex gap-2">
-            <Select
-              value={selectedProvider}
-              onValueChange={(value: LlmProvider) => {
-                setSelectedProvider(value);
-                const prov = providers.find((p) => p.id === value);
-                if (prov?.models[0]) {
-                  setSelectedModel(prov.models[0].id);
-                }
-              }}
-            >
-              <SelectTrigger className="w-[110px]">
-                <SelectValue placeholder="Provider" />
-              </SelectTrigger>
-              <SelectContent>
-                {providers.map((provider) => (
-                  <SelectItem key={provider.id} value={provider.id}>
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={selectedModel}
-              onValueChange={setSelectedModel}
-            >
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Model" />
-              </SelectTrigger>
-              <SelectContent>
-                {providers
-                  .find((p) => p.id === selectedProvider)
-                  ?.models.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.name}
+          {providers.length > 0 && (
+            <div className="flex gap-2">
+              <Select
+                value={selectedProvider}
+                onValueChange={(value: LlmProvider) => {
+                  setSelectedProvider(value);
+                  const prov = providers.find((p) => p.id === value);
+                  if (prov?.models[0]) {
+                    setSelectedModel(prov.models[0].id);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[110px]">
+                  <SelectValue placeholder="Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {providers.map((provider) => (
+                    <SelectItem key={provider.id} value={provider.id}>
+                      {provider.name}
                     </SelectItem>
                   ))}
-              </SelectContent>
-            </Select>
-          </div>
+                </SelectContent>
+              </Select>
+              <Select
+                value={selectedModel}
+                onValueChange={setSelectedModel}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {providers
+                    .find((p) => p.id === selectedProvider)
+                    ?.models.map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <Button onClick={handleCreateChat} className="w-full">
             <Plus className="mr-2 h-4 w-4" />
             New Chat
