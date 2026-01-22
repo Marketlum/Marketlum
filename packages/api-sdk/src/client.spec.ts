@@ -3,14 +3,30 @@ import MarketlumClient from "./client";
 
 jest.mock('axios');
 
-let client;
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+let client: MarketlumClient;
+
+const mockAxiosInstance = {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+    put: jest.fn(),
+    interceptors: {
+        response: {
+            use: jest.fn(),
+        },
+    },
+};
 
 describe('MarketlumClient', () => {
 
     beforeEach(() => {
+        jest.clearAllMocks();
+        mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
         client = new MarketlumClient("test-api-key");
     });
-   
+
     it('should get the value streams', async () => {
         const expected = [
             {
@@ -23,7 +39,7 @@ describe('MarketlumClient', () => {
                         "children": []
                     }
                 ]
-            }, 
+            },
             {
                 "id": "2",
                 "name": "Value Stream 3",
@@ -31,7 +47,7 @@ describe('MarketlumClient', () => {
             }
         ];
 
-        (axios.get as jest.Mock).mockResolvedValue({ status: 200, data: expected });
+        mockAxiosInstance.get.mockResolvedValue({ status: 200, data: expected });
 
         const response = await client.getValueStreams();
 
@@ -39,7 +55,7 @@ describe('MarketlumClient', () => {
     });
 
     it('should throw an error if the get request fails', async () => {
-        (axios.get as jest.Mock).mockResolvedValue({ status: 500, data: { error: 'Internal server error' } });
+        mockAxiosInstance.get.mockResolvedValue({ status: 500, data: { error: 'Internal server error' } });
 
         await expect(client.getValueStreams()).rejects.toThrow('Failed to fetch the value streams.');
     });
@@ -54,7 +70,7 @@ describe('MarketlumClient', () => {
             }
         ];
 
-        (axios.post as jest.Mock).mockResolvedValue({ status: 201, data: expected });
+        mockAxiosInstance.post.mockResolvedValue({ status: 201, data: expected });
 
         const response = await client.createValueStream({
             "name": "Sylius",
@@ -78,7 +94,7 @@ describe('MarketlumClient', () => {
             }
         ];
 
-        (axios.post as jest.Mock).mockResolvedValue({ status: 201, data: expected });
+        mockAxiosInstance.post.mockResolvedValue({ status: 201, data: expected });
 
         const response = await client.createValueStream({
             "name": "Sylius",
@@ -103,23 +119,23 @@ describe('MarketlumClient', () => {
             }
         ];
 
-        (axios.get as jest.Mock).mockResolvedValue({ status: 200, data: expected });
+        mockAxiosInstance.get.mockResolvedValue({ status: 200, data: expected });
 
-        const response = await client.getValueStream("7c3041d7-a570-4e0c-aba8-f3490add9004");
+        const response = await client.getValueStream("7c3041d7-a570-4e0c-aba8-f3490add9004" as any);
 
         expect(response).toBe(expected);
     });
 
     it('it updates a value stream by id', async () => {
-        (axios.patch as jest.Mock).mockResolvedValue({ status: 200 });
+        mockAxiosInstance.patch.mockResolvedValue({ status: 200, data: {} });
 
         const response = await client.updateValueStream("7c3041d7-a570-4e0c-aba8-f3490add9004", {name: "Testing"});
 
-        expect(response).toBe(true);
+        expect(response).toEqual({});
     });
 
     it('it deletes value stream by id', async () => {
-        (axios.delete as jest.Mock).mockResolvedValue({ status: 200 });
+        mockAxiosInstance.delete.mockResolvedValue({ status: 200 });
 
         const response = await client.deleteValueStream("7c3041d7-a570-4e0c-aba8-f3490add9004");
 

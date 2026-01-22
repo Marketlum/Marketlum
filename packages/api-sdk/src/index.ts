@@ -1,7 +1,7 @@
-import MarketlumClient from "./src/client";
+import MarketlumClient from "./client";
 
 export default MarketlumClient;
 export { MarketlumClient };
 
 // Export all resources for direct access
-export * from "./src/resources";
+export * from "./resources";

@@ -17,7 +17,7 @@
   },
   "version": "0.1.0",
   "description": "Connects to Marketlum API",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "author": "",
   "license": "MIT"
 }
