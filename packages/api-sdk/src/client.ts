@@ -1794,6 +1794,139 @@ class MarketlumClient {
 
         throw new Error("Failed to seed value instances.");
     }
+
+    // ==================== Invoices ====================
+
+    public async getInvoices(params?: {
+        q?: string;
+        fromAgentId?: string;
+        toAgentId?: string;
+        issuedFrom?: string;
+        issuedTo?: string;
+        dueFrom?: string;
+        dueTo?: string;
+        hasFile?: boolean;
+        sort?: string;
+        page?: number;
+        pageSize?: number;
+    }) {
+        const response = await this.client.get(`/invoices`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch invoices.");
+    }
+
+    public async getInvoice(id: string) {
+        const response = await this.client.get(`/invoices/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch invoice.");
+    }
+
+    public async createInvoice(data: {
+        fromAgentId: string;
+        toAgentId: string;
+        number: string;
+        issuedAt: string;
+        dueAt: string;
+        link?: string;
+        fileId?: string;
+        note?: string;
+    }) {
+        const response = await this.client.post(`/invoices`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create invoice.");
+    }
+
+    public async updateInvoice(id: string, data: {
+        fromAgentId?: string;
+        toAgentId?: string;
+        number?: string;
+        issuedAt?: string;
+        dueAt?: string;
+        link?: string;
+        fileId?: string;
+        note?: string;
+    }) {
+        const response = await this.client.patch(`/invoices/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update invoice.");
+    }
+
+    public async deleteInvoice(id: string) {
+        const response = await this.client.delete(`/invoices/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete invoice.");
+    }
+
+    public async seedInvoices() {
+        const response = await this.client.post(`/invoices/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed invoices.");
+    }
+
+    // Invoice Items
+    public async addInvoiceItem(invoiceId: string, data: {
+        valueId?: string;
+        valueInstanceId?: string;
+        quantity: number;
+        description?: string;
+    }) {
+        const response = await this.client.post(`/invoices/${invoiceId}/items`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to add invoice item.");
+    }
+
+    public async updateInvoiceItem(invoiceId: string, itemId: string, data: {
+        valueId?: string;
+        valueInstanceId?: string;
+        quantity?: number;
+        description?: string;
+    }) {
+        const response = await this.client.patch(`/invoices/${invoiceId}/items/${itemId}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update invoice item.");
+    }
+
+    public async removeInvoiceItem(invoiceId: string, itemId: string) {
+        const response = await this.client.delete(`/invoices/${invoiceId}/items/${itemId}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to remove invoice item.");
+    }
 }
 
 export default MarketlumClient;

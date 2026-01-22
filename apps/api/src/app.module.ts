@@ -22,6 +22,7 @@ import { OfferingsModule } from './offerings/offerings.module';
 import { ExchangesModule } from './exchanges/exchanges.module';
 import { ChatModule } from './chat/chat.module';
 import { ValueInstancesModule } from './value-instances/value-instances.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ValueInstancesModule } from './value-instances/value-instances.module';
     ExchangesModule,
     ChatModule,
     ValueInstancesModule,
+    InvoicesModule,
   ],
 })
 export class AppModule { }
