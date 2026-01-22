@@ -150,9 +150,22 @@ class MarketlumClient {
         throw new Error("Failed to fetch values tree.");
     }
 
-    public async getValuesList(page: number = 1, limit: number = 10) {
+    public async getValuesList(
+        page: number = 1,
+        limit: number = 10,
+        options?: {
+            search?: string;
+            type?: string;
+            sortBy?: string;
+            sortOrder?: 'ASC' | 'DESC';
+        }
+    ) {
         const response = await this.client.get(`/value/list`, {
-            params: { page, limit }
+            params: {
+                page,
+                limit,
+                ...options,
+            }
         });
 
         if (response.status === 200) {

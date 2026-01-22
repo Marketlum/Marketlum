@@ -347,14 +347,39 @@ export class ValueService {
     return this.valueRepository.findTrees({ relations: ["stream", "agent"] });
   }
 
-  async paginate(options: IPaginationOptions): Promise<Pagination<Value>> {
+  async paginate(
+    options: IPaginationOptions,
+    filters?: { search?: string; type?: string; sortBy?: string; sortOrder?: 'ASC' | 'DESC' }
+  ): Promise<Pagination<Value>> {
     const queryBuilder = this.valueRepository
       .createQueryBuilder('value')
       .leftJoinAndSelect('value.stream', 'stream')
       .leftJoinAndSelect('value.agent', 'agent')
       .leftJoinAndSelect('value.parent', 'parent')
-      .leftJoinAndSelect('value.files', 'files')
-      .orderBy('value.name', 'ASC');
+      .leftJoinAndSelect('value.files', 'files');
+
+    // Apply search filter
+    if (filters?.search) {
+      queryBuilder.andWhere(
+        '(LOWER(value.name) LIKE LOWER(:search) OR LOWER(value.description) LIKE LOWER(:search))',
+        { search: `%${filters.search}%` }
+      );
+    }
+
+    // Apply type filter
+    if (filters?.type) {
+      queryBuilder.andWhere('value.type = :type', { type: filters.type });
+    }
+
+    // Apply sorting
+    const sortBy = filters?.sortBy || 'name';
+    const sortOrder = filters?.sortOrder || 'ASC';
+    const validSortFields = ['name', 'type', 'createdAt', 'updatedAt'];
+    if (validSortFields.includes(sortBy)) {
+      queryBuilder.orderBy(`value.${sortBy}`, sortOrder);
+    } else {
+      queryBuilder.orderBy('value.name', 'ASC');
+    }
 
     return paginate<Value>(queryBuilder, options);
   }

@@ -3,11 +3,14 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import * as d3 from "d3";
 import { Value, ValueType, getValueTypeLabel } from "./types";
+import { ValueTypeBadge } from "./value-type-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Search, RotateCcw, List, ZoomIn, ZoomOut, Maximize, Minimize } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Search, RotateCcw, List, ZoomIn, ZoomOut, Maximize, Minimize, ChevronRight, FolderTree, Layers } from "lucide-react";
 
 // Pastel color palette for value types (matching VALUE_TYPE_COLORS)
 const TYPE_COLORS: Record<ValueType, { base: string; dark: string }> = {
@@ -20,12 +23,9 @@ const TYPE_COLORS: Record<ValueType, { base: string; dark: string }> = {
 // Get color based on type and depth for better contrast between levels
 const getNodeColor = (type: ValueType, depth: number): string => {
   const colors = TYPE_COLORS[type];
-  // Interpolate between base (pastel) and dark based on depth
-  // depth 1 = lightest (most pastel), higher depths = progressively darker
   const maxDepth = 6;
   const t = Math.min((depth - 1) / maxDepth, 1);
 
-  // Parse hex colors
   const parseHex = (hex: string) => ({
     r: parseInt(hex.slice(1, 3), 16),
     g: parseInt(hex.slice(3, 5), 16),
@@ -35,7 +35,6 @@ const getNodeColor = (type: ValueType, depth: number): string => {
   const base = parseHex(colors.base);
   const dark = parseHex(colors.dark);
 
-  // Linear interpolation
   const r = Math.round(base.r + (dark.r - base.r) * t * 0.6);
   const g = Math.round(base.g + (dark.g - base.g) * t * 0.6);
   const b = Math.round(base.b + (dark.b - base.b) * t * 0.6);
@@ -58,7 +57,6 @@ const getStrokeColor = (type: ValueType, depth: number): string => {
   const base = parseHex(colors.base);
   const dark = parseHex(colors.dark);
 
-  // Darker stroke
   const r = Math.round(base.r + (dark.r - base.r) * (t * 0.6 + 0.4));
   const g = Math.round(base.g + (dark.g - base.g) * (t * 0.6 + 0.4));
   const b = Math.round(base.b + (dark.b - base.b) * (t * 0.6 + 0.4));
@@ -110,7 +108,6 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
       };
       return count + countChildren(v);
     }, 0);
-    // Scale pack size based on number of nodes
     const baseSize = Math.max(800, Math.min(3000, nodeCount * 100));
     return baseSize;
   }, [values]);
@@ -174,7 +171,6 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
     zoomRef.current = zoom;
     d3.select(svg).call(zoom);
 
-    // Initial transform to center the pack
     const initialScale = Math.min(
       dimensions.width / packSize,
       dimensions.height / packSize
@@ -269,7 +265,6 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
-      // Trigger a resize to update dimensions after fullscreen change
       setTimeout(() => {
         const container = containerRef.current;
         if (container) {
@@ -308,7 +303,6 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
 
       const found = findNode(root);
       if (found) {
-        // Zoom to the found node
         const scale = 2;
         const x = dimensions.width / 2 - found.x * scale;
         const y = dimensions.height / 2 - found.y * scale;
@@ -318,10 +312,7 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
           .duration(750)
           .call(zoom.transform, d3.zoomIdentity.translate(x, y).scale(scale));
 
-        // Set parent as focused to show labels for siblings
-        if (found.parent) {
-          setFocusedNode(found.parent as PackedNode);
-        }
+        setFocusedNode(found as PackedNode);
       }
     }
   }, [matchingNodes, root, dimensions]);
@@ -342,9 +333,19 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
       .duration(750)
       .call(zoom.transform, d3.zoomIdentity.translate(x, y).scale(scale));
 
-    // Set this node as focused to show labels for its children
     setFocusedNode(node);
   }, [dimensions]);
+
+  // Get ancestor path for breadcrumb
+  const getAncestorPath = (node: PackedNode): PackedNode[] => {
+    const path: PackedNode[] = [];
+    let current: PackedNode | null = node;
+    while (current && current.data.id !== "root") {
+      path.unshift(current);
+      current = current.parent as PackedNode | null;
+    }
+    return path;
+  };
 
   // Render
   if (values.length === 0) {
@@ -358,6 +359,7 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
 
   const allNodes = root ? root.descendants() : [];
   const currentScale = transform.k;
+  const ancestorPath = focusedNode ? getAncestorPath(focusedNode) : [];
 
   return (
     <div ref={fullscreenContainerRef} className={`flex flex-col h-full ${isFullscreen ? "bg-background" : ""}`}>
@@ -428,125 +430,229 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
           </div>
         ))}
         <span className="ml-auto text-muted-foreground text-xs">
-          {focusedNode && focusedNode.data.id !== "root" && (
-            <span className="mr-3">
-              Focus: <span className="font-medium text-foreground">{focusedNode.data.name}</span>
-            </span>
-          )}
           Zoom: {Math.round(currentScale * 100)}% | Drag to pan, scroll to zoom, click to focus
         </span>
       </div>
 
-      {/* Chart */}
-      <div
-        ref={containerRef}
-        className="flex-1 relative bg-muted/20 overflow-hidden"
-      >
-        <svg
-          ref={svgRef}
-          width={dimensions.width}
-          height={dimensions.height}
-          style={{ display: "block", cursor: "grab" }}
+      {/* Main content: Chart + Details Panel */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Chart - Left side */}
+        <div
+          ref={containerRef}
+          className="flex-1 relative bg-muted/20 overflow-hidden"
         >
-          <g
-            ref={gRef}
-            transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}
+          <svg
+            ref={svgRef}
+            width={dimensions.width}
+            height={dimensions.height}
+            style={{ display: "block", cursor: "grab" }}
           >
-            {allNodes.map((node) => {
-              const isRoot = node.data.id === "root";
-              const isMatching = matchingNodes.has(node.data.id);
-              const scaledRadius = node.r * currentScale;
+            <g
+              ref={gRef}
+              transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}
+            >
+              {allNodes.map((node) => {
+                const isRoot = node.data.id === "root";
+                const isMatching = matchingNodes.has(node.data.id);
+                const scaledRadius = node.r * currentScale;
 
-              // Show labels only for direct children of the focused node
-              const isChildOfFocused = focusedNode && node.parent === focusedNode;
-              const isFocusedNode = focusedNode === node;
-              const shouldShowLabel = showLabels && scaledRadius > 15 && !isRoot && (isChildOfFocused || isFocusedNode);
+                const isChildOfFocused = focusedNode && node.parent === focusedNode;
+                const isFocusedNode = focusedNode === node;
+                const shouldShowLabel = showLabels && scaledRadius > 15 && !isRoot && (isChildOfFocused || isFocusedNode);
 
-              if (isRoot) return null;
+                if (isRoot) return null;
 
-              return (
-                <g
-                  key={node.data.id}
-                  transform={`translate(${node.x},${node.y})`}
-                  onClick={(e) => handleNodeClick(e, node as PackedNode)}
-                  onMouseEnter={(e) => {
-                    setHoveredNode(node as PackedNode);
-                    setTooltipPosition({ x: e.clientX, y: e.clientY });
-                  }}
-                  onMouseMove={(e) => {
-                    setTooltipPosition({ x: e.clientX, y: e.clientY });
-                  }}
-                  onMouseLeave={() => setHoveredNode(null)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <circle
-                    r={node.r}
-                    fill={colorByType ? getNodeColor(node.data.type, node.depth) : "#6b7280"}
-                    fillOpacity={isFocusedNode ? 0.95 : 0.85}
-                    stroke={isMatching ? "#ef4444" : isFocusedNode ? "#ffffff" : colorByType ? getStrokeColor(node.data.type, node.depth) : "#374151"}
-                    strokeWidth={isMatching ? 4 : isFocusedNode ? 3 : 2}
-                    strokeOpacity={isMatching || isFocusedNode ? 1 : 0.8}
-                  />
-                  {shouldShowLabel && (
-                    <text
-                      textAnchor="middle"
-                      dy="0.3em"
-                      style={{
-                        fontSize: `${Math.max(8, Math.min(12, node.r / 6))}px`,
-                        fill: "white",
-                        pointerEvents: "none",
-                        fontWeight: 500,
-                        textShadow: "0 1px 2px rgba(0,0,0,0.8)",
-                      }}
-                    >
-                      {node.data.name.length > Math.floor(node.r / 4)
-                        ? node.data.name.substring(0, Math.max(3, Math.floor(node.r / 4) - 2)) + "..."
-                        : node.data.name}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </g>
-        </svg>
+                return (
+                  <g
+                    key={node.data.id}
+                    transform={`translate(${node.x},${node.y})`}
+                    onClick={(e) => handleNodeClick(e, node as PackedNode)}
+                    onMouseEnter={(e) => {
+                      setHoveredNode(node as PackedNode);
+                      setTooltipPosition({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(e) => {
+                      setTooltipPosition({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => setHoveredNode(null)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <circle
+                      r={node.r}
+                      fill={colorByType ? getNodeColor(node.data.type, node.depth) : "#6b7280"}
+                      fillOpacity={isFocusedNode ? 0.95 : 0.85}
+                      stroke={isMatching ? "#ef4444" : isFocusedNode ? "#ffffff" : colorByType ? getStrokeColor(node.data.type, node.depth) : "#374151"}
+                      strokeWidth={isMatching ? 4 : isFocusedNode ? 3 : 2}
+                      strokeOpacity={isMatching || isFocusedNode ? 1 : 0.8}
+                    />
+                    {shouldShowLabel && (
+                      <text
+                        textAnchor="middle"
+                        dy="0.3em"
+                        style={{
+                          fontSize: `${Math.max(8, Math.min(12, node.r / 6))}px`,
+                          fill: "white",
+                          pointerEvents: "none",
+                          fontWeight: 500,
+                          textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+                        }}
+                      >
+                        {node.data.name.length > Math.floor(node.r / 4)
+                          ? node.data.name.substring(0, Math.max(3, Math.floor(node.r / 4) - 2)) + "..."
+                          : node.data.name}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+            </g>
+          </svg>
 
-        {/* Tooltip */}
-        {hoveredNode && (
-          <div
-            className="fixed z-50 bg-popover border rounded-lg shadow-lg p-3 text-sm max-w-[250px] pointer-events-none"
-            style={{
-              left: tooltipPosition.x + 15,
-              top: tooltipPosition.y + 15,
-            }}
-          >
-            <div className="font-semibold mb-1">{hoveredNode.data.name}</div>
-            <div className="text-muted-foreground space-y-1">
-              <div className="flex items-center gap-2">
-                <span>Type:</span>
-                <span
-                  className="px-1.5 py-0.5 rounded text-xs border"
-                  style={{
-                    backgroundColor: TYPE_COLORS[hoveredNode.data.type].base,
-                    borderColor: TYPE_COLORS[hoveredNode.data.type].dark,
-                    color: TYPE_COLORS[hoveredNode.data.type].dark,
-                  }}
-                >
-                  {getValueTypeLabel(hoveredNode.data.type)}
-                </span>
-              </div>
-              {hoveredNode.data.description && (
-                <div className="line-clamp-2">
-                  {hoveredNode.data.description}
+          {/* Tooltip */}
+          {hoveredNode && (
+            <div
+              className="fixed z-50 bg-popover border rounded-lg shadow-lg p-3 text-sm max-w-[250px] pointer-events-none"
+              style={{
+                left: tooltipPosition.x + 15,
+                top: tooltipPosition.y + 15,
+              }}
+            >
+              <div className="font-semibold mb-1">{hoveredNode.data.name}</div>
+              <div className="text-muted-foreground space-y-1">
+                <div className="flex items-center gap-2">
+                  <span>Type:</span>
+                  <span
+                    className="px-1.5 py-0.5 rounded text-xs border"
+                    style={{
+                      backgroundColor: TYPE_COLORS[hoveredNode.data.type].base,
+                      borderColor: TYPE_COLORS[hoveredNode.data.type].dark,
+                      color: TYPE_COLORS[hoveredNode.data.type].dark,
+                    }}
+                  >
+                    {getValueTypeLabel(hoveredNode.data.type)}
+                  </span>
                 </div>
-              )}
-              <div>Children: {hoveredNode.children?.length || 0}</div>
-              <div>Depth: {hoveredNode.depth}</div>
-              <div className="text-xs mt-2 text-muted-foreground/70">
-                Click to zoom to node
+                {hoveredNode.data.description && (
+                  <div className="line-clamp-2">
+                    {hoveredNode.data.description}
+                  </div>
+                )}
+                <div>Children: {hoveredNode.children?.length || 0}</div>
+                <div>Depth: {hoveredNode.depth}</div>
+                <div className="text-xs mt-2 text-muted-foreground/70">
+                  Click to zoom to node
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Details Panel - Right side */}
+        <div className="w-80 border-l bg-background overflow-y-auto">
+          {focusedNode && focusedNode.data.id !== "root" ? (
+            <div className="p-4 space-y-4">
+              {/* Breadcrumb */}
+              {ancestorPath.length > 1 && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground flex-wrap">
+                  {ancestorPath.map((node, index) => (
+                    <span key={node.data.id} className="flex items-center gap-1">
+                      {index > 0 && <ChevronRight className="h-3 w-3" />}
+                      <button
+                        onClick={(e) => handleNodeClick(e as unknown as React.MouseEvent, node)}
+                        className={`hover:text-foreground ${index === ancestorPath.length - 1 ? "text-foreground font-medium" : ""}`}
+                      >
+                        {node.data.name.length > 15 ? node.data.name.substring(0, 15) + "..." : node.data.name}
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Main Info */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {focusedNode.data.name}
+                  </CardTitle>
+                  <div className="flex items-center gap-2 mt-2">
+                    <ValueTypeBadge type={focusedNode.data.type} />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {focusedNode.data.description && (
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description</label>
+                      <p className="text-sm mt-1">{focusedNode.data.description}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Depth</label>
+                      <p className="text-sm mt-1 flex items-center gap-1">
+                        <Layers className="h-3 w-3" />
+                        Level {focusedNode.depth}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Children</label>
+                      <p className="text-sm mt-1 flex items-center gap-1">
+                        <FolderTree className="h-3 w-3" />
+                        {focusedNode.children?.length || 0}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Children List */}
+              {focusedNode.children && focusedNode.children.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Children ({focusedNode.children.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {focusedNode.children.map((child) => (
+                        <button
+                          key={child.data.id}
+                          onClick={(e) => handleNodeClick(e as unknown as React.MouseEvent, child as PackedNode)}
+                          className="w-full text-left p-2 rounded-md hover:bg-muted transition-colors flex items-center justify-between gap-2"
+                        >
+                          <span className="text-sm truncate">{child.data.name}</span>
+                          <ValueTypeBadge type={child.data.type} className="text-xs shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Parent */}
+              {focusedNode.parent && focusedNode.parent.data.id !== "root" && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Parent</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <button
+                      onClick={(e) => handleNodeClick(e as unknown as React.MouseEvent, focusedNode.parent as PackedNode)}
+                      className="w-full text-left p-2 rounded-md hover:bg-muted transition-colors flex items-center justify-between gap-2"
+                    >
+                      <span className="text-sm truncate">{focusedNode.parent.data.name}</span>
+                      <ValueTypeBadge type={focusedNode.parent.data.type} className="text-xs shrink-0" />
+                    </button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              <FolderTree className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="font-medium">Select a value</p>
+              <p className="text-sm mt-1">Click on a bubble to view its details</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Performance warning */}

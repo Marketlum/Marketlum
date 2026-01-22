@@ -23,13 +23,17 @@ export class ValueController {
   async list(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('search') search?: string,
+    @Query('type') type?: string,
+    @Query('sortBy', new DefaultValuePipe('name')) sortBy: string = 'name',
+    @Query('sortOrder', new DefaultValuePipe('ASC')) sortOrder: 'ASC' | 'DESC' = 'ASC',
   ): Promise<Pagination<Value>> {
     limit = limit > 100 ? 100 : limit;
     return this.valueService.paginate({
       page,
       limit,
       route: 'http://localhost:3001/value/list',
-    });
+    }, { search, type, sortBy, sortOrder });
   }
 
   @Get('flat/:streamId')
