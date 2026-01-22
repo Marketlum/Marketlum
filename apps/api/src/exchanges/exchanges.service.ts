@@ -19,7 +19,7 @@ import { CreateAgreementFromExchangeDto } from './dto/create-agreement-from-exch
 import { ValueStream } from '../value_streams/entities/value_stream.entity';
 import { Agent, AgentType } from '../agents/entities/agent.entity';
 import { Value, ValueType } from '../value/entities/value.entity';
-import { Channel } from '../channels/entities/channel.entity';
+import { Channel, ChannelType } from '../channels/entities/channel.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { User } from '../users/entities/user.entity';
 import { Agreement } from '../agreements/entities/agreement.entity';
@@ -534,8 +534,8 @@ export class ExchangesService {
     // Find or create channels
     const channels: Record<string, Channel> = {};
     const channelsSeed = [
-      { name: 'Website' },
-      { name: 'DocuSign' },
+      { name: 'Website', type: ChannelType.WEBSITE },
+      { name: 'DocuSign', type: ChannelType.WEB_APP },
     ];
 
     for (const channelData of channelsSeed) {

@@ -503,7 +503,11 @@ const ExchangesPage = () => {
                     </TableHeader>
                     <TableBody>
                       {group.exchanges.map((exchange) => (
-                        <TableRow key={exchange.id}>
+                        <TableRow
+                          key={exchange.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => router.push(`/exchanges/${exchange.id}`)}
+                        >
                           <TableCell>
                             <div>
                               <div className="font-medium">{exchange.name}</div>
@@ -541,7 +545,7 @@ const ExchangesPage = () => {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
