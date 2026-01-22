@@ -65,10 +65,12 @@ import {
   getStateColor,
   ALLOWED_TRANSITIONS,
 } from "@/components/exchanges/types";
-import { ExchangeForm } from "@/components/exchanges/exchange-form";
+import { ExchangeWizard } from "@/components/exchanges/exchange-wizard";
 import { PartyForm } from "@/components/exchanges/party-form";
 import { FlowForm } from "@/components/exchanges/flow-form";
 import { CreateAgreementForm } from "@/components/exchanges/create-agreement-form";
+import { ValueTypeBadge } from "@/components/value/value-type-badge";
+import { ValueType } from "@/components/value/types";
 import api from "@/lib/api-sdk";
 
 const ExchangeDetailsPage = () => {
@@ -452,7 +454,12 @@ const ExchangeDetailsPage = () => {
                       {flow.toPartyAgent?.name || "Unknown"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{flow.value?.name || "Unknown"}</Badge>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{flow.value?.name || "Unknown"}</span>
+                        {flow.value?.type && (
+                          <ValueTypeBadge type={flow.value.type as ValueType} className="text-xs" />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {flow.quantity ?? "—"}
@@ -500,11 +507,11 @@ const ExchangeDetailsPage = () => {
 
       {/* Edit Exchange Dialog */}
       <Dialog open={showEditForm} onOpenChange={(open) => !open && setShowEditForm(false)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Exchange</DialogTitle>
           </DialogHeader>
-          <ExchangeForm
+          <ExchangeWizard
             exchange={exchange}
             onSuccess={handleEditSuccess}
             onCancel={() => setShowEditForm(false)}

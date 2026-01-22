@@ -1,15 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, X, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export interface AutocompleteOption {
   value: string;
   label: string;
   sublabel?: string;
+  imageUrl?: string;
 }
 
 interface AutocompleteProps {
@@ -130,14 +132,22 @@ export function Autocomplete({
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 flex-shrink-0",
                       value === option.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  <div className="flex flex-col">
-                    <span>{option.label}</span>
+                  {option.imageUrl !== undefined && (
+                    <Avatar className="h-6 w-6 mr-2 flex-shrink-0">
+                      <AvatarImage src={option.imageUrl} alt={option.label} />
+                      <AvatarFallback className="text-xs">
+                        <User className="h-3 w-3" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className="flex flex-col min-w-0">
+                    <span className="truncate">{option.label}</span>
                     {option.sublabel && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground truncate">
                         {option.sublabel}
                       </span>
                     )}

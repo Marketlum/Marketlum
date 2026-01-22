@@ -77,7 +77,7 @@ import {
   STATE_OPTIONS,
   ALLOWED_TRANSITIONS,
 } from "@/components/exchanges/types";
-import { ExchangeForm } from "@/components/exchanges/exchange-form";
+import { ExchangeWizard } from "@/components/exchanges/exchange-wizard";
 import { Autocomplete, AutocompleteOption } from "@/components/ui/autocomplete";
 import api from "@/lib/api-sdk";
 
@@ -605,11 +605,11 @@ const ExchangesPage = () => {
 
       {/* Form Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => !open && handleFormCancel()}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingExchange ? "Edit Exchange" : "New Exchange"}</DialogTitle>
           </DialogHeader>
-          <ExchangeForm
+          <ExchangeWizard
             exchange={editingExchange}
             onSuccess={handleFormSuccess}
             onCancel={handleFormCancel}

@@ -48,6 +48,7 @@ type User = {
   id: string;
   email: string;
   agent?: Agent;
+  avatarFileId?: string | null;
 };
 
 type ValueStream = {
@@ -128,6 +129,8 @@ type ExchangeFormProps = {
   onCancel: () => void;
 };
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+
 export function ExchangeForm({ exchange, onSuccess, onCancel }: ExchangeFormProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [valueStreams, setValueStreams] = useState<FlatValueStream[]>([]);
@@ -155,7 +158,7 @@ export function ExchangeForm({ exchange, onSuccess, onCancel }: ExchangeFormProp
       api.getTaxonomies(),
     ])
       .then(([usersData, valueStreamsData, channelsData, taxonomiesData]) => {
-        setUsers(usersData?.items || []);
+        setUsers(usersData?.data || []);
         setValueStreams(flattenValueStreams(valueStreamsData || []));
         setChannels(flattenChannels(channelsData || []));
         setTaxonomies(flattenTaxonomies(taxonomiesData || []));
@@ -169,8 +172,9 @@ export function ExchangeForm({ exchange, onSuccess, onCancel }: ExchangeFormProp
 
   const userOptions: AutocompleteOption[] = (users || []).map((user) => ({
     value: user.id,
-    label: user.email,
-    sublabel: user.agent?.name,
+    label: user.agent?.name || user.email,
+    sublabel: user.agent?.name ? user.email : undefined,
+    imageUrl: user.avatarFileId ? `${apiBaseUrl}/files/${user.avatarFileId}/thumbnail` : undefined,
   }));
 
   const onSubmit = async (data: FormData) => {
