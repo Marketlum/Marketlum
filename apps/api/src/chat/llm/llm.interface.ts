@@ -3,6 +3,7 @@ export interface LlmMessage {
   content: string;
   toolCallId?: string;
   toolName?: string;
+  toolCalls?: ToolCall[]; // For assistant messages that request tool calls
 }
 
 export interface ToolDefinition {

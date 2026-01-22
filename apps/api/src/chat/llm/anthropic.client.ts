@@ -85,17 +85,60 @@ export class AnthropicLlmClient implements LlmClient {
         systemPrompt += (systemPrompt ? '\n' : '') + msg.content;
       } else if (msg.role === 'tool') {
         // Tool results need to be added as user messages with tool_result content
-        convertedMessages.push({
-          role: 'user',
-          content: [{
+        // Check if last message is already a user message with tool_result, if so append to it
+        const lastMsg = convertedMessages[convertedMessages.length - 1];
+        if (lastMsg && lastMsg.role === 'user' && Array.isArray(lastMsg.content)) {
+          (lastMsg.content as Anthropic.ToolResultBlockParam[]).push({
             type: 'tool_result',
             tool_use_id: msg.toolCallId || '',
             content: msg.content,
-          }],
-        });
+          });
+        } else {
+          convertedMessages.push({
+            role: 'user',
+            content: [{
+              type: 'tool_result',
+              tool_use_id: msg.toolCallId || '',
+              content: msg.content,
+            }],
+          });
+        }
+      } else if (msg.role === 'assistant') {
+        // Assistant messages may include tool_use blocks
+        if (msg.toolCalls && msg.toolCalls.length > 0) {
+          const contentBlocks: Anthropic.ContentBlockParam[] = [];
+
+          // Add text content if present
+          if (msg.content) {
+            contentBlocks.push({
+              type: 'text',
+              text: msg.content,
+            });
+          }
+
+          // Add tool_use blocks
+          for (const toolCall of msg.toolCalls) {
+            contentBlocks.push({
+              type: 'tool_use',
+              id: toolCall.id,
+              name: toolCall.name,
+              input: toolCall.arguments,
+            });
+          }
+
+          convertedMessages.push({
+            role: 'assistant',
+            content: contentBlocks,
+          });
+        } else {
+          convertedMessages.push({
+            role: 'assistant',
+            content: msg.content,
+          });
+        }
       } else {
         convertedMessages.push({
-          role: msg.role as 'user' | 'assistant',
+          role: msg.role as 'user',
           content: msg.content,
         });
       }

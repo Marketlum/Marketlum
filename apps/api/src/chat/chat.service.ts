@@ -201,10 +201,14 @@ export class ChatService {
             toolMessages.push(toolMessage);
 
             // Add to messages for next iteration
-            messages.push({
-              role: 'assistant',
-              content: result.content || '',
-            });
+            // Note: We add assistant message with tool calls ONCE before all tool results
+            if (messages[messages.length - 1]?.role !== 'assistant' || !messages[messages.length - 1]?.toolCalls) {
+              messages.push({
+                role: 'assistant',
+                content: result.content || '',
+                toolCalls: result.toolCalls,
+              });
+            }
             messages.push({
               role: 'tool',
               content: JSON.stringify(toolOutput),
