@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -42,6 +43,8 @@ import {
 import api from "@/lib/api-sdk";
 
 const ChatPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -53,14 +56,78 @@ const ChatPage = () => {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<LlmProvider>("anthropic");
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialMessageHandled = useRef(false);
 
   // Fetch providers on mount
   useEffect(() => {
     api.getChatModels()
-      .then((data) => setProviders(data.providers))
+      .then((data) => {
+        setProviders(data.providers);
+        // Set default model for selected provider
+        const defaultProvider = data.providers.find((p) => p.id === "anthropic") || data.providers[0];
+        if (defaultProvider) {
+          setSelectedProvider(defaultProvider.id as LlmProvider);
+          setSelectedModel(defaultProvider.models[0]?.id || "");
+        }
+      })
       .catch((error) => console.error("Failed to fetch models:", error));
   }, []);
+
+  // Handle initial message from URL (e.g., from dashboard)
+  useEffect(() => {
+    const initialMessage = searchParams.get("message");
+    if (initialMessage && !initialMessageHandled.current && providers.length > 0) {
+      initialMessageHandled.current = true;
+      // Create a new chat and send the message
+      handleCreateChatWithMessage(initialMessage);
+      // Clear the URL parameter
+      router.replace("/chat");
+    }
+  }, [searchParams, providers]);
+
+  const handleCreateChatWithMessage = async (message: string) => {
+    try {
+      const newChat = await api.createChat({
+        provider: selectedProvider,
+        model: selectedModel,
+      });
+      setChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+
+      // Send the initial message
+      setIsSending(true);
+      const tempUserMessage: ChatMessage = {
+        id: `temp-${Date.now()}`,
+        chatId: newChat.id,
+        role: "user",
+        content: message,
+        toolName: null,
+        toolInput: null,
+        toolOutput: null,
+        tokenUsage: null,
+        latencyMs: null,
+        error: null,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages([tempUserMessage]);
+
+      const response = await api.sendChatMessage(newChat.id, message);
+      setMessages([
+        response.userMessage,
+        ...response.toolMessages,
+        response.assistantMessage,
+      ]);
+      fetchChats();
+    } catch (error) {
+      console.error("Failed to create chat with message:", error);
+      toast.error("Failed to create chat");
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   // Fetch chats
   const fetchChats = async () => {
@@ -119,7 +186,10 @@ const ChatPage = () => {
 
   const handleCreateChat = async () => {
     try {
-      const newChat = await api.createChat({});
+      const newChat = await api.createChat({
+        provider: selectedProvider,
+        model: selectedModel,
+      });
       setChats((prev) => [newChat, ...prev]);
       setSelectedChatId(newChat.id);
       toast.success("New chat created");
@@ -300,8 +370,48 @@ const ChatPage = () => {
     <div className="flex h-[calc(100vh-4rem)]">
       {/* Chat List Sidebar */}
       <div className="w-80 border-r flex flex-col">
-        <div className="p-4 border-b">
-          <Button onClick={handleCreateChat} className="w-full mb-3">
+        <div className="p-4 border-b space-y-3">
+          <div className="flex gap-2">
+            <Select
+              value={selectedProvider}
+              onValueChange={(value: LlmProvider) => {
+                setSelectedProvider(value);
+                const prov = providers.find((p) => p.id === value);
+                if (prov?.models[0]) {
+                  setSelectedModel(prov.models[0].id);
+                }
+              }}
+            >
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                {providers.map((provider) => (
+                  <SelectItem key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedModel}
+              onValueChange={setSelectedModel}
+            >
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Model" />
+              </SelectTrigger>
+              <SelectContent>
+                {providers
+                  .find((p) => p.id === selectedProvider)
+                  ?.models.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleCreateChat} className="w-full">
             <Plus className="mr-2 h-4 w-4" />
             New Chat
           </Button>
@@ -339,7 +449,7 @@ const ChatPage = () => {
                   onClick={() => setSelectedChatId(chat.id)}
                 >
                   <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     {editingChatId === chat.id ? (
                       <Input
                         value={editingTitle}
@@ -358,7 +468,7 @@ const ChatPage = () => {
                       />
                     ) : (
                       <>
-                        <div className="text-sm font-medium truncate">
+                        <div className="text-sm font-medium truncate max-w-[180px]">
                           {chat.title}
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -414,51 +524,10 @@ const ChatPage = () => {
             {/* Chat Header */}
             <div className="p-4 border-b flex items-center justify-between">
               <div>
-                <h2 className="font-semibold">{selectedChat.title}</h2>
+                <h2 className="font-semibold truncate max-w-md">{selectedChat.title}</h2>
                 <p className="text-sm text-muted-foreground">
                   {getModelName(selectedChat.provider, selectedChat.model)}
                 </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={selectedChat.provider}
-                  onValueChange={(value: LlmProvider) =>
-                    handleUpdateChat(selectedChat.id, {
-                      provider: value,
-                      model: providers.find((p) => p.id === value)?.models[0]?.id,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {providers.map((provider) => (
-                      <SelectItem key={provider.id} value={provider.id}>
-                        {provider.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={selectedChat.model}
-                  onValueChange={(value) =>
-                    handleUpdateChat(selectedChat.id, { model: value })
-                  }
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {providers
-                      .find((p) => p.id === selectedChat.provider)
-                      ?.models.map((model) => (
-                        <SelectItem key={model.id} value={model.id}>
-                          {model.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 

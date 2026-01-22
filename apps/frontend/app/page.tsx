@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { MarketlumDefaultSkeleton } from "@/components/default-skeleton"
 import {
   Users,
@@ -25,7 +27,9 @@ import {
   MapPin,
   CheckCircle2,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquare,
+  Send
 } from "lucide-react"
 import api from "@/lib/api-sdk"
 
@@ -145,13 +149,22 @@ function MiniStatItem({
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [askInput, setAskInput] = useState("")
 
   useEffect(() => {
     api.getDashboardStats()
       .then(setStats)
       .catch((error) => console.error("Error fetching dashboard stats:", error))
   }, [])
+
+  const handleAskSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (askInput.trim()) {
+      router.push(`/chat?message=${encodeURIComponent(askInput.trim())}`)
+    }
+  }
 
   if (!stats) return <MarketlumDefaultSkeleton />
 
@@ -161,6 +174,31 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-1">Overview of your marketplace data</p>
       </header>
+
+      {/* Ask Anything */}
+      <Card className="bg-gradient-to-r from-primary/5 to-purple-500/5 border-primary/20">
+        <CardContent className="pt-6">
+          <form onSubmit={handleAskSubmit} className="flex gap-3">
+            <div className="relative flex-1">
+              <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                placeholder="Ask anything about your market"
+                value={askInput}
+                onChange={(e) => setAskInput(e.target.value)}
+                className="pl-11 h-12 text-base"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!askInput.trim()}
+              className="h-12 px-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+            >
+              <Send className="h-4 w-4" />
+              Ask
+            </button>
+          </form>
+        </CardContent>
+      </Card>
 
       {/* Main Stats Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
