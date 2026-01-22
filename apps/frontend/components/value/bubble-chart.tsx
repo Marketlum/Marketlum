@@ -9,12 +9,61 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Search, RotateCcw, List, ZoomIn, ZoomOut, Maximize, Minimize } from "lucide-react";
 
-// Color palette for value types
-const TYPE_COLORS: Record<ValueType, string> = {
-  product: "#3b82f6", // blue
-  service: "#22c55e", // green
-  relationship: "#f59e0b", // amber
-  right: "#8b5cf6", // purple
+// Pastel color palette for value types (matching VALUE_TYPE_COLORS)
+const TYPE_COLORS: Record<ValueType, { base: string; dark: string }> = {
+  product: { base: "#93c5fd", dark: "#1e40af" },      // blue pastel -> dark blue
+  service: { base: "#fde047", dark: "#a16207" },      // yellow pastel -> dark yellow
+  relationship: { base: "#fca5a5", dark: "#991b1b" }, // red pastel -> dark red
+  right: { base: "#d8b4fe", dark: "#6b21a8" },        // purple pastel -> dark purple
+};
+
+// Get color based on type and depth for better contrast between levels
+const getNodeColor = (type: ValueType, depth: number): string => {
+  const colors = TYPE_COLORS[type];
+  // Interpolate between base (pastel) and dark based on depth
+  // depth 1 = lightest (most pastel), higher depths = progressively darker
+  const maxDepth = 6;
+  const t = Math.min((depth - 1) / maxDepth, 1);
+
+  // Parse hex colors
+  const parseHex = (hex: string) => ({
+    r: parseInt(hex.slice(1, 3), 16),
+    g: parseInt(hex.slice(3, 5), 16),
+    b: parseInt(hex.slice(5, 7), 16),
+  });
+
+  const base = parseHex(colors.base);
+  const dark = parseHex(colors.dark);
+
+  // Linear interpolation
+  const r = Math.round(base.r + (dark.r - base.r) * t * 0.6);
+  const g = Math.round(base.g + (dark.g - base.g) * t * 0.6);
+  const b = Math.round(base.b + (dark.b - base.b) * t * 0.6);
+
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
+// Get stroke color (darker version) based on type and depth
+const getStrokeColor = (type: ValueType, depth: number): string => {
+  const colors = TYPE_COLORS[type];
+  const maxDepth = 6;
+  const t = Math.min((depth - 1) / maxDepth, 1);
+
+  const parseHex = (hex: string) => ({
+    r: parseInt(hex.slice(1, 3), 16),
+    g: parseInt(hex.slice(3, 5), 16),
+    b: parseInt(hex.slice(5, 7), 16),
+  });
+
+  const base = parseHex(colors.base);
+  const dark = parseHex(colors.dark);
+
+  // Darker stroke
+  const r = Math.round(base.r + (dark.r - base.r) * (t * 0.6 + 0.4));
+  const g = Math.round(base.g + (dark.g - base.g) * (t * 0.6 + 0.4));
+  const b = Math.round(base.b + (dark.b - base.b) * (t * 0.6 + 0.4));
+
+  return `rgb(${r}, ${g}, ${b})`;
 };
 
 interface PackedNode extends d3.HierarchyCircularNode<Value> {
@@ -369,11 +418,11 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
       {/* Legend */}
       <div className="flex items-center gap-4 px-4 py-2 border-b text-sm">
         <span className="text-muted-foreground">Types:</span>
-        {Object.entries(TYPE_COLORS).map(([type, color]) => (
+        {Object.entries(TYPE_COLORS).map(([type, colors]) => (
           <div key={type} className="flex items-center gap-1">
             <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: color }}
+              className="w-3 h-3 rounded-full border"
+              style={{ backgroundColor: colors.base, borderColor: colors.dark }}
             />
             <span className="capitalize">{type}</span>
           </div>
@@ -432,11 +481,11 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
                 >
                   <circle
                     r={node.r}
-                    fill={colorByType ? TYPE_COLORS[node.data.type] : "#6b7280"}
-                    fillOpacity={isFocusedNode ? 0.9 : 0.7}
-                    stroke={isMatching ? "#ef4444" : isFocusedNode ? "#ffffff" : colorByType ? TYPE_COLORS[node.data.type] : "#374151"}
+                    fill={colorByType ? getNodeColor(node.data.type, node.depth) : "#6b7280"}
+                    fillOpacity={isFocusedNode ? 0.95 : 0.85}
+                    stroke={isMatching ? "#ef4444" : isFocusedNode ? "#ffffff" : colorByType ? getStrokeColor(node.data.type, node.depth) : "#374151"}
                     strokeWidth={isMatching ? 4 : isFocusedNode ? 3 : 2}
-                    strokeOpacity={isMatching || isFocusedNode ? 1 : 0.5}
+                    strokeOpacity={isMatching || isFocusedNode ? 1 : 0.8}
                   />
                   {shouldShowLabel && (
                     <text
@@ -475,8 +524,12 @@ export function ValueBubbleChart({ values, onSwitchToList }: ValueBubbleChartPro
               <div className="flex items-center gap-2">
                 <span>Type:</span>
                 <span
-                  className="px-1.5 py-0.5 rounded text-xs text-white"
-                  style={{ backgroundColor: TYPE_COLORS[hoveredNode.data.type] }}
+                  className="px-1.5 py-0.5 rounded text-xs border"
+                  style={{
+                    backgroundColor: TYPE_COLORS[hoveredNode.data.type].base,
+                    borderColor: TYPE_COLORS[hoveredNode.data.type].dark,
+                    color: TYPE_COLORS[hoveredNode.data.type].dark,
+                  }}
                 >
                   {getValueTypeLabel(hoveredNode.data.type)}
                 </span>
