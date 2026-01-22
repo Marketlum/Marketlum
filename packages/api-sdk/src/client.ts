@@ -1394,6 +1394,170 @@ class MarketlumClient {
 
         throw new Error("Failed to seed offerings.");
     }
+
+    // Exchange methods
+
+    public async getExchanges(params?: {
+        q?: string;
+        state?: 'open' | 'completed' | 'closed';
+        valueStreamId?: string;
+        leadUserId?: string;
+        channelId?: string;
+        taxonId?: string;
+        agentId?: string;
+        sort?: string;
+    }) {
+        const response = await axios.get(`${this.baseUrl}/exchanges`, { params });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch exchanges.");
+    }
+
+    public async getExchange(id: string) {
+        const response = await axios.get(`${this.baseUrl}/exchanges/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the exchange.");
+    }
+
+    public async createExchange(data: {
+        name: string;
+        purpose?: string;
+        valueStreamId: string;
+        channelId?: string;
+        taxonId?: string;
+        leadUserId?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/exchanges`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the exchange.");
+    }
+
+    public async updateExchange(id: string, data: {
+        name?: string;
+        purpose?: string | null;
+        channelId?: string | null;
+        taxonId?: string | null;
+        leadUserId?: string | null;
+        agreementId?: string | null;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/exchanges/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the exchange.");
+    }
+
+    public async deleteExchange(id: string) {
+        const response = await axios.delete(`${this.baseUrl}/exchanges/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to delete the exchange.");
+    }
+
+    public async transitionExchange(id: string, to: 'open' | 'completed' | 'closed', reason?: string) {
+        const response = await axios.post(`${this.baseUrl}/exchanges/${id}/transition`, { to, reason });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to transition the exchange.");
+    }
+
+    public async setExchangeParties(id: string, parties: Array<{ agentId: string }>) {
+        const partyAgentIds = parties.map(p => p.agentId);
+        const response = await axios.put(`${this.baseUrl}/exchanges/${id}/parties`, { partyAgentIds });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to set exchange parties.");
+    }
+
+    public async createExchangeFlow(exchangeId: string, data: {
+        fromPartyAgentId: string;
+        toPartyAgentId: string;
+        valueId: string;
+        quantity: number;
+        note?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/exchanges/${exchangeId}/flows`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create exchange flow.");
+    }
+
+    public async updateExchangeFlow(exchangeId: string, flowId: string, data: {
+        fromPartyAgentId?: string;
+        toPartyAgentId?: string;
+        valueId?: string;
+        quantity?: number;
+        note?: string | null;
+    }) {
+        const response = await axios.patch(`${this.baseUrl}/exchanges/${exchangeId}/flows/${flowId}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update exchange flow.");
+    }
+
+    public async removeExchangeFlow(exchangeId: string, flowId: string) {
+        const response = await axios.delete(`${this.baseUrl}/exchanges/${exchangeId}/flows/${flowId}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to remove exchange flow.");
+    }
+
+    public async createAgreementFromExchange(exchangeId: string, data: {
+        title: string;
+        category: string;
+        gateway: string;
+        link?: string;
+        content?: string;
+    }) {
+        const response = await axios.post(`${this.baseUrl}/exchanges/${exchangeId}/create-agreement`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create agreement from exchange.");
+    }
+
+    public async seedExchanges(): Promise<{ exchanges: number; flows: number }> {
+        const response = await axios.post(`${this.baseUrl}/exchanges/seed`);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to seed exchanges.");
+    }
 }
 
 export default MarketlumClient;

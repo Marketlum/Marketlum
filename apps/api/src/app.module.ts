@@ -19,6 +19,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { OfferingsModule } from './offerings/offerings.module';
+import { ExchangesModule } from './exchanges/exchanges.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { OfferingsModule } from './offerings/offerings.module';
     AuthModule,
     DashboardModule,
     OfferingsModule,
+    ExchangesModule,
   ],
 })
 export class AppModule { }

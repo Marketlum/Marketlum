@@ -3,6 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import {
+  ArrowLeftRight,
   BookOpen,
   Diamond,
   FileSignature,
@@ -66,6 +67,7 @@ const data = {
       label: "Commerce",
       items: [
         { title: "Offerings", url: "/offerings", icon: ShoppingCart },
+        { title: "Exchanges", url: "/exchanges", icon: ArrowLeftRight },
         { title: "Agreements", url: "/agreements", icon: FileSignature },
         { title: "Ledger", url: "/ledger", icon: Landmark },
         { title: "Channels", url: "/channels", icon: Radio },
