@@ -27,6 +27,7 @@
     "seed:channels": "ts-node src/database/seed-channels.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.1",
     "@nestjs/core": "^11.0.1",
@@ -41,6 +42,7 @@
     "class-validator": "^0.14.1",
     "mysql2": "^3.13.0",
     "nestjs-typeorm-paginate": "^4.1.0",
+    "openai": "^6.16.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.14.0",

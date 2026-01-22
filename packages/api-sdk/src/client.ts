@@ -1,16 +1,42 @@
-import axios from "axios";
+import axios, { AxiosInstance, AxiosError } from "axios";
 
 class MarketlumClient {
+    private readonly client: AxiosInstance;
+
     constructor(
         private readonly apiKey: string,
         private readonly baseUrl: string = "https://api.marketlum.com"
     ) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
+
+        this.client = axios.create({
+            baseURL: this.baseUrl,
+        });
+
+        // Add response interceptor for better error logging
+        this.client.interceptors.response.use(
+            (response) => response,
+            (error: AxiosError) => {
+                if (error.response) {
+                    // Server responded with error status
+                    console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url}`);
+                    console.error(`  Status: ${error.response.status} ${error.response.statusText}`);
+                    console.error(`  Response:`, error.response.data);
+                } else if (error.request) {
+                    // Request made but no response received
+                    console.error(`[API Error] No response received for ${error.config?.method?.toUpperCase()} ${error.config?.url}`);
+                } else {
+                    // Error setting up request
+                    console.error(`[API Error] Request setup failed:`, error.message);
+                }
+                return Promise.reject(error);
+            }
+        );
     }
 
     public async getValueStreams() {
-        const response = await axios.get(`${this.baseUrl}/value-streams`);
+        const response = await this.client.get(`/value-streams`);
 
         if (response.status === 200) {
             return response.data;
@@ -20,7 +46,7 @@ class MarketlumClient {
     }
 
     public async getValueStream(id: number) {
-        const response = await axios.get(`${this.baseUrl}/value-streams/${id}`);
+        const response = await this.client.get(`/value-streams/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -30,7 +56,7 @@ class MarketlumClient {
     }
 
     public async deleteValueStream(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/value-streams/${id}`);
+        const response = await this.client.delete(`/value-streams/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -40,7 +66,7 @@ class MarketlumClient {
     }
 
     public async updateValueStream(id: string, data: { name?: string, purpose?: string, imageId?: string | null }) {
-        const response = await axios.patch(`${this.baseUrl}/value-streams/${id}`, data);
+        const response = await this.client.patch(`/value-streams/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -50,7 +76,7 @@ class MarketlumClient {
     }
 
     public async createValueStream(data: { name: string, purpose: string, parentId?: string, imageId?: string }) {
-        const response = await axios.post(`${this.baseUrl}/value-streams`, data);
+        const response = await this.client.post(`/value-streams`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -60,7 +86,7 @@ class MarketlumClient {
     }
 
     public async getFlatValue(streamId: number) {
-        const response = await axios.get(`${this.baseUrl}/value/flat/${streamId}`);
+        const response = await this.client.get(`/value/flat/${streamId}`);
 
         if (response.status === 200) {
             return response.data;
@@ -70,7 +96,7 @@ class MarketlumClient {
     }
 
     public async getValuesTree() {
-        const response = await axios.get(`${this.baseUrl}/value`);
+        const response = await this.client.get(`/value`);
 
         if (response.status === 200) {
             return response.data;
@@ -80,7 +106,7 @@ class MarketlumClient {
     }
 
     public async getValuesList(page: number = 1, limit: number = 10) {
-        const response = await axios.get(`${this.baseUrl}/value/list`, {
+        const response = await this.client.get(`/value/list`, {
             params: { page, limit }
         });
 
@@ -92,7 +118,7 @@ class MarketlumClient {
     }
 
     public async getValue(id: string) {
-        const response = await axios.get(`${this.baseUrl}/value/${id}`);
+        const response = await this.client.get(`/value/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -102,7 +128,7 @@ class MarketlumClient {
     }
 
     public async createValue(data: { name: string; description?: string; type: string; parentType: string; parentId?: string; streamId?: string; agentId?: string; fileIds?: string[] }) {
-        const response = await axios.post(`${this.baseUrl}/value`, data);
+        const response = await this.client.post(`/value`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -112,7 +138,7 @@ class MarketlumClient {
     }
 
     public async updateValue(id: string, data: { name?: string; description?: string; type?: string; parentType?: string; parentId?: string; streamId?: string; agentId?: string; fileIds?: string[] }) {
-        const response = await axios.patch(`${this.baseUrl}/value/${id}`, data);
+        const response = await this.client.patch(`/value/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -122,7 +148,7 @@ class MarketlumClient {
     }
 
     public async deleteValue(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/value/${id}`);
+        const response = await this.client.delete(`/value/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -132,7 +158,7 @@ class MarketlumClient {
     }
 
     public async seedValues(): Promise<{ inserted: number; skipped: number }> {
-        const response = await axios.post(`${this.baseUrl}/value/seed`);
+        const response = await this.client.post(`/value/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -142,7 +168,7 @@ class MarketlumClient {
     }
 
     public async getAgents(page: number = 1, limit: number = 10, geographyId?: string) {
-        const response = await axios.get(`${this.baseUrl}/agents`, {
+        const response = await this.client.get(`/agents`, {
             params: { page, limit, geographyId }
         });
 
@@ -154,7 +180,7 @@ class MarketlumClient {
     }
 
     public async getAgent(id: string) {
-        const response = await axios.get(`${this.baseUrl}/agents/${id}`);
+        const response = await this.client.get(`/agents/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -174,7 +200,7 @@ class MarketlumClient {
         latitude?: number;
         longitude?: number;
     }) {
-        const response = await axios.post(`${this.baseUrl}/agents`, data);
+        const response = await this.client.post(`/agents`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -194,7 +220,7 @@ class MarketlumClient {
         latitude?: number | null;
         longitude?: number | null;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/agents/${id}`, data);
+        const response = await this.client.patch(`/agents/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -204,7 +230,7 @@ class MarketlumClient {
     }
 
     public async getAgentsForMap() {
-        const response = await axios.get(`${this.baseUrl}/agents/map`);
+        const response = await this.client.get(`/agents/map`);
 
         if (response.status === 200) {
             return response.data;
@@ -214,7 +240,7 @@ class MarketlumClient {
     }
 
     public async deleteAgent(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/agents/${id}`);
+        const response = await this.client.delete(`/agents/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -226,7 +252,7 @@ class MarketlumClient {
     // Channel methods
 
     public async getChannelsTree() {
-        const response = await axios.get(`${this.baseUrl}/channels/tree`);
+        const response = await this.client.get(`/channels/tree`);
 
         if (response.status === 200) {
             return response.data;
@@ -236,7 +262,7 @@ class MarketlumClient {
     }
 
     public async getChannels(parentId?: string, type?: string) {
-        const response = await axios.get(`${this.baseUrl}/channels`, {
+        const response = await this.client.get(`/channels`, {
             params: { parentId, type }
         });
 
@@ -248,7 +274,7 @@ class MarketlumClient {
     }
 
     public async getChannel(id: string) {
-        const response = await axios.get(`${this.baseUrl}/channels/${id}`);
+        const response = await this.client.get(`/channels/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -258,7 +284,7 @@ class MarketlumClient {
     }
 
     public async createChannel(data: { name: string; type: string; purpose?: string; parentId?: string }) {
-        const response = await axios.post(`${this.baseUrl}/channels`, data);
+        const response = await this.client.post(`/channels`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -268,7 +294,7 @@ class MarketlumClient {
     }
 
     public async updateChannel(id: string, data: { name?: string; type?: string; purpose?: string; parentId?: string }) {
-        const response = await axios.patch(`${this.baseUrl}/channels/${id}`, data);
+        const response = await this.client.patch(`/channels/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -278,7 +304,7 @@ class MarketlumClient {
     }
 
     public async moveChannel(id: string, parentId: string | null) {
-        const response = await axios.post(`${this.baseUrl}/channels/${id}/move`, { parentId });
+        const response = await this.client.post(`/channels/${id}/move`, { parentId });
 
         if (response.status === 201) {
             return response.data;
@@ -288,7 +314,7 @@ class MarketlumClient {
     }
 
     public async deleteChannel(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/channels/${id}`);
+        const response = await this.client.delete(`/channels/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -300,7 +326,7 @@ class MarketlumClient {
     // Geography methods
 
     public async getGeographiesTree() {
-        const response = await axios.get(`${this.baseUrl}/geographies/tree`);
+        const response = await this.client.get(`/geographies/tree`);
 
         if (response.status === 200) {
             return response.data;
@@ -310,7 +336,7 @@ class MarketlumClient {
     }
 
     public async getGeography(id: string) {
-        const response = await axios.get(`${this.baseUrl}/geographies/${id}`);
+        const response = await this.client.get(`/geographies/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -320,7 +346,7 @@ class MarketlumClient {
     }
 
     public async createGeography(data: { name: string; code: string; level: string; parentId?: string }) {
-        const response = await axios.post(`${this.baseUrl}/geographies`, data);
+        const response = await this.client.post(`/geographies`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -330,7 +356,7 @@ class MarketlumClient {
     }
 
     public async updateGeography(id: string, data: { name?: string; code?: string; level?: string; parentId?: string }) {
-        const response = await axios.patch(`${this.baseUrl}/geographies/${id}`, data);
+        const response = await this.client.patch(`/geographies/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -340,7 +366,7 @@ class MarketlumClient {
     }
 
     public async moveGeography(id: string, parentId: string | null) {
-        const response = await axios.post(`${this.baseUrl}/geographies/${id}/move`, { parentId });
+        const response = await this.client.post(`/geographies/${id}/move`, { parentId });
 
         if (response.status === 201) {
             return response.data;
@@ -350,7 +376,7 @@ class MarketlumClient {
     }
 
     public async deleteGeography(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/geographies/${id}`);
+        const response = await this.client.delete(`/geographies/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -360,7 +386,7 @@ class MarketlumClient {
     }
 
     public async seedGeographies() {
-        const response = await axios.post(`${this.baseUrl}/geographies/seed`);
+        const response = await this.client.post(`/geographies/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -381,7 +407,7 @@ class MarketlumClient {
         agentId?: string;
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/agreements`, { params });
+        const response = await this.client.get(`/agreements`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -391,7 +417,7 @@ class MarketlumClient {
     }
 
     public async getAgreementsTree() {
-        const response = await axios.get(`${this.baseUrl}/agreements/tree`);
+        const response = await this.client.get(`/agreements/tree`);
 
         if (response.status === 200) {
             return response.data;
@@ -401,7 +427,7 @@ class MarketlumClient {
     }
 
     public async getAgreementsStats(params?: { category?: string; agentId?: string }) {
-        const response = await axios.get(`${this.baseUrl}/agreements/stats`, { params });
+        const response = await this.client.get(`/agreements/stats`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -411,7 +437,7 @@ class MarketlumClient {
     }
 
     public async getAgreement(id: string) {
-        const response = await axios.get(`${this.baseUrl}/agreements/${id}`);
+        const response = await this.client.get(`/agreements/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -431,7 +457,7 @@ class MarketlumClient {
         fileId?: string;
         parties?: Array<{ agentId: string; role?: string }>;
     }) {
-        const response = await axios.post(`${this.baseUrl}/agreements`, data);
+        const response = await this.client.post(`/agreements`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -451,7 +477,7 @@ class MarketlumClient {
         fileId?: string | null;
         parties?: Array<{ agentId: string; role?: string }>;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/agreements/${id}`, data);
+        const response = await this.client.patch(`/agreements/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -461,7 +487,7 @@ class MarketlumClient {
     }
 
     public async deleteAgreement(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/agreements/${id}`);
+        const response = await this.client.delete(`/agreements/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -471,7 +497,7 @@ class MarketlumClient {
     }
 
     public async addAgreementParty(agreementId: string, data: { agentId: string; role?: string }) {
-        const response = await axios.post(`${this.baseUrl}/agreements/${agreementId}/parties`, data);
+        const response = await this.client.post(`/agreements/${agreementId}/parties`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -481,7 +507,7 @@ class MarketlumClient {
     }
 
     public async removeAgreementParty(agreementId: string, agentId: string) {
-        const response = await axios.delete(`${this.baseUrl}/agreements/${agreementId}/parties/${agentId}`);
+        const response = await this.client.delete(`/agreements/${agreementId}/parties/${agentId}`);
 
         if (response.status === 200) {
             return true;
@@ -491,7 +517,7 @@ class MarketlumClient {
     }
 
     public async seedAgreements(): Promise<{ inserted: number; skipped: number }> {
-        const response = await axios.post(`${this.baseUrl}/agreements/seed`);
+        const response = await this.client.post(`/agreements/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -509,7 +535,7 @@ class MarketlumClient {
             formData.append('folderId', folderId);
         }
 
-        const response = await axios.post(`${this.baseUrl}/files`, formData, {
+        const response = await this.client.post(`/files`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
 
@@ -529,7 +555,7 @@ class MarketlumClient {
             formData.append('folderId', folderId);
         }
 
-        const response = await axios.post(`${this.baseUrl}/files/upload`, formData, {
+        const response = await this.client.post(`/files/upload`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
 
@@ -548,7 +574,7 @@ class MarketlumClient {
         mimeGroup?: 'image' | 'video' | 'audio' | 'pdf' | 'doc' | 'other';
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/files`, { params });
+        const response = await this.client.get(`/files`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -558,7 +584,7 @@ class MarketlumClient {
     }
 
     public async getFile(id: string) {
-        const response = await axios.get(`${this.baseUrl}/files/${id}`);
+        const response = await this.client.get(`/files/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -568,7 +594,7 @@ class MarketlumClient {
     }
 
     public async updateFile(id: string, data: { altText?: string | null; caption?: string | null; folderId?: string | null }) {
-        const response = await axios.patch(`${this.baseUrl}/files/${id}`, data);
+        const response = await this.client.patch(`/files/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -578,7 +604,7 @@ class MarketlumClient {
     }
 
     public async moveFile(id: string, folderId: string | null) {
-        const response = await axios.post(`${this.baseUrl}/files/${id}/move`, { folderId });
+        const response = await this.client.post(`/files/${id}/move`, { folderId });
 
         if (response.status === 201) {
             return response.data;
@@ -588,7 +614,7 @@ class MarketlumClient {
     }
 
     public async deleteFile(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/files/${id}`);
+        const response = await this.client.delete(`/files/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -612,7 +638,7 @@ class MarketlumClient {
     // Image editing methods
 
     public async cropImage(id: string, data: { x: number; y: number; width: number; height: number; outputFormat?: string }) {
-        const response = await axios.post(`${this.baseUrl}/files/${id}/edit/crop`, data);
+        const response = await this.client.post(`/files/${id}/edit/crop`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -622,7 +648,7 @@ class MarketlumClient {
     }
 
     public async resizeImage(id: string, data: { width?: number; height?: number; keepAspectRatio?: boolean }) {
-        const response = await axios.post(`${this.baseUrl}/files/${id}/edit/resize`, data);
+        const response = await this.client.post(`/files/${id}/edit/resize`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -632,7 +658,7 @@ class MarketlumClient {
     }
 
     public async grayscaleImage(id: string) {
-        const response = await axios.post(`${this.baseUrl}/files/${id}/edit/grayscale`, {});
+        const response = await this.client.post(`/files/${id}/edit/grayscale`, {});
 
         if (response.status === 201) {
             return response.data;
@@ -644,7 +670,7 @@ class MarketlumClient {
     // Folder methods
 
     public async getFoldersTree() {
-        const response = await axios.get(`${this.baseUrl}/files/folders/tree`);
+        const response = await this.client.get(`/files/folders/tree`);
 
         if (response.status === 200) {
             return response.data;
@@ -654,7 +680,7 @@ class MarketlumClient {
     }
 
     public async getFolder(id: string) {
-        const response = await axios.get(`${this.baseUrl}/files/folders/${id}`);
+        const response = await this.client.get(`/files/folders/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -664,7 +690,7 @@ class MarketlumClient {
     }
 
     public async createFolder(data: { name: string; parentId?: string }) {
-        const response = await axios.post(`${this.baseUrl}/files/folders`, data);
+        const response = await this.client.post(`/files/folders`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -674,7 +700,7 @@ class MarketlumClient {
     }
 
     public async updateFolder(id: string, data: { name?: string }) {
-        const response = await axios.patch(`${this.baseUrl}/files/folders/${id}`, data);
+        const response = await this.client.patch(`/files/folders/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -684,7 +710,7 @@ class MarketlumClient {
     }
 
     public async deleteFolder(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/files/folders/${id}`);
+        const response = await this.client.delete(`/files/folders/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -694,7 +720,7 @@ class MarketlumClient {
     }
 
     public async seedFiles(): Promise<{ inserted: number; skipped: number }> {
-        const response = await axios.post(`${this.baseUrl}/files/seed`);
+        const response = await this.client.post(`/files/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -713,7 +739,7 @@ class MarketlumClient {
         valueId?: string;
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/ledger/accounts`, { params });
+        const response = await this.client.get(`/ledger/accounts`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -723,7 +749,7 @@ class MarketlumClient {
     }
 
     public async getAccount(id: string) {
-        const response = await axios.get(`${this.baseUrl}/ledger/accounts/${id}`);
+        const response = await this.client.get(`/ledger/accounts/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -738,7 +764,7 @@ class MarketlumClient {
         valueId: string;
         description?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/ledger/accounts`, data);
+        const response = await this.client.post(`/ledger/accounts`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -752,7 +778,7 @@ class MarketlumClient {
         description?: string;
         valueId?: string;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/ledger/accounts/${id}`, data);
+        const response = await this.client.patch(`/ledger/accounts/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -762,7 +788,7 @@ class MarketlumClient {
     }
 
     public async deleteAccount(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/ledger/accounts/${id}`);
+        const response = await this.client.delete(`/ledger/accounts/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -787,7 +813,7 @@ class MarketlumClient {
         q?: string;
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/ledger/transactions`, { params });
+        const response = await this.client.get(`/ledger/transactions`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -797,7 +823,7 @@ class MarketlumClient {
     }
 
     public async getTransaction(id: string) {
-        const response = await axios.get(`${this.baseUrl}/ledger/transactions/${id}`);
+        const response = await this.client.get(`/ledger/transactions/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -814,7 +840,7 @@ class MarketlumClient {
         verified?: boolean;
         note?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/ledger/transactions`, data);
+        const response = await this.client.post(`/ledger/transactions`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -831,7 +857,7 @@ class MarketlumClient {
         verified?: boolean;
         note?: string;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/ledger/transactions/${id}`, data);
+        const response = await this.client.patch(`/ledger/transactions/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -841,7 +867,7 @@ class MarketlumClient {
     }
 
     public async verifyTransaction(id: string, verified: boolean) {
-        const response = await axios.post(`${this.baseUrl}/ledger/transactions/${id}/verify`, { verified });
+        const response = await this.client.post(`/ledger/transactions/${id}/verify`, { verified });
 
         if (response.status === 201) {
             return response.data;
@@ -851,7 +877,7 @@ class MarketlumClient {
     }
 
     public async deleteTransaction(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/ledger/transactions/${id}`);
+        const response = await this.client.delete(`/ledger/transactions/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -861,7 +887,7 @@ class MarketlumClient {
     }
 
     public async recalculateLedgerBalances(): Promise<{ recalculatedAccounts: number }> {
-        const response = await axios.post(`${this.baseUrl}/ledger/recalculate-balances`);
+        const response = await this.client.post(`/ledger/recalculate-balances`);
 
         if (response.status === 201) {
             return response.data;
@@ -871,7 +897,7 @@ class MarketlumClient {
     }
 
     public async seedLedger(): Promise<{ accounts: number; transactions: number }> {
-        const response = await axios.post(`${this.baseUrl}/ledger/seed`);
+        const response = await this.client.post(`/ledger/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -888,7 +914,7 @@ class MarketlumClient {
         q?: string;
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/locales`, { params });
+        const response = await this.client.get(`/locales`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -898,7 +924,7 @@ class MarketlumClient {
     }
 
     public async getLocale(id: string) {
-        const response = await axios.get(`${this.baseUrl}/locales/${id}`);
+        const response = await this.client.get(`/locales/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -908,7 +934,7 @@ class MarketlumClient {
     }
 
     public async createLocale(data: { code: string }) {
-        const response = await axios.post(`${this.baseUrl}/locales`, data);
+        const response = await this.client.post(`/locales`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -918,7 +944,7 @@ class MarketlumClient {
     }
 
     public async updateLocale(id: string, data: { code?: string }) {
-        const response = await axios.patch(`${this.baseUrl}/locales/${id}`, data);
+        const response = await this.client.patch(`/locales/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -928,7 +954,7 @@ class MarketlumClient {
     }
 
     public async deleteLocale(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/locales/${id}`);
+        const response = await this.client.delete(`/locales/${id}`);
 
         if (response.status === 204) {
             return true;
@@ -938,7 +964,7 @@ class MarketlumClient {
     }
 
     public async seedLocales(): Promise<{ inserted: number; skipped: number }> {
-        const response = await axios.post(`${this.baseUrl}/locales/seed`);
+        const response = await this.client.post(`/locales/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -960,7 +986,7 @@ class MarketlumClient {
         };
         accessToken: string;
     }> {
-        const response = await axios.post(`${this.baseUrl}/auth/login`, { email, password });
+        const response = await this.client.post(`/auth/login`, { email, password });
 
         if (response.status === 200) {
             return response.data;
@@ -970,7 +996,7 @@ class MarketlumClient {
     }
 
     public async logout(): Promise<{ ok: true }> {
-        const response = await axios.post(`${this.baseUrl}/auth/logout`);
+        const response = await this.client.post(`/auth/logout`);
 
         if (response.status === 200) {
             return response.data;
@@ -980,7 +1006,7 @@ class MarketlumClient {
     }
 
     public async getMe(token: string): Promise<any> {
-        const response = await axios.get(`${this.baseUrl}/auth/me`, {
+        const response = await this.client.get(`/auth/me`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -992,7 +1018,7 @@ class MarketlumClient {
     }
 
     public async forgotPassword(email: string): Promise<{ ok: true }> {
-        const response = await axios.post(`${this.baseUrl}/auth/forgot-password`, { email });
+        const response = await this.client.post(`/auth/forgot-password`, { email });
 
         if (response.status === 200) {
             return response.data;
@@ -1002,7 +1028,7 @@ class MarketlumClient {
     }
 
     public async resetPassword(token: string, newPassword: string): Promise<{ ok: true }> {
-        const response = await axios.post(`${this.baseUrl}/auth/reset-password`, { token, newPassword });
+        const response = await this.client.post(`/auth/reset-password`, { token, newPassword });
 
         if (response.status === 200) {
             return response.data;
@@ -1022,7 +1048,7 @@ class MarketlumClient {
         localeId?: string;
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/users`, { params });
+        const response = await this.client.get(`/users`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -1032,7 +1058,7 @@ class MarketlumClient {
     }
 
     public async getUser(id: string) {
-        const response = await axios.get(`${this.baseUrl}/users/${id}`);
+        const response = await this.client.get(`/users/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -1053,7 +1079,7 @@ class MarketlumClient {
         leftAt?: string;
         defaultLocaleId: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/users`, data);
+        const response = await this.client.post(`/users`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -1073,7 +1099,7 @@ class MarketlumClient {
         leftAt?: string | null;
         defaultLocaleId?: string;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/users/${id}`, data);
+        const response = await this.client.patch(`/users/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -1083,7 +1109,7 @@ class MarketlumClient {
     }
 
     public async setUserPassword(id: string, newPassword: string): Promise<{ ok: true }> {
-        const response = await axios.post(`${this.baseUrl}/users/${id}/set-password`, { newPassword });
+        const response = await this.client.post(`/users/${id}/set-password`, { newPassword });
 
         if (response.status === 200) {
             return response.data;
@@ -1093,7 +1119,7 @@ class MarketlumClient {
     }
 
     public async deleteUser(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/users/${id}`);
+        const response = await this.client.delete(`/users/${id}`);
 
         if (response.status === 204) {
             return true;
@@ -1103,7 +1129,7 @@ class MarketlumClient {
     }
 
     public async seedUsers(): Promise<{ inserted: number; skipped: number }> {
-        const response = await axios.post(`${this.baseUrl}/users/seed`);
+        const response = await this.client.post(`/users/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -1115,7 +1141,7 @@ class MarketlumClient {
     // Taxonomy methods
 
     public async getTaxonomies() {
-        const response = await axios.get(`${this.baseUrl}/taxonomies`);
+        const response = await this.client.get(`/taxonomies`);
 
         if (response.status === 200) {
             return response.data;
@@ -1125,7 +1151,7 @@ class MarketlumClient {
     }
 
     public async getTaxonomy(id: string) {
-        const response = await axios.get(`${this.baseUrl}/taxonomies/${id}`);
+        const response = await this.client.get(`/taxonomies/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -1141,7 +1167,7 @@ class MarketlumClient {
         parentId?: string;
         imageId?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/taxonomies`, data);
+        const response = await this.client.post(`/taxonomies`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -1156,7 +1182,7 @@ class MarketlumClient {
         link?: string | null;
         imageId?: string | null;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/taxonomies/${id}`, data);
+        const response = await this.client.patch(`/taxonomies/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -1166,7 +1192,7 @@ class MarketlumClient {
     }
 
     public async deleteTaxonomy(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/taxonomies/${id}`);
+        const response = await this.client.delete(`/taxonomies/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -1228,7 +1254,7 @@ class MarketlumClient {
             total: number;
         };
     }> {
-        const response = await axios.get(`${this.baseUrl}/dashboard/stats`);
+        const response = await this.client.get(`/dashboard/stats`);
 
         if (response.status === 200) {
             return response.data;
@@ -1249,7 +1275,7 @@ class MarketlumClient {
         active?: boolean;
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/offerings`, { params });
+        const response = await this.client.get(`/offerings`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -1259,7 +1285,7 @@ class MarketlumClient {
     }
 
     public async getOffering(id: string) {
-        const response = await axios.get(`${this.baseUrl}/offerings/${id}`);
+        const response = await this.client.get(`/offerings/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -1278,7 +1304,7 @@ class MarketlumClient {
         agentId: string;
         valueStreamId?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/offerings`, data);
+        const response = await this.client.post(`/offerings`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -1297,7 +1323,7 @@ class MarketlumClient {
         agentId?: string;
         valueStreamId?: string | null;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/offerings/${id}`, data);
+        const response = await this.client.patch(`/offerings/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -1307,7 +1333,7 @@ class MarketlumClient {
     }
 
     public async deleteOffering(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/offerings/${id}`);
+        const response = await this.client.delete(`/offerings/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -1317,7 +1343,7 @@ class MarketlumClient {
     }
 
     public async transitionOffering(id: string, to: 'draft' | 'live' | 'archived') {
-        const response = await axios.post(`${this.baseUrl}/offerings/${id}/transition`, { to });
+        const response = await this.client.post(`/offerings/${id}/transition`, { to });
 
         if (response.status === 201) {
             return response.data;
@@ -1332,7 +1358,7 @@ class MarketlumClient {
         pricingFormula?: string;
         pricingLink?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/offerings/${offeringId}/items`, data);
+        const response = await this.client.post(`/offerings/${offeringId}/items`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -1346,7 +1372,7 @@ class MarketlumClient {
         pricingFormula?: string;
         pricingLink?: string;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/offerings/${offeringId}/items/${itemId}`, data);
+        const response = await this.client.patch(`/offerings/${offeringId}/items/${itemId}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -1356,7 +1382,7 @@ class MarketlumClient {
     }
 
     public async removeOfferingItem(offeringId: string, itemId: string) {
-        const response = await axios.delete(`${this.baseUrl}/offerings/${offeringId}/items/${itemId}`);
+        const response = await this.client.delete(`/offerings/${offeringId}/items/${itemId}`);
 
         if (response.status === 200) {
             return true;
@@ -1366,7 +1392,7 @@ class MarketlumClient {
     }
 
     public async attachOfferingFile(offeringId: string, fileId: string) {
-        const response = await axios.post(`${this.baseUrl}/offerings/${offeringId}/files`, { fileId });
+        const response = await this.client.post(`/offerings/${offeringId}/files`, { fileId });
 
         if (response.status === 201) {
             return response.data;
@@ -1376,7 +1402,7 @@ class MarketlumClient {
     }
 
     public async removeOfferingFile(offeringId: string, fileId: string) {
-        const response = await axios.delete(`${this.baseUrl}/offerings/${offeringId}/files/${fileId}`);
+        const response = await this.client.delete(`/offerings/${offeringId}/files/${fileId}`);
 
         if (response.status === 200) {
             return true;
@@ -1386,7 +1412,7 @@ class MarketlumClient {
     }
 
     public async seedOfferings(): Promise<{ inserted: number; skipped: number }> {
-        const response = await axios.post(`${this.baseUrl}/offerings/seed`);
+        const response = await this.client.post(`/offerings/seed`);
 
         if (response.status === 201) {
             return response.data;
@@ -1407,7 +1433,7 @@ class MarketlumClient {
         agentId?: string;
         sort?: string;
     }) {
-        const response = await axios.get(`${this.baseUrl}/exchanges`, { params });
+        const response = await this.client.get(`/exchanges`, { params });
 
         if (response.status === 200) {
             return response.data;
@@ -1417,7 +1443,7 @@ class MarketlumClient {
     }
 
     public async getExchange(id: string) {
-        const response = await axios.get(`${this.baseUrl}/exchanges/${id}`);
+        const response = await this.client.get(`/exchanges/${id}`);
 
         if (response.status === 200) {
             return response.data;
@@ -1434,7 +1460,7 @@ class MarketlumClient {
         taxonId?: string;
         leadUserId?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/exchanges`, data);
+        const response = await this.client.post(`/exchanges`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -1451,7 +1477,7 @@ class MarketlumClient {
         leadUserId?: string | null;
         agreementId?: string | null;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/exchanges/${id}`, data);
+        const response = await this.client.patch(`/exchanges/${id}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -1461,7 +1487,7 @@ class MarketlumClient {
     }
 
     public async deleteExchange(id: string) {
-        const response = await axios.delete(`${this.baseUrl}/exchanges/${id}`);
+        const response = await this.client.delete(`/exchanges/${id}`);
 
         if (response.status === 200) {
             return true;
@@ -1471,7 +1497,7 @@ class MarketlumClient {
     }
 
     public async transitionExchange(id: string, to: 'open' | 'completed' | 'closed', reason?: string) {
-        const response = await axios.post(`${this.baseUrl}/exchanges/${id}/transition`, { to, reason });
+        const response = await this.client.post(`/exchanges/${id}/transition`, { to, reason });
 
         if (response.status === 201) {
             return response.data;
@@ -1482,7 +1508,7 @@ class MarketlumClient {
 
     public async setExchangeParties(id: string, parties: Array<{ agentId: string }>) {
         const partyAgentIds = parties.map(p => p.agentId);
-        const response = await axios.put(`${this.baseUrl}/exchanges/${id}/parties`, { partyAgentIds });
+        const response = await this.client.put(`/exchanges/${id}/parties`, { partyAgentIds });
 
         if (response.status === 200) {
             return response.data;
@@ -1498,7 +1524,7 @@ class MarketlumClient {
         quantity: number;
         note?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/exchanges/${exchangeId}/flows`, data);
+        const response = await this.client.post(`/exchanges/${exchangeId}/flows`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -1514,7 +1540,7 @@ class MarketlumClient {
         quantity?: number;
         note?: string | null;
     }) {
-        const response = await axios.patch(`${this.baseUrl}/exchanges/${exchangeId}/flows/${flowId}`, data);
+        const response = await this.client.patch(`/exchanges/${exchangeId}/flows/${flowId}`, data);
 
         if (response.status === 200) {
             return response.data;
@@ -1524,7 +1550,7 @@ class MarketlumClient {
     }
 
     public async removeExchangeFlow(exchangeId: string, flowId: string) {
-        const response = await axios.delete(`${this.baseUrl}/exchanges/${exchangeId}/flows/${flowId}`);
+        const response = await this.client.delete(`/exchanges/${exchangeId}/flows/${flowId}`);
 
         if (response.status === 200) {
             return true;
@@ -1540,7 +1566,7 @@ class MarketlumClient {
         link?: string;
         content?: string;
     }) {
-        const response = await axios.post(`${this.baseUrl}/exchanges/${exchangeId}/create-agreement`, data);
+        const response = await this.client.post(`/exchanges/${exchangeId}/create-agreement`, data);
 
         if (response.status === 201) {
             return response.data;
@@ -1550,13 +1576,113 @@ class MarketlumClient {
     }
 
     public async seedExchanges(): Promise<{ exchanges: number; flows: number }> {
-        const response = await axios.post(`${this.baseUrl}/exchanges/seed`);
+        const response = await this.client.post(`/exchanges/seed`);
 
         if (response.status === 201) {
             return response.data;
         }
 
         throw new Error("Failed to seed exchanges.");
+    }
+
+    // Chat methods
+
+    public async getChatModels(): Promise<{
+        providers: Array<{
+            id: string;
+            name: string;
+            models: Array<{ id: string; name: string }>;
+        }>;
+    }> {
+        const response = await this.client.get(`/chat/models`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch chat models.");
+    }
+
+    public async getChats(q?: string) {
+        const response = await this.client.get(`/chat`, { params: { q } });
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch chats.");
+    }
+
+    public async getChat(id: string) {
+        const response = await this.client.get(`/chat/${id}`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch the chat.");
+    }
+
+    public async createChat(data: {
+        title?: string;
+        provider?: 'openai' | 'anthropic';
+        model?: string;
+    }) {
+        const response = await this.client.post(`/chat`, data);
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to create the chat.");
+    }
+
+    public async updateChat(id: string, data: {
+        title?: string;
+        provider?: 'openai' | 'anthropic';
+        model?: string;
+    }) {
+        const response = await this.client.patch(`/chat/${id}`, data);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to update the chat.");
+    }
+
+    public async archiveChat(id: string) {
+        const response = await this.client.delete(`/chat/${id}`);
+
+        if (response.status === 200) {
+            return true;
+        }
+
+        throw new Error("Failed to archive the chat.");
+    }
+
+    public async getChatMessages(chatId: string) {
+        const response = await this.client.get(`/chat/${chatId}/messages`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch chat messages.");
+    }
+
+    public async sendChatMessage(chatId: string, content: string): Promise<{
+        userMessage: any;
+        assistantMessage: any;
+        toolMessages: any[];
+    }> {
+        const response = await this.client.post(`/chat/${chatId}/messages`, { content });
+
+        if (response.status === 201) {
+            return response.data;
+        }
+
+        throw new Error("Failed to send chat message.");
     }
 }
 
