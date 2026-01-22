@@ -17,6 +17,11 @@ export class ValueStreamsController {
     return this.valueStreamsService.findAll();
   }
 
+  @Get(':id/stats')
+  getStats(@Param('id') id: string) {
+    return this.valueStreamsService.getStats(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.valueStreamsService.findOne(id);

@@ -5,6 +5,7 @@ import "./globals.css";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { MarketlumSidebar } from "@/components/sidebar"
 import { BreadcrumbNav } from "@/components/breadcrumb-nav"
+import { ValueStreamSelector } from "@/components/value-streams/value-stream-selector"
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -38,6 +39,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
               <div className="h-4 w-px bg-border" />
               <BreadcrumbNav />
               <div className="flex-1" />
+              <ValueStreamSelector />
             </header>
             <div className="flex-1 p-6">
               <main>{children}</main>

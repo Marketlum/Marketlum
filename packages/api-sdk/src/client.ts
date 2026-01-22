@@ -85,6 +85,51 @@ class MarketlumClient {
         throw new Error("Failed to create the value stream.");
     }
 
+    public async getValueStreamStats(id: string): Promise<{
+        values: {
+            total: number;
+            byType: {
+                product: number;
+                service: number;
+                relationship: number;
+                right: number;
+            };
+        };
+        valueInstances: {
+            total: number;
+            byDirection: {
+                incoming: number;
+                outgoing: number;
+                internal: number;
+                neutral: number;
+            };
+        };
+        exchanges: {
+            total: number;
+            byState: {
+                open: number;
+                completed: number;
+                closed: number;
+            };
+        };
+        offerings: {
+            total: number;
+            byState: {
+                draft: number;
+                live: number;
+                archived: number;
+            };
+        };
+    }> {
+        const response = await this.client.get(`/value-streams/${id}/stats`);
+
+        if (response.status === 200) {
+            return response.data;
+        }
+
+        throw new Error("Failed to fetch value stream stats.");
+    }
+
     public async getFlatValue(streamId: number) {
         const response = await this.client.get(`/value/flat/${streamId}`);
 
