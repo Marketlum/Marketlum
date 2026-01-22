@@ -391,7 +391,7 @@ const UsersPage = () => {
                   <TableCell className="font-medium">
                     {user.email}
                     {age !== null && (
-                      <span className="ml-2 text-muted-foreground text-sm">({age})</span>
+                      <span className="ml-2 text-muted-foreground text-sm">({age} years old)</span>
                     )}
                   </TableCell>
                   <TableCell>
