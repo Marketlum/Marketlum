@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@marketlum/shared';
@@ -9,7 +10,7 @@ import { login } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export function LoginForm() {
   const router = useRouter();
@@ -35,9 +36,14 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Marketlum</CardTitle>
-        <CardDescription>Sign in to your account</CardDescription>
+      <CardHeader className="items-center space-y-4">
+        <Image src="/logo.png" alt="Marketlum" width={56} height={56} className="rounded-xl" />
+        <div className="text-center">
+          <h1 className="bg-gradient-to-r from-green-400 via-teal-400 to-purple-500 bg-clip-text text-2xl font-bold text-transparent">
+            Marketlum
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to your account</p>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
