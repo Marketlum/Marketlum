@@ -6,6 +6,9 @@ import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import { UsersService } from '../src/users/users.service';
 
+// Use a separate database for tests
+process.env.DATABASE_NAME = process.env.DATABASE_NAME || 'marketlum_test';
+
 let app: INestApplication;
 let dataSource: DataSource;
 let refCount = 0;
@@ -23,6 +26,9 @@ export async function bootstrapApp(): Promise<INestApplication> {
   await app.init();
 
   dataSource = moduleFixture.get(DataSource);
+
+  // Run migrations so the test DB schema is always up to date
+  await dataSource.runMigrations();
 
   return app;
 }
