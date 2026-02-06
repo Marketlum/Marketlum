@@ -65,7 +65,7 @@ export function AgentFormDialog({
       reset(
         agent
           ? { name: agent.name, type: agent.type, description: agent.description ?? '' }
-          : { name: '', type: AgentType.BUYER, description: '' },
+          : { name: '', type: AgentType.ORGANIZATION, description: '' },
       );
     }
   }, [open, agent, reset]);

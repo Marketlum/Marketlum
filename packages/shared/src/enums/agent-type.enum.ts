@@ -1,5 +1,5 @@
 export enum AgentType {
-  BUYER = 'buyer',
-  SELLER = 'seller',
-  BROKER = 'broker',
+  ORGANIZATION = 'organization',
+  INDIVIDUAL = 'individual',
+  VIRTUAL = 'virtual',
 }

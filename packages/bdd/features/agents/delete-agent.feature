@@ -2,7 +2,7 @@ Feature: Delete Agent
 
   Scenario: Successfully delete an agent
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent One" and type "buyer"
+    And an agent exists with name "Agent One" and type "organization"
     When I delete the agent
     Then the response status should be 204
 

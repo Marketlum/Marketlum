@@ -16,6 +16,8 @@ export function DataTablePagination({
   total,
   onPageChange,
 }: DataTablePaginationProps) {
+  if (total === 0) return null;
+
   return (
     <div className="flex items-center justify-between px-2 py-4">
       <div className="text-sm text-muted-foreground">{total} total rows</div>
