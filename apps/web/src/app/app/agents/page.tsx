@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Bot } from 'lucide-react';
 import { AgentsDataTable } from '@/components/agents/agents-data-table';
 import {
   Breadcrumb,
@@ -25,7 +26,10 @@ export default function AgentsPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="mb-6 text-3xl font-bold">Agents</h1>
+      <h1 className="mb-6 flex items-center gap-3 text-3xl font-bold">
+        <Bot className="h-8 w-8" />
+        Agents
+      </h1>
       <AgentsDataTable />
     </div>
   );

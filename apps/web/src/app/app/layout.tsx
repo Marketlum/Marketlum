@@ -1,18 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, LogOut } from 'lucide-react';
+import { Users, Bot, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { UserResponse } from '@marketlum/shared';
+
+const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserResponse | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(SIDEBAR_KEY) === 'true');
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     getMe().then((u) => {
@@ -23,6 +33,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
     });
   }, [router]);
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(SIDEBAR_KEY, String(next));
+      return next;
+    });
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -37,43 +55,104 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!user) return null;
 
   return (
-    <div className="flex h-screen">
-      <aside className="flex w-64 flex-col border-r bg-card">
-        <div className="flex h-14 items-center gap-2.5 border-b px-4">
-          <Image src="/logo.png" alt="Marketlum" width={28} height={28} className="rounded" />
-          <Link href="/app" className="bg-gradient-to-r from-green-400 via-teal-400 to-purple-500 bg-clip-text text-lg font-bold text-transparent">
-            Marketlum
-          </Link>
-        </div>
-        <nav className="flex-1 space-y-1 p-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                  isActive
-                    ? 'bg-primary/15 text-primary font-medium'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
+    <TooltipProvider delayDuration={0}>
+      <div className="flex h-screen">
+        <aside
+          className={`flex flex-col border-r bg-card transition-[width] duration-200 ${
+            collapsed ? 'w-16' : 'w-64'
+          }`}
+          style={{ visibility: mounted ? 'visible' : 'hidden' }}
+        >
+          <div className="flex h-14 items-center border-b px-4">
+            {collapsed ? (
+              <Link href="/app" className="mx-auto">
+                <Image src="/logo.png" alt="Marketlum" width={28} height={28} className="rounded" />
               </Link>
-            );
-          })}
-        </nav>
-        <div className="border-t p-4">
-          <div className="mb-2 truncate text-sm text-muted-foreground">{user.email}</div>
-          <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </div>
-      </aside>
-      <main className="flex-1 overflow-auto p-6">{children}</main>
-    </div>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <Image src="/logo.png" alt="Marketlum" width={28} height={28} className="rounded" />
+                <Link href="/app" className="bg-gradient-to-r from-green-400 via-teal-400 to-purple-500 bg-clip-text text-lg font-bold text-transparent">
+                  Marketlum
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <nav className="flex-1 space-y-1 p-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname.startsWith(item.href);
+              const link = (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    collapsed ? 'justify-center' : ''
+                  } ${
+                    isActive
+                      ? 'bg-primary/15 text-primary font-medium'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {!collapsed && item.label}
+                </Link>
+              );
+
+              if (collapsed) {
+                return (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>{link}</TooltipTrigger>
+                    <TooltipContent side="right">{item.label}</TooltipContent>
+                  </Tooltip>
+                );
+              }
+
+              return link;
+            })}
+          </nav>
+
+          <div className="border-t p-2">
+            {!collapsed && (
+              <div className="mb-2 truncate px-3 text-sm text-muted-foreground">{user.email}</div>
+            )}
+            {collapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-full text-muted-foreground hover:text-foreground" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Logout</TooltipContent>
+              </Tooltip>
+            ) : (
+              <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            )}
+
+            <div className="mt-1">
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="w-full text-muted-foreground hover:text-foreground" onClick={toggleCollapsed}>
+                      <PanelLeftOpen className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Expand sidebar</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={toggleCollapsed}>
+                  <PanelLeftClose className="mr-2 h-4 w-4" />
+                  Collapse
+                </Button>
+              )}
+            </div>
+          </div>
+        </aside>
+        <main className="flex-1 overflow-auto p-6">{children}</main>
+      </div>
+    </TooltipProvider>
   );
 }

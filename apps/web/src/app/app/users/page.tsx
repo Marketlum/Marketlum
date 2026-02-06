@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Users } from 'lucide-react';
 import { UsersDataTable } from '@/components/users/users-data-table';
 import {
   Breadcrumb,
@@ -25,7 +26,10 @@ export default function UsersPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="mb-6 text-3xl font-bold">Users</h1>
+      <h1 className="mb-6 flex items-center gap-3 text-3xl font-bold">
+        <Users className="h-8 w-8" />
+        Users
+      </h1>
       <UsersDataTable />
     </div>
   );
