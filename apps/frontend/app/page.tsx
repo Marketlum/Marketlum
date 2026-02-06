@@ -176,7 +176,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Ask Anything */}
-      <Card className="bg-gradient-to-r from-primary/5 to-purple-500/5 border-primary/20">
+      <Card className="bg-gradient-to-r from-green-500/5 via-cyan-500/5 to-purple-500/5 border-primary/20">
         <CardContent className="pt-6">
           <form onSubmit={handleAskSubmit} className="flex gap-3">
             <div className="relative flex-1">

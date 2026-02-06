@@ -93,7 +93,7 @@ export function MarketlumLoginForm({
             disabled={isLoading}
           />
         </div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full bg-gradient-to-r from-green-600 via-cyan-600 to-purple-600 hover:from-green-500 hover:via-cyan-500 hover:to-purple-500 text-white border-0" disabled={isLoading}>
           {isLoading ? "Logging in..." : "Login"}
         </Button>
       </div>

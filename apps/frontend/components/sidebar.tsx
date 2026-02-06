@@ -22,7 +22,6 @@ import {
   UserCog,
   LifeBuoy,
   Radio,
-  Sparkles,
   Search,
 } from "lucide-react"
 
@@ -113,11 +112,11 @@ export function MarketlumSidebar({ ...props }: React.ComponentProps<typeof Sideb
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-purple-500 text-sidebar-primary-foreground shadow-sm">
-                  <Sparkles className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                  <img src="/marketlum-logo.png" alt="Marketlum" className="size-8 object-cover" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-bold bg-gradient-to-r from-sidebar-primary to-purple-400 bg-clip-text text-transparent">Marketlum</span>
+                  <span className="truncate font-bold bg-gradient-to-r from-green-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">Marketlum</span>
                   <span className="truncate text-xs text-sidebar-foreground/70">Conscious market development</span>
                 </div>
               </Link>
