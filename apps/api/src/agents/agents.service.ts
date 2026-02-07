@@ -33,7 +33,7 @@ export class AgentsService {
 
     if (search) {
       qb.andWhere(
-        '(agent.name ILIKE :search OR agent.description ILIKE :search)',
+        '(agent.name ILIKE :search OR agent.purpose ILIKE :search)',
         { search: `%${search}%` },
       );
     }

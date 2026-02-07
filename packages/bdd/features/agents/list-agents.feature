@@ -3,7 +3,7 @@ Feature: List Agents
   Scenario: List agents with default pagination
     Given I am authenticated as "admin@marketlum.com"
     And the following agents exist:
-      | name       | type         | description           |
+      | name       | type         | purpose           |
       | Agent One  | organization | An organization agent |
       | Agent Two  | individual   | An individual agent   |
       | Agent Three| virtual      | A virtual agent       |
@@ -14,7 +14,7 @@ Feature: List Agents
   Scenario: Filter agents by type
     Given I am authenticated as "admin@marketlum.com"
     And the following agents exist:
-      | name       | type         | description           |
+      | name       | type         | purpose           |
       | Agent One  | organization | An organization agent |
       | Agent Two  | individual   | An individual agent   |
     When I request the list of agents with type "organization"
@@ -24,12 +24,12 @@ Feature: List Agents
   Scenario: Search agents by name
     Given I am authenticated as "admin@marketlum.com"
     And the following agents exist:
-      | name       | type         | description           |
+      | name       | type         | purpose           |
       | Agent One  | organization | An organization agent |
       | Agent Two  | individual   | An individual agent   |
     When I request the list of agents with search "One"
     Then the response status should be 200
-    And all returned agents should have "One" in their name or description
+    And all returned agents should have "One" in their name or purpose
 
   Scenario: Unauthenticated request is rejected
     When I request the list of agents

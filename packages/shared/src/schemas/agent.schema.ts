@@ -4,20 +4,20 @@ import { AgentType } from '../enums/agent-type.enum';
 export const createAgentSchema = z.object({
   name: z.string().min(1),
   type: z.nativeEnum(AgentType),
-  description: z.string().optional(),
+  purpose: z.string().optional(),
 });
 
 export const updateAgentSchema = z.object({
   name: z.string().min(1).optional(),
   type: z.nativeEnum(AgentType).optional(),
-  description: z.string().optional(),
+  purpose: z.string().optional(),
 });
 
 export const agentResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   type: z.nativeEnum(AgentType),
-  description: z.string().nullable(),
+  purpose: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

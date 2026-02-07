@@ -3,7 +3,7 @@ Feature: Create Agent
   Scenario: Successfully create a new agent
     Given I am authenticated as "admin@marketlum.com"
     When I create an agent with:
-      | name       | type         | description           |
+      | name       | type         | purpose           |
       | Agent One  | organization | An organization agent |
     Then the response status should be 201
     And the response should contain an agent with name "Agent One"
@@ -12,12 +12,12 @@ Feature: Create Agent
   Scenario: Creating an agent with invalid data fails
     Given I am authenticated as "admin@marketlum.com"
     When I create an agent with:
-      | name | type    | description |
+      | name | type    | purpose |
       |      | invalid |             |
     Then the response status should be 400
 
   Scenario: Unauthenticated request is rejected
     When I create an agent with:
-      | name       | type         | description           |
+      | name       | type         | purpose           |
       | Agent One  | organization | An organization agent |
     Then the response status should be 401

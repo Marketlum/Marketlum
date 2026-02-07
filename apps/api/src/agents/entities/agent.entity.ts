@@ -19,7 +19,7 @@ export class Agent {
   type: AgentType;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  purpose: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

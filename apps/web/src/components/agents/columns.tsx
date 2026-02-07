@@ -41,9 +41,9 @@ export function getAgentColumns({ onEdit, onDelete, onSort }: AgentColumnsOption
       },
     },
     {
-      accessorKey: 'description',
-      header: 'Description',
-      cell: ({ row }) => row.getValue('description') || '-',
+      accessorKey: 'purpose',
+      header: 'Purpose',
+      cell: ({ row }) => row.getValue('purpose') || '-',
     },
     {
       accessorKey: 'createdAt',

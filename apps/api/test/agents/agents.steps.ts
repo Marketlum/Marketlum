@@ -43,12 +43,12 @@ defineFeature(createFeature, (test) => {
 
     when(
       'I create an agent with:',
-      async (table: { name: string; type: string; description: string }[]) => {
+      async (table: { name: string; type: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/agents')
           .set('Cookie', [authCookie])
-          .send({ name: row.name, type: row.type, description: row.description });
+          .send({ name: row.name, type: row.type, purpose: row.purpose });
       },
     );
 
@@ -72,12 +72,12 @@ defineFeature(createFeature, (test) => {
 
     when(
       'I create an agent with:',
-      async (table: { name: string; type: string; description: string }[]) => {
+      async (table: { name: string; type: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/agents')
           .set('Cookie', [authCookie])
-          .send({ name: row.name, type: row.type, description: row.description });
+          .send({ name: row.name, type: row.type, purpose: row.purpose });
       },
     );
 
@@ -89,11 +89,11 @@ defineFeature(createFeature, (test) => {
   test('Unauthenticated request is rejected', ({ when, then }) => {
     when(
       'I create an agent with:',
-      async (table: { name: string; type: string; description: string }[]) => {
+      async (table: { name: string; type: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/agents')
-          .send({ name: row.name, type: row.type, description: row.description });
+          .send({ name: row.name, type: row.type, purpose: row.purpose });
       },
     );
 
@@ -127,12 +127,12 @@ defineFeature(listFeature, (test) => {
 
     and(
       'the following agents exist:',
-      async (table: { name: string; type: string; description: string }[]) => {
+      async (table: { name: string; type: string; purpose: string }[]) => {
         for (const row of table) {
           await request(getApp().getHttpServer())
             .post('/agents')
             .set('Cookie', [authCookie])
-            .send({ name: row.name, type: row.type, description: row.description });
+            .send({ name: row.name, type: row.type, purpose: row.purpose });
         }
       },
     );
@@ -164,12 +164,12 @@ defineFeature(listFeature, (test) => {
 
     and(
       'the following agents exist:',
-      async (table: { name: string; type: string; description: string }[]) => {
+      async (table: { name: string; type: string; purpose: string }[]) => {
         for (const row of table) {
           await request(getApp().getHttpServer())
             .post('/agents')
             .set('Cookie', [authCookie])
-            .send({ name: row.name, type: row.type, description: row.description });
+            .send({ name: row.name, type: row.type, purpose: row.purpose });
         }
       },
     );
@@ -198,12 +198,12 @@ defineFeature(listFeature, (test) => {
 
     and(
       'the following agents exist:',
-      async (table: { name: string; type: string; description: string }[]) => {
+      async (table: { name: string; type: string; purpose: string }[]) => {
         for (const row of table) {
           await request(getApp().getHttpServer())
             .post('/agents')
             .set('Cookie', [authCookie])
-            .send({ name: row.name, type: row.type, description: row.description });
+            .send({ name: row.name, type: row.type, purpose: row.purpose });
         }
       },
     );
@@ -219,13 +219,13 @@ defineFeature(listFeature, (test) => {
     });
 
     and(
-      /^all returned agents should have "(.*)" in their name or description$/,
+      /^all returned agents should have "(.*)" in their name or purpose$/,
       (searchTerm: string) => {
         const term = searchTerm.toLowerCase();
         for (const agent of response.body.data) {
           const nameMatch = agent.name.toLowerCase().includes(term);
-          const descMatch = agent.description?.toLowerCase().includes(term) || false;
-          expect(nameMatch || descMatch).toBe(true);
+          const purposeMatch = agent.purpose?.toLowerCase().includes(term) || false;
+          expect(nameMatch || purposeMatch).toBe(true);
         }
       },
     );

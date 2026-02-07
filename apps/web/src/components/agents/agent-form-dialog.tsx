@@ -64,8 +64,8 @@ export function AgentFormDialog({
     if (open) {
       reset(
         agent
-          ? { name: agent.name, type: agent.type, description: agent.description ?? '' }
-          : { name: '', type: AgentType.ORGANIZATION, description: '' },
+          ? { name: agent.name, type: agent.type, purpose: agent.purpose ?? '' }
+          : { name: '', type: AgentType.ORGANIZATION, purpose: '' },
       );
     }
   }, [open, agent, reset]);
@@ -105,10 +105,10 @@ export function AgentFormDialog({
             {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input id="description" {...register('description')} />
-            {errors.description && (
-              <p className="text-sm text-destructive">{errors.description.message}</p>
+            <Label htmlFor="purpose">Purpose</Label>
+            <Input id="purpose" {...register('purpose')} />
+            {errors.purpose && (
+              <p className="text-sm text-destructive">{errors.purpose.message}</p>
             )}
           </div>
           <DialogFooter>
