@@ -5,9 +5,11 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Users, Bot, FolderTree, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { LocaleSwitcher } from '@/components/shared/locale-switcher';
 import type { UserResponse } from '@marketlum/shared';
 
 const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
@@ -15,6 +17,7 @@ const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations('nav');
   const [user, setUser] = useState<UserResponse | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -48,9 +51,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   const navItems = [
-    { href: '/app/users', label: 'Users', icon: Users },
-    { href: '/app/agents', label: 'Agents', icon: Bot },
-    { href: '/app/taxonomies', label: 'Taxonomies', icon: FolderTree },
+    { href: '/app/users', label: t('users'), icon: Users },
+    { href: '/app/agents', label: t('agents'), icon: Bot },
+    { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
   ];
 
   if (!user) return null;
@@ -124,14 +127,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right">Logout</TooltipContent>
+                <TooltipContent side="right">{t('logout')}</TooltipContent>
               </Tooltip>
             ) : (
               <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                {t('logout')}
               </Button>
             )}
+
+            <div className="mt-1">
+              <LocaleSwitcher collapsed={collapsed} />
+            </div>
 
             <div className="mt-1">
               {collapsed ? (
@@ -141,12 +148,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <PanelLeftOpen className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">Expand sidebar</TooltipContent>
+                  <TooltipContent side="right">{t('expandSidebar')}</TooltipContent>
                 </Tooltip>
               ) : (
                 <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={toggleCollapsed}>
                   <PanelLeftClose className="mr-2 h-4 w-4" />
-                  Collapse
+                  {t('collapse')}
                 </Button>
               )}
             </div>

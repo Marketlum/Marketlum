@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import {
   createAgentSchema,
   updateAgentSchema,
@@ -29,6 +30,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+const typeTranslationKeys: Record<string, string> = {
+  [AgentType.ORGANIZATION]: 'typeOrganization',
+  [AgentType.INDIVIDUAL]: 'typeIndividual',
+  [AgentType.VIRTUAL]: 'typeVirtual',
+};
+
 interface AgentFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -46,6 +53,8 @@ export function AgentFormDialog({
 }: AgentFormDialogProps) {
   const isEditing = !!agent;
   const schema = isEditing ? updateAgentSchema : createAgentSchema;
+  const t = useTranslations('agents');
+  const tc = useTranslations('common');
 
   const {
     register,
@@ -74,30 +83,30 @@ export function AgentFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Agent' : 'Create Agent'}</DialogTitle>
+          <DialogTitle>{isEditing ? t('editAgent') : t('createAgent')}</DialogTitle>
           <DialogDescription>
-            {isEditing ? 'Update agent details below.' : 'Fill in the details to create a new agent.'}
+            {isEditing ? t('editDescription') : t('createDescription')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="agent-name">Name</Label>
+            <Label htmlFor="agent-name">{tc('name')}</Label>
             <Input id="agent-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{tc('type')}</Label>
             <Select
               value={typeValue}
               onValueChange={(value) => setValue('type', value as AgentType)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder={t('selectType')} />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(AgentType).map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                {Object.values(AgentType).map((agentType) => (
+                  <SelectItem key={agentType} value={agentType}>
+                    {t(typeTranslationKeys[agentType])}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -105,7 +114,7 @@ export function AgentFormDialog({
             {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="purpose">Purpose</Label>
+            <Label htmlFor="purpose">{t('purpose')}</Label>
             <Input id="purpose" {...register('purpose')} />
             {errors.purpose && (
               <p className="text-sm text-destructive">{errors.purpose.message}</p>
@@ -113,10 +122,10 @@ export function AgentFormDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+              {isSubmitting ? tc('saving') : isEditing ? tc('update') : tc('create')}
             </Button>
           </DialogFooter>
         </form>

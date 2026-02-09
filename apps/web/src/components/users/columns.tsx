@@ -11,19 +11,28 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+interface UserColumnsTranslations {
+  name: string;
+  email: string;
+  created: string;
+  edit: string;
+  delete: string;
+}
+
 interface UserColumnsOptions {
   onEdit: (user: UserResponse) => void;
   onDelete: (user: UserResponse) => void;
   onSort: (column: string) => void;
+  translations: UserColumnsTranslations;
 }
 
-export function getUserColumns({ onEdit, onDelete, onSort }: UserColumnsOptions): ColumnDef<UserResponse>[] {
+export function getUserColumns({ onEdit, onDelete, onSort, translations }: UserColumnsOptions): ColumnDef<UserResponse>[] {
   return [
     {
       accessorKey: 'name',
       header: () => (
         <Button variant="ghost" onClick={() => onSort('name')}>
-          Name <ArrowUpDown className="ml-2 h-4 w-4" />
+          {translations.name} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
     },
@@ -31,13 +40,13 @@ export function getUserColumns({ onEdit, onDelete, onSort }: UserColumnsOptions)
       accessorKey: 'email',
       header: () => (
         <Button variant="ghost" onClick={() => onSort('email')}>
-          Email <ArrowUpDown className="ml-2 h-4 w-4" />
+          {translations.email} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
     },
     {
       accessorKey: 'createdAt',
-      header: 'Created',
+      header: translations.created,
       cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
     },
     {
@@ -52,12 +61,12 @@ export function getUserColumns({ onEdit, onDelete, onSort }: UserColumnsOptions)
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(user)}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(user)}>{translations.edit}</DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(user)}
                 className="text-destructive focus:text-destructive"
               >
-                Delete
+                {translations.delete}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

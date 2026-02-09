@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import type { AgentResponse, PaginatedResponse, CreateAgentInput } from '@marketlum/shared';
 import { AgentType } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
@@ -21,9 +22,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+const typeTranslationKeys: Record<string, string> = {
+  [AgentType.ORGANIZATION]: 'typeOrganization',
+  [AgentType.INDIVIDUAL]: 'typeIndividual',
+  [AgentType.VIRTUAL]: 'typeVirtual',
+};
+
 export function AgentsDataTable() {
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
+  const t = useTranslations('agents');
+  const tc = useTranslations('common');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [data, setData] = useState<PaginatedResponse<AgentResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +51,7 @@ export function AgentsDataTable() {
       const result = await api.get<PaginatedResponse<AgentResponse>>(`/agents?${qs}`);
       setData(result);
     } catch {
-      toast.error('Failed to load agents');
+      toast.error(t('failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -56,11 +65,11 @@ export function AgentsDataTable() {
     setIsSubmitting(true);
     try {
       await api.post('/agents', input);
-      toast.success('Agent created');
+      toast.success(t('created'));
       setFormOpen(false);
       fetchData();
     } catch {
-      toast.error('Failed to create agent');
+      toast.error(t('failedToCreate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -71,11 +80,11 @@ export function AgentsDataTable() {
     setIsSubmitting(true);
     try {
       await api.patch(`/agents/${editingAgent.id}`, input);
-      toast.success('Agent updated');
+      toast.success(t('updated'));
       setEditingAgent(null);
       fetchData();
     } catch {
-      toast.error('Failed to update agent');
+      toast.error(t('failedToUpdate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -86,20 +95,34 @@ export function AgentsDataTable() {
     setIsSubmitting(true);
     try {
       await api.delete(`/agents/${deleteAgent.id}`);
-      toast.success('Agent deleted');
+      toast.success(t('deleted'));
       setDeleteAgent(null);
       fetchData();
     } catch {
-      toast.error('Failed to delete agent');
+      toast.error(t('failedToDelete'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const typeLabels: Record<string, string> = {};
+  for (const agentType of Object.values(AgentType)) {
+    typeLabels[agentType] = t(typeTranslationKeys[agentType]);
+  }
+
   const columns = getAgentColumns({
     onEdit: (agent) => setEditingAgent(agent),
     onDelete: (agent) => setDeleteAgent(agent),
     onSort: pagination.setSort,
+    translations: {
+      name: tc('name'),
+      type: tc('type'),
+      purpose: t('purpose'),
+      created: tc('created'),
+      edit: tc('edit'),
+      delete: tc('delete'),
+      typeLabels,
+    },
   });
 
   return (
@@ -108,17 +131,17 @@ export function AgentsDataTable() {
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
         onCreateClick={() => setFormOpen(true)}
-        createLabel="Create Agent"
+        createLabel={t('createAgent')}
       >
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="All types" />
+            <SelectValue placeholder={t('allTypes')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            {Object.values(AgentType).map((t) => (
-              <SelectItem key={t} value={t}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
+            <SelectItem value="all">{t('allTypes')}</SelectItem>
+            {Object.values(AgentType).map((agentType) => (
+              <SelectItem key={agentType} value={agentType}>
+                {t(typeTranslationKeys[agentType])}
               </SelectItem>
             ))}
           </SelectContent>
@@ -126,7 +149,7 @@ export function AgentsDataTable() {
       </DataTableToolbar>
 
       {loading ? (
-        <div className="flex h-24 items-center justify-center text-muted-foreground">Loading...</div>
+        <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
           <DataTable columns={columns} data={data?.data ?? []} />
@@ -160,8 +183,8 @@ export function AgentsDataTable() {
         open={!!deleteAgent}
         onOpenChange={(open) => !open && setDeleteAgent(null)}
         onConfirm={handleDelete}
-        title="Delete Agent"
-        description={`Are you sure you want to delete "${deleteAgent?.name}"? This action cannot be undone.`}
+        title={t('deleteAgent')}
+        description={tc('confirmDeleteDescription', { name: deleteAgent?.name ?? '' })}
         isDeleting={isSubmitting}
       />
     </div>

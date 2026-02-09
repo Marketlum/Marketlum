@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import type { TaxonomyTreeNode } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,8 @@ import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { TaxonomyTreeNodeComponent } from './taxonomy-tree-node';
 
 export function TaxonomyTreeView() {
+  const t = useTranslations('taxonomies');
+  const tc = useTranslations('common');
   const [tree, setTree] = useState<TaxonomyTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingRoot, setAddingRoot] = useState(false);
@@ -23,7 +26,7 @@ export function TaxonomyTreeView() {
       const data = await api.get<TaxonomyTreeNode[]>('/taxonomies/tree');
       setTree(data);
     } catch {
-      toast.error('Failed to load taxonomies');
+      toast.error(t('failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -37,32 +40,32 @@ export function TaxonomyTreeView() {
     if (!newRootName.trim()) return;
     try {
       await api.post('/taxonomies', { name: newRootName.trim() });
-      toast.success('Root taxonomy created');
+      toast.success(t('rootCreated'));
       setNewRootName('');
       setAddingRoot(false);
       fetchTree();
     } catch {
-      toast.error('Failed to create taxonomy');
+      toast.error(t('failedToCreate'));
     }
   };
 
   const handleCreateChild = async (parentId: string, name: string) => {
     try {
       await api.post('/taxonomies', { name, parentId });
-      toast.success('Taxonomy created');
+      toast.success(t('created'));
       fetchTree();
     } catch {
-      toast.error('Failed to create taxonomy');
+      toast.error(t('failedToCreate'));
     }
   };
 
   const handleUpdate = async (id: string, name: string) => {
     try {
       await api.patch(`/taxonomies/${id}`, { name });
-      toast.success('Taxonomy updated');
+      toast.success(t('updated'));
       fetchTree();
     } catch {
-      toast.error('Failed to update taxonomy');
+      toast.error(t('failedToUpdate'));
     }
   };
 
@@ -71,11 +74,11 @@ export function TaxonomyTreeView() {
     setIsDeleting(true);
     try {
       await api.delete(`/taxonomies/${deleteTarget.id}`);
-      toast.success('Taxonomy deleted');
+      toast.success(t('deleted'));
       setDeleteTarget(null);
       fetchTree();
     } catch {
-      toast.error('Failed to delete taxonomy');
+      toast.error(t('failedToDelete'));
     } finally {
       setIsDeleting(false);
     }
@@ -84,7 +87,7 @@ export function TaxonomyTreeView() {
   if (loading) {
     return (
       <div className="flex h-24 items-center justify-center text-muted-foreground">
-        Loading...
+        {tc('loading')}
       </div>
     );
   }
@@ -104,12 +107,12 @@ export function TaxonomyTreeView() {
                   setNewRootName('');
                 }
               }}
-              placeholder="Taxonomy name..."
+              placeholder={t('taxonomyNamePlaceholder')}
               className="max-w-xs"
               autoFocus
             />
             <Button size="sm" onClick={handleCreateRoot}>
-              Save
+              {tc('save')}
             </Button>
             <Button
               size="sm"
@@ -119,20 +122,20 @@ export function TaxonomyTreeView() {
                 setNewRootName('');
               }}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
           </div>
         ) : (
           <Button onClick={() => setAddingRoot(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Root
+            {t('addRoot')}
           </Button>
         )}
       </div>
 
       {tree.length === 0 && !addingRoot ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">
-          No taxonomies yet. Click "Add Root" to get started.
+          {t('emptyState')}
         </div>
       ) : (
         <div className="rounded-md border p-2">
@@ -153,8 +156,8 @@ export function TaxonomyTreeView() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Delete Taxonomy"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This will also delete all child taxonomies. This action cannot be undone.`}
+        title={t('deleteTaxonomy')}
+        description={t('deleteWithChildren', { name: deleteTarget?.name ?? '' })}
         isDeleting={isDeleting}
       />
     </div>

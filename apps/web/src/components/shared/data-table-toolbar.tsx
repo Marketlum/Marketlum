@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -19,11 +20,13 @@ export function DataTableToolbar({
   createLabel,
   children,
 }: DataTableToolbarProps) {
+  const t = useTranslations('common');
+
   return (
     <div className="flex items-center justify-between py-4">
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Search..."
+          placeholder={t('search')}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           className="max-w-sm"

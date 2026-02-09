@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { loginSchema, type LoginInput } from '@marketlum/shared';
 import { login } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export function LoginForm() {
   const router = useRouter();
+  const t = useTranslations('auth');
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -30,7 +32,7 @@ export function LoginForm() {
       await login(data);
       router.push('/app');
     } catch {
-      setError('Invalid email or password');
+      setError(t('invalidCredentials'));
     }
   };
 
@@ -42,7 +44,7 @@ export function LoginForm() {
           <h1 className="bg-gradient-to-r from-green-400 via-teal-400 to-purple-500 bg-clip-text text-2xl font-bold text-transparent">
             Marketlum
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">Sign in to your account</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t('signInToAccount')}</p>
         </div>
       </CardHeader>
       <CardContent>
@@ -53,21 +55,21 @@ export function LoginForm() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="admin@marketlum.com" {...register('email')} />
+            <Label htmlFor="email">{t('emailLabel')}</Label>
+            <Input id="email" type="email" placeholder={t('emailPlaceholder')} {...register('email')} />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('passwordLabel')}</Label>
             <Input id="password" type="password" {...register('password')} />
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
+            {isSubmitting ? t('signingIn') : t('signIn')}
           </Button>
         </form>
       </CardContent>

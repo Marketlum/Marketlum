@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { createUserSchema, updateUserSchema, type CreateUserInput, type UserResponse } from '@marketlum/shared';
 import {
   Dialog,
@@ -33,6 +34,8 @@ export function UserFormDialog({
 }: UserFormDialogProps) {
   const isEditing = !!user;
   const schema = isEditing ? updateUserSchema : createUserSchema;
+  const t = useTranslations('users');
+  const tc = useTranslations('common');
 
   const {
     register,
@@ -53,25 +56,25 @@ export function UserFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit User' : 'Create User'}</DialogTitle>
+          <DialogTitle>{isEditing ? t('editUser') : t('createUser')}</DialogTitle>
           <DialogDescription>
-            {isEditing ? 'Update user details below.' : 'Fill in the details to create a new user.'}
+            {isEditing ? t('editDescription') : t('createDescription')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{tc('name')}</Label>
             <Input id="name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{tc('email')}</Label>
             <Input id="email" type="email" {...register('email')} />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">
-              Password{isEditing && ' (leave blank to keep current)'}
+              {t('passwordLabel')}{isEditing && t('passwordEditHint')}
             </Label>
             <Input id="password" type="password" {...register('password')} />
             {errors.password && (
@@ -80,10 +83,10 @@ export function UserFormDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+              {isSubmitting ? tc('saving') : isEditing ? tc('update') : tc('create')}
             </Button>
           </DialogFooter>
         </form>

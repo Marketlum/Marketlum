@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { getLocale, getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -10,12 +12,17 @@ export const metadata: Metadata = {
   description: 'A framework for building markets',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={inter.className}>
-        {children}
-        <Toaster />
+        <NextIntlClientProvider messages={messages}>
+          {children}
+          <Toaster />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

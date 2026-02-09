@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Bot } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { AgentsDataTable } from '@/components/agents/agents-data-table';
 import {
   Breadcrumb,
@@ -10,25 +11,27 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 
-export default function AgentsPage() {
+export default async function AgentsPage() {
+  const t = await getTranslations();
+
   return (
     <div>
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/app">Home</Link>
+              <Link href="/app">{t('common.home')}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Agents</BreadcrumbPage>
+            <BreadcrumbPage>{t('agents.title')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="mb-6 flex items-center gap-3 text-3xl font-bold">
         <Bot className="h-8 w-8" />
-        Agents
+        {t('agents.title')}
       </h1>
       <AgentsDataTable />
     </div>

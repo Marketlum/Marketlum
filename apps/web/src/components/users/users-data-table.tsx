@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import type { UserResponse, PaginatedResponse, CreateUserInput } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { usePagination } from '@/hooks/use-pagination';
@@ -16,6 +17,8 @@ import { getUserColumns } from './columns';
 export function UsersDataTable() {
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
+  const t = useTranslations('users');
+  const tc = useTranslations('common');
   const [data, setData] = useState<PaginatedResponse<UserResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -30,7 +33,7 @@ export function UsersDataTable() {
       const result = await api.get<PaginatedResponse<UserResponse>>(`/users?${qs}`);
       setData(result);
     } catch {
-      toast.error('Failed to load users');
+      toast.error(t('failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -44,11 +47,11 @@ export function UsersDataTable() {
     setIsSubmitting(true);
     try {
       await api.post('/users', input);
-      toast.success('User created');
+      toast.success(t('created'));
       setFormOpen(false);
       fetchData();
     } catch {
-      toast.error('Failed to create user');
+      toast.error(t('failedToCreate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -63,11 +66,11 @@ export function UsersDataTable() {
       if (input.email) body.email = input.email;
       if (input.password) body.password = input.password;
       await api.patch(`/users/${editingUser.id}`, body);
-      toast.success('User updated');
+      toast.success(t('updated'));
       setEditingUser(null);
       fetchData();
     } catch {
-      toast.error('Failed to update user');
+      toast.error(t('failedToUpdate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -78,11 +81,11 @@ export function UsersDataTable() {
     setIsSubmitting(true);
     try {
       await api.delete(`/users/${deleteUser.id}`);
-      toast.success('User deleted');
+      toast.success(t('deleted'));
       setDeleteUser(null);
       fetchData();
     } catch {
-      toast.error('Failed to delete user');
+      toast.error(t('failedToDelete'));
     } finally {
       setIsSubmitting(false);
     }
@@ -92,6 +95,13 @@ export function UsersDataTable() {
     onEdit: (user) => setEditingUser(user),
     onDelete: (user) => setDeleteUser(user),
     onSort: pagination.setSort,
+    translations: {
+      name: tc('name'),
+      email: tc('email'),
+      created: tc('created'),
+      edit: tc('edit'),
+      delete: tc('delete'),
+    },
   });
 
   return (
@@ -100,11 +110,11 @@ export function UsersDataTable() {
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
         onCreateClick={() => setFormOpen(true)}
-        createLabel="Create User"
+        createLabel={t('createUser')}
       />
 
       {loading ? (
-        <div className="flex h-24 items-center justify-center text-muted-foreground">Loading...</div>
+        <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
           <DataTable columns={columns} data={data?.data ?? []} />
@@ -138,8 +148,8 @@ export function UsersDataTable() {
         open={!!deleteUser}
         onOpenChange={(open) => !open && setDeleteUser(null)}
         onConfirm={handleDelete}
-        title="Delete User"
-        description={`Are you sure you want to delete "${deleteUser?.name}"? This action cannot be undone.`}
+        title={t('deleteUser')}
+        description={tc('confirmDeleteDescription', { name: deleteUser?.name ?? '' })}
         isDeleting={isSubmitting}
       />
     </div>

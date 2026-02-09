@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 
 interface DataTablePaginationProps {
@@ -16,11 +17,13 @@ export function DataTablePagination({
   total,
   onPageChange,
 }: DataTablePaginationProps) {
+  const t = useTranslations('common');
+
   if (total === 0) return null;
 
   return (
     <div className="flex items-center justify-between px-2 py-4">
-      <div className="text-sm text-muted-foreground">{total} total rows</div>
+      <div className="text-sm text-muted-foreground">{t('totalRows', { total })}</div>
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"
@@ -39,7 +42,7 @@ export function DataTablePagination({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="text-sm">
-          Page {page} of {totalPages}
+          {t('pageOf', { page, totalPages })}
         </span>
         <Button
           variant="outline"

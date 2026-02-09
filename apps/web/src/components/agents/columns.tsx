@@ -12,42 +12,53 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+interface AgentColumnsTranslations {
+  name: string;
+  type: string;
+  purpose: string;
+  created: string;
+  edit: string;
+  delete: string;
+  typeLabels: Record<string, string>;
+}
+
 interface AgentColumnsOptions {
   onEdit: (agent: AgentResponse) => void;
   onDelete: (agent: AgentResponse) => void;
   onSort: (column: string) => void;
+  translations: AgentColumnsTranslations;
 }
 
-export function getAgentColumns({ onEdit, onDelete, onSort }: AgentColumnsOptions): ColumnDef<AgentResponse>[] {
+export function getAgentColumns({ onEdit, onDelete, onSort, translations }: AgentColumnsOptions): ColumnDef<AgentResponse>[] {
   return [
     {
       accessorKey: 'name',
       header: () => (
         <Button variant="ghost" onClick={() => onSort('name')}>
-          Name <ArrowUpDown className="ml-2 h-4 w-4" />
+          {translations.name} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
     },
     {
       accessorKey: 'type',
-      header: 'Type',
+      header: translations.type,
       cell: ({ row }) => {
         const type = row.getValue('type') as string;
         return (
           <Badge variant="secondary">
-            {type.charAt(0).toUpperCase() + type.slice(1)}
+            {translations.typeLabels[type] ?? type}
           </Badge>
         );
       },
     },
     {
       accessorKey: 'purpose',
-      header: 'Purpose',
+      header: translations.purpose,
       cell: ({ row }) => row.getValue('purpose') || '-',
     },
     {
       accessorKey: 'createdAt',
-      header: 'Created',
+      header: translations.created,
       cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
     },
     {
@@ -62,12 +73,12 @@ export function getAgentColumns({ onEdit, onDelete, onSort }: AgentColumnsOption
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(agent)}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(agent)}>{translations.edit}</DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(agent)}
                 className="text-destructive focus:text-destructive"
               >
-                Delete
+                {translations.delete}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

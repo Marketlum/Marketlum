@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronRight, Folder, FolderOpen, MoreHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { TaxonomyTreeNode } from '@marketlum/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,8 @@ export function TaxonomyTreeNodeComponent({
   onUpdate,
   onDelete,
 }: TaxonomyTreeNodeProps) {
+  const t = useTranslations('taxonomies');
+  const tc = useTranslations('common');
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(node.name);
@@ -115,7 +118,7 @@ export function TaxonomyTreeNodeComponent({
               }}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add child
+              {t('addChild')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -124,14 +127,14 @@ export function TaxonomyTreeNodeComponent({
               }}
             >
               <Pencil className="mr-2 h-4 w-4" />
-              Edit
+              {tc('edit')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onDelete(node.id, node.name)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              {tc('delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -169,12 +172,12 @@ export function TaxonomyTreeNodeComponent({
                 setNewChildName('');
               }
             }}
-            placeholder="Child name..."
+            placeholder={t('childNamePlaceholder')}
             className="mx-1 h-7 max-w-xs text-sm"
             autoFocus
           />
           <Button size="sm" variant="ghost" className="h-7" onClick={handleCreateChild}>
-            Save
+            {tc('save')}
           </Button>
           <Button
             size="sm"
@@ -185,7 +188,7 @@ export function TaxonomyTreeNodeComponent({
               setNewChildName('');
             }}
           >
-            Cancel
+            {tc('cancel')}
           </Button>
         </div>
       )}
