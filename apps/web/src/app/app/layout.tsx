@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { LocaleSwitcher } from '@/components/shared/locale-switcher';
+import { ThemeSwitcher } from '@/components/shared/theme-switcher';
 import type { UserResponse } from '@marketlum/shared';
 
 const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
@@ -64,8 +65,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <TooltipProvider delayDuration={0}>
       <div className="flex h-screen flex-col md:flex-row">
         {/* Mobile header */}
-        <header className="flex md:hidden h-14 items-center border-b px-4 gap-3 bg-card">
-          <Button variant="ghost" size="icon" onClick={() => setSheetOpen(true)}>
+        <header className="flex md:hidden h-14 items-center border-b border-sidebar-border px-4 gap-3 bg-sidebar text-sidebar-foreground">
+          <Button variant="ghost" size="icon" className="text-sidebar-foreground" onClick={() => setSheetOpen(true)}>
             <Menu className="h-5 w-5" />
             <span className="sr-only">{t('menu')}</span>
           </Button>
@@ -79,9 +80,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile sheet drawer */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent side="left" className="flex flex-col p-0">
+          <SheetContent side="left" className="flex flex-col p-0 bg-sidebar text-sidebar-foreground border-sidebar-border">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <div className="flex h-14 items-center border-b px-4">
+            <div className="flex h-14 items-center border-b border-sidebar-border px-4">
               <div className="flex items-center gap-2.5">
                 <Image src="/logo.png" alt="Marketlum" width={28} height={28} className="rounded" />
                 <span className="bg-gradient-to-r from-green-400 via-teal-400 to-purple-500 bg-clip-text text-lg font-bold text-transparent">
@@ -101,8 +102,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     onClick={() => setSheetOpen(false)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                       isActive
-                        ? 'bg-primary/15 text-primary font-medium'
-                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                        ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
+                        : 'text-sidebar-muted-foreground hover:bg-sidebar-secondary hover:text-sidebar-foreground'
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -112,14 +113,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            <div className="border-t p-2">
-              <div className="mb-2 truncate px-3 text-sm text-muted-foreground">{user.email}</div>
-              <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={() => { setSheetOpen(false); handleLogout(); }}>
+            <div className="border-t border-sidebar-border p-2">
+              <div className="mb-2 truncate px-3 text-sm text-sidebar-muted-foreground">{user.email}</div>
+              <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={() => { setSheetOpen(false); handleLogout(); }}>
                 <LogOut className="mr-2 h-4 w-4" />
                 {t('logout')}
               </Button>
               <div className="mt-1">
                 <LocaleSwitcher collapsed={false} />
+              </div>
+              <div className="mt-1">
+                <ThemeSwitcher collapsed={false} />
               </div>
             </div>
           </SheetContent>
@@ -127,12 +131,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Desktop sidebar */}
         <aside
-          className={`hidden md:flex flex-col border-r bg-card transition-[width] duration-200 ${
+          className={`hidden md:flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ${
             collapsed ? 'w-16' : 'w-64'
           }`}
           style={{ visibility: mounted ? 'visible' : 'hidden' }}
         >
-          <div className="flex h-14 items-center border-b px-4">
+          <div className="flex h-14 items-center border-b border-sidebar-border px-4">
             {collapsed ? (
               <Link href="/app" className="mx-auto">
                 <Image src="/logo.png" alt="Marketlum" width={28} height={28} className="rounded" />
@@ -159,8 +163,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     collapsed ? 'justify-center' : ''
                   } ${
                     isActive
-                      ? 'bg-primary/15 text-primary font-medium'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                      ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
+                      : 'text-sidebar-muted-foreground hover:bg-sidebar-secondary hover:text-sidebar-foreground'
                   }`}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
@@ -181,21 +185,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          <div className="border-t p-2">
+          <div className="border-t border-sidebar-border p-2">
             {!collapsed && (
-              <div className="mb-2 truncate px-3 text-sm text-muted-foreground">{user.email}</div>
+              <div className="mb-2 truncate px-3 text-sm text-sidebar-muted-foreground">{user.email}</div>
             )}
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-full text-muted-foreground hover:text-foreground" onClick={handleLogout}>
+                  <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={handleLogout}>
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">{t('logout')}</TooltipContent>
               </Tooltip>
             ) : (
-              <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 {t('logout')}
               </Button>
@@ -206,17 +210,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="mt-1">
+              <ThemeSwitcher collapsed={collapsed} />
+            </div>
+
+            <div className="mt-1">
               {collapsed ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-full text-muted-foreground hover:text-foreground" onClick={toggleCollapsed}>
+                    <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={toggleCollapsed}>
                       <PanelLeftOpen className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="right">{t('expandSidebar')}</TooltipContent>
                 </Tooltip>
               ) : (
-                <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={toggleCollapsed}>
+                <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={toggleCollapsed}>
                   <PanelLeftClose className="mr-2 h-4 w-4" />
                   {t('collapse')}
                 </Button>

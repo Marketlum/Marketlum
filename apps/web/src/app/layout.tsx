@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import { Toaster } from 'sonner';
+import { ThemeProvider } from '@/components/shared/theme-provider';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -17,11 +18,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>
         <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster />
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

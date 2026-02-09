@@ -36,11 +36,11 @@ export function LocaleSwitcher({ collapsed }: LocaleSwitcherProps) {
   const trigger = (
     <DropdownMenuTrigger asChild>
       {collapsed ? (
-        <Button variant="ghost" size="icon" className="w-full text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground">
           <Globe className="h-4 w-4" />
         </Button>
       ) : (
-        <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-muted-foreground hover:text-sidebar-foreground">
           <Globe className="mr-2 h-4 w-4" />
           {t(locale)}
         </Button>

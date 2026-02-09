@@ -27,7 +27,10 @@
     "logout": "Logout",
     "collapse": "Collapse",
     "expandSidebar": "Expand sidebar",
-    "menu": "Menu"
+    "menu": "Menu",
+    "theme": "Theme",
+    "lightMode": "Light",
+    "darkMode": "Dark"
   },
   "auth": {
     "signIn": "Sign in",

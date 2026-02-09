@@ -27,7 +27,10 @@
     "logout": "Wyloguj",
     "collapse": "Zwiń",
     "expandSidebar": "Rozwiń panel",
-    "menu": "Menu"
+    "menu": "Menu",
+    "theme": "Motyw",
+    "lightMode": "Jasny",
+    "darkMode": "Ciemny"
   },
   "auth": {
     "signIn": "Zaloguj się",
