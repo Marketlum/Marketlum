@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AgentsModule } from './agents/agents.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TaxonomiesModule } from './taxonomies/taxonomies.module';
     UsersModule,
     AgentsModule,
     TaxonomiesModule,
+    FilesModule,
   ],
   providers: [
     {

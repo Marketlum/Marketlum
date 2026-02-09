@@ -37,4 +37,22 @@ export const api = {
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: async <T>(path: string, formData: FormData): Promise<T> => {
+    const res = await fetch(`${API_URL}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'X-CSRF-Protection': '1',
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, body.message || res.statusText);
+    }
+
+    if (res.status === 204) return undefined as T;
+    return res.json();
+  },
 };

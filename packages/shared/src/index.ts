@@ -37,3 +37,24 @@ export {
   type TaxonomyResponse,
   type TaxonomyTreeNode,
 } from './schemas/taxonomy.schema';
+
+export {
+  createFolderSchema,
+  updateFolderSchema,
+  moveFolderSchema,
+  folderResponseSchema,
+  type CreateFolderInput,
+  type UpdateFolderInput,
+  type MoveFolderInput,
+  type FolderResponse,
+  type FolderTreeNode,
+} from './schemas/folder.schema';
+
+export {
+  updateFileSchema,
+  fileResponseSchema,
+  fileQuerySchema,
+  type UpdateFileInput,
+  type FileResponse,
+  type FileQuery,
+} from './schemas/file.schema';
