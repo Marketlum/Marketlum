@@ -51,8 +51,8 @@ export class AgentsService {
     return this.findOne(saved.id);
   }
 
-  async findAll(query: PaginationQuery & { type?: AgentType }) {
-    const { page, limit, search, sortBy, sortOrder, type } = query;
+  async findAll(query: PaginationQuery & { type?: AgentType; taxonomyId?: string }) {
+    const { page, limit, search, sortBy, sortOrder, type, taxonomyId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.agentsRepository.createQueryBuilder('agent');
@@ -62,6 +62,13 @@ export class AgentsService {
 
     if (type) {
       qb.andWhere('agent.type = :type', { type });
+    }
+
+    if (taxonomyId) {
+      qb.andWhere(
+        '(agent."mainTaxonomyId" = :taxonomyId OR EXISTS (SELECT 1 FROM agent_taxonomies at WHERE at."agentId" = agent.id AND at."taxonomyId" = :taxonomyId))',
+        { taxonomyId },
+      );
     }
 
     if (search) {

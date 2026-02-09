@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import type { AgentResponse, PaginatedResponse, CreateAgentInput } from '@marketlum/shared';
 import { AgentType } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
+import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
 import { usePagination } from '@/hooks/use-pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { DataTable } from '@/components/shared/data-table';
@@ -23,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
 
 const typeTranslationKeys: Record<string, string> = {
   [AgentType.ORGANIZATION]: 'typeOrganization',
@@ -36,7 +38,9 @@ export function AgentsDataTable() {
   const t = useTranslations('agents');
   const tc = useTranslations('common');
   const isMobile = useIsMobile();
+  const { tree } = useTaxonomyTree();
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
   const [data, setData] = useState<PaginatedResponse<AgentResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -51,6 +55,9 @@ export function AgentsDataTable() {
       if (typeFilter && typeFilter !== 'all') {
         qs += `&type=${typeFilter}`;
       }
+      if (taxonomyFilter && taxonomyFilter !== 'all') {
+        qs += `&taxonomyId=${taxonomyFilter}`;
+      }
       const result = await api.get<PaginatedResponse<AgentResponse>>(`/agents?${qs}`);
       setData(result);
     } catch {
@@ -58,11 +65,11 @@ export function AgentsDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter]);
+  }, [pagination.toQueryString, typeFilter, taxonomyFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, fetchData]);
 
   const handleCreate = async (input: CreateAgentInput) => {
     setIsSubmitting(true);
@@ -151,6 +158,14 @@ export function AgentsDataTable() {
             ))}
           </SelectContent>
         </Select>
+        <TaxonomyTreeSelect
+          tree={tree}
+          value={taxonomyFilter === 'all' ? null : taxonomyFilter}
+          onSelect={(id) => setTaxonomyFilter(id ?? 'all')}
+          placeholder={t('allTaxonomies')}
+          noneLabel={t('allTaxonomies')}
+          className="w-[180px]"
+        />
       </DataTableToolbar>
 
       {loading ? (

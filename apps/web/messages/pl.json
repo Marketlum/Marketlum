@@ -82,7 +82,8 @@
     "selectMainTaxonomy": "Wybierz taksonomię główną",
     "selectTaxonomies": "Wybierz taksonomie",
     "noTaxonomyFound": "Nie znaleziono taksonomii",
-    "failedToDelete": "Nie udało się usunąć agenta"
+    "failedToDelete": "Nie udało się usunąć agenta",
+    "allTaxonomies": "Wszystkie taksonomie"
   },
   "taxonomies": {
     "title": "Taksonomie",

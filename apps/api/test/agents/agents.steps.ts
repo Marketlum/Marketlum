@@ -113,6 +113,7 @@ defineFeature(createFeature, (test) => {
 defineFeature(listFeature, (test) => {
   let response: request.Response;
   let authCookie: string;
+  const taxonomyIds: Record<string, string> = {};
 
   beforeAll(async () => {
     await bootstrapApp();
@@ -120,11 +121,24 @@ defineFeature(listFeature, (test) => {
 
   beforeEach(async () => {
     await cleanDatabase();
+    for (const key of Object.keys(taxonomyIds)) {
+      delete taxonomyIds[key];
+    }
   });
 
   afterAll(async () => {
     await teardownApp();
   });
+
+  async function createTaxonomy(name: string): Promise<string> {
+    const res = await request(getApp().getHttpServer())
+      .post('/taxonomies')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .send({ name });
+    taxonomyIds[name] = res.body.id;
+    return res.body.id;
+  }
 
   test('List agents with default pagination', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
@@ -238,6 +252,194 @@ defineFeature(listFeature, (test) => {
         }
       },
     );
+  });
+
+  test('Filter by taxonomy matching main taxonomy', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and main taxonomy "(.*)"$/,
+      async (name: string, type: string, taxonomyName: string) => {
+        await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, mainTaxonomyId: taxonomyIds[taxonomyName] });
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and main taxonomy "(.*)"$/,
+      async (name: string, type: string, taxonomyName: string) => {
+        await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, mainTaxonomyId: taxonomyIds[taxonomyName] });
+      },
+    );
+
+    when(/^I request the list of agents with taxonomyId for "(.*)"$/, async (name: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/agents?taxonomyId=${taxonomyIds[name]}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain (\d+) agents?$/, (count: string) => {
+      expect(response.body.data).toHaveLength(parseInt(count));
+    });
+
+    and(/^all returned agents should have taxonomy "(.*)"$/, (name: string) => {
+      for (const agent of response.body.data) {
+        const hasMain = agent.mainTaxonomy?.name === name;
+        const hasGeneral = agent.taxonomies?.some((t: { name: string }) => t.name === name);
+        expect(hasMain || hasGeneral).toBe(true);
+      }
+    });
+  });
+
+  test('Filter by taxonomy matching general taxonomies', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and general taxonomies "(.*)"$/,
+      async (name: string, type: string, taxonomyNames: string) => {
+        const ids = taxonomyNames.split(',').map((n) => taxonomyIds[n.trim()]);
+        await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, taxonomyIds: ids });
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and general taxonomies "(.*)"$/,
+      async (name: string, type: string, taxonomyNames: string) => {
+        const ids = taxonomyNames.split(',').map((n) => taxonomyIds[n.trim()]);
+        await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, taxonomyIds: ids });
+      },
+    );
+
+    when(/^I request the list of agents with taxonomyId for "(.*)"$/, async (name: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/agents?taxonomyId=${taxonomyIds[name]}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain (\d+) agents?$/, (count: string) => {
+      expect(response.body.data).toHaveLength(parseInt(count));
+    });
+
+    and(/^all returned agents should have taxonomy "(.*)"$/, (name: string) => {
+      for (const agent of response.body.data) {
+        const hasMain = agent.mainTaxonomy?.name === name;
+        const hasGeneral = agent.taxonomies?.some((t: { name: string }) => t.name === name);
+        expect(hasMain || hasGeneral).toBe(true);
+      }
+    });
+  });
+
+  test('Filter matches both main and general taxonomies', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and main taxonomy "(.*)"$/,
+      async (name: string, type: string, taxonomyName: string) => {
+        await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, mainTaxonomyId: taxonomyIds[taxonomyName] });
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and general taxonomies "(.*)"$/,
+      async (name: string, type: string, taxonomyNames: string) => {
+        const ids = taxonomyNames.split(',').map((n) => taxonomyIds[n.trim()]);
+        await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, taxonomyIds: ids });
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and main taxonomy "(.*)"$/,
+      async (name: string, type: string, taxonomyName: string) => {
+        await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, mainTaxonomyId: taxonomyIds[taxonomyName] });
+      },
+    );
+
+    when(/^I request the list of agents with taxonomyId for "(.*)"$/, async (name: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/agents?taxonomyId=${taxonomyIds[name]}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain (\d+) agents?$/, (count: string) => {
+      expect(response.body.data).toHaveLength(parseInt(count));
+    });
+
+    and(/^all returned agents should have taxonomy "(.*)"$/, (name: string) => {
+      for (const agent of response.body.data) {
+        const hasMain = agent.mainTaxonomy?.name === name;
+        const hasGeneral = agent.taxonomies?.some((t: { name: string }) => t.name === name);
+        expect(hasMain || hasGeneral).toBe(true);
+      }
+    });
   });
 
   test('Unauthenticated request is rejected', ({ when, then }) => {

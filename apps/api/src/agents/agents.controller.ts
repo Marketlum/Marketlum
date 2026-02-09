@@ -40,8 +40,9 @@ export class AgentsController {
   async findAll(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('type') type?: AgentType,
+    @Query('taxonomyId') taxonomyId?: string,
   ) {
-    return this.agentsService.findAll({ ...query, type });
+    return this.agentsService.findAll({ ...query, type, taxonomyId });
   }
 
   @Get(':id')
