@@ -15,6 +15,8 @@ import { TaxonomyTreeNodeComponent } from './taxonomy-tree-node';
 import { getTaxonomySearchColumns } from './taxonomy-search-columns';
 import { usePagination } from '@/hooks/use-pagination';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getMobileColumnVisibility } from '@/lib/column-visibility';
 
 export function TaxonomyTreeView() {
   const t = useTranslations('taxonomies');
@@ -34,6 +36,7 @@ export function TaxonomyTreeView() {
   const pagination = usePagination();
   const [searchResults, setSearchResults] = useState<PaginatedResponse<TaxonomyResponse> | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   const isSearching = debouncedSearch.length > 0;
 
@@ -170,7 +173,7 @@ export function TaxonomyTreeView() {
   return (
     <div>
       <div className="mb-4">
-        <div className="relative max-w-sm">
+        <div className="relative w-full md:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchTerm}
@@ -189,7 +192,7 @@ export function TaxonomyTreeView() {
             </div>
           ) : searchResults ? (
             <>
-              <DataTable columns={columns} data={searchResults.data} />
+              <DataTable columns={columns} data={searchResults.data} columnVisibility={getMobileColumnVisibility(columns, isMobile)} />
               <DataTablePagination
                 page={searchResults.meta.page}
                 totalPages={searchResults.meta.totalPages}
@@ -212,7 +215,7 @@ export function TaxonomyTreeView() {
                     if (e.key === 'Escape') handleCancelAddRoot();
                   }}
                   placeholder={t('taxonomyNamePlaceholder')}
-                  className="max-w-xs"
+                  className="w-full md:max-w-xs"
                   autoFocus
                 />
                 <Input
@@ -223,7 +226,7 @@ export function TaxonomyTreeView() {
                     if (e.key === 'Escape') handleCancelAddRoot();
                   }}
                   placeholder={t('descriptionPlaceholder')}
-                  className="max-w-xs"
+                  className="w-full md:max-w-xs"
                 />
                 <Input
                   value={newRootLink}
@@ -233,7 +236,7 @@ export function TaxonomyTreeView() {
                     if (e.key === 'Escape') handleCancelAddRoot();
                   }}
                   placeholder={t('linkPlaceholder')}
-                  className="max-w-xs"
+                  className="w-full md:max-w-xs"
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleCreateRoot}>

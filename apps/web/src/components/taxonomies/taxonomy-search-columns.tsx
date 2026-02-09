@@ -29,11 +29,13 @@ export function getTaxonomySearchColumns({ onSort, translations }: TaxonomySearc
     },
     {
       accessorKey: 'description',
+      meta: { hideOnMobile: true },
       header: translations.description,
       cell: ({ row }) => row.getValue('description') || '-',
     },
     {
       accessorKey: 'link',
+      meta: { hideOnMobile: true },
       header: translations.link,
       cell: ({ row }) => {
         const link = row.getValue('link') as string | null;
@@ -47,6 +49,7 @@ export function getTaxonomySearchColumns({ onSort, translations }: TaxonomySearc
     },
     {
       accessorKey: 'createdAt',
+      meta: { hideOnMobile: true },
       header: () => (
         <Button variant="ghost" onClick={() => onSort('createdAt')}>
           {translations.created} <ArrowUpDown className="ml-2 h-4 w-4" />

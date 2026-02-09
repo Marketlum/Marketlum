@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TaxonomyTreeNodeProps {
   node: TaxonomyTreeNode;
@@ -30,6 +31,7 @@ export function TaxonomyTreeNodeComponent({
 }: TaxonomyTreeNodeProps) {
   const t = useTranslations('taxonomies');
   const tc = useTranslations('common');
+  const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(node.name);
@@ -94,7 +96,7 @@ export function TaxonomyTreeNodeComponent({
     <div>
       <div
         className="group flex items-start gap-1 rounded-md px-1 py-1 hover:bg-secondary/50"
-        style={{ paddingLeft: depth * 24 + 4 }}
+        style={{ paddingLeft: depth * (isMobile ? 16 : 24) + 4 }}
       >
         <button
           className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
@@ -125,7 +127,7 @@ export function TaxonomyTreeNodeComponent({
                 if (e.key === 'Escape') handleCancelEdit();
               }}
               placeholder={t('taxonomyNamePlaceholder')}
-              className="h-7 max-w-xs text-sm"
+              className="h-7 w-full text-sm md:max-w-xs"
               autoFocus
             />
             <Input
@@ -136,7 +138,7 @@ export function TaxonomyTreeNodeComponent({
                 if (e.key === 'Escape') handleCancelEdit();
               }}
               placeholder={t('descriptionPlaceholder')}
-              className="h-7 max-w-xs text-sm"
+              className="h-7 w-full text-sm md:max-w-xs"
             />
             <Input
               value={editLink}
@@ -146,7 +148,7 @@ export function TaxonomyTreeNodeComponent({
                 if (e.key === 'Escape') handleCancelEdit();
               }}
               placeholder={t('linkPlaceholder')}
-              className="h-7 max-w-xs text-sm"
+              className="h-7 w-full text-sm md:max-w-xs"
             />
             <div className="flex gap-1">
               <Button size="sm" variant="ghost" className="h-7" onClick={handleSaveEdit}>
@@ -184,7 +186,7 @@ export function TaxonomyTreeNodeComponent({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100"
+                  className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -241,7 +243,7 @@ export function TaxonomyTreeNodeComponent({
       {addingChild && (
         <div
           className="flex flex-col gap-1 py-1"
-          style={{ paddingLeft: (depth + 1) * 24 + 4 }}
+          style={{ paddingLeft: (depth + 1) * (isMobile ? 16 : 24) + 4 }}
         >
           <div className="flex items-center gap-2">
             <span className="h-4 w-4" />
@@ -254,11 +256,11 @@ export function TaxonomyTreeNodeComponent({
                 if (e.key === 'Escape') handleCancelAddChild();
               }}
               placeholder={t('childNamePlaceholder')}
-              className="mx-1 h-7 max-w-xs text-sm"
+              className="mx-1 h-7 w-full text-sm md:max-w-xs"
               autoFocus
             />
           </div>
-          <div className="ml-12 flex flex-col gap-1">
+          <div className="ml-6 md:ml-12 flex flex-col gap-1">
             <Input
               value={newChildDescription}
               onChange={(e) => setNewChildDescription(e.target.value)}
@@ -267,7 +269,7 @@ export function TaxonomyTreeNodeComponent({
                 if (e.key === 'Escape') handleCancelAddChild();
               }}
               placeholder={t('descriptionPlaceholder')}
-              className="h-7 max-w-xs text-sm"
+              className="h-7 w-full text-sm md:max-w-xs"
             />
             <Input
               value={newChildLink}
@@ -277,7 +279,7 @@ export function TaxonomyTreeNodeComponent({
                 if (e.key === 'Escape') handleCancelAddChild();
               }}
               placeholder={t('linkPlaceholder')}
-              className="h-7 max-w-xs text-sm"
+              className="h-7 w-full text-sm md:max-w-xs"
             />
             <div className="flex gap-1">
               <Button size="sm" variant="ghost" className="h-7" onClick={handleCreateChild}>

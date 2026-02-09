@@ -5,6 +5,7 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  VisibilityState,
 } from '@tanstack/react-table';
 import { useTranslations } from 'next-intl';
 import {
@@ -19,15 +20,19 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  columnVisibility?: VisibilityState;
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, columnVisibility }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common');
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnVisibility,
+    },
   });
 
   return (

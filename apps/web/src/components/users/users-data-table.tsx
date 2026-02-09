@@ -11,6 +11,8 @@ import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getMobileColumnVisibility } from '@/lib/column-visibility';
 import { UserFormDialog } from './user-form-dialog';
 import { getUserColumns } from './columns';
 
@@ -19,6 +21,7 @@ export function UsersDataTable() {
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('users');
   const tc = useTranslations('common');
+  const isMobile = useIsMobile();
   const [data, setData] = useState<PaginatedResponse<UserResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -117,7 +120,7 @@ export function UsersDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={getMobileColumnVisibility(columns, isMobile)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

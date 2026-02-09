@@ -38,6 +38,7 @@ export function getUserColumns({ onEdit, onDelete, onSort, translations }: UserC
     },
     {
       accessorKey: 'email',
+      meta: { hideOnMobile: true },
       header: () => (
         <Button variant="ghost" onClick={() => onSort('email')}>
           {translations.email} <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -46,6 +47,7 @@ export function getUserColumns({ onEdit, onDelete, onSort, translations }: UserC
     },
     {
       accessorKey: 'createdAt',
+      meta: { hideOnMobile: true },
       header: translations.created,
       cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
     },

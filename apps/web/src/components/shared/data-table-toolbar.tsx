@@ -23,17 +23,17 @@ export function DataTableToolbar({
   const t = useTranslations('common');
 
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           placeholder={t('search')}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
         {children}
       </div>
-      <Button onClick={onCreateClick}>
+      <Button onClick={onCreateClick} className="w-full sm:w-auto">
         <Plus className="mr-2 h-4 w-4" />
         {createLabel}
       </Button>

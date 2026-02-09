@@ -53,11 +53,13 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
     },
     {
       accessorKey: 'purpose',
+      meta: { hideOnMobile: true },
       header: translations.purpose,
       cell: ({ row }) => row.getValue('purpose') || '-',
     },
     {
       accessorKey: 'createdAt',
+      meta: { hideOnMobile: true },
       header: translations.created,
       cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
     },

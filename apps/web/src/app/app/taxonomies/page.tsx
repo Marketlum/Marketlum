@@ -29,8 +29,8 @@ export default async function TaxonomiesPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="mb-6 flex items-center gap-3 text-3xl font-bold">
-        <FolderTree className="h-8 w-8" />
+      <h1 className="mb-4 md:mb-6 flex items-center gap-2 md:gap-3 text-2xl md:text-3xl font-bold">
+        <FolderTree className="h-6 w-6 md:h-8 md:w-8" />
         {t('taxonomies.title')}
       </h1>
       <TaxonomyTreeView />

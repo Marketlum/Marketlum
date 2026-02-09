@@ -29,8 +29,8 @@ export default async function AgentsPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="mb-6 flex items-center gap-3 text-3xl font-bold">
-        <Bot className="h-8 w-8" />
+      <h1 className="mb-4 md:mb-6 flex items-center gap-2 md:gap-3 text-2xl md:text-3xl font-bold">
+        <Bot className="h-6 w-6 md:h-8 md:w-8" />
         {t('agents.title')}
       </h1>
       <AgentsDataTable />

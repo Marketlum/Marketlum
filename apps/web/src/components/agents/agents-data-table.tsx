@@ -12,6 +12,8 @@ import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getMobileColumnVisibility } from '@/lib/column-visibility';
 import { AgentFormDialog } from './agent-form-dialog';
 import { getAgentColumns } from './columns';
 import {
@@ -33,6 +35,7 @@ export function AgentsDataTable() {
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('agents');
   const tc = useTranslations('common');
+  const isMobile = useIsMobile();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [data, setData] = useState<PaginatedResponse<AgentResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,7 +155,7 @@ export function AgentsDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={getMobileColumnVisibility(columns, isMobile)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

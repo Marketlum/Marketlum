@@ -26,7 +26,8 @@
     "taxonomies": "Taxonomies",
     "logout": "Logout",
     "collapse": "Collapse",
-    "expandSidebar": "Expand sidebar"
+    "expandSidebar": "Expand sidebar",
+    "menu": "Menu"
   },
   "auth": {
     "signIn": "Sign in",
