@@ -36,10 +36,12 @@ async function createTaxonomy(
   name: string,
   parentId?: string,
   description?: string,
+  link?: string,
 ): Promise<request.Response> {
   const body: Record<string, unknown> = { name };
   if (parentId) body.parentId = parentId;
   if (description) body.description = description;
+  if (link) body.link = link;
   return request(getApp().getHttpServer())
     .post('/taxonomies')
     .set('Cookie', [authCookie])
@@ -84,13 +86,15 @@ defineFeature(createFeature, (test) => {
 
     when(
       'I create a taxonomy with:',
-      async (table: { name: string; description: string }[]) => {
+      async (table: { name: string; description: string; link: string }[]) => {
         const row = table[0];
+        const body: Record<string, unknown> = { name: row.name, description: row.description };
+        if (row.link) body.link = row.link;
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name: row.name, description: row.description });
+          .send(body);
       },
     );
 
@@ -108,6 +112,13 @@ defineFeature(createFeature, (test) => {
         expect(response.body.description).toBe(description);
       },
     );
+
+    and(
+      /^the response should contain a taxonomy with link "(.*)"$/,
+      (link: string) => {
+        expect(response.body.link).toBe(link);
+      },
+    );
   });
 
   test('Successfully create a child taxonomy', ({ given, when, then, and }) => {
@@ -122,14 +133,16 @@ defineFeature(createFeature, (test) => {
 
     when(
       /^I create a taxonomy with parent "(.*)":/,
-      async (parentName: string, table: { name: string; description: string }[]) => {
+      async (parentName: string, table: { name: string; description: string; link: string }[]) => {
         const row = table[0];
         const parentId = taxonomyIds.get(parentName);
+        const body: Record<string, unknown> = { name: row.name, description: row.description, parentId };
+        if (row.link) body.link = row.link;
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name: row.name, description: row.description, parentId });
+          .send(body);
       },
     );
 
@@ -140,6 +153,13 @@ defineFeature(createFeature, (test) => {
     and(/^the response should contain a taxonomy with name "(.*)"$/, (name: string) => {
       expect(response.body.name).toBe(name);
     });
+
+    and(
+      /^the response should contain a taxonomy with link "(.*)"$/,
+      (link: string) => {
+        expect(response.body.link).toBe(link);
+      },
+    );
   });
 
   test('Creating a taxonomy with invalid data fails', ({ given, when, then }) => {
@@ -149,13 +169,39 @@ defineFeature(createFeature, (test) => {
 
     when(
       'I create a taxonomy with:',
-      async (table: { name: string; description: string }[]) => {
+      async (table: { name: string; description: string; link: string }[]) => {
         const row = table[0];
+        const body: Record<string, unknown> = { name: row.name, description: row.description };
+        if (row.link) body.link = row.link;
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name: row.name, description: row.description });
+          .send(body);
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Creating a taxonomy with an invalid link fails', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a taxonomy with:',
+      async (table: { name: string; description: string; link: string }[]) => {
+        const row = table[0];
+        const body: Record<string, unknown> = { name: row.name, description: row.description };
+        if (row.link) body.link = row.link;
+        response = await request(getApp().getHttpServer())
+          .post('/taxonomies')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send(body);
       },
     );
 
@@ -185,12 +231,14 @@ defineFeature(createFeature, (test) => {
   test('Unauthenticated request is rejected', ({ when, then }) => {
     when(
       'I create a taxonomy with:',
-      async (table: { name: string; description: string }[]) => {
+      async (table: { name: string; description: string; link: string }[]) => {
         const row = table[0];
+        const body: Record<string, unknown> = { name: row.name, description: row.description };
+        if (row.link) body.link = row.link;
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
           .set('X-CSRF-Protection', '1')
-          .send({ name: row.name, description: row.description });
+          .send(body);
       },
     );
 
@@ -465,6 +513,79 @@ defineFeature(updateFeature, (test) => {
 
     and(/^the response should contain a taxonomy with name "(.*)"$/, (name: string) => {
       expect(response.body.name).toBe(name);
+    });
+  });
+
+  test("Successfully update a taxonomy's description and link", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a root taxonomy exists with name "(.*)"$/, async (name: string) => {
+      const res = await createTaxonomy(authCookie, name);
+      taxonomyIds.set(name, res.body.id);
+    });
+
+    when(
+      'I update the taxonomy with:',
+      async (table: { description?: string; link?: string }[]) => {
+        const row = table[0];
+        const id = taxonomyIds.values().next().value;
+        const body: Record<string, unknown> = {};
+        if (row.description) body.description = row.description;
+        if (row.link) body.link = row.link;
+        response = await request(getApp().getHttpServer())
+          .patch(`/taxonomies/${id}`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send(body);
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(
+      /^the response should contain a taxonomy with description "(.*)"$/,
+      (description: string) => {
+        expect(response.body.description).toBe(description);
+      },
+    );
+
+    and(
+      /^the response should contain a taxonomy with link "(.*)"$/,
+      (link: string) => {
+        expect(response.body.link).toBe(link);
+      },
+    );
+  });
+
+  test('Updating a taxonomy with an invalid link fails', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a root taxonomy exists with name "(.*)"$/, async (name: string) => {
+      const res = await createTaxonomy(authCookie, name);
+      taxonomyIds.set(name, res.body.id);
+    });
+
+    when(
+      'I update the taxonomy with:',
+      async (table: { link?: string }[]) => {
+        const row = table[0];
+        const id = taxonomyIds.values().next().value;
+        response = await request(getApp().getHttpServer())
+          .patch(`/taxonomies/${id}`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ link: row.link });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
     });
   });
 

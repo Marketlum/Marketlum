@@ -18,6 +18,8 @@ export function TaxonomyTreeView() {
   const [loading, setLoading] = useState(true);
   const [addingRoot, setAddingRoot] = useState(false);
   const [newRootName, setNewRootName] = useState('');
+  const [newRootDescription, setNewRootDescription] = useState('');
+  const [newRootLink, setNewRootLink] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -39,9 +41,14 @@ export function TaxonomyTreeView() {
   const handleCreateRoot = async () => {
     if (!newRootName.trim()) return;
     try {
-      await api.post('/taxonomies', { name: newRootName.trim() });
+      const body: Record<string, string> = { name: newRootName.trim() };
+      if (newRootDescription.trim()) body.description = newRootDescription.trim();
+      if (newRootLink.trim()) body.link = newRootLink.trim();
+      await api.post('/taxonomies', body);
       toast.success(t('rootCreated'));
       setNewRootName('');
+      setNewRootDescription('');
+      setNewRootLink('');
       setAddingRoot(false);
       fetchTree();
     } catch {
@@ -49,9 +56,16 @@ export function TaxonomyTreeView() {
     }
   };
 
-  const handleCreateChild = async (parentId: string, name: string) => {
+  const handleCancelAddRoot = () => {
+    setAddingRoot(false);
+    setNewRootName('');
+    setNewRootDescription('');
+    setNewRootLink('');
+  };
+
+  const handleCreateChild = async (parentId: string, data: { name: string; description?: string; link?: string }) => {
     try {
-      await api.post('/taxonomies', { name, parentId });
+      await api.post('/taxonomies', { ...data, parentId });
       toast.success(t('created'));
       fetchTree();
     } catch {
@@ -59,9 +73,9 @@ export function TaxonomyTreeView() {
     }
   };
 
-  const handleUpdate = async (id: string, name: string) => {
+  const handleUpdate = async (id: string, data: { name?: string; description?: string; link?: string }) => {
     try {
-      await api.patch(`/taxonomies/${id}`, { name });
+      await api.patch(`/taxonomies/${id}`, data);
       toast.success(t('updated'));
       fetchTree();
     } catch {
@@ -96,34 +110,46 @@ export function TaxonomyTreeView() {
     <div>
       <div className="mb-4">
         {addingRoot ? (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2">
             <Input
               value={newRootName}
               onChange={(e) => setNewRootName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleCreateRoot();
-                if (e.key === 'Escape') {
-                  setAddingRoot(false);
-                  setNewRootName('');
-                }
+                if (e.key === 'Escape') handleCancelAddRoot();
               }}
               placeholder={t('taxonomyNamePlaceholder')}
               className="max-w-xs"
               autoFocus
             />
-            <Button size="sm" onClick={handleCreateRoot}>
-              {tc('save')}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setAddingRoot(false);
-                setNewRootName('');
+            <Input
+              value={newRootDescription}
+              onChange={(e) => setNewRootDescription(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateRoot();
+                if (e.key === 'Escape') handleCancelAddRoot();
               }}
-            >
-              {tc('cancel')}
-            </Button>
+              placeholder={t('descriptionPlaceholder')}
+              className="max-w-xs"
+            />
+            <Input
+              value={newRootLink}
+              onChange={(e) => setNewRootLink(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateRoot();
+                if (e.key === 'Escape') handleCancelAddRoot();
+              }}
+              placeholder={t('linkPlaceholder')}
+              className="max-w-xs"
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleCreateRoot}>
+                {tc('save')}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={handleCancelAddRoot}>
+                {tc('cancel')}
+              </Button>
+            </div>
           </div>
         ) : (
           <Button onClick={() => setAddingRoot(true)}>

@@ -15,6 +15,7 @@ export class TaxonomiesService {
     const taxonomy = this.taxonomyRepository.create({
       name: input.name,
       description: input.description ?? null,
+      link: input.link ?? null,
     });
 
     if (input.parentId) {

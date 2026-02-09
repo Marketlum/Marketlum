@@ -22,6 +22,9 @@ export class Taxonomy {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  link: string | null;
+
   @TreeLevelColumn()
   level: number;
 
