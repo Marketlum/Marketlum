@@ -1,3 +1,9 @@
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Load test environment before anything else
+dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
@@ -6,9 +12,6 @@ import { ThrottlerStorage } from '@nestjs/throttler';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import { UsersService } from '../src/users/users.service';
-
-// Use a separate database for tests
-process.env.DATABASE_NAME = process.env.DATABASE_NAME || 'marketlum_test';
 
 let app: INestApplication;
 let dataSource: DataSource;
