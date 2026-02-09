@@ -25,3 +25,15 @@ export {
   type PaginationQuery,
   type PaginatedResponse,
 } from './schemas/pagination.schema';
+
+export {
+  createTaxonomySchema,
+  updateTaxonomySchema,
+  moveTaxonomySchema,
+  taxonomyResponseSchema,
+  type CreateTaxonomyInput,
+  type UpdateTaxonomyInput,
+  type MoveTaxonomyInput,
+  type TaxonomyResponse,
+  type TaxonomyTreeNode,
+} from './schemas/taxonomy.schema';

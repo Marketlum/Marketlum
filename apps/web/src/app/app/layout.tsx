@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Users, Bot, FolderTree, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -50,6 +50,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: '/app/users', label: 'Users', icon: Users },
     { href: '/app/agents', label: 'Agents', icon: Bot },
+    { href: '/app/taxonomies', label: 'Taxonomies', icon: FolderTree },
   ];
 
   if (!user) return null;
