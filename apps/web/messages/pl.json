@@ -83,7 +83,9 @@
     "selectTaxonomies": "Wybierz taksonomie",
     "noTaxonomyFound": "Nie znaleziono taksonomii",
     "failedToDelete": "Nie udało się usunąć agenta",
-    "allTaxonomies": "Wszystkie taksonomie"
+    "allTaxonomies": "Wszystkie taksonomie",
+    "taxonomyCreated": "Taksonomia utworzona",
+    "failedToCreateTaxonomy": "Nie udało się utworzyć taksonomii"
   },
   "taxonomies": {
     "title": "Taksonomie",

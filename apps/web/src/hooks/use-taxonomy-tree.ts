@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { TaxonomyTreeNode } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 
@@ -8,7 +8,7 @@ export function useTaxonomyTree() {
   const [tree, setTree] = useState<TaxonomyTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchTree = useCallback(() => {
     api
       .get<TaxonomyTreeNode[]>('/taxonomies/tree')
       .then(setTree)
@@ -16,5 +16,9 @@ export function useTaxonomyTree() {
       .finally(() => setLoading(false));
   }, []);
 
-  return { tree, loading };
+  useEffect(() => {
+    fetchTree();
+  }, [fetchTree]);
+
+  return { tree, loading, refresh: fetchTree };
 }

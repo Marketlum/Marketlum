@@ -83,7 +83,9 @@
     "selectTaxonomies": "Select taxonomies",
     "noTaxonomyFound": "No taxonomy found",
     "failedToDelete": "Failed to delete agent",
-    "allTaxonomies": "All taxonomies"
+    "allTaxonomies": "All taxonomies",
+    "taxonomyCreated": "Taxonomy created",
+    "failedToCreateTaxonomy": "Failed to create taxonomy"
   },
   "taxonomies": {
     "title": "Taxonomies",

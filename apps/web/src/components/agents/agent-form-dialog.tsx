@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import {
@@ -10,6 +11,7 @@ import {
   AgentType,
   type CreateAgentInput,
   type AgentResponse,
+  type TaxonomyResponse,
 } from '@marketlum/shared';
 import {
   Dialog,
@@ -31,6 +33,7 @@ import {
 } from '@/components/ui/select';
 import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
 import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
+import { api } from '@/lib/api-client';
 
 const typeTranslationKeys: Record<string, string> = {
   [AgentType.ORGANIZATION]: 'typeOrganization',
@@ -57,7 +60,24 @@ export function AgentFormDialog({
   const schema = isEditing ? updateAgentSchema : createAgentSchema;
   const t = useTranslations('agents');
   const tc = useTranslations('common');
-  const { tree } = useTaxonomyTree();
+  const { tree, refresh } = useTaxonomyTree();
+
+  const handleCreateTaxonomy = useCallback(
+    async (name: string, parentId?: string): Promise<string | null> => {
+      try {
+        const body: Record<string, string> = { name };
+        if (parentId) body.parentId = parentId;
+        const created = await api.post<TaxonomyResponse>('/taxonomies', body);
+        toast.success(t('taxonomyCreated'));
+        refresh();
+        return created.id;
+      } catch {
+        toast.error(t('failedToCreateTaxonomy'));
+        return null;
+      }
+    },
+    [refresh, t],
+  );
 
   const {
     register,
@@ -157,6 +177,7 @@ export function AgentFormDialog({
               onSelect={(id) => setValue('mainTaxonomyId', id)}
               placeholder={t('selectMainTaxonomy')}
               noneLabel="-"
+              onCreate={handleCreateTaxonomy}
             />
           </div>
           <div className="space-y-2">
@@ -167,6 +188,7 @@ export function AgentFormDialog({
               values={taxonomyIdsValue}
               onToggle={toggleTaxonomyId}
               placeholder={t('selectTaxonomies')}
+              onCreate={handleCreateTaxonomy}
             />
           </div>
           <DialogFooter>
