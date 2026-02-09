@@ -4,8 +4,13 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+  JoinColumn,
 } from 'typeorm';
 import { AgentType } from '@marketlum/shared';
+import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 
 @Entity('agents')
 export class Agent {
@@ -20,6 +25,21 @@ export class Agent {
 
   @Column({ type: 'text', nullable: true })
   purpose: string | null;
+
+  @ManyToOne(() => Taxonomy, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'mainTaxonomyId' })
+  mainTaxonomy: Taxonomy | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  mainTaxonomyId: string | null;
+
+  @ManyToMany(() => Taxonomy)
+  @JoinTable({
+    name: 'agent_taxonomies',
+    joinColumn: { name: 'agentId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'taxonomyId', referencedColumnName: 'id' },
+  })
+  taxonomies: Taxonomy[];
 
   @CreateDateColumn()
   createdAt: Date;

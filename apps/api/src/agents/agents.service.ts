@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Agent } from './entities/agent.entity';
+import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import {
   CreateAgentInput,
   UpdateAgentInput,
@@ -14,11 +15,40 @@ export class AgentsService {
   constructor(
     @InjectRepository(Agent)
     private readonly agentsRepository: Repository<Agent>,
+    @InjectRepository(Taxonomy)
+    private readonly taxonomyRepository: Repository<Taxonomy>,
   ) {}
 
   async create(input: CreateAgentInput): Promise<Agent> {
-    const agent = this.agentsRepository.create(input);
-    return this.agentsRepository.save(agent);
+    const { mainTaxonomyId, taxonomyIds, ...rest } = input;
+
+    const agent = this.agentsRepository.create(rest);
+
+    if (mainTaxonomyId) {
+      const taxonomy = await this.taxonomyRepository.findOne({
+        where: { id: mainTaxonomyId },
+      });
+      if (!taxonomy) {
+        throw new NotFoundException('Main taxonomy not found');
+      }
+      agent.mainTaxonomyId = mainTaxonomyId;
+      agent.mainTaxonomy = taxonomy;
+    }
+
+    if (taxonomyIds && taxonomyIds.length > 0) {
+      const taxonomies = await this.taxonomyRepository.find({
+        where: { id: In(taxonomyIds) },
+      });
+      if (taxonomies.length !== taxonomyIds.length) {
+        throw new NotFoundException('One or more taxonomies not found');
+      }
+      agent.taxonomies = taxonomies;
+    } else {
+      agent.taxonomies = [];
+    }
+
+    const saved = await this.agentsRepository.save(agent);
+    return this.findOne(saved.id);
   }
 
   async findAll(query: PaginationQuery & { type?: AgentType }) {
@@ -26,6 +56,9 @@ export class AgentsService {
     const skip = (page - 1) * limit;
 
     const qb = this.agentsRepository.createQueryBuilder('agent');
+
+    qb.leftJoinAndSelect('agent.mainTaxonomy', 'mainTaxonomy');
+    qb.leftJoinAndSelect('agent.taxonomies', 'taxonomies');
 
     if (type) {
       qb.andWhere('agent.type = :type', { type });
@@ -60,7 +93,10 @@ export class AgentsService {
   }
 
   async findOne(id: string): Promise<Agent> {
-    const agent = await this.agentsRepository.findOne({ where: { id } });
+    const agent = await this.agentsRepository.findOne({
+      where: { id },
+      relations: ['mainTaxonomy', 'taxonomies'],
+    });
     if (!agent) {
       throw new NotFoundException('Agent not found');
     }
@@ -69,8 +105,42 @@ export class AgentsService {
 
   async update(id: string, input: UpdateAgentInput): Promise<Agent> {
     const agent = await this.findOne(id);
-    Object.assign(agent, input);
-    return this.agentsRepository.save(agent);
+    const { mainTaxonomyId, taxonomyIds, ...rest } = input;
+
+    Object.assign(agent, rest);
+
+    if (mainTaxonomyId !== undefined) {
+      if (mainTaxonomyId === null) {
+        agent.mainTaxonomy = null;
+        agent.mainTaxonomyId = null;
+      } else {
+        const taxonomy = await this.taxonomyRepository.findOne({
+          where: { id: mainTaxonomyId },
+        });
+        if (!taxonomy) {
+          throw new NotFoundException('Main taxonomy not found');
+        }
+        agent.mainTaxonomyId = mainTaxonomyId;
+        agent.mainTaxonomy = taxonomy;
+      }
+    }
+
+    if (taxonomyIds !== undefined) {
+      if (taxonomyIds.length === 0) {
+        agent.taxonomies = [];
+      } else {
+        const taxonomies = await this.taxonomyRepository.find({
+          where: { id: In(taxonomyIds) },
+        });
+        if (taxonomies.length !== taxonomyIds.length) {
+          throw new NotFoundException('One or more taxonomies not found');
+        }
+        agent.taxonomies = taxonomies;
+      }
+    }
+
+    await this.agentsRepository.save(agent);
+    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {

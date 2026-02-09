@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import {
   createAgentSchema,
   updateAgentSchema,
@@ -29,6 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { useTaxonomies } from '@/hooks/use-taxonomies';
 
 const typeTranslationKeys: Record<string, string> = {
   [AgentType.ORGANIZATION]: 'typeOrganization',
@@ -55,6 +63,7 @@ export function AgentFormDialog({
   const schema = isEditing ? updateAgentSchema : createAgentSchema;
   const t = useTranslations('agents');
   const tc = useTranslations('common');
+  const { taxonomies } = useTaxonomies();
 
   const {
     register,
@@ -68,16 +77,48 @@ export function AgentFormDialog({
   });
 
   const typeValue = watch('type');
+  const mainTaxonomyIdValue = watch('mainTaxonomyId');
+  const taxonomyIdsValue = watch('taxonomyIds') ?? [];
+
+  const [taxonomyPopoverOpen, setTaxonomyPopoverOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
       reset(
         agent
-          ? { name: agent.name, type: agent.type, purpose: agent.purpose ?? '' }
-          : { name: '', type: AgentType.ORGANIZATION, purpose: '' },
+          ? {
+              name: agent.name,
+              type: agent.type,
+              purpose: agent.purpose ?? '',
+              mainTaxonomyId: agent.mainTaxonomy?.id ?? null,
+              taxonomyIds: agent.taxonomies?.map((t) => t.id) ?? [],
+            }
+          : {
+              name: '',
+              type: AgentType.ORGANIZATION,
+              purpose: '',
+              mainTaxonomyId: null,
+              taxonomyIds: [],
+            },
       );
     }
   }, [open, agent, reset]);
+
+  const toggleTaxonomyId = (id: string) => {
+    const current = taxonomyIdsValue;
+    if (current.includes(id)) {
+      setValue(
+        'taxonomyIds',
+        current.filter((tid) => tid !== id),
+      );
+    } else {
+      setValue('taxonomyIds', [...current, id]);
+    }
+  };
+
+  const selectedTaxonomyNames = taxonomyIdsValue
+    .map((id) => taxonomies.find((t) => t.id === id)?.name)
+    .filter(Boolean);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -119,6 +160,73 @@ export function AgentFormDialog({
             {errors.purpose && (
               <p className="text-sm text-destructive">{errors.purpose.message}</p>
             )}
+          </div>
+          <div className="space-y-2">
+            <Label>{t('mainTaxonomy')}</Label>
+            <Select
+              value={mainTaxonomyIdValue ?? 'none'}
+              onValueChange={(value) =>
+                setValue('mainTaxonomyId', value === 'none' ? null : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('selectMainTaxonomy')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-</SelectItem>
+                {taxonomies.map((tax) => (
+                  <SelectItem key={tax.id} value={tax.id}>
+                    {tax.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t('taxonomies')}</Label>
+            <Popover open={taxonomyPopoverOpen} onOpenChange={setTaxonomyPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={taxonomyPopoverOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  <span className="truncate">
+                    {selectedTaxonomyNames.length > 0
+                      ? selectedTaxonomyNames.join(', ')
+                      : t('selectTaxonomies')}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-2" align="start">
+                {taxonomies.length === 0 ? (
+                  <p className="py-2 text-center text-sm text-muted-foreground">
+                    {t('noTaxonomyFound')}
+                  </p>
+                ) : (
+                  <div className="max-h-60 overflow-y-auto">
+                    {taxonomies.map((tax) => (
+                      <button
+                        key={tax.id}
+                        type="button"
+                        onClick={() => toggleTaxonomyId(tax.id)}
+                        className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                      >
+                        <Check
+                          className={cn(
+                            'h-4 w-4',
+                            taxonomyIdsValue.includes(tax.id) ? 'opacity-100' : 'opacity-0',
+                          )}
+                        />
+                        {tax.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
