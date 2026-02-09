@@ -85,6 +85,7 @@ export async function createAuthenticatedUser(
   // Login to get token cookie
   const loginRes = await request(getApp().getHttpServer())
     .post('/auth/login')
+    .set('X-CSRF-Protection', '1')
     .send({ email, password });
 
   const cookies = loginRes.headers['set-cookie'];

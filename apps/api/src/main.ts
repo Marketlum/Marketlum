@@ -9,6 +9,7 @@ async function bootstrap() {
   app.enableCors({
     origin: 'http://localhost:3000',
     credentials: true,
+    allowedHeaders: ['Content-Type', 'X-CSRF-Protection'],
   });
 
   const port = process.env.API_PORT || 3001;

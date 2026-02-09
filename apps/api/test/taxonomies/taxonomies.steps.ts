@@ -43,6 +43,7 @@ async function createTaxonomy(
   return request(getApp().getHttpServer())
     .post('/taxonomies')
     .set('Cookie', [authCookie])
+    .set('X-CSRF-Protection', '1')
     .send(body);
 }
 
@@ -88,6 +89,7 @@ defineFeature(createFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name: row.name, description: row.description });
       },
     );
@@ -126,6 +128,7 @@ defineFeature(createFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name: row.name, description: row.description, parentId });
       },
     );
@@ -151,6 +154,7 @@ defineFeature(createFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name: row.name, description: row.description });
       },
     );
@@ -169,6 +173,7 @@ defineFeature(createFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .post('/taxonomies')
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ name: 'Test', parentId: '00000000-0000-0000-0000-000000000000' });
     });
 
@@ -184,6 +189,7 @@ defineFeature(createFeature, (test) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/taxonomies')
+          .set('X-CSRF-Protection', '1')
           .send({ name: row.name, description: row.description });
       },
     );
@@ -449,6 +455,7 @@ defineFeature(updateFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .patch(`/taxonomies/${id}`)
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ name });
     });
 
@@ -472,6 +479,7 @@ defineFeature(updateFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .patch(`/taxonomies/${id}`)
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name });
       },
     );
@@ -487,6 +495,7 @@ defineFeature(updateFeature, (test) => {
       async (id: string, name: string) => {
         response = await request(getApp().getHttpServer())
           .patch(`/taxonomies/${id}`)
+          .set('X-CSRF-Protection', '1')
           .send({ name });
       },
     );
@@ -535,6 +544,7 @@ defineFeature(moveFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .patch(`/taxonomies/${id}/move`)
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ parentId });
       },
     );
@@ -573,6 +583,7 @@ defineFeature(moveFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .patch(`/taxonomies/${id}/move`)
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ parentId: null });
     });
 
@@ -607,6 +618,7 @@ defineFeature(moveFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .patch(`/taxonomies/${id}/move`)
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ parentId: '00000000-0000-0000-0000-000000000000' });
     });
 
@@ -621,6 +633,7 @@ defineFeature(moveFeature, (test) => {
       async (id: string) => {
         response = await request(getApp().getHttpServer())
           .patch(`/taxonomies/${id}/move`)
+          .set('X-CSRF-Protection', '1')
           .send({ parentId: null });
       },
     );
@@ -663,7 +676,8 @@ defineFeature(deleteFeature, (test) => {
       const id = taxonomyIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .delete(`/taxonomies/${id}`)
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -687,7 +701,8 @@ defineFeature(deleteFeature, (test) => {
       const id = taxonomyIds.get(name);
       response = await request(getApp().getHttpServer())
         .delete(`/taxonomies/${id}`)
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -719,7 +734,8 @@ defineFeature(deleteFeature, (test) => {
     when(/^I delete the taxonomy with ID "(.*)"$/, async (id: string) => {
       response = await request(getApp().getHttpServer())
         .delete(`/taxonomies/${id}`)
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -729,7 +745,9 @@ defineFeature(deleteFeature, (test) => {
 
   test('Unauthenticated request is rejected', ({ when, then }) => {
     when(/^I delete the taxonomy with ID "(.*)"$/, async (id: string) => {
-      response = await request(getApp().getHttpServer()).delete(`/taxonomies/${id}`);
+      response = await request(getApp().getHttpServer())
+        .delete(`/taxonomies/${id}`)
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {

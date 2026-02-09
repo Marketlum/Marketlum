@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { databaseConfig } from './config/database.config';
+import { CsrfProtectionGuard } from './common/guards/csrf-protection.guard';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AgentsModule } from './agents/agents.module';
@@ -23,6 +24,10 @@ import { TaxonomiesModule } from './taxonomies/taxonomies.module';
     TaxonomiesModule,
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: CsrfProtectionGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

@@ -46,6 +46,7 @@ defineFeature(feature, (test) => {
         for (let i = 0; i < parseInt(count); i++) {
           const res = await request(getApp().getHttpServer())
             .post('/auth/login')
+            .set('X-CSRF-Protection', '1')
             .send({ email, password });
           responses.push(res);
         }
@@ -76,7 +77,7 @@ defineFeature(feature, (test) => {
       for (let i = 0; i < parseInt(count); i++) {
         const res = method === 'GET'
           ? await request(server).get(url).set('Cookie', [authCookie])
-          : await request(server).post(url).set('Cookie', [authCookie]);
+          : await request(server).post(url).set('Cookie', [authCookie]).set('X-CSRF-Protection', '1');
         responses.push(res);
       }
     });

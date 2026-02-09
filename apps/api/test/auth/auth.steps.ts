@@ -46,6 +46,7 @@ defineFeature(loginFeature, (test) => {
     when(/^I login with email "(.*)" and password "(.*)"$/, async (email: string, password: string) => {
       response = await request(getApp().getHttpServer())
         .post('/auth/login')
+        .set('X-CSRF-Protection', '1')
         .send({ email, password });
     });
 
@@ -79,6 +80,7 @@ defineFeature(loginFeature, (test) => {
     when(/^I login with email "(.*)" and password "(.*)"$/, async (email: string, password: string) => {
       response = await request(getApp().getHttpServer())
         .post('/auth/login')
+        .set('X-CSRF-Protection', '1')
         .send({ email, password });
     });
 
@@ -91,6 +93,7 @@ defineFeature(loginFeature, (test) => {
     when(/^I login with email "(.*)" and password "(.*)"$/, async (email: string, password: string) => {
       response = await request(getApp().getHttpServer())
         .post('/auth/login')
+        .set('X-CSRF-Protection', '1')
         .send({ email, password });
     });
 
@@ -124,7 +127,8 @@ defineFeature(logoutFeature, (test) => {
     when('I request to logout', async () => {
       response = await request(getApp().getHttpServer())
         .post('/auth/logout')
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {

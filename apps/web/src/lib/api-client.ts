@@ -16,6 +16,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      'X-CSRF-Protection': '1',
       ...options.headers,
     },
   });

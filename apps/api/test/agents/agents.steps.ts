@@ -48,6 +48,7 @@ defineFeature(createFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .post('/agents')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name: row.name, type: row.type, purpose: row.purpose });
       },
     );
@@ -77,6 +78,7 @@ defineFeature(createFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .post('/agents')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name: row.name, type: row.type, purpose: row.purpose });
       },
     );
@@ -93,6 +95,7 @@ defineFeature(createFeature, (test) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/agents')
+          .set('X-CSRF-Protection', '1')
           .send({ name: row.name, type: row.type, purpose: row.purpose });
       },
     );
@@ -132,6 +135,7 @@ defineFeature(listFeature, (test) => {
           await request(getApp().getHttpServer())
             .post('/agents')
             .set('Cookie', [authCookie])
+            .set('X-CSRF-Protection', '1')
             .send({ name: row.name, type: row.type, purpose: row.purpose });
         }
       },
@@ -169,6 +173,7 @@ defineFeature(listFeature, (test) => {
           await request(getApp().getHttpServer())
             .post('/agents')
             .set('Cookie', [authCookie])
+            .set('X-CSRF-Protection', '1')
             .send({ name: row.name, type: row.type, purpose: row.purpose });
         }
       },
@@ -203,6 +208,7 @@ defineFeature(listFeature, (test) => {
           await request(getApp().getHttpServer())
             .post('/agents')
             .set('Cookie', [authCookie])
+            .set('X-CSRF-Protection', '1')
             .send({ name: row.name, type: row.type, purpose: row.purpose });
         }
       },
@@ -271,6 +277,7 @@ defineFeature(getFeature, (test) => {
         const res = await request(getApp().getHttpServer())
           .post('/agents')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name, type });
         createdAgentId = res.body.id;
       },
@@ -347,6 +354,7 @@ defineFeature(updateFeature, (test) => {
         const res = await request(getApp().getHttpServer())
           .post('/agents')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name, type });
         createdAgentId = res.body.id;
       },
@@ -356,6 +364,7 @@ defineFeature(updateFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .patch(`/agents/${createdAgentId}`)
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ name });
     });
 
@@ -379,6 +388,7 @@ defineFeature(updateFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .patch(`/agents/${id}`)
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name });
       },
     );
@@ -394,6 +404,7 @@ defineFeature(updateFeature, (test) => {
       async (id: string, name: string) => {
         response = await request(getApp().getHttpServer())
           .patch(`/agents/${id}`)
+          .set('X-CSRF-Protection', '1')
           .send({ name });
       },
     );
@@ -433,6 +444,7 @@ defineFeature(deleteFeature, (test) => {
         const res = await request(getApp().getHttpServer())
           .post('/agents')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name, type });
         createdAgentId = res.body.id;
       },
@@ -441,7 +453,8 @@ defineFeature(deleteFeature, (test) => {
     when('I delete the agent', async () => {
       response = await request(getApp().getHttpServer())
         .delete(`/agents/${createdAgentId}`)
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -457,7 +470,8 @@ defineFeature(deleteFeature, (test) => {
     when(/^I delete the agent with ID "(.*)"$/, async (id: string) => {
       response = await request(getApp().getHttpServer())
         .delete(`/agents/${id}`)
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -467,7 +481,9 @@ defineFeature(deleteFeature, (test) => {
 
   test('Unauthenticated request is rejected', ({ when, then }) => {
     when(/^I delete the agent with ID "(.*)"$/, async (id: string) => {
-      response = await request(getApp().getHttpServer()).delete(`/agents/${id}`);
+      response = await request(getApp().getHttpServer())
+        .delete(`/agents/${id}`)
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {

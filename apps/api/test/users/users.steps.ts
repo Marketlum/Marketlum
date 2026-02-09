@@ -46,6 +46,7 @@ defineFeature(createFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .post('/users')
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ name: row.name, email: row.email, password: row.password });
     });
 
@@ -73,6 +74,7 @@ defineFeature(createFeature, (test) => {
         await request(getApp().getHttpServer())
           .post('/users')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ email, password, name: 'Existing' });
       },
     );
@@ -82,6 +84,7 @@ defineFeature(createFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .post('/users')
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ name: row.name, email: row.email, password: row.password });
     });
 
@@ -100,6 +103,7 @@ defineFeature(createFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .post('/users')
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ name: row.name, email: row.email, password: row.password });
     });
 
@@ -113,6 +117,7 @@ defineFeature(createFeature, (test) => {
       const row = table[0];
       response = await request(getApp().getHttpServer())
         .post('/users')
+        .set('X-CSRF-Protection', '1')
         .send({ name: row.name, email: row.email, password: row.password });
     });
 
@@ -151,6 +156,7 @@ defineFeature(listFeature, (test) => {
           await request(getApp().getHttpServer())
             .post('/users')
             .set('Cookie', [authCookie])
+            .set('X-CSRF-Protection', '1')
             .send({ name: row.name, email: row.email, password: row.password });
         }
       },
@@ -192,6 +198,7 @@ defineFeature(listFeature, (test) => {
           await request(getApp().getHttpServer())
             .post('/users')
             .set('Cookie', [authCookie])
+            .set('X-CSRF-Protection', '1')
             .send({ name: row.name, email: row.email, password: row.password });
         }
       },
@@ -232,6 +239,7 @@ defineFeature(listFeature, (test) => {
           await request(getApp().getHttpServer())
             .post('/users')
             .set('Cookie', [authCookie])
+            .set('X-CSRF-Protection', '1')
             .send({ name: row.name, email: row.email, password: row.password });
         }
       },
@@ -295,6 +303,7 @@ defineFeature(getFeature, (test) => {
         const res = await request(getApp().getHttpServer())
           .post('/users')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ email, password, name: 'Alice' });
         createdUserId = res.body.id;
       },
@@ -371,6 +380,7 @@ defineFeature(updateFeature, (test) => {
         const res = await request(getApp().getHttpServer())
           .post('/users')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ email, password, name: 'Alice' });
         createdUserId = res.body.id;
       },
@@ -380,6 +390,7 @@ defineFeature(updateFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .patch(`/users/${createdUserId}`)
         .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
         .send({ name });
     });
 
@@ -403,6 +414,7 @@ defineFeature(updateFeature, (test) => {
         response = await request(getApp().getHttpServer())
           .patch(`/users/${id}`)
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ name });
       },
     );
@@ -418,6 +430,7 @@ defineFeature(updateFeature, (test) => {
       async (id: string, name: string) => {
         response = await request(getApp().getHttpServer())
           .patch(`/users/${id}`)
+          .set('X-CSRF-Protection', '1')
           .send({ name });
       },
     );
@@ -457,6 +470,7 @@ defineFeature(deleteFeature, (test) => {
         const res = await request(getApp().getHttpServer())
           .post('/users')
           .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
           .send({ email, password, name: 'Alice' });
         createdUserId = res.body.id;
       },
@@ -465,7 +479,8 @@ defineFeature(deleteFeature, (test) => {
     when('I delete the user', async () => {
       response = await request(getApp().getHttpServer())
         .delete(`/users/${createdUserId}`)
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -481,7 +496,8 @@ defineFeature(deleteFeature, (test) => {
     when(/^I delete the user with ID "(.*)"$/, async (id: string) => {
       response = await request(getApp().getHttpServer())
         .delete(`/users/${id}`)
-        .set('Cookie', [authCookie]);
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -491,7 +507,9 @@ defineFeature(deleteFeature, (test) => {
 
   test('Unauthenticated request is rejected', ({ when, then }) => {
     when(/^I delete the user with ID "(.*)"$/, async (id: string) => {
-      response = await request(getApp().getHttpServer()).delete(`/users/${id}`);
+      response = await request(getApp().getHttpServer())
+        .delete(`/users/${id}`)
+        .set('X-CSRF-Protection', '1');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
