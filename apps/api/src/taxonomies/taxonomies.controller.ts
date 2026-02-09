@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -17,9 +18,11 @@ import {
   createTaxonomySchema,
   updateTaxonomySchema,
   moveTaxonomySchema,
+  paginationQuerySchema,
   CreateTaxonomyInput,
   UpdateTaxonomyInput,
   MoveTaxonomyInput,
+  PaginationQuery,
 } from '@marketlum/shared';
 
 @Controller('taxonomies')
@@ -33,6 +36,13 @@ export class TaxonomiesController {
     @Body(new ZodValidationPipe(createTaxonomySchema)) body: CreateTaxonomyInput,
   ) {
     return this.taxonomiesService.create(body);
+  }
+
+  @Get('search')
+  async search(
+    @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
+  ) {
+    return this.taxonomiesService.search(query);
   }
 
   @Get('tree')

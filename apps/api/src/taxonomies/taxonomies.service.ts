@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository } from 'typeorm';
 import { Taxonomy } from './entities/taxonomy.entity';
-import { CreateTaxonomyInput, UpdateTaxonomyInput, MoveTaxonomyInput } from '@marketlum/shared';
+import { CreateTaxonomyInput, UpdateTaxonomyInput, MoveTaxonomyInput, PaginationQuery } from '@marketlum/shared';
 
 @Injectable()
 export class TaxonomiesService {
@@ -29,6 +29,40 @@ export class TaxonomiesService {
     }
 
     return this.taxonomyRepository.save(taxonomy);
+  }
+
+  async search(query: PaginationQuery) {
+    const { page, limit, search, sortBy, sortOrder } = query;
+    const skip = (page - 1) * limit;
+
+    const qb = this.taxonomyRepository.createQueryBuilder('taxonomy');
+
+    if (search) {
+      qb.andWhere(
+        '(taxonomy.name ILIKE :search OR taxonomy.description ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    if (sortBy) {
+      qb.orderBy(`taxonomy.${sortBy}`, sortOrder || 'ASC');
+    } else {
+      qb.orderBy('taxonomy.createdAt', 'DESC');
+    }
+
+    qb.skip(skip).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findTree(): Promise<Taxonomy[]> {

@@ -1,15 +1,20 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import type { TaxonomyTreeNode } from '@marketlum/shared';
+import type { TaxonomyTreeNode, TaxonomyResponse, PaginatedResponse } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { DataTable } from '@/components/shared/data-table';
+import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { TaxonomyTreeNodeComponent } from './taxonomy-tree-node';
+import { getTaxonomySearchColumns } from './taxonomy-search-columns';
+import { usePagination } from '@/hooks/use-pagination';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export function TaxonomyTreeView() {
   const t = useTranslations('taxonomies');
@@ -22,6 +27,15 @@ export function TaxonomyTreeView() {
   const [newRootLink, setNewRootLink] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const pagination = usePagination();
+  const [searchResults, setSearchResults] = useState<PaginatedResponse<TaxonomyResponse> | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  const isSearching = debouncedSearch.length > 0;
 
   const fetchTree = useCallback(async () => {
     try {
@@ -37,6 +51,53 @@ export function TaxonomyTreeView() {
   useEffect(() => {
     fetchTree();
   }, [fetchTree]);
+
+  // Fetch search results when search term or pagination changes
+  useEffect(() => {
+    if (!isSearching) {
+      setSearchResults(null);
+      return;
+    }
+
+    const fetchSearch = async () => {
+      setSearchLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set('search', debouncedSearch);
+        params.set('page', String(pagination.page));
+        params.set('limit', String(pagination.limit));
+        if (pagination.sortBy) {
+          params.set('sortBy', pagination.sortBy);
+          params.set('sortOrder', pagination.sortOrder);
+        }
+        const data = await api.get<PaginatedResponse<TaxonomyResponse>>(
+          `/taxonomies/search?${params.toString()}`,
+        );
+        setSearchResults(data);
+      } catch {
+        toast.error(t('failedToLoad'));
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    fetchSearch();
+  }, [debouncedSearch, pagination.page, pagination.limit, pagination.sortBy, pagination.sortOrder]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    pagination.setPage(1);
+  }, [debouncedSearch]);
+
+  const columns = getTaxonomySearchColumns({
+    onSort: pagination.setSort,
+    translations: {
+      name: tc('name'),
+      description: t('description'),
+      link: t('link'),
+      created: tc('created'),
+    },
+  });
 
   const handleCreateRoot = async () => {
     if (!newRootName.trim()) return;
@@ -109,73 +170,107 @@ export function TaxonomyTreeView() {
   return (
     <div>
       <div className="mb-4">
-        {addingRoot ? (
-          <div className="flex flex-col gap-2">
-            <Input
-              value={newRootName}
-              onChange={(e) => setNewRootName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateRoot();
-                if (e.key === 'Escape') handleCancelAddRoot();
-              }}
-              placeholder={t('taxonomyNamePlaceholder')}
-              className="max-w-xs"
-              autoFocus
-            />
-            <Input
-              value={newRootDescription}
-              onChange={(e) => setNewRootDescription(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateRoot();
-                if (e.key === 'Escape') handleCancelAddRoot();
-              }}
-              placeholder={t('descriptionPlaceholder')}
-              className="max-w-xs"
-            />
-            <Input
-              value={newRootLink}
-              onChange={(e) => setNewRootLink(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateRoot();
-                if (e.key === 'Escape') handleCancelAddRoot();
-              }}
-              placeholder={t('linkPlaceholder')}
-              className="max-w-xs"
-            />
-            <div className="flex gap-2">
-              <Button size="sm" onClick={handleCreateRoot}>
-                {tc('save')}
-              </Button>
-              <Button size="sm" variant="ghost" onClick={handleCancelAddRoot}>
-                {tc('cancel')}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <Button onClick={() => setAddingRoot(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('addRoot')}
-          </Button>
-        )}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={tc('search')}
+            className="pl-8"
+          />
+        </div>
       </div>
 
-      {tree.length === 0 && !addingRoot ? (
-        <div className="flex h-24 items-center justify-center text-muted-foreground">
-          {t('emptyState')}
+      {isSearching ? (
+        <div>
+          {searchLoading ? (
+            <div className="flex h-24 items-center justify-center text-muted-foreground">
+              {tc('loading')}
+            </div>
+          ) : searchResults ? (
+            <>
+              <DataTable columns={columns} data={searchResults.data} />
+              <DataTablePagination
+                page={searchResults.meta.page}
+                totalPages={searchResults.meta.totalPages}
+                total={searchResults.meta.total}
+                onPageChange={pagination.setPage}
+              />
+            </>
+          ) : null}
         </div>
       ) : (
-        <div className="rounded-md border p-2">
-          {tree.map((node) => (
-            <TaxonomyTreeNodeComponent
-              key={node.id}
-              node={node}
-              depth={0}
-              onCreateChild={handleCreateChild}
-              onUpdate={handleUpdate}
-              onDelete={(id, name) => setDeleteTarget({ id, name })}
-            />
-          ))}
-        </div>
+        <>
+          <div className="mb-4">
+            {addingRoot ? (
+              <div className="flex flex-col gap-2">
+                <Input
+                  value={newRootName}
+                  onChange={(e) => setNewRootName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateRoot();
+                    if (e.key === 'Escape') handleCancelAddRoot();
+                  }}
+                  placeholder={t('taxonomyNamePlaceholder')}
+                  className="max-w-xs"
+                  autoFocus
+                />
+                <Input
+                  value={newRootDescription}
+                  onChange={(e) => setNewRootDescription(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateRoot();
+                    if (e.key === 'Escape') handleCancelAddRoot();
+                  }}
+                  placeholder={t('descriptionPlaceholder')}
+                  className="max-w-xs"
+                />
+                <Input
+                  value={newRootLink}
+                  onChange={(e) => setNewRootLink(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateRoot();
+                    if (e.key === 'Escape') handleCancelAddRoot();
+                  }}
+                  placeholder={t('linkPlaceholder')}
+                  className="max-w-xs"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleCreateRoot}>
+                    {tc('save')}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleCancelAddRoot}>
+                    {tc('cancel')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button onClick={() => setAddingRoot(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('addRoot')}
+              </Button>
+            )}
+          </div>
+
+          {tree.length === 0 && !addingRoot ? (
+            <div className="flex h-24 items-center justify-center text-muted-foreground">
+              {t('emptyState')}
+            </div>
+          ) : (
+            <div className="rounded-md border p-2">
+              {tree.map((node) => (
+                <TaxonomyTreeNodeComponent
+                  key={node.id}
+                  node={node}
+                  depth={0}
+                  onCreateChild={handleCreateChild}
+                  onUpdate={handleUpdate}
+                  onDelete={(id, name) => setDeleteTarget({ id, name })}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <ConfirmDeleteDialog

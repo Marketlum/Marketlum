@@ -83,6 +83,7 @@
     "descriptionPlaceholder": "Opis...",
     "linkPlaceholder": "Link (https://...)",
     "link": "Link",
+    "description": "Opis",
     "childNamePlaceholder": "Nazwa potomka...",
     "deleteTaxonomy": "Usuń taksonomię",
     "deleteWithChildren": "Czy na pewno chcesz usunąć \"{name}\"? Spowoduje to również usunięcie wszystkich taksonomii potomnych. Tej operacji nie można cofnąć.",

@@ -83,6 +83,7 @@
     "descriptionPlaceholder": "Description...",
     "linkPlaceholder": "Link (https://...)",
     "link": "Link",
+    "description": "Description",
     "childNamePlaceholder": "Child name...",
     "deleteTaxonomy": "Delete Taxonomy",
     "deleteWithChildren": "Are you sure you want to delete \"{name}\"? This will also delete all child taxonomies. This action cannot be undone.",

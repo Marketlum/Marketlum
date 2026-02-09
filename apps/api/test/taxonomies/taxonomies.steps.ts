@@ -27,6 +27,9 @@ const moveFeature = loadFeature(
 const deleteFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/taxonomies/delete-taxonomy.feature'),
 );
+const searchFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/taxonomies/search-taxonomies.feature'),
+);
 
 // Helper: track taxonomy names → IDs
 const taxonomyIds = new Map<string, string>();
@@ -57,6 +60,18 @@ async function buildTree(
   for (const row of table) {
     const parentId = row.parent ? taxonomyIds.get(row.parent) : undefined;
     const res = await createTaxonomy(authCookie, row.name, parentId);
+    taxonomyIds.set(row.name, res.body.id);
+  }
+}
+
+async function buildTreeWithDescriptions(
+  authCookie: string,
+  table: { name: string; parent: string; description: string }[],
+): Promise<void> {
+  taxonomyIds.clear();
+  for (const row of table) {
+    const parentId = row.parent ? taxonomyIds.get(row.parent) : undefined;
+    const res = await createTaxonomy(authCookie, row.name, parentId, row.description || undefined);
     taxonomyIds.set(row.name, res.body.id);
   }
 }
@@ -869,6 +884,210 @@ defineFeature(deleteFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .delete(`/taxonomies/${id}`)
         .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- SEARCH TAXONOMIES ---
+defineFeature(searchFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    taxonomyIds.clear();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Search with default pagination', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      'the following taxonomy tree exists:',
+      async (table: { name: string; parent: string }[]) => {
+        await buildTree(authCookie, table);
+      },
+    );
+
+    when('I request the list of taxonomies', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/taxonomies/search')
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should contain a paginated list', () => {
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('meta');
+      expect(response.body.meta).toHaveProperty('page');
+      expect(response.body.meta).toHaveProperty('limit');
+      expect(response.body.meta).toHaveProperty('total');
+      expect(response.body.meta).toHaveProperty('totalPages');
+    });
+
+    and(/^the total count should be (\d+)$/, (count: string) => {
+      expect(response.body.meta.total).toBe(parseInt(count));
+    });
+  });
+
+  test('Search by name', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      'the following taxonomy tree exists:',
+      async (table: { name: string; parent: string }[]) => {
+        await buildTree(authCookie, table);
+      },
+    );
+
+    when(/^I request the list of taxonomies with search "(.*)"$/, async (search: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/taxonomies/search?search=${encodeURIComponent(search)}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the total count should be (\d+)$/, (count: string) => {
+      expect(response.body.meta.total).toBe(parseInt(count));
+    });
+
+    and(
+      /^all returned taxonomies should have "(.*)" in their name or description$/,
+      (term: string) => {
+        const lower = term.toLowerCase();
+        for (const item of response.body.data) {
+          const nameMatch = item.name?.toLowerCase().includes(lower);
+          const descMatch = item.description?.toLowerCase().includes(lower);
+          expect(nameMatch || descMatch).toBe(true);
+        }
+      },
+    );
+  });
+
+  test('Search by description', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      'the following taxonomy tree exists with descriptions:',
+      async (table: { name: string; parent: string; description: string }[]) => {
+        await buildTreeWithDescriptions(authCookie, table);
+      },
+    );
+
+    when(/^I request the list of taxonomies with search "(.*)"$/, async (search: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/taxonomies/search?search=${encodeURIComponent(search)}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the total count should be (\d+)$/, (count: string) => {
+      expect(response.body.meta.total).toBe(parseInt(count));
+    });
+
+    and(
+      /^all returned taxonomies should have "(.*)" in their name or description$/,
+      (term: string) => {
+        const lower = term.toLowerCase();
+        for (const item of response.body.data) {
+          const nameMatch = item.name?.toLowerCase().includes(lower);
+          const descMatch = item.description?.toLowerCase().includes(lower);
+          expect(nameMatch || descMatch).toBe(true);
+        }
+      },
+    );
+  });
+
+  test('Paginate results', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      'the following taxonomy tree exists:',
+      async (table: { name: string; parent: string }[]) => {
+        await buildTree(authCookie, table);
+      },
+    );
+
+    when(
+      /^I request the list of taxonomies with page (\d+) and limit (\d+)$/,
+      async (page: string, limit: string) => {
+        response = await request(getApp().getHttpServer())
+          .get(`/taxonomies/search?page=${page}&limit=${limit}`)
+          .set('Cookie', [authCookie]);
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain (\d+) taxonomies$/, (count: string) => {
+      expect(response.body.data).toHaveLength(parseInt(count));
+    });
+  });
+
+  test('Sort results', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      'the following taxonomy tree exists:',
+      async (table: { name: string; parent: string }[]) => {
+        await buildTree(authCookie, table);
+      },
+    );
+
+    when(
+      /^I request the list of taxonomies sorted by "(.*)" in "(.*)" order$/,
+      async (sortBy: string, sortOrder: string) => {
+        response = await request(getApp().getHttpServer())
+          .get(`/taxonomies/search?sortBy=${sortBy}&sortOrder=${sortOrder}`)
+          .set('Cookie', [authCookie]);
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the first taxonomy should have name "(.*)"$/, (name: string) => {
+      expect(response.body.data[0].name).toBe(name);
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when('I request the list of taxonomies', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/taxonomies/search');
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
