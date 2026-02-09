@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
+import { ThrottlerStorage } from '@nestjs/throttler';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import { UsersService } from '../src/users/users.service';
@@ -40,6 +41,14 @@ export async function cleanDatabase(): Promise<void> {
   for (const entity of entities) {
     const repository = dataSource.getRepository(entity.name);
     await repository.query(`TRUNCATE TABLE "${entity.tableName}" CASCADE`);
+  }
+
+  // Reset throttle storage so rate limits don't carry between test scenarios
+  try {
+    const throttlerStorage = app.get<{ storage: Map<string, unknown> }>(ThrottlerStorage);
+    throttlerStorage.storage.clear();
+  } catch {
+    // ThrottlerStorage may not be available in some contexts
   }
 }
 
