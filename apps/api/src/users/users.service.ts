@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
+import { File } from '../files/entities/file.entity';
 import { CreateUserInput, UpdateUserInput, PaginationQuery } from '@marketlum/shared';
 
 @Injectable()
@@ -14,22 +15,37 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(File)
+    private readonly fileRepository: Repository<File>,
   ) {}
 
   async create(input: CreateUserInput): Promise<User> {
+    const { avatarId, ...rest } = input;
+
     const existing = await this.usersRepository.findOne({
-      where: { email: input.email },
+      where: { email: rest.email },
     });
     if (existing) {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(input.password, 10);
+    const hashedPassword = await bcrypt.hash(rest.password, 10);
     const user = this.usersRepository.create({
-      ...input,
+      ...rest,
       password: hashedPassword,
     });
-    return this.usersRepository.save(user);
+
+    if (avatarId) {
+      const file = await this.fileRepository.findOne({ where: { id: avatarId } });
+      if (!file) {
+        throw new NotFoundException('Avatar file not found');
+      }
+      user.avatarId = avatarId;
+      user.avatar = file;
+    }
+
+    const saved = await this.usersRepository.save(user);
+    return this.findOne(saved.id);
   }
 
   async findAll(query: PaginationQuery) {
@@ -51,6 +67,7 @@ export class UsersService {
 
     const [data, total] = await this.usersRepository.findAndCount({
       where: where.length > 0 ? where : undefined,
+      relations: ['avatar'],
       order,
       skip,
       take: limit,
@@ -68,7 +85,10 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['avatar'],
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -81,13 +101,30 @@ export class UsersService {
 
   async update(id: string, input: UpdateUserInput): Promise<User> {
     const user = await this.findOne(id);
+    const { avatarId, ...rest } = input;
 
-    if (input.password) {
-      input.password = await bcrypt.hash(input.password, 10);
+    if (rest.password) {
+      rest.password = await bcrypt.hash(rest.password, 10);
     }
 
-    Object.assign(user, input);
-    return this.usersRepository.save(user);
+    Object.assign(user, rest);
+
+    if (avatarId !== undefined) {
+      if (avatarId === null) {
+        user.avatar = null;
+        user.avatarId = null;
+      } else {
+        const file = await this.fileRepository.findOne({ where: { id: avatarId } });
+        if (!file) {
+          throw new NotFoundException('Avatar file not found');
+        }
+        user.avatarId = avatarId;
+        user.avatar = file;
+      }
+    }
+
+    await this.usersRepository.save(user);
+    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {

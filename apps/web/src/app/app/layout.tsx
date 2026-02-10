@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, FolderTree, FileIcon, LogOut, PanelLeftClose, PanelLeftOpen, Menu } from 'lucide-react';
+import { Users, Bot, FolderTree, FileIcon, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { LocaleSwitcher } from '@/components/shared/locale-switcher';
 import { ThemeSwitcher } from '@/components/shared/theme-switcher';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 import type { UserResponse } from '@marketlum/shared';
 
 const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
@@ -115,7 +116,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="border-t border-sidebar-border p-2">
-              <div className="mb-2 truncate px-3 text-sm text-sidebar-muted-foreground">{user.email}</div>
+              <div className="mb-2 flex items-center gap-2.5 px-3">
+                <div className="h-8 w-8 shrink-0 rounded-full overflow-hidden bg-sidebar-secondary flex items-center justify-center">
+                  {user.avatar ? (
+                    <FileImagePreview
+                      fileId={user.avatar.id}
+                      mimeType={user.avatar.mimeType}
+                      alt={user.name}
+                      iconClassName="h-4 w-4 text-sidebar-muted-foreground"
+                      imgClassName="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-sidebar-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-sidebar-foreground">{user.name}</div>
+                  <div className="truncate text-xs text-sidebar-muted-foreground">{user.email}</div>
+                </div>
+              </div>
               <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={() => { setSheetOpen(false); handleLogout(); }}>
                 <LogOut className="mr-2 h-4 w-4" />
                 {t('logout')}
@@ -187,8 +206,47 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="border-t border-sidebar-border p-2">
-            {!collapsed && (
-              <div className="mb-2 truncate px-3 text-sm text-sidebar-muted-foreground">{user.email}</div>
+            {collapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="mb-1 flex justify-center">
+                    <div className="h-8 w-8 rounded-full overflow-hidden bg-sidebar-secondary flex items-center justify-center">
+                      {user.avatar ? (
+                        <FileImagePreview
+                          fileId={user.avatar.id}
+                          mimeType={user.avatar.mimeType}
+                          alt={user.name}
+                          iconClassName="h-4 w-4 text-sidebar-muted-foreground"
+                          imgClassName="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-4 w-4 text-sidebar-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">{user.name}</TooltipContent>
+              </Tooltip>
+            ) : (
+              <div className="mb-2 flex items-center gap-2.5 px-3">
+                <div className="h-8 w-8 shrink-0 rounded-full overflow-hidden bg-sidebar-secondary flex items-center justify-center">
+                  {user.avatar ? (
+                    <FileImagePreview
+                      fileId={user.avatar.id}
+                      mimeType={user.avatar.mimeType}
+                      alt={user.name}
+                      iconClassName="h-4 w-4 text-sidebar-muted-foreground"
+                      imgClassName="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-sidebar-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-sidebar-foreground">{user.name}</div>
+                  <div className="truncate text-xs text-sidebar-muted-foreground">{user.email}</div>
+                </div>
+              </div>
             )}
             {collapsed ? (
               <Tooltip>

@@ -64,10 +64,11 @@ export function UsersDataTable() {
     if (!editingUser) return;
     setIsSubmitting(true);
     try {
-      const body: Record<string, string> = {};
+      const body: Record<string, unknown> = {};
       if (input.name) body.name = input.name;
       if (input.email) body.email = input.email;
       if (input.password) body.password = input.password;
+      if (input.avatarId !== undefined) body.avatarId = input.avatarId;
       await api.patch(`/users/${editingUser.id}`, body);
       toast.success(t('updated'));
       setEditingUser(null);
@@ -99,6 +100,7 @@ export function UsersDataTable() {
     onDelete: (user) => setDeleteUser(user),
     onSort: pagination.setSort,
     translations: {
+      avatar: t('avatar'),
       name: tc('name'),
       email: tc('email'),
       created: tc('created'),

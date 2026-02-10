@@ -18,6 +18,9 @@ const updateFeature = loadFeature(
 const deleteFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/users/delete-user.feature'),
 );
+const avatarFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/users/assign-user-avatar.feature'),
+);
 
 // --- CREATE USER ---
 defineFeature(createFeature, (test) => {
@@ -510,6 +513,274 @@ defineFeature(deleteFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .delete(`/users/${id}`)
         .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- ASSIGN USER AVATAR ---
+defineFeature(avatarFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let createdUserId: string;
+  const fileIds: Record<string, string> = {};
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    for (const key of Object.keys(fileIds)) {
+      delete fileIds[key];
+    }
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function createFile(name: string): Promise<string> {
+    const buffer = Buffer.from('fake-image-content');
+    const res = await request(getApp().getHttpServer())
+      .post('/files/upload')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .attach('file', buffer, { filename: name, contentType: 'image/png' });
+    fileIds[name] = res.body.id;
+    return res.body.id;
+  }
+
+  test('Create user with avatar', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    when(
+      /^I create a user with avatar "(.*)" and:$/,
+      async (avatarName: string, table: { name: string; email: string; password: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            email: row.email,
+            password: row.password,
+            avatarId: fileIds[avatarName],
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include avatar "(.*)"$/, (name: string) => {
+      expect(response.body.avatar).toBeTruthy();
+      expect(response.body.avatar.originalName).toBe(name);
+    });
+  });
+
+  test('Create user with non-existent avatar', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create a user with a non-existent avatar and:$/,
+      async (table: { name: string; email: string; password: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            email: row.email,
+            password: row.password,
+            avatarId: '00000000-0000-0000-0000-000000000000',
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test("Update user's avatar", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a user exists with name "(.*)" and email "(.*)" and avatar "(.*)"$/,
+      async (name: string, email: string, avatarName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, email, password: 'password123', avatarId: fileIds[avatarName] });
+        createdUserId = res.body.id;
+      },
+    );
+
+    when(/^I update the user's avatar to "(.*)"$/, async (avatarName: string) => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/users/${createdUserId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ avatarId: fileIds[avatarName] });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include avatar "(.*)"$/, (name: string) => {
+      expect(response.body.avatar).toBeTruthy();
+      expect(response.body.avatar.originalName).toBe(name);
+    });
+  });
+
+  test("Remove user's avatar", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a user exists with name "(.*)" and email "(.*)" and avatar "(.*)"$/,
+      async (name: string, email: string, avatarName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, email, password: 'password123', avatarId: fileIds[avatarName] });
+        createdUserId = res.body.id;
+      },
+    );
+
+    when("I update the user's avatar to null", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/users/${createdUserId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ avatarId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should have null avatar', () => {
+      expect(response.body.avatar).toBeNull();
+    });
+  });
+
+  test('Get user by ID includes avatar', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a user exists with name "(.*)" and email "(.*)" and avatar "(.*)"$/,
+      async (name: string, email: string, avatarName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, email, password: 'password123', avatarId: fileIds[avatarName] });
+        createdUserId = res.body.id;
+      },
+    );
+
+    when('I request the user by their ID', async () => {
+      response = await request(getApp().getHttpServer())
+        .get(`/users/${createdUserId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include avatar "(.*)"$/, (name: string) => {
+      expect(response.body.avatar).toBeTruthy();
+      expect(response.body.avatar.originalName).toBe(name);
+    });
+  });
+
+  test('List users includes avatar data', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a user exists with name "(.*)" and email "(.*)" and avatar "(.*)"$/,
+      async (name: string, email: string, avatarName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, email, password: 'password123', avatarId: fileIds[avatarName] });
+        createdUserId = res.body.id;
+      },
+    );
+
+    when('I request the list of users', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/users')
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the first user in the list should include avatar "(.*)"$/, (name: string) => {
+      expect(response.body.data.length).toBeGreaterThan(0);
+      const user = response.body.data[0];
+      expect(user.avatar).toBeTruthy();
+      expect(user.avatar.originalName).toBe(name);
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when('I create a user with:', async (table: { name: string; email: string; password: string }[]) => {
+      const row = table[0];
+      response = await request(getApp().getHttpServer())
+        .post('/users')
+        .set('X-CSRF-Protection', '1')
+        .send({ name: row.name, email: row.email, password: row.password });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {

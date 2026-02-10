@@ -58,7 +58,13 @@
     "failedToLoad": "Nie udało się wczytać użytkowników",
     "failedToCreate": "Nie udało się utworzyć użytkownika",
     "failedToUpdate": "Nie udało się zaktualizować użytkownika",
-    "failedToDelete": "Nie udało się usunąć użytkownika"
+    "failedToDelete": "Nie udało się usunąć użytkownika",
+    "avatar": "Awatar",
+    "uploadAvatar": "Prześlij",
+    "selectFromLibrary": "Biblioteka",
+    "selectAvatarDescription": "Wybierz awatar z biblioteki plików.",
+    "removeAvatar": "Usuń",
+    "failedToUploadAvatar": "Nie udało się przesłać awataru"
   },
   "agents": {
     "title": "Agenci",

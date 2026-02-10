@@ -58,7 +58,13 @@
     "failedToLoad": "Failed to load users",
     "failedToCreate": "Failed to create user",
     "failedToUpdate": "Failed to update user",
-    "failedToDelete": "Failed to delete user"
+    "failedToDelete": "Failed to delete user",
+    "avatar": "Avatar",
+    "uploadAvatar": "Upload",
+    "selectFromLibrary": "Library",
+    "selectAvatarDescription": "Select an avatar from your file library.",
+    "removeAvatar": "Remove",
+    "failedToUploadAvatar": "Failed to upload avatar"
   },
   "agents": {
     "title": "Agents",
