@@ -21,6 +21,9 @@ const deleteFeature = loadFeature(
 const taxonomyFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/agents/assign-agent-taxonomies.feature'),
 );
+const imageFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/agents/assign-agent-image.feature'),
+);
 
 // --- CREATE AGENT ---
 defineFeature(createFeature, (test) => {
@@ -1174,6 +1177,277 @@ defineFeature(taxonomyFeature, (test) => {
       const agent = response.body.data[0];
       expect(agent.mainTaxonomy).toBeTruthy();
       expect(agent.mainTaxonomy.name).toBe(name);
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when(
+      'I create an agent with:',
+      async (table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type, purpose: row.purpose });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- ASSIGN AGENT IMAGE ---
+defineFeature(imageFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let createdAgentId: string;
+  const fileIds: Record<string, string> = {};
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    for (const key of Object.keys(fileIds)) {
+      delete fileIds[key];
+    }
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function createFile(name: string): Promise<string> {
+    const buffer = Buffer.from('fake-image-content');
+    const res = await request(getApp().getHttpServer())
+      .post('/files/upload')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .attach('file', buffer, { filename: name, contentType: 'image/png' });
+    fileIds[name] = res.body.id;
+    return res.body.id;
+  }
+
+  test('Create agent with image', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    when(
+      /^I create an agent with image "(.*)" and:$/,
+      async (imageName: string, table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            type: row.type,
+            purpose: row.purpose,
+            imageId: fileIds[imageName],
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include image "(.*)"$/, (name: string) => {
+      expect(response.body.image).toBeTruthy();
+      expect(response.body.image.originalName).toBe(name);
+    });
+  });
+
+  test('Create agent with non-existent image', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create an agent with a non-existent image and:$/,
+      async (table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            type: row.type,
+            purpose: row.purpose,
+            imageId: '00000000-0000-0000-0000-000000000000',
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test("Update agent's image", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and image "(.*)"$/,
+      async (name: string, type: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageId: fileIds[imageName] });
+        createdAgentId = res.body.id;
+      },
+    );
+
+    when(/^I update the agent's image to "(.*)"$/, async (imageName: string) => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/agents/${createdAgentId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ imageId: fileIds[imageName] });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include image "(.*)"$/, (name: string) => {
+      expect(response.body.image).toBeTruthy();
+      expect(response.body.image.originalName).toBe(name);
+    });
+  });
+
+  test("Remove agent's image", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and image "(.*)"$/,
+      async (name: string, type: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageId: fileIds[imageName] });
+        createdAgentId = res.body.id;
+      },
+    );
+
+    when("I update the agent's image to null", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/agents/${createdAgentId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ imageId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should have null image', () => {
+      expect(response.body.image).toBeNull();
+    });
+  });
+
+  test('Get agent by ID includes image', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and image "(.*)"$/,
+      async (name: string, type: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageId: fileIds[imageName] });
+        createdAgentId = res.body.id;
+      },
+    );
+
+    when('I request the agent by their ID', async () => {
+      response = await request(getApp().getHttpServer())
+        .get(`/agents/${createdAgentId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include image "(.*)"$/, (name: string) => {
+      expect(response.body.image).toBeTruthy();
+      expect(response.body.image.originalName).toBe(name);
+    });
+  });
+
+  test('List agents includes image data', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and image "(.*)"$/,
+      async (name: string, type: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageId: fileIds[imageName] });
+        createdAgentId = res.body.id;
+      },
+    );
+
+    when('I request the list of agents', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/agents')
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the first agent in the list should include image "(.*)"$/, (name: string) => {
+      expect(response.body.data.length).toBeGreaterThan(0);
+      const agent = response.body.data[0];
+      expect(agent.image).toBeTruthy();
+      expect(agent.image.originalName).toBe(name);
     });
   });
 

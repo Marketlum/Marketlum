@@ -6,12 +6,21 @@ const taxonomySummarySchema = z.object({
   name: z.string(),
 });
 
+const fileSummarySchema = z.object({
+  id: z.string().uuid(),
+  originalName: z.string(),
+  storedName: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+});
+
 export const createAgentSchema = z.object({
   name: z.string().min(1),
   type: z.nativeEnum(AgentType),
   purpose: z.string().optional(),
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
+  imageId: z.string().uuid().nullable().optional(),
 });
 
 export const updateAgentSchema = z.object({
@@ -20,6 +29,7 @@ export const updateAgentSchema = z.object({
   purpose: z.string().optional(),
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
+  imageId: z.string().uuid().nullable().optional(),
 });
 
 export const agentResponseSchema = z.object({
@@ -29,6 +39,7 @@ export const agentResponseSchema = z.object({
   purpose: z.string().nullable(),
   mainTaxonomy: taxonomySummarySchema.nullable(),
   taxonomies: z.array(taxonomySummarySchema),
+  image: fileSummarySchema.nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

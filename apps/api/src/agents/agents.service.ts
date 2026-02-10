@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Agent } from './entities/agent.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
+import { File } from '../files/entities/file.entity';
 import {
   CreateAgentInput,
   UpdateAgentInput,
@@ -17,12 +18,23 @@ export class AgentsService {
     private readonly agentsRepository: Repository<Agent>,
     @InjectRepository(Taxonomy)
     private readonly taxonomyRepository: Repository<Taxonomy>,
+    @InjectRepository(File)
+    private readonly fileRepository: Repository<File>,
   ) {}
 
   async create(input: CreateAgentInput): Promise<Agent> {
-    const { mainTaxonomyId, taxonomyIds, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, imageId, ...rest } = input;
 
     const agent = this.agentsRepository.create(rest);
+
+    if (imageId) {
+      const file = await this.fileRepository.findOne({ where: { id: imageId } });
+      if (!file) {
+        throw new NotFoundException('Image file not found');
+      }
+      agent.imageId = imageId;
+      agent.image = file;
+    }
 
     if (mainTaxonomyId) {
       const taxonomy = await this.taxonomyRepository.findOne({
@@ -59,6 +71,7 @@ export class AgentsService {
 
     qb.leftJoinAndSelect('agent.mainTaxonomy', 'mainTaxonomy');
     qb.leftJoinAndSelect('agent.taxonomies', 'taxonomies');
+    qb.leftJoinAndSelect('agent.image', 'image');
 
     if (type) {
       qb.andWhere('agent.type = :type', { type });
@@ -102,7 +115,7 @@ export class AgentsService {
   async findOne(id: string): Promise<Agent> {
     const agent = await this.agentsRepository.findOne({
       where: { id },
-      relations: ['mainTaxonomy', 'taxonomies'],
+      relations: ['mainTaxonomy', 'taxonomies', 'image'],
     });
     if (!agent) {
       throw new NotFoundException('Agent not found');
@@ -112,9 +125,23 @@ export class AgentsService {
 
   async update(id: string, input: UpdateAgentInput): Promise<Agent> {
     const agent = await this.findOne(id);
-    const { mainTaxonomyId, taxonomyIds, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, imageId, ...rest } = input;
 
     Object.assign(agent, rest);
+
+    if (imageId !== undefined) {
+      if (imageId === null) {
+        agent.image = null;
+        agent.imageId = null;
+      } else {
+        const file = await this.fileRepository.findOne({ where: { id: imageId } });
+        if (!file) {
+          throw new NotFoundException('Image file not found');
+        }
+        agent.imageId = imageId;
+        agent.image = file;
+      }
+    }
 
     if (mainTaxonomyId !== undefined) {
       if (mainTaxonomyId === null) {

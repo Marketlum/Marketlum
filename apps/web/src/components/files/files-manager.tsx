@@ -12,10 +12,6 @@ import {
   Trash2,
   Download,
   FileIcon,
-  FileText,
-  FileVideo,
-  FileAudio,
-  FileArchive,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
@@ -31,60 +27,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-function FilePreview({ fileId, mimeType, alt }: { fileId: string; mimeType: string; alt: string }) {
-  const [src, setSrc] = useState<string | null>(null);
-  const urlRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!isImageMimeType(mimeType)) return;
-
-    let cancelled = false;
-    fetch(`${API_URL}/files/${fileId}/download`, { credentials: 'include' })
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.blob();
-      })
-      .then((blob) => {
-        if (cancelled) return;
-        const url = URL.createObjectURL(blob);
-        urlRef.current = url;
-        setSrc(url);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-      if (urlRef.current) {
-        URL.revokeObjectURL(urlRef.current);
-        urlRef.current = null;
-      }
-    };
-  }, [fileId, mimeType]);
-
-  if (!src) {
-    const Icon = getFileIcon(mimeType);
-    return <Icon className="h-12 w-12 text-muted-foreground/50" />;
-  }
-
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} className="h-full w-full object-cover" />;
-}
-
-function isImageMimeType(mimeType: string): boolean {
-  return mimeType.startsWith('image/');
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith('video/')) return FileVideo;
-  if (mimeType.startsWith('audio/')) return FileAudio;
-  if (mimeType === 'application/pdf' || mimeType.startsWith('text/')) return FileText;
-  if (mimeType.includes('zip') || mimeType.includes('archive') || mimeType.includes('tar') || mimeType.includes('rar'))
-    return FileArchive;
-  return FileIcon;
-}
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -664,7 +609,7 @@ export function FilesManager() {
                   >
                     {/* Thumbnail / Icon area */}
                     <div className="relative aspect-square flex items-center justify-center bg-muted/30">
-                      <FilePreview fileId={file.id} mimeType={file.mimeType} alt={file.originalName} />
+                      <FileImagePreview fileId={file.id} mimeType={file.mimeType} alt={file.originalName} />
 
                       {/* Actions overlay */}
                       <div className="absolute top-1 right-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">

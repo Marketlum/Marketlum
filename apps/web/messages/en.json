@@ -86,7 +86,13 @@
     "failedToDelete": "Failed to delete agent",
     "allTaxonomies": "All taxonomies",
     "taxonomyCreated": "Taxonomy created",
-    "failedToCreateTaxonomy": "Failed to create taxonomy"
+    "failedToCreateTaxonomy": "Failed to create taxonomy",
+    "image": "Image",
+    "uploadImage": "Upload",
+    "selectFromLibrary": "Library",
+    "selectImageDescription": "Select an image from your file library.",
+    "removeImage": "Remove",
+    "failedToUploadImage": "Failed to upload image"
   },
   "taxonomies": {
     "title": "Taxonomies",

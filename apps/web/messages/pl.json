@@ -86,7 +86,13 @@
     "failedToDelete": "Nie udało się usunąć agenta",
     "allTaxonomies": "Wszystkie taksonomie",
     "taxonomyCreated": "Taksonomia utworzona",
-    "failedToCreateTaxonomy": "Nie udało się utworzyć taksonomii"
+    "failedToCreateTaxonomy": "Nie udało się utworzyć taksonomii",
+    "image": "Obraz",
+    "uploadImage": "Prześlij",
+    "selectFromLibrary": "Biblioteka",
+    "selectImageDescription": "Wybierz obraz z biblioteki plików.",
+    "removeImage": "Usuń",
+    "failedToUploadImage": "Nie udało się przesłać obrazu"
   },
   "taxonomies": {
     "title": "Taksonomie",

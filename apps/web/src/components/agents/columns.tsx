@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, ImageIcon } from 'lucide-react';
 import type { AgentResponse } from '@marketlum/shared';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 
 interface AgentColumnsTranslations {
   name: string;
@@ -18,6 +19,7 @@ interface AgentColumnsTranslations {
   purpose: string;
   mainTaxonomy: string;
   taxonomies: string;
+  image: string;
   created: string;
   edit: string;
   delete: string;
@@ -33,6 +35,28 @@ interface AgentColumnsOptions {
 
 export function getAgentColumns({ onEdit, onDelete, onSort, translations }: AgentColumnsOptions): ColumnDef<AgentResponse>[] {
   return [
+    {
+      id: 'image',
+      header: translations.image,
+      cell: ({ row }) => {
+        const image = row.original.image;
+        return (
+          <div className="h-8 w-8 rounded overflow-hidden bg-muted/30 flex items-center justify-center">
+            {image ? (
+              <FileImagePreview
+                fileId={image.id}
+                mimeType={image.mimeType}
+                alt={image.originalName}
+                iconClassName="h-4 w-4 text-muted-foreground/50"
+                imgClassName="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
+            )}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: 'name',
       header: () => (

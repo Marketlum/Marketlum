@@ -129,6 +129,7 @@ export function AgentsDataTable() {
       type: tc('type'),
       mainTaxonomy: t('mainTaxonomy'),
       taxonomies: t('taxonomies'),
+      image: t('image'),
       purpose: t('purpose'),
       created: tc('created'),
       edit: tc('edit'),
