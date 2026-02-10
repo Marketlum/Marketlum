@@ -101,22 +101,25 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
       cell: ({ row }) => {
         const agent = row.original;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(agent)}>{translations.edit}</DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDelete(agent)}
-                className="text-destructive focus:text-destructive"
-              >
-                {translations.delete}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(agent)}>{translations.edit}</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onDelete(agent)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  {translations.delete}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },
