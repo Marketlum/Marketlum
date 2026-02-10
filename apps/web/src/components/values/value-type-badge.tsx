@@ -1,6 +1,6 @@
 'use client';
 
-import { Package, Wrench, Heart, Shield } from 'lucide-react';
+import { Package, Wrench, Heart, Scale } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const valueTypeConfig: Record<string, { icon: typeof Package; className: string }> = {
@@ -17,7 +17,7 @@ const valueTypeConfig: Record<string, { icon: typeof Package; className: string 
     className: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300',
   },
   right: {
-    icon: Shield,
+    icon: Scale,
     className: 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300',
   },
 };

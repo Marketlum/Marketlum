@@ -107,7 +107,8 @@
     "backToAgents": "Powrót do agentów",
     "notFound": "Nie znaleziono agenta",
     "notFoundDescription": "Agent, którego szukasz, nie istnieje.",
-    "updatedAt": "Zaktualizowano"
+    "updatedAt": "Zaktualizowano",
+    "valuesTab": "Wartości"
   },
   "values": {
     "title": "Wartości",

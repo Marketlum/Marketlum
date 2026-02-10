@@ -107,7 +107,8 @@
     "backToAgents": "Back to agents",
     "notFound": "Agent not found",
     "notFoundDescription": "The agent you are looking for does not exist.",
-    "updatedAt": "Updated"
+    "updatedAt": "Updated",
+    "valuesTab": "Values"
   },
   "values": {
     "title": "Values",

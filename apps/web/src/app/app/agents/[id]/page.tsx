@@ -10,6 +10,7 @@ import { api, ApiError } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { AgentFormDialog } from '@/components/agents/agent-form-dialog';
+import { AgentValuesTable } from '@/components/agents/agent-values-table';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const typeTranslationKeys: Record<string, string> = {
   organization: 'typeOrganization',
@@ -172,55 +174,66 @@ export default function AgentDetailPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('details')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground">{t('purpose')}</p>
-              <p>{agent.purpose || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{tc('created')}</p>
-              <p>{new Date(agent.createdAt).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('updatedAt')}</p>
-              <p>{new Date(agent.updatedAt).toLocaleDateString()}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('taxonomies')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">{t('mainTaxonomy')}</p>
-              {agent.mainTaxonomy ? (
-                <Badge variant="outline">{agent.mainTaxonomy.name}</Badge>
-              ) : (
-                <p>-</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">{t('taxonomies')}</p>
-              {agent.taxonomies && agent.taxonomies.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {agent.taxonomies.map((tax) => (
-                    <Badge key={tax.id} variant="outline">{tax.name}</Badge>
-                  ))}
+      <Tabs defaultValue="details">
+        <TabsList>
+          <TabsTrigger value="details">{t('details')}</TabsTrigger>
+          <TabsTrigger value="values">{t('valuesTab')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="details">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('details')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('purpose')}</p>
+                  <p>{agent.purpose || '-'}</p>
                 </div>
-              ) : (
-                <p>-</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{tc('created')}</p>
+                  <p>{new Date(agent.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('updatedAt')}</p>
+                  <p>{new Date(agent.updatedAt).toLocaleDateString()}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('taxonomies')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">{t('mainTaxonomy')}</p>
+                  {agent.mainTaxonomy ? (
+                    <Badge variant="outline">{agent.mainTaxonomy.name}</Badge>
+                  ) : (
+                    <p>-</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">{t('taxonomies')}</p>
+                  {agent.taxonomies && agent.taxonomies.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {agent.taxonomies.map((tax) => (
+                        <Badge key={tax.id} variant="outline">{tax.name}</Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>-</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="values">
+          <AgentValuesTable agentId={agent.id} />
+        </TabsContent>
+      </Tabs>
 
       <AgentFormDialog
         open={editOpen}
