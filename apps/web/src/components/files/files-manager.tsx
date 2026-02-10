@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type DragEvent } from 'react';
 import {
   Plus,
   Upload,
@@ -12,6 +12,10 @@ import {
   Trash2,
   Download,
   FileIcon,
+  FileText,
+  FileVideo,
+  FileAudio,
+  FileArchive,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
@@ -29,6 +33,58 @@ import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+function FilePreview({ fileId, mimeType, alt }: { fileId: string; mimeType: string; alt: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const urlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isImageMimeType(mimeType)) return;
+
+    let cancelled = false;
+    fetch(`${API_URL}/files/${fileId}/download`, { credentials: 'include' })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        const url = URL.createObjectURL(blob);
+        urlRef.current = url;
+        setSrc(url);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+      if (urlRef.current) {
+        URL.revokeObjectURL(urlRef.current);
+        urlRef.current = null;
+      }
+    };
+  }, [fileId, mimeType]);
+
+  if (!src) {
+    const Icon = getFileIcon(mimeType);
+    return <Icon className="h-12 w-12 text-muted-foreground/50" />;
+  }
+
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} className="h-full w-full object-cover" />;
+}
+
+function isImageMimeType(mimeType: string): boolean {
+  return mimeType.startsWith('image/');
+}
+
+function getFileIcon(mimeType: string) {
+  if (mimeType.startsWith('video/')) return FileVideo;
+  if (mimeType.startsWith('audio/')) return FileAudio;
+  if (mimeType === 'application/pdf' || mimeType.startsWith('text/')) return FileText;
+  if (mimeType.includes('zip') || mimeType.includes('archive') || mimeType.includes('tar') || mimeType.includes('rar'))
+    return FileArchive;
+  return FileIcon;
+}
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -255,6 +311,10 @@ export function FilesManager() {
   const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
+  // Drag and drop
+  const [dragging, setDragging] = useState(false);
+  const dragCounter = useRef(0);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTree = useCallback(async () => {
@@ -359,10 +419,7 @@ export function FilesManager() {
     }
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFileObject = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
     if (selectedFolderId) {
@@ -376,10 +433,53 @@ export function FilesManager() {
     } catch {
       toast.error(t('failedToUpload'));
     }
+  }, [selectedFolderId, fetchFiles]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFileObject(file);
 
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragEnter = (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    dragCounter.current = 0;
+
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles.length === 0) return;
+
+    for (let i = 0; i < droppedFiles.length; i++) {
+      await uploadFileObject(droppedFiles[i]);
     }
   };
 
@@ -523,7 +623,23 @@ export function FilesManager() {
       </div>
 
       {/* File list */}
-      <div className="flex-1 min-w-0">
+      <div
+        className="flex-1 min-w-0 relative"
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        {/* Drop overlay */}
+        {dragging && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-primary/5">
+            <div className="flex flex-col items-center gap-2 text-primary">
+              <Upload className="h-10 w-10" />
+              <span className="text-lg font-medium">{t('dropToUpload')}</span>
+            </div>
+          </div>
+        )}
+
         <div className="mb-3 flex items-center gap-2">
           <input
             ref={fileInputRef}
@@ -539,48 +655,26 @@ export function FilesManager() {
 
         {files && files.data.length > 0 ? (
           <>
-            <div className="rounded-md border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="px-3 py-2 text-left font-medium">{tc('name')}</th>
-                    <th className="hidden md:table-cell px-3 py-2 text-left font-medium">{t('type')}</th>
-                    <th className="hidden md:table-cell px-3 py-2 text-left font-medium">{t('size')}</th>
-                    <th className="w-10" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {files.data.map((file) => (
-                    <tr key={file.id} className="border-b last:border-0 hover:bg-secondary/30">
-                      <td className="px-3 py-2">
-                        {renamingFileId === file.id ? (
-                          <Input
-                            value={renameValue}
-                            onChange={(e) => setRenameValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleRenameFile(file.id, renameValue);
-                              if (e.key === 'Escape') setRenamingFileId(null);
-                            }}
-                            className="h-7 text-sm"
-                            autoFocus
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <FileIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            <span className="truncate">{file.originalName}</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="hidden md:table-cell px-3 py-2 text-muted-foreground">
-                        {file.mimeType}
-                      </td>
-                      <td className="hidden md:table-cell px-3 py-2 text-muted-foreground">
-                        {formatFileSize(Number(file.size))}
-                      </td>
-                      <td className="px-3 py-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {files.data.map((file) => {
+                return (
+                  <div
+                    key={file.id}
+                    className="group relative flex flex-col rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    {/* Thumbnail / Icon area */}
+                    <div className="relative aspect-square flex items-center justify-center bg-muted/30">
+                      <FilePreview fileId={file.id} mimeType={file.mimeType} alt={file.originalName} />
+
+                      {/* Actions overlay */}
+                      <div className="absolute top-1 right-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              className="h-7 w-7 shadow-sm"
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -609,11 +703,36 @@ export function FilesManager() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+
+                    {/* File info */}
+                    <div className="p-2">
+                      {renamingFileId === file.id ? (
+                        <Input
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleRenameFile(file.id, renameValue);
+                            if (e.key === 'Escape') setRenamingFileId(null);
+                          }}
+                          className="h-7 text-xs"
+                          autoFocus
+                        />
+                      ) : (
+                        <>
+                          <p className="truncate text-sm font-medium" title={file.originalName}>
+                            {file.originalName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(Number(file.size))}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {files.meta.totalPages > 1 && (
@@ -642,8 +761,14 @@ export function FilesManager() {
             )}
           </>
         ) : (
-          <div className="flex h-24 items-center justify-center text-muted-foreground">
-            {selectedFolderId ? t('emptyFolder') : t('emptyState')}
+          <div
+            className={`flex h-48 flex-col items-center justify-center rounded-lg border-2 border-dashed text-muted-foreground ${
+              dragging ? 'border-primary bg-primary/5' : 'border-border'
+            }`}
+          >
+            <Upload className="mb-2 h-8 w-8" />
+            <p>{selectedFolderId ? t('emptyFolder') : t('emptyState')}</p>
+            <p className="mt-1 text-xs">{t('dragAndDropHint')}</p>
           </div>
         )}
       </div>

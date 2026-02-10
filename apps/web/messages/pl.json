@@ -149,7 +149,9 @@
     "confirmDeleteFile": "Czy na pewno chcesz usunąć \"{name}\"? Tej operacji nie można cofnąć.",
     "size": "Rozmiar",
     "type": "Typ",
-    "noFileSelected": "Wybierz folder lub wyświetl wszystkie pliki"
+    "noFileSelected": "Wybierz folder lub wyświetl wszystkie pliki",
+    "dropToUpload": "Upuść pliki, aby przesłać",
+    "dragAndDropHint": "Przeciągnij i upuść pliki tutaj lub kliknij Prześlij"
   },
   "locale": {
     "switchLanguage": "Zmień język",

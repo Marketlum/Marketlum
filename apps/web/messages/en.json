@@ -149,7 +149,9 @@
     "confirmDeleteFile": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
     "size": "Size",
     "type": "Type",
-    "noFileSelected": "Select a folder or view all files"
+    "noFileSelected": "Select a folder or view all files",
+    "dropToUpload": "Drop files to upload",
+    "dragAndDropHint": "Drag and drop files here, or click Upload"
   },
   "locale": {
     "switchLanguage": "Switch language",
