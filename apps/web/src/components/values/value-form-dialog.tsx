@@ -75,8 +75,8 @@ export function ValueFormDialog({
   const t = useTranslations('values');
   const tc = useTranslations('common');
   const { tree, refresh } = useTaxonomyTree();
-  const { agents } = useAgents();
-  const { values: allValues } = useValues();
+  const { agents } = useAgents(open);
+  const { values: allValues } = useValues(open);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<{ id: string; originalName: string }[]>([]);
 

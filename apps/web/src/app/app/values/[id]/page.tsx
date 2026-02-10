@@ -10,6 +10,7 @@ import { api, ApiError } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { ValueFormDialog } from '@/components/values/value-form-dialog';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { ValueTypeBadge } from '@/components/values/value-type-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -152,7 +153,7 @@ export default function ValueDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-2xl md:text-3xl font-bold truncate">{value.name}</h1>
-            <Badge variant="secondary">{t(typeTranslationKeys[value.type])}</Badge>
+            <ValueTypeBadge type={value.type} label={t(typeTranslationKeys[value.type])} />
           </div>
           <div className="flex gap-2 mt-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>

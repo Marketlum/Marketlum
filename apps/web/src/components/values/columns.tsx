@@ -5,6 +5,7 @@ import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import type { ValueResponse } from '@marketlum/shared';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ValueTypeBadge } from './value-type-badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,9 +48,7 @@ export function getValueColumns({ onEdit, onDelete, onSort, translations }: Valu
       cell: ({ row }) => {
         const type = row.getValue('type') as string;
         return (
-          <Badge variant="secondary">
-            {translations.typeLabels[type] ?? type}
-          </Badge>
+          <ValueTypeBadge type={type} label={translations.typeLabels[type] ?? type} />
         );
       },
     },
