@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import type { AgentResponse, PaginatedResponse, CreateAgentInput } from '@marketlum/shared';
@@ -33,6 +34,7 @@ const typeTranslationKeys: Record<string, string> = {
 };
 
 export function AgentsDataTable() {
+  const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('agents');
@@ -173,7 +175,7 @@ export function AgentsDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={getMobileColumnVisibility(columns, isMobile)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={getMobileColumnVisibility(columns, isMobile)} onRowClick={(agent) => router.push(`/app/agents/${agent.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

@@ -92,7 +92,12 @@
     "selectFromLibrary": "Biblioteka",
     "selectImageDescription": "Wybierz obraz z biblioteki plików.",
     "removeImage": "Usuń",
-    "failedToUploadImage": "Nie udało się przesłać obrazu"
+    "failedToUploadImage": "Nie udało się przesłać obrazu",
+    "details": "Szczegóły",
+    "backToAgents": "Powrót do agentów",
+    "notFound": "Nie znaleziono agenta",
+    "notFoundDescription": "Agent, którego szukasz, nie istnieje.",
+    "updatedAt": "Zaktualizowano"
   },
   "taxonomies": {
     "title": "Taksonomie",

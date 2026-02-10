@@ -24,6 +24,9 @@ const taxonomyFeature = loadFeature(
 const imageFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/agents/assign-agent-image.feature'),
 );
+const detailsFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/agents/get-agent-details.feature'),
+);
 
 // --- CREATE AGENT ---
 defineFeature(createFeature, (test) => {
@@ -1191,6 +1194,173 @@ defineFeature(taxonomyFeature, (test) => {
           .send({ name: row.name, type: row.type, purpose: row.purpose });
       },
     );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- GET AGENT DETAILS ---
+defineFeature(detailsFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let createdAgentId: string;
+  const fileIds: Record<string, string> = {};
+  const taxonomyIds: Record<string, string> = {};
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    for (const key of Object.keys(fileIds)) {
+      delete fileIds[key];
+    }
+    for (const key of Object.keys(taxonomyIds)) {
+      delete taxonomyIds[key];
+    }
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function createFile(name: string): Promise<string> {
+    const buffer = Buffer.from('fake-image-content');
+    const res = await request(getApp().getHttpServer())
+      .post('/files/upload')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .attach('file', buffer, { filename: name, contentType: 'image/png' });
+    fileIds[name] = res.body.id;
+    return res.body.id;
+  }
+
+  async function createTaxonomy(name: string): Promise<string> {
+    const res = await request(getApp().getHttpServer())
+      .post('/taxonomies')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .send({ name });
+    taxonomyIds[name] = res.body.id;
+    return res.body.id;
+  }
+
+  test('Get agent with all fields populated', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(/^a taxonomy exists with name "(.*)"$/, async (name: string) => {
+      await createTaxonomy(name);
+    });
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" and purpose "(.*)" and image "(.*)" and main taxonomy "(.*)" and general taxonomies "(.*)"$/,
+      async (name: string, type: string, purpose: string, imageName: string, mainTaxName: string, generalNames: string) => {
+        const ids = generalNames.split(',').map((n) => taxonomyIds[n.trim()]);
+        const res = await request(getApp().getHttpServer())
+          .post('/agents')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name,
+            type,
+            purpose,
+            imageId: fileIds[imageName],
+            mainTaxonomyId: taxonomyIds[mainTaxName],
+            taxonomyIds: ids,
+          });
+        createdAgentId = res.body.id;
+      },
+    );
+
+    when('I request the agent details by their ID', async () => {
+      response = await request(getApp().getHttpServer())
+        .get(`/agents/${createdAgentId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should contain id', () => {
+      expect(response.body.id).toBeDefined();
+      expect(response.body.id).toBe(createdAgentId);
+    });
+
+    and(/^the response should contain name "(.*)"$/, (name: string) => {
+      expect(response.body.name).toBe(name);
+    });
+
+    and(/^the response should contain type "(.*)"$/, (type: string) => {
+      expect(response.body.type).toBe(type);
+    });
+
+    and(/^the response should contain purpose "(.*)"$/, (purpose: string) => {
+      expect(response.body.purpose).toBe(purpose);
+    });
+
+    and(/^the response should include image "(.*)"$/, (name: string) => {
+      expect(response.body.image).toBeTruthy();
+      expect(response.body.image.originalName).toBe(name);
+    });
+
+    and(/^the response should include main taxonomy "(.*)"$/, (name: string) => {
+      expect(response.body.mainTaxonomy).toBeTruthy();
+      expect(response.body.mainTaxonomy.name).toBe(name);
+    });
+
+    and(/^the response should include general taxonomies "(.*)"$/, (names: string) => {
+      const expected = names.split(',').map((n) => n.trim());
+      const actual = response.body.taxonomies.map((t: { name: string }) => t.name).sort();
+      expect(actual).toEqual(expected.sort());
+    });
+
+    and('the response should contain createdAt', () => {
+      expect(response.body.createdAt).toBeDefined();
+    });
+
+    and('the response should contain updatedAt', () => {
+      expect(response.body.updatedAt).toBeDefined();
+    });
+  });
+
+  test('Get a non-existent agent returns 404', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I request an agent with ID "(.*)"$/, async (id: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/agents/${id}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when(/^I request an agent with ID "(.*)"$/, async (id: string) => {
+      response = await request(getApp().getHttpServer()).get(`/agents/${id}`);
+    });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));

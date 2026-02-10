@@ -92,7 +92,12 @@
     "selectFromLibrary": "Library",
     "selectImageDescription": "Select an image from your file library.",
     "removeImage": "Remove",
-    "failedToUploadImage": "Failed to upload image"
+    "failedToUploadImage": "Failed to upload image",
+    "details": "Details",
+    "backToAgents": "Back to agents",
+    "notFound": "Agent not found",
+    "notFoundDescription": "The agent you are looking for does not exist.",
+    "updatedAt": "Updated"
   },
   "taxonomies": {
     "title": "Taxonomies",

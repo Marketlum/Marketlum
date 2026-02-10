@@ -21,9 +21,10 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   columnVisibility?: VisibilityState;
+  onRowClick?: (row: TData) => void;
 }
 
-export function DataTable<TData, TValue>({ columns, data, columnVisibility }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, columnVisibility, onRowClick }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common');
 
   const table = useReactTable({
@@ -54,7 +55,12 @@ export function DataTable<TData, TValue>({ columns, data, columnVisibility }: Da
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+                onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                className={onRowClick ? 'cursor-pointer' : undefined}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
