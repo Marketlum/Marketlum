@@ -129,8 +129,7 @@ export function AgentsDataTable() {
     translations: {
       name: tc('name'),
       type: tc('type'),
-      mainTaxonomy: t('mainTaxonomy'),
-      taxonomies: t('taxonomies'),
+      taxonomy: t('taxonomy'),
       image: t('image'),
       purpose: t('purpose'),
       created: tc('created'),

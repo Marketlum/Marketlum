@@ -78,6 +78,7 @@
     "failedToLoad": "Nie udało się wczytać agentów",
     "failedToCreate": "Nie udało się utworzyć agenta",
     "failedToUpdate": "Nie udało się zaktualizować agenta",
+    "taxonomy": "Taksonomia",
     "mainTaxonomy": "Taksonomia główna",
     "taxonomies": "Taksonomie",
     "selectMainTaxonomy": "Wybierz taksonomię główną",

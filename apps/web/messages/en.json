@@ -78,6 +78,7 @@
     "failedToLoad": "Failed to load agents",
     "failedToCreate": "Failed to create agent",
     "failedToUpdate": "Failed to update agent",
+    "taxonomy": "Taxonomy",
     "mainTaxonomy": "Main Taxonomy",
     "taxonomies": "Taxonomies",
     "selectMainTaxonomy": "Select main taxonomy",

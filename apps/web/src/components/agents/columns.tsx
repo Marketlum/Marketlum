@@ -17,8 +17,7 @@ interface AgentColumnsTranslations {
   name: string;
   type: string;
   purpose: string;
-  mainTaxonomy: string;
-  taxonomies: string;
+  taxonomy: string;
   image: string;
   created: string;
   edit: string;
@@ -79,28 +78,10 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
     },
     {
       id: 'mainTaxonomy',
-      header: translations.mainTaxonomy,
+      header: translations.taxonomy,
       cell: ({ row }) => {
         const mainTaxonomy = row.original.mainTaxonomy;
         return mainTaxonomy ? <Badge variant="outline">{mainTaxonomy.name}</Badge> : '-';
-      },
-    },
-    {
-      id: 'taxonomies',
-      meta: { hideOnMobile: true },
-      header: translations.taxonomies,
-      cell: ({ row }) => {
-        const taxonomies = row.original.taxonomies;
-        if (!taxonomies || taxonomies.length === 0) return '-';
-        return (
-          <div className="flex flex-wrap gap-1">
-            {taxonomies.map((t) => (
-              <Badge key={t.id} variant="outline">
-                {t.name}
-              </Badge>
-            ))}
-          </div>
-        );
       },
     },
     {
