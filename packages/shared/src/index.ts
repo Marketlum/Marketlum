@@ -1,4 +1,6 @@
 export { AgentType } from './enums/agent-type.enum';
+export { ValueType } from './enums/value-type.enum';
+export { ValueParentType } from './enums/value-parent-type.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
@@ -58,3 +60,12 @@ export {
   type FileResponse,
   type FileQuery,
 } from './schemas/file.schema';
+
+export {
+  createValueSchema,
+  updateValueSchema,
+  valueResponseSchema,
+  type CreateValueInput,
+  type UpdateValueInput,
+  type ValueResponse,
+} from './schemas/value.schema';

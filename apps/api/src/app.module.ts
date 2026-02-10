@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { AgentsModule } from './agents/agents.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
 import { FilesModule } from './files/files.module';
+import { ValuesModule } from './values/values.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { FilesModule } from './files/files.module';
     AgentsModule,
     TaxonomiesModule,
     FilesModule,
+    ValuesModule,
   ],
   providers: [
     {
