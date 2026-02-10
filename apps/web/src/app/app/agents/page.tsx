@@ -29,10 +29,11 @@ export default async function AgentsPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="mb-4 md:mb-6 flex items-center gap-2 md:gap-3 text-2xl md:text-3xl font-bold">
+      <h1 className="mb-1 flex items-center gap-2 md:gap-3 text-2xl md:text-3xl font-bold">
         <Bot className="h-6 w-6 md:h-8 md:w-8" />
         {t('agents.title')}
       </h1>
+      <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{t('agents.description')}</p>
       <AgentsDataTable />
     </div>
   );

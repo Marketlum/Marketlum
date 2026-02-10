@@ -44,6 +44,7 @@
   },
   "users": {
     "title": "Users",
+    "description": "Manage user accounts and permissions.",
     "createUser": "Create User",
     "editUser": "Edit User",
     "deleteUser": "Delete User",
@@ -61,6 +62,7 @@
   },
   "agents": {
     "title": "Agents",
+    "description": "Manage market participants and their roles.",
     "createAgent": "Create Agent",
     "editAgent": "Edit Agent",
     "deleteAgent": "Delete Agent",
@@ -102,6 +104,7 @@
   },
   "taxonomies": {
     "title": "Taxonomies",
+    "description": "Organize and classify entities with hierarchical categories.",
     "addRoot": "Add Root",
     "addChild": "Add child",
     "taxonomyNamePlaceholder": "Taxonomy name...",
@@ -124,6 +127,7 @@
   },
   "files": {
     "title": "Files",
+    "description": "Upload, organize, and manage your files and folders.",
     "folders": "Folders",
     "upload": "Upload",
     "download": "Download",
