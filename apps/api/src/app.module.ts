@@ -15,6 +15,7 @@ import { ValueInstancesModule } from './value-instances/value-instances.module';
 import { PerspectivesModule } from './perspectives/perspectives.module';
 import { ValueStreamsModule } from './value-streams/value-streams.module';
 import { SearchModule } from './search/search.module';
+import { LedgerModule } from './ledger/ledger.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { SearchModule } from './search/search.module';
     PerspectivesModule,
     ValueStreamsModule,
     SearchModule,
+    LedgerModule,
   ],
   providers: [
     {

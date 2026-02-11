@@ -4,4 +4,6 @@ export enum TableName {
   VALUE_STREAMS = 'value_streams',
   AGENTS = 'agents',
   USERS = 'users',
+  ACCOUNTS = 'accounts',
+  TRANSACTIONS = 'transactions',
 }

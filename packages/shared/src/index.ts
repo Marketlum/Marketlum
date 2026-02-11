@@ -109,3 +109,21 @@ export {
   type SearchResult,
   type SearchResponse,
 } from './schemas/search.schema';
+
+export {
+  createAccountSchema,
+  updateAccountSchema,
+  accountResponseSchema,
+  type CreateAccountInput,
+  type UpdateAccountInput,
+  type AccountResponse,
+} from './schemas/account.schema';
+
+export {
+  createTransactionSchema,
+  updateTransactionSchema,
+  transactionResponseSchema,
+  type CreateTransactionInput,
+  type UpdateTransactionInput,
+  type TransactionResponse,
+} from './schemas/transaction.schema';
