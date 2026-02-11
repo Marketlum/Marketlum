@@ -452,7 +452,9 @@ export function ValuesDataTable() {
               page={data.meta.page}
               totalPages={data.meta.totalPages}
               total={data.meta.total}
+              limit={pagination.limit}
               onPageChange={pagination.setPage}
+              onLimitChange={pagination.setLimit}
             />
           )}
         </>

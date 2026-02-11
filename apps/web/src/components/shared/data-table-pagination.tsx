@@ -3,19 +3,32 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface DataTablePaginationProps {
   page: number;
   totalPages: number;
   total: number;
+  limit?: number;
   onPageChange: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
 }
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export function DataTablePagination({
   page,
   totalPages,
   total,
+  limit,
   onPageChange,
+  onLimitChange,
 }: DataTablePaginationProps) {
   const t = useTranslations('common');
 
@@ -23,7 +36,26 @@ export function DataTablePagination({
 
   return (
     <div className="flex flex-col items-center gap-2 px-2 py-4 sm:flex-row sm:justify-between">
-      <div className="text-sm text-muted-foreground">{t('totalRows', { total })}</div>
+      <div className="flex items-center gap-4">
+        <span className="text-sm text-muted-foreground">{t('totalRows', { total })}</span>
+        {limit != null && onLimitChange && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{t('rowsPerPage')}</span>
+            <Select value={String(limit)} onValueChange={(v) => onLimitChange(Number(v))}>
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"

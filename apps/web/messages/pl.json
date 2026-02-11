@@ -20,7 +20,8 @@
     "created": "Utworzono",
     "type": "Typ",
     "filters": "Filtry",
-    "filtersDescription": "Zawęź wyniki za pomocą poniższych filtrów."
+    "filtersDescription": "Zawęź wyniki za pomocą poniższych filtrów.",
+    "rowsPerPage": "Wierszy na stronę"
   },
   "nav": {
     "users": "Użytkownicy",

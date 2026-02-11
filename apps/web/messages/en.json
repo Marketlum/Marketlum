@@ -20,7 +20,8 @@
     "created": "Created",
     "type": "Type",
     "filters": "Filters",
-    "filtersDescription": "Narrow down results using the filters below."
+    "filtersDescription": "Narrow down results using the filters below.",
+    "rowsPerPage": "Rows per page"
   },
   "nav": {
     "users": "Users",
