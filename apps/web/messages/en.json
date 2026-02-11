@@ -18,7 +18,9 @@
     "name": "Name",
     "email": "Email",
     "created": "Created",
-    "type": "Type"
+    "type": "Type",
+    "filters": "Filters",
+    "filtersDescription": "Narrow down results using the filters below."
   },
   "nav": {
     "users": "Users",

@@ -18,7 +18,9 @@
     "name": "Nazwa",
     "email": "Email",
     "created": "Utworzono",
-    "type": "Typ"
+    "type": "Typ",
+    "filters": "Filtry",
+    "filtersDescription": "Zawęź wyniki za pomocą poniższych filtrów."
   },
   "nav": {
     "users": "Użytkownicy",

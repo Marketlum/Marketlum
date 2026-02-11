@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import type { ValueResponse, PaginatedResponse, CreateValueInput, PerspectiveConfig } from '@marketlum/shared';
+import type { ValueResponse, PaginatedResponse, CreateValueInput, PerspectiveConfig, TaxonomyTreeNode } from '@marketlum/shared';
 import { ValueType } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
@@ -16,6 +16,8 @@ import { usePerspectives } from '@/hooks/use-perspectives';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
+import { DataTableFilterSheet } from '@/components/shared/data-table-filter-sheet';
+import { ActiveFilters, type ActiveFilter } from '@/components/shared/active-filters';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { ColumnVisibilityDropdown } from '@/components/shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '@/components/shared/perspective-selector';
@@ -33,6 +35,13 @@ import {
 import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
 import { ExportDropdown } from '@/components/shared/export-dropdown';
 import type { FieldDef } from '@/lib/export-utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { SlidersHorizontal } from 'lucide-react';
+
+function flattenTree(nodes: TaxonomyTreeNode[]): TaxonomyTreeNode[] {
+  return nodes.flatMap((n) => [n, ...flattenTree(n.children)]);
+}
 
 const typeTranslationKeys: Record<string, string> = {
   [ValueType.PRODUCT]: 'typeProduct',
@@ -63,6 +72,7 @@ export function ValuesDataTable() {
   const [editingValue, setEditingValue] = useState<ValueResponse | null>(null);
   const [deleteValue, setDeleteValue] = useState<ValueResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
@@ -270,6 +280,48 @@ export function ValuesDataTable() {
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
+  const activeFilters = useMemo<ActiveFilter[]>(() => {
+    const filters: ActiveFilter[] = [];
+    if (typeFilter !== 'all') {
+      filters.push({
+        key: 'type',
+        label: tc('type'),
+        displayValue: t(typeTranslationKeys[typeFilter]),
+        onClear: () => setTypeFilter('all'),
+      });
+    }
+    if (taxonomyFilter !== 'all') {
+      const node = flattenTree(tree).find((n) => n.id === taxonomyFilter);
+      filters.push({
+        key: 'taxonomy',
+        label: t('taxonomy'),
+        displayValue: node?.name ?? taxonomyFilter,
+        onClear: () => setTaxonomyFilter('all'),
+      });
+    }
+    if (agentFilter !== 'all') {
+      const agent = agents.find((a) => a.id === agentFilter);
+      filters.push({
+        key: 'agent',
+        label: t('agent'),
+        displayValue: agent?.name ?? agentFilter,
+        onClear: () => setAgentFilter('all'),
+      });
+    }
+    if (valueStreamFilter !== 'all') {
+      const vs = valueStreams.find((v) => v.id === valueStreamFilter);
+      filters.push({
+        key: 'valueStream',
+        label: t('valueStream'),
+        displayValue: vs?.name ?? valueStreamFilter,
+        onClear: () => setValueStreamFilter('all'),
+      });
+    }
+    return filters;
+  }, [typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, tc, t, tree, agents, valueStreams]);
+
+  const activeFilterCount = activeFilters.length;
+
   return (
     <div>
       <DataTableToolbar
@@ -277,54 +329,18 @@ export function ValuesDataTable() {
         onSearchChange={pagination.setSearch}
         onCreateClick={() => setFormOpen(true)}
         createLabel={t('createValue')}
+        filterButton={
+          <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
+            <SlidersHorizontal className="mr-2 h-4 w-4" />
+            {tc('filters')}
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </Button>
+        }
       >
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t('allTypes')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('allTypes')}</SelectItem>
-            {Object.values(ValueType).map((vt) => (
-              <SelectItem key={vt} value={vt}>
-                {t(typeTranslationKeys[vt])}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <TaxonomyTreeSelect
-          tree={tree}
-          value={taxonomyFilter === 'all' ? null : taxonomyFilter}
-          onSelect={(id) => setTaxonomyFilter(id ?? 'all')}
-          placeholder={t('allTaxonomies')}
-          noneLabel={t('allTaxonomies')}
-          className="w-[180px]"
-        />
-        <Select value={agentFilter} onValueChange={setAgentFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t('allAgents')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('allAgents')}</SelectItem>
-            {agents.map((agent) => (
-              <SelectItem key={agent.id} value={agent.id}>
-                {agent.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={t('allValueStreams')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('allValueStreams')}</SelectItem>
-            {valueStreams.map((vs) => (
-              <SelectItem key={vs.id} value={vs.id}>
-                {vs.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <ColumnVisibilityDropdown
           columns={columnMeta}
           visibility={columnVisibility}
@@ -362,6 +378,69 @@ export function ValuesDataTable() {
           filenameBase="values"
         />
       </DataTableToolbar>
+
+      <ActiveFilters filters={activeFilters} />
+
+      <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{tc('type')}</label>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allTypes')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allTypes')}</SelectItem>
+              {Object.values(ValueType).map((vt) => (
+                <SelectItem key={vt} value={vt}>
+                  {t(typeTranslationKeys[vt])}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('taxonomy')}</label>
+          <TaxonomyTreeSelect
+            tree={tree}
+            value={taxonomyFilter === 'all' ? null : taxonomyFilter}
+            onSelect={(id) => setTaxonomyFilter(id ?? 'all')}
+            placeholder={t('allTaxonomies')}
+            noneLabel={t('allTaxonomies')}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('agent')}</label>
+          <Select value={agentFilter} onValueChange={setAgentFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allAgents')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allAgents')}</SelectItem>
+              {agents.map((agent) => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  {agent.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('valueStream')}</label>
+          <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allValueStreams')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allValueStreams')}</SelectItem>
+              {valueStreams.map((vs) => (
+                <SelectItem key={vs.id} value={vs.id}>
+                  {vs.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </DataTableFilterSheet>
 
       {loading ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>

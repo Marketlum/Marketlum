@@ -10,6 +10,7 @@ interface DataTableToolbarProps {
   onSearchChange: (value: string) => void;
   onCreateClick: () => void;
   createLabel: string;
+  filterButton?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ export function DataTableToolbar({
   onSearchChange,
   onCreateClick,
   createLabel,
+  filterButton,
   children,
 }: DataTableToolbarProps) {
   const t = useTranslations('common');
@@ -31,6 +33,7 @@ export function DataTableToolbar({
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full sm:max-w-sm"
         />
+        {filterButton}
         {children}
       </div>
       <Button onClick={onCreateClick} className="w-full sm:w-auto">

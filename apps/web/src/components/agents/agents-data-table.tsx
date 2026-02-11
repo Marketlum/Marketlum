@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
@@ -14,6 +14,8 @@ import { usePerspectives } from '@/hooks/use-perspectives';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
+import { DataTableFilterSheet } from '@/components/shared/data-table-filter-sheet';
+import { ActiveFilters, type ActiveFilter } from '@/components/shared/active-filters';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { ColumnVisibilityDropdown } from '@/components/shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '@/components/shared/perspective-selector';
@@ -31,6 +33,14 @@ import {
 import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
 import { ExportDropdown } from '@/components/shared/export-dropdown';
 import type { FieldDef } from '@/lib/export-utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { SlidersHorizontal } from 'lucide-react';
+import type { TaxonomyTreeNode } from '@marketlum/shared';
+
+function flattenTree(nodes: TaxonomyTreeNode[]): TaxonomyTreeNode[] {
+  return nodes.flatMap((n) => [n, ...flattenTree(n.children)]);
+}
 
 const typeTranslationKeys: Record<string, string> = {
   [AgentType.ORGANIZATION]: 'typeOrganization',
@@ -56,6 +66,7 @@ export function AgentsDataTable() {
   const [editingAgent, setEditingAgent] = useState<AgentResponse | null>(null);
   const [deleteAgent, setDeleteAgent] = useState<AgentResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
@@ -232,6 +243,30 @@ export function AgentsDataTable() {
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
+  const activeFilters = useMemo<ActiveFilter[]>(() => {
+    const filters: ActiveFilter[] = [];
+    if (typeFilter !== 'all') {
+      filters.push({
+        key: 'type',
+        label: tc('type'),
+        displayValue: t(typeTranslationKeys[typeFilter]),
+        onClear: () => setTypeFilter('all'),
+      });
+    }
+    if (taxonomyFilter !== 'all') {
+      const node = flattenTree(tree).find((n) => n.id === taxonomyFilter);
+      filters.push({
+        key: 'taxonomy',
+        label: t('taxonomy'),
+        displayValue: node?.name ?? taxonomyFilter,
+        onClear: () => setTaxonomyFilter('all'),
+      });
+    }
+    return filters;
+  }, [typeFilter, taxonomyFilter, tc, t, tree]);
+
+  const activeFilterCount = activeFilters.length;
+
   return (
     <div>
       <DataTableToolbar
@@ -239,28 +274,18 @@ export function AgentsDataTable() {
         onSearchChange={pagination.setSearch}
         onCreateClick={() => setFormOpen(true)}
         createLabel={t('createAgent')}
+        filterButton={
+          <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
+            <SlidersHorizontal className="mr-2 h-4 w-4" />
+            {tc('filters')}
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </Button>
+        }
       >
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t('allTypes')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('allTypes')}</SelectItem>
-            {Object.values(AgentType).map((agentType) => (
-              <SelectItem key={agentType} value={agentType}>
-                {t(typeTranslationKeys[agentType])}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <TaxonomyTreeSelect
-          tree={tree}
-          value={taxonomyFilter === 'all' ? null : taxonomyFilter}
-          onSelect={(id) => setTaxonomyFilter(id ?? 'all')}
-          placeholder={t('allTaxonomies')}
-          noneLabel={t('allTaxonomies')}
-          className="w-[180px]"
-        />
         <ColumnVisibilityDropdown
           columns={columnMeta}
           visibility={columnVisibility}
@@ -298,6 +323,37 @@ export function AgentsDataTable() {
           filenameBase="agents"
         />
       </DataTableToolbar>
+
+      <ActiveFilters filters={activeFilters} />
+
+      <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{tc('type')}</label>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allTypes')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allTypes')}</SelectItem>
+              {Object.values(AgentType).map((agentType) => (
+                <SelectItem key={agentType} value={agentType}>
+                  {t(typeTranslationKeys[agentType])}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('taxonomy')}</label>
+          <TaxonomyTreeSelect
+            tree={tree}
+            value={taxonomyFilter === 'all' ? null : taxonomyFilter}
+            onSelect={(id) => setTaxonomyFilter(id ?? 'all')}
+            placeholder={t('allTaxonomies')}
+            noneLabel={t('allTaxonomies')}
+          />
+        </div>
+      </DataTableFilterSheet>
 
       {loading ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>

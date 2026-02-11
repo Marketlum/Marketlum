@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
@@ -15,6 +15,8 @@ import { usePerspectives } from '@/hooks/use-perspectives';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
+import { DataTableFilterSheet } from '@/components/shared/data-table-filter-sheet';
+import { ActiveFilters, type ActiveFilter } from '@/components/shared/active-filters';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { ColumnVisibilityDropdown } from '@/components/shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '@/components/shared/perspective-selector';
@@ -32,8 +34,9 @@ import {
 import { ExportDropdown } from '@/components/shared/export-dropdown';
 import type { FieldDef } from '@/lib/export-utils';
 import Link from 'next/link';
-import { Share2 } from 'lucide-react';
+import { Share2, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export function ValueInstancesDataTable() {
   const router = useRouter();
@@ -55,6 +58,7 @@ export function ValueInstancesDataTable() {
   const [editingItem, setEditingItem] = useState<ValueInstanceResponse | null>(null);
   const [deleteItem, setDeleteItem] = useState<ValueInstanceResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
@@ -253,6 +257,40 @@ export function ValueInstancesDataTable() {
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
+  const activeFilters = useMemo<ActiveFilter[]>(() => {
+    const filters: ActiveFilter[] = [];
+    if (valueFilter !== 'all') {
+      const value = values.find((v) => v.id === valueFilter);
+      filters.push({
+        key: 'value',
+        label: t('value'),
+        displayValue: value?.name ?? valueFilter,
+        onClear: () => setValueFilter('all'),
+      });
+    }
+    if (fromAgentFilter !== 'all') {
+      const agent = agents.find((a) => a.id === fromAgentFilter);
+      filters.push({
+        key: 'fromAgent',
+        label: t('fromAgent'),
+        displayValue: agent?.name ?? fromAgentFilter,
+        onClear: () => setFromAgentFilter('all'),
+      });
+    }
+    if (toAgentFilter !== 'all') {
+      const agent = agents.find((a) => a.id === toAgentFilter);
+      filters.push({
+        key: 'toAgent',
+        label: t('toAgent'),
+        displayValue: agent?.name ?? toAgentFilter,
+        onClear: () => setToAgentFilter('all'),
+      });
+    }
+    return filters;
+  }, [valueFilter, fromAgentFilter, toAgentFilter, t, values, agents]);
+
+  const activeFilterCount = activeFilters.length;
+
   return (
     <div>
       <DataTableToolbar
@@ -260,46 +298,18 @@ export function ValueInstancesDataTable() {
         onSearchChange={pagination.setSearch}
         onCreateClick={() => setFormOpen(true)}
         createLabel={t('createValueInstance')}
+        filterButton={
+          <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
+            <SlidersHorizontal className="mr-2 h-4 w-4" />
+            {tc('filters')}
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </Button>
+        }
       >
-        <Select value={valueFilter} onValueChange={setValueFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t('allValues')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('allValues')}</SelectItem>
-            {values.map((v) => (
-              <SelectItem key={v.id} value={v.id}>
-                {v.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={fromAgentFilter} onValueChange={setFromAgentFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t('allFromAgents')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('allFromAgents')}</SelectItem>
-            {agents.map((a) => (
-              <SelectItem key={a.id} value={a.id}>
-                {a.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={toAgentFilter} onValueChange={setToAgentFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t('allToAgents')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('allToAgents')}</SelectItem>
-            {agents.map((a) => (
-              <SelectItem key={a.id} value={a.id}>
-                {a.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <ColumnVisibilityDropdown
           columns={columnMeta}
           visibility={columnVisibility}
@@ -343,6 +353,59 @@ export function ValueInstancesDataTable() {
           </Link>
         </Button>
       </DataTableToolbar>
+
+      <ActiveFilters filters={activeFilters} />
+
+      <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('value')}</label>
+          <Select value={valueFilter} onValueChange={setValueFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allValues')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allValues')}</SelectItem>
+              {values.map((v) => (
+                <SelectItem key={v.id} value={v.id}>
+                  {v.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('fromAgent')}</label>
+          <Select value={fromAgentFilter} onValueChange={setFromAgentFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allFromAgents')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allFromAgents')}</SelectItem>
+              {agents.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('toAgent')}</label>
+          <Select value={toAgentFilter} onValueChange={setToAgentFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allToAgents')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allToAgents')}</SelectItem>
+              {agents.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </DataTableFilterSheet>
 
       {loading ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
