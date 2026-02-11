@@ -10,6 +10,7 @@ import { api, ApiError } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { AgentFormDialog } from '@/components/agents/agent-form-dialog';
+import { AgentTypeBadge } from '@/components/agents/agent-type-badge';
 import { AgentValuesTable } from '@/components/agents/agent-values-table';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -159,7 +160,7 @@ export default function AgentDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-2xl md:text-3xl font-bold truncate">{agent.name}</h1>
-            <Badge variant="secondary">{t(typeTranslationKeys[agent.type])}</Badge>
+            <AgentTypeBadge type={agent.type} label={t(typeTranslationKeys[agent.type])} />
           </div>
           <div className="flex gap-2 mt-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>

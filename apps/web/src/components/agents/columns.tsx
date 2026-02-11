@@ -5,6 +5,7 @@ import { MoreHorizontal, ArrowUpDown, ImageIcon } from 'lucide-react';
 import type { AgentResponse } from '@marketlum/shared';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AgentTypeBadge } from './agent-type-badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,9 +71,7 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
       cell: ({ row }) => {
         const type = row.getValue('type') as string;
         return (
-          <Badge variant="secondary">
-            {translations.typeLabels[type] ?? type}
-          </Badge>
+          <AgentTypeBadge type={type} label={translations.typeLabels[type] ?? type} />
         );
       },
     },
