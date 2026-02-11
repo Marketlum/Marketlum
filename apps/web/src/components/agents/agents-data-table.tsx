@@ -4,18 +4,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import type { AgentResponse, PaginatedResponse, CreateAgentInput } from '@marketlum/shared';
+import type { AgentResponse, PaginatedResponse, CreateAgentInput, PerspectiveConfig } from '@marketlum/shared';
 import { AgentType } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
 import { usePagination } from '@/hooks/use-pagination';
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePerspectives } from '@/hooks/use-perspectives';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { ColumnVisibilityDropdown } from '@/components/shared/column-visibility-dropdown';
+import { PerspectiveSelector } from '@/components/shared/perspective-selector';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getMobileColumnVisibility } from '@/lib/column-visibility';
+import { getMobileColumnVisibility, mergeColumnVisibility } from '@/lib/column-visibility';
 import { AgentFormDialog } from './agent-form-dialog';
 import { getAgentColumns } from './columns';
 import {
@@ -39,16 +42,62 @@ export function AgentsDataTable() {
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('agents');
   const tc = useTranslations('common');
+  const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
   const { tree } = useTaxonomyTree();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<AgentResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<AgentResponse | null>(null);
   const [deleteAgent, setDeleteAgent] = useState<AgentResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
+    setColumnVisibility(config.columnVisibility ?? {});
+    setTypeFilter(config.filters?.type ?? 'all');
+    setTaxonomyFilter(config.filters?.taxonomyId ?? 'all');
+    if (config.sort) {
+      pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
+    } else {
+      pagination.setSortDirect('', 'ASC');
+    }
+  }, [pagination.setSortDirect]);
+
+  const perspectiveTranslations = {
+    saved: tp('saved'),
+    updated: tp('updated'),
+    deleted: tp('deleted'),
+    failedToLoad: tp('failedToLoad'),
+    failedToSave: tp('failedToSave'),
+    failedToUpdate: tp('failedToUpdate'),
+    failedToDelete: tp('failedToDelete'),
+  };
+
+  const {
+    perspectives,
+    activePerspectiveId,
+    selectPerspective,
+    savePerspective,
+    updatePerspective,
+    deletePerspective,
+    resetPerspective,
+  } = usePerspectives({
+    table: 'agents',
+    onApply: onApplyPerspective,
+    translations: perspectiveTranslations,
+  });
+
+  const getCurrentConfig = useCallback((): PerspectiveConfig => ({
+    columnVisibility,
+    filters: {
+      ...(typeFilter !== 'all' ? { type: typeFilter } : {}),
+      ...(taxonomyFilter !== 'all' ? { taxonomyId: taxonomyFilter } : {}),
+    },
+    sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
+  }), [columnVisibility, typeFilter, taxonomyFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -139,6 +188,18 @@ export function AgentsDataTable() {
     },
   });
 
+  const columnMeta = [
+    { id: 'image', label: t('image') },
+    { id: 'name', label: tc('name') },
+    { id: 'type', label: tc('type') },
+    { id: 'mainTaxonomy', label: t('taxonomy') },
+    { id: 'purpose', label: t('purpose') },
+    { id: 'createdAt', label: tc('created') },
+  ];
+
+  const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
+  const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
+
   return (
     <div>
       <DataTableToolbar
@@ -168,13 +229,42 @@ export function AgentsDataTable() {
           noneLabel={t('allTaxonomies')}
           className="w-[180px]"
         />
+        <ColumnVisibilityDropdown
+          columns={columnMeta}
+          visibility={columnVisibility}
+          onVisibilityChange={(id, visible) =>
+            setColumnVisibility((prev) => ({ ...prev, [id]: visible }))
+          }
+          label={tp('columns')}
+        />
+        <PerspectiveSelector
+          perspectives={perspectives}
+          activePerspectiveId={activePerspectiveId}
+          onSelect={selectPerspective}
+          onSave={savePerspective}
+          onUpdate={updatePerspective}
+          onDelete={deletePerspective}
+          onReset={resetPerspective}
+          getCurrentConfig={getCurrentConfig}
+          translations={{
+            perspectives: tp('perspectives'),
+            savePerspective: tp('savePerspective'),
+            updatePerspective: tp('updatePerspective'),
+            deletePerspective: tp('deletePerspective'),
+            setAsDefault: tp('setAsDefault'),
+            removeDefault: tp('removeDefault'),
+            reset: tp('reset'),
+            namePlaceholder: tp('namePlaceholder'),
+            noPerspectives: tp('noPerspectives'),
+          }}
+        />
       </DataTableToolbar>
 
       {loading ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={getMobileColumnVisibility(columns, isMobile)} onRowClick={(agent) => router.push(`/app/agents/${agent.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(agent) => router.push(`/app/agents/${agent.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

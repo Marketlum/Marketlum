@@ -32,6 +32,10 @@ export function usePagination(defaults?: Partial<PaginationState>) {
     }));
   }, []);
 
+  const setSortDirect = useCallback((sortBy: string, sortOrder: 'ASC' | 'DESC') => {
+    setState((s) => ({ ...s, sortBy, sortOrder, page: 1 }));
+  }, []);
+
   const toQueryString = useCallback(() => {
     const params = new URLSearchParams();
     params.set('page', String(state.page));
@@ -44,5 +48,5 @@ export function usePagination(defaults?: Partial<PaginationState>) {
     return params.toString();
   }, [state]);
 
-  return { ...state, setPage, setLimit, setSearch, setSort, toQueryString };
+  return { ...state, setPage, setLimit, setSearch, setSort, setSortDirect, toQueryString };
 }

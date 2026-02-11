@@ -1,6 +1,7 @@
 export { AgentType } from './enums/agent-type.enum';
 export { ValueType } from './enums/value-type.enum';
 export { ValueParentType } from './enums/value-parent-type.enum';
+export { TableName } from './enums/table-name.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
@@ -69,3 +70,14 @@ export {
   type UpdateValueInput,
   type ValueResponse,
 } from './schemas/value.schema';
+
+export {
+  perspectiveConfigSchema,
+  createPerspectiveSchema,
+  updatePerspectiveSchema,
+  perspectiveResponseSchema,
+  type PerspectiveConfig,
+  type CreatePerspectiveInput,
+  type UpdatePerspectiveInput,
+  type PerspectiveResponse,
+} from './schemas/perspective.schema';

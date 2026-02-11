@@ -3,16 +3,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import type { UserResponse, PaginatedResponse, CreateUserInput } from '@marketlum/shared';
+import type { UserResponse, PaginatedResponse, CreateUserInput, PerspectiveConfig } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { usePagination } from '@/hooks/use-pagination';
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePerspectives } from '@/hooks/use-perspectives';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { ColumnVisibilityDropdown } from '@/components/shared/column-visibility-dropdown';
+import { PerspectiveSelector } from '@/components/shared/perspective-selector';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getMobileColumnVisibility } from '@/lib/column-visibility';
+import { getMobileColumnVisibility, mergeColumnVisibility } from '@/lib/column-visibility';
 import { UserFormDialog } from './user-form-dialog';
 import { getUserColumns } from './columns';
 
@@ -21,13 +24,54 @@ export function UsersDataTable() {
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('users');
   const tc = useTranslations('common');
+  const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<UserResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
   const [deleteUser, setDeleteUser] = useState<UserResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
+    setColumnVisibility(config.columnVisibility ?? {});
+    if (config.sort) {
+      pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
+    } else {
+      pagination.setSortDirect('', 'ASC');
+    }
+  }, [pagination.setSortDirect]);
+
+  const perspectiveTranslations = {
+    saved: tp('saved'),
+    updated: tp('updated'),
+    deleted: tp('deleted'),
+    failedToLoad: tp('failedToLoad'),
+    failedToSave: tp('failedToSave'),
+    failedToUpdate: tp('failedToUpdate'),
+    failedToDelete: tp('failedToDelete'),
+  };
+
+  const {
+    perspectives,
+    activePerspectiveId,
+    selectPerspective,
+    savePerspective,
+    updatePerspective,
+    deletePerspective,
+    resetPerspective,
+  } = usePerspectives({
+    table: 'users',
+    onApply: onApplyPerspective,
+    translations: perspectiveTranslations,
+  });
+
+  const getCurrentConfig = useCallback((): PerspectiveConfig => ({
+    columnVisibility,
+    filters: {},
+    sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
+  }), [columnVisibility, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -109,6 +153,16 @@ export function UsersDataTable() {
     },
   });
 
+  const columnMeta = [
+    { id: 'avatar', label: t('avatar') },
+    { id: 'name', label: tc('name') },
+    { id: 'email', label: tc('email') },
+    { id: 'createdAt', label: tc('created') },
+  ];
+
+  const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
+  const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
+
   return (
     <div>
       <DataTableToolbar
@@ -116,13 +170,43 @@ export function UsersDataTable() {
         onSearchChange={pagination.setSearch}
         onCreateClick={() => setFormOpen(true)}
         createLabel={t('createUser')}
-      />
+      >
+        <ColumnVisibilityDropdown
+          columns={columnMeta}
+          visibility={columnVisibility}
+          onVisibilityChange={(id, visible) =>
+            setColumnVisibility((prev) => ({ ...prev, [id]: visible }))
+          }
+          label={tp('columns')}
+        />
+        <PerspectiveSelector
+          perspectives={perspectives}
+          activePerspectiveId={activePerspectiveId}
+          onSelect={selectPerspective}
+          onSave={savePerspective}
+          onUpdate={updatePerspective}
+          onDelete={deletePerspective}
+          onReset={resetPerspective}
+          getCurrentConfig={getCurrentConfig}
+          translations={{
+            perspectives: tp('perspectives'),
+            savePerspective: tp('savePerspective'),
+            updatePerspective: tp('updatePerspective'),
+            deletePerspective: tp('deletePerspective'),
+            setAsDefault: tp('setAsDefault'),
+            removeDefault: tp('removeDefault'),
+            reset: tp('reset'),
+            namePlaceholder: tp('namePlaceholder'),
+            noPerspectives: tp('noPerspectives'),
+          }}
+        />
+      </DataTableToolbar>
 
       {loading ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={getMobileColumnVisibility(columns, isMobile)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

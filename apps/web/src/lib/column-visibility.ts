@@ -16,3 +16,14 @@ export function getMobileColumnVisibility<TData>(
 
   return visibility;
 }
+
+export function mergeColumnVisibility(
+  perspectiveVisibility: Record<string, boolean>,
+  mobileVisibility: Record<string, boolean>,
+): Record<string, boolean> {
+  const merged = { ...perspectiveVisibility };
+  for (const [key, value] of Object.entries(mobileVisibility)) {
+    if (value === false) merged[key] = false;
+  }
+  return merged;
+}

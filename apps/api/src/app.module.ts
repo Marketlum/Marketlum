@@ -11,6 +11,7 @@ import { AgentsModule } from './agents/agents.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
 import { FilesModule } from './files/files.module';
 import { ValuesModule } from './values/values.module';
+import { PerspectivesModule } from './perspectives/perspectives.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ValuesModule } from './values/values.module';
     TaxonomiesModule,
     FilesModule,
     ValuesModule,
+    PerspectivesModule,
   ],
   providers: [
     {
