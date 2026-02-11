@@ -10,6 +10,7 @@ import {
   createUserViaService,
 } from '../setup';
 import { ValuesService } from '../../src/values/values.service';
+import { ValueInstancesService } from '../../src/value-instances/value-instances.service';
 import { AgentsService } from '../../src/agents/agents.service';
 
 const feature = loadFeature(
@@ -338,6 +339,44 @@ defineFeature(feature, (test) => {
     and(/^the search results should contain (\d+) items?$/, (count: string) => {
       expect(response.body.data).toHaveLength(parseInt(count));
     });
+  });
+
+  test('Search returns matching value instances by name', ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value instance named "(.*)" exists$/, async (name: string) => {
+      const valuesService = getApp().get(ValuesService);
+      const value = await valuesService.create({ name: 'Test Value', type: 'product' as any });
+      const viService = getApp().get(ValueInstancesService);
+      await viService.create({ name, valueId: value.id });
+    });
+
+    when(/^I search for "(.*)"$/, async (query: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/search?q=${encodeURIComponent(query)}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the search results should contain (\d+) items?$/, (count: string) => {
+      expect(response.body.data).toHaveLength(parseInt(count));
+    });
+
+    and(
+      /^the search results should include an? "(.*)" named "(.*)"$/,
+      (type: string, name: string) => {
+        const found = response.body.data.some(
+          (r: any) => r.type === type && r.name === name,
+        );
+        expect(found).toBe(true);
+      },
+    );
   });
 
   test('Unauthenticated search is rejected', ({ when, then }) => {

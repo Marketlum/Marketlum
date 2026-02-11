@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, Layers, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -59,6 +59,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/app/users', label: t('users'), icon: Users },
     { href: '/app/agents', label: t('agents'), icon: Bot },
     { href: '/app/values', label: t('values'), icon: Gem },
+    { href: '/app/value-instances', label: t('valueInstances'), icon: Layers },
     { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
     { href: '/app/files', label: t('files'), icon: FileIcon },
   ];
@@ -80,6 +81,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               Marketlum
             </span>
           </Link>
+          <div className="flex-1 px-2">
+            <GlobalSearchInput />
+          </div>
         </header>
 
         {/* Mobile sheet drawer */}
@@ -115,9 +119,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Link>
                 );
               })}
-              <div className="pt-2">
-                <GlobalSearchInput collapsed={false} />
-              </div>
             </nav>
 
             <div className="border-t border-sidebar-border p-2">
@@ -208,9 +209,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
               return link;
             })}
-            <div className="pt-2">
-              <GlobalSearchInput collapsed={collapsed} />
-            </div>
           </nav>
 
           <div className="border-t border-sidebar-border p-2">
@@ -299,7 +297,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </aside>
-        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+        <div className="flex flex-1 flex-col">
+          <header className="hidden md:flex h-14 items-center border-b px-6">
+            <div className="w-full max-w-md">
+              <GlobalSearchInput />
+            </div>
+          </header>
+          <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+        </div>
       </div>
     </TooltipProvider>
   );

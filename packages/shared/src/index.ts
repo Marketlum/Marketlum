@@ -83,6 +83,15 @@ export {
 } from './schemas/perspective.schema';
 
 export {
+  createValueInstanceSchema,
+  updateValueInstanceSchema,
+  valueInstanceResponseSchema,
+  type CreateValueInstanceInput,
+  type UpdateValueInstanceInput,
+  type ValueInstanceResponse,
+} from './schemas/value-instance.schema';
+
+export {
   searchQuerySchema,
   type SearchQuery,
   type SearchResult,

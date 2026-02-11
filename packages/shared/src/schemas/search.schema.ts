@@ -9,7 +9,7 @@ export type SearchQuery = z.infer<typeof searchQuerySchema>;
 
 export interface SearchResult {
   id: string;
-  type: 'value' | 'agent' | 'user';
+  type: 'value' | 'agent' | 'user' | 'value_instance';
   name: string;
   subtitle: string | null;
   rank: number;

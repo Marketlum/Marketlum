@@ -66,6 +66,14 @@ Feature: Global Search
     Then the response status should be 200
     And the search results should contain 2 items
 
+  Scenario: Search returns matching value instances by name
+    Given I am authenticated as "admin@marketlum.com"
+    And a value instance named "Panel Unit Alpha" exists
+    When I search for "Panel Unit Alpha"
+    Then the response status should be 200
+    And the search results should contain 1 item
+    And the search results should include a "value_instance" named "Panel Unit Alpha"
+
   Scenario: Unauthenticated search is rejected
     When I search for "test"
     Then the response status should be 401

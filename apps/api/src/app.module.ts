@@ -11,6 +11,7 @@ import { AgentsModule } from './agents/agents.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
 import { FilesModule } from './files/files.module';
 import { ValuesModule } from './values/values.module';
+import { ValueInstancesModule } from './value-instances/value-instances.module';
 import { PerspectivesModule } from './perspectives/perspectives.module';
 import { SearchModule } from './search/search.module';
 
@@ -28,6 +29,7 @@ import { SearchModule } from './search/search.module';
     TaxonomiesModule,
     FilesModule,
     ValuesModule,
+    ValueInstancesModule,
     PerspectivesModule,
     SearchModule,
   ],

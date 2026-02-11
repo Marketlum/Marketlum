@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Value } from '../values/entities/value.entity';
+import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { User } from '../users/entities/user.entity';
 import { SearchQuery, SearchResult, SearchResponse } from '@marketlum/shared';
@@ -11,6 +12,8 @@ export class SearchService {
   constructor(
     @InjectRepository(Value)
     private readonly valuesRepository: Repository<Value>,
+    @InjectRepository(ValueInstance)
+    private readonly valueInstancesRepository: Repository<ValueInstance>,
     @InjectRepository(Agent)
     private readonly agentsRepository: Repository<Agent>,
     @InjectRepository(User)
@@ -20,11 +23,20 @@ export class SearchService {
   async search(query: SearchQuery): Promise<SearchResponse> {
     const { q, limit } = query;
 
-    const [values, agents, users] = await Promise.all([
+    const [values, valueInstances, agents, users] = await Promise.all([
       this.valuesRepository.query(
         `SELECT id, 'value' as type, name, purpose as subtitle,
                 ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
          FROM "values"
+         WHERE search_vector @@ plainto_tsquery('english', $1)
+         ORDER BY rank DESC
+         LIMIT $2`,
+        [q, limit],
+      ),
+      this.valueInstancesRepository.query(
+        `SELECT id, 'value_instance' as type, name, purpose as subtitle,
+                ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
+         FROM "value_instances"
          WHERE search_vector @@ plainto_tsquery('english', $1)
          ORDER BY rank DESC
          LIMIT $2`,
@@ -50,7 +62,7 @@ export class SearchService {
       ),
     ]);
 
-    const allResults: SearchResult[] = [...values, ...agents, ...users]
+    const allResults: SearchResult[] = [...values, ...valueInstances, ...agents, ...users]
       .map((r) => ({
         id: r.id,
         type: r.type as SearchResult['type'],
