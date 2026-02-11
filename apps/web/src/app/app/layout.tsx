@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, Layers, Workflow, Wallet, ArrowLeftRight, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, Layers, Workflow, Wallet, ArrowLeftRight, Handshake, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -63,6 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/app/value-streams', label: t('valueStreams'), icon: Workflow },
     { href: '/app/accounts', label: t('accounts'), icon: Wallet },
     { href: '/app/transactions', label: t('transactions'), icon: ArrowLeftRight },
+    { href: '/app/agreements', label: t('agreements'), icon: Handshake },
     { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
     { href: '/app/files', label: t('files'), icon: FileIcon },
   ];

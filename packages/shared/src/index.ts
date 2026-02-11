@@ -127,3 +127,15 @@ export {
   type UpdateTransactionInput,
   type TransactionResponse,
 } from './schemas/transaction.schema';
+
+export {
+  createAgreementSchema,
+  updateAgreementSchema,
+  moveAgreementSchema,
+  agreementResponseSchema,
+  type CreateAgreementInput,
+  type UpdateAgreementInput,
+  type MoveAgreementInput,
+  type AgreementResponse,
+  type AgreementTreeNode,
+} from './schemas/agreement.schema';
