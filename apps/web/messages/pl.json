@@ -340,7 +340,19 @@
     "selectFromLibrary": "Biblioteka",
     "selectImageDescription": "Wybierz obraz z biblioteki plików.",
     "removeImage": "Usuń",
-    "failedToUploadImage": "Nie udało się przesłać obrazu"
+    "failedToUploadImage": "Nie udało się przesłać obrazu",
+    "createValueStream": "Utwórz strumień wartości",
+    "editValueStream": "Edytuj strumień wartości",
+    "createDescription": "Wypełnij dane, aby utworzyć nowy strumień wartości.",
+    "editDescription": "Zaktualizuj dane strumienia wartości poniżej.",
+    "details": "Szczegóły",
+    "children": "Potomne",
+    "noChildren": "Brak potomnych strumieni wartości.",
+    "notFound": "Nie znaleziono strumienia wartości",
+    "notFoundDescription": "Strumień wartości, którego szukasz, nie istnieje.",
+    "backToValueStreams": "Powrót do strumieni wartości",
+    "updatedAt": "Zaktualizowano",
+    "noResults": "Nie znaleziono pasujących strumieni wartości."
   },
   "search": {
     "title": "Wyszukiwanie",

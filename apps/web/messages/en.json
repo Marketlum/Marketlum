@@ -340,7 +340,19 @@
     "selectFromLibrary": "Library",
     "selectImageDescription": "Select an image from your file library.",
     "removeImage": "Remove",
-    "failedToUploadImage": "Failed to upload image"
+    "failedToUploadImage": "Failed to upload image",
+    "createValueStream": "Create Value Stream",
+    "editValueStream": "Edit Value Stream",
+    "createDescription": "Fill in the details to create a new value stream.",
+    "editDescription": "Update value stream details below.",
+    "details": "Details",
+    "children": "Children",
+    "noChildren": "No child value streams.",
+    "notFound": "Value stream not found",
+    "notFoundDescription": "The value stream you are looking for does not exist.",
+    "backToValueStreams": "Back to value streams",
+    "updatedAt": "Updated",
+    "noResults": "No matching value streams found."
   },
   "search": {
     "title": "Search",

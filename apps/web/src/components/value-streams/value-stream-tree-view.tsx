@@ -1,41 +1,52 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import type { ValueStreamTreeNode, ValueStreamResponse, PaginatedResponse } from '@marketlum/shared';
+import type { ValueStreamTreeNode, CreateValueStreamInput, ValueStreamResponse } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
-import { DataTable } from '@/components/shared/data-table';
-import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { ValueStreamTreeNodeComponent } from './value-stream-tree-node';
-import { getValueStreamSearchColumns } from './value-stream-search-columns';
-import { usePagination } from '@/hooks/use-pagination';
+import { ValueStreamFormDialog } from './value-stream-form-dialog';
 import { useDebounce } from '@/hooks/use-debounce';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { getMobileColumnVisibility } from '@/lib/column-visibility';
+
+function filterTree(nodes: ValueStreamTreeNode[], term: string): ValueStreamTreeNode[] {
+  const lower = term.toLowerCase();
+
+  return nodes.reduce<ValueStreamTreeNode[]>((acc, node) => {
+    const nameMatch = node.name.toLowerCase().includes(lower);
+    const purposeMatch = node.purpose ? node.purpose.toLowerCase().includes(lower) : false;
+    const selfMatch = nameMatch || purposeMatch;
+    const filteredChildren = filterTree(node.children ?? [], term);
+
+    if (selfMatch || filteredChildren.length > 0) {
+      acc.push({ ...node, children: filteredChildren.length > 0 ? filteredChildren : node.children ?? [] });
+    }
+
+    return acc;
+  }, []);
+}
 
 export function ValueStreamTreeView() {
   const t = useTranslations('valueStreams');
   const tc = useTranslations('common');
   const [tree, setTree] = useState<ValueStreamTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [addingRoot, setAddingRoot] = useState(false);
-  const [newRootName, setNewRootName] = useState('');
-  const [newRootPurpose, setNewRootPurpose] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
-  const pagination = usePagination();
-  const [searchResults, setSearchResults] = useState<PaginatedResponse<ValueStreamResponse> | null>(null);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const isMobile = useIsMobile();
+
+  // Form dialog state
+  const [formOpen, setFormOpen] = useState(false);
+  const [formParentId, setFormParentId] = useState<string | null>(null);
+  const [formEditTarget, setFormEditTarget] = useState<ValueStreamResponse | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isSearching = debouncedSearch.length > 0;
 
@@ -54,92 +65,50 @@ export function ValueStreamTreeView() {
     fetchTree();
   }, [fetchTree]);
 
-  // Fetch search results when search term or pagination changes
-  useEffect(() => {
-    if (!isSearching) {
-      setSearchResults(null);
-      return;
-    }
+  const filteredTree = useMemo(() => {
+    if (!isSearching) return tree;
+    return filterTree(tree, debouncedSearch);
+  }, [tree, debouncedSearch, isSearching]);
 
-    const fetchSearch = async () => {
-      setSearchLoading(true);
-      try {
-        const params = new URLSearchParams();
-        params.set('search', debouncedSearch);
-        params.set('page', String(pagination.page));
-        params.set('limit', String(pagination.limit));
-        if (pagination.sortBy) {
-          params.set('sortBy', pagination.sortBy);
-          params.set('sortOrder', pagination.sortOrder);
-        }
-        const data = await api.get<PaginatedResponse<ValueStreamResponse>>(
-          `/value-streams/search?${params.toString()}`,
-        );
-        setSearchResults(data);
-      } catch {
-        toast.error(t('failedToLoad'));
-      } finally {
-        setSearchLoading(false);
+  const handleOpenCreate = () => {
+    setFormEditTarget(null);
+    setFormParentId(null);
+    setFormOpen(true);
+  };
+
+  const handleOpenAddChild = (parentId: string) => {
+    setFormEditTarget(null);
+    setFormParentId(parentId);
+    setFormOpen(true);
+  };
+
+  const handleOpenEdit = async (node: ValueStreamTreeNode) => {
+    try {
+      const full = await api.get<ValueStreamResponse>(`/value-streams/${node.id}`);
+      setFormEditTarget(full);
+      setFormParentId(null);
+      setFormOpen(true);
+    } catch {
+      toast.error(t('failedToLoad'));
+    }
+  };
+
+  const handleFormSubmit = async (data: CreateValueStreamInput) => {
+    setIsSubmitting(true);
+    try {
+      if (formEditTarget) {
+        await api.patch(`/value-streams/${formEditTarget.id}`, data);
+        toast.success(t('updated'));
+      } else {
+        await api.post('/value-streams', data);
+        toast.success(formParentId ? t('created') : t('rootCreated'));
       }
-    };
-
-    fetchSearch();
-  }, [debouncedSearch, pagination.page, pagination.limit, pagination.sortBy, pagination.sortOrder]);
-
-  // Reset page when search changes
-  useEffect(() => {
-    pagination.setPage(1);
-  }, [debouncedSearch]);
-
-  const columns = getValueStreamSearchColumns({
-    onSort: pagination.setSort,
-    translations: {
-      name: tc('name'),
-      purpose: t('purpose'),
-      lead: t('lead'),
-      created: tc('created'),
-    },
-  });
-
-  const handleCreateRoot = async () => {
-    if (!newRootName.trim()) return;
-    try {
-      const body: Record<string, string> = { name: newRootName.trim() };
-      if (newRootPurpose.trim()) body.purpose = newRootPurpose.trim();
-      await api.post('/value-streams', body);
-      toast.success(t('rootCreated'));
-      setNewRootName('');
-      setNewRootPurpose('');
-      setAddingRoot(false);
+      setFormOpen(false);
       fetchTree();
     } catch {
-      toast.error(t('failedToCreate'));
-    }
-  };
-
-  const handleCancelAddRoot = () => {
-    setAddingRoot(false);
-    setNewRootName('');
-    setNewRootPurpose('');
-  };
-
-  const handleCreateChild = async (parentId: string, data: { name: string; purpose?: string }) => {
-    try {
-      await api.post('/value-streams', { ...data, parentId });
-      toast.success(t('created'));
-      fetchTree();
-    } catch {
-      toast.error(t('failedToCreate'));
-    }
-  };
-
-  const handleUpdate = async (id: string, data: { name?: string; purpose?: string }) => {
-    try {
-      await api.patch(`/value-streams/${id}`, data);
-      toast.success(t('updated'));
-      fetchTree();
-    } catch {
-      toast.error(t('failedToUpdate'));
+      toast.error(formEditTarget ? t('failedToUpdate') : t('failedToCreate'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -168,8 +137,8 @@ export function ValueStreamTreeView() {
 
   return (
     <div>
-      <div className="mb-4">
-        <div className="relative w-full md:max-w-sm">
+      <div className="mb-4 flex items-center gap-2">
+        <div className="relative flex-1 md:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchTerm}
@@ -178,89 +147,41 @@ export function ValueStreamTreeView() {
             className="pl-8"
           />
         </div>
+        <Button onClick={handleOpenCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          {t('addRoot')}
+        </Button>
       </div>
 
-      {isSearching ? (
-        <div>
-          {searchLoading ? (
-            <div className="flex h-24 items-center justify-center text-muted-foreground">
-              {tc('loading')}
-            </div>
-          ) : searchResults ? (
-            <>
-              <DataTable columns={columns} data={searchResults.data} columnVisibility={getMobileColumnVisibility(columns, isMobile)} />
-              <DataTablePagination
-                page={searchResults.meta.page}
-                totalPages={searchResults.meta.totalPages}
-                total={searchResults.meta.total}
-                onPageChange={pagination.setPage}
-              />
-            </>
-          ) : null}
+      {filteredTree.length === 0 ? (
+        <div className="flex h-24 items-center justify-center text-muted-foreground">
+          {isSearching ? t('noResults') : t('emptyState')}
         </div>
       ) : (
-        <>
-          <div className="mb-4">
-            {addingRoot ? (
-              <div className="flex flex-col gap-2">
-                <Input
-                  value={newRootName}
-                  onChange={(e) => setNewRootName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleCreateRoot();
-                    if (e.key === 'Escape') handleCancelAddRoot();
-                  }}
-                  placeholder={t('namePlaceholder')}
-                  className="w-full md:max-w-xs"
-                  autoFocus
-                />
-                <Input
-                  value={newRootPurpose}
-                  onChange={(e) => setNewRootPurpose(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleCreateRoot();
-                    if (e.key === 'Escape') handleCancelAddRoot();
-                  }}
-                  placeholder={t('purposePlaceholder')}
-                  className="w-full md:max-w-xs"
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleCreateRoot}>
-                    {tc('save')}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={handleCancelAddRoot}>
-                    {tc('cancel')}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Button onClick={() => setAddingRoot(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('addRoot')}
-              </Button>
-            )}
-          </div>
-
-          {tree.length === 0 && !addingRoot ? (
-            <div className="flex h-24 items-center justify-center text-muted-foreground">
-              {t('emptyState')}
-            </div>
-          ) : (
-            <div className="rounded-md border p-2">
-              {tree.map((node) => (
-                <ValueStreamTreeNodeComponent
-                  key={node.id}
-                  node={node}
-                  depth={0}
-                  onCreateChild={handleCreateChild}
-                  onUpdate={handleUpdate}
-                  onDelete={(id, name) => setDeleteTarget({ id, name })}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        <div className="rounded-md border p-2">
+          {filteredTree.map((node) => (
+            <ValueStreamTreeNodeComponent
+              key={node.id}
+              node={node}
+              depth={0}
+              onEdit={handleOpenEdit}
+              onAddChild={handleOpenAddChild}
+              onDelete={(id, name) => setDeleteTarget({ id, name })}
+              searchTerm={isSearching ? debouncedSearch : undefined}
+              forceExpanded={isSearching}
+            />
+          ))}
+        </div>
       )}
+
+      <ValueStreamFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onSubmit={handleFormSubmit}
+        valueStream={formEditTarget}
+        parentId={formParentId}
+        isSubmitting={isSubmitting}
+      />
 
       <ConfirmDeleteDialog
         open={!!deleteTarget}
