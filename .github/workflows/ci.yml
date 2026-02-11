@@ -64,7 +64,9 @@ jobs:
         run: pnpm --filter @marketlum/shared build
 
       - name: Lint
-        run: pnpm lint
+        run: |
+          pnpm --filter @marketlum/shared run lint
+          pnpm --filter @marketlum/api run lint
 
       - name: Build web
         run: pnpm --filter @marketlum/web build
