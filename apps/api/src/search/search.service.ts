@@ -5,6 +5,7 @@ import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { User } from '../users/entities/user.entity';
+import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { SearchQuery, SearchResult, SearchResponse } from '@marketlum/shared';
 
 @Injectable()
@@ -18,12 +19,14 @@ export class SearchService {
     private readonly agentsRepository: Repository<Agent>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(ValueStream)
+    private readonly valueStreamsRepository: Repository<ValueStream>,
   ) {}
 
   async search(query: SearchQuery): Promise<SearchResponse> {
     const { q, limit } = query;
 
-    const [values, valueInstances, agents, users] = await Promise.all([
+    const [values, valueInstances, agents, users, valueStreams] = await Promise.all([
       this.valuesRepository.query(
         `SELECT id, 'value' as type, name, purpose as subtitle,
                 ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
@@ -60,9 +63,18 @@ export class SearchService {
          LIMIT $2`,
         [q, limit],
       ),
+      this.valueStreamsRepository.query(
+        `SELECT id, 'value_stream' as type, name, purpose as subtitle,
+                ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
+         FROM "value_streams"
+         WHERE search_vector @@ plainto_tsquery('english', $1)
+         ORDER BY rank DESC
+         LIMIT $2`,
+        [q, limit],
+      ),
     ]);
 
-    const allResults: SearchResult[] = [...values, ...valueInstances, ...agents, ...users]
+    const allResults: SearchResult[] = [...values, ...valueInstances, ...agents, ...users, ...valueStreams]
       .map((r) => ({
         id: r.id,
         type: r.type as SearchResult['type'],

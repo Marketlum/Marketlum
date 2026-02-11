@@ -33,6 +33,9 @@ const imagesFeature = loadFeature(
 const parentFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-parent.feature'),
 );
+const valueStreamFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-value-stream.feature'),
+);
 
 // --- CREATE VALUE ---
 defineFeature(createFeature, (test) => {
@@ -2284,6 +2287,222 @@ defineFeature(parentFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- ASSIGN VALUE VALUE STREAM ---
+defineFeature(valueStreamFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let createdValueId: string;
+  const valueStreamIds: Record<string, string> = {};
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    for (const key of Object.keys(valueStreamIds)) {
+      delete valueStreamIds[key];
+    }
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function createValueStream(name: string): Promise<string> {
+    const res = await request(getApp().getHttpServer())
+      .post('/value-streams')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .send({ name });
+    valueStreamIds[name] = res.body.id;
+    return res.body.id;
+  }
+
+  test('Create value with value stream', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
+      await createValueStream(name);
+    });
+
+    when(
+      /^I create a value with value stream "(.*)" and:$/,
+      async (vsName: string, table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            type: row.type,
+            purpose: row.purpose,
+            valueStreamId: valueStreamIds[vsName],
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include value stream "(.*)"$/, (name: string) => {
+      expect(response.body.valueStream).toBeTruthy();
+      expect(response.body.valueStream.name).toBe(name);
+    });
+  });
+
+  test('Create value with non-existent value stream', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create a value with a non-existent value stream and:$/,
+      async (table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            type: row.type,
+            purpose: row.purpose,
+            valueStreamId: '00000000-0000-0000-0000-000000000000',
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test("Update value's value stream", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
+      await createValueStream(name);
+    });
+
+    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
+      await createValueStream(name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)" and value stream "(.*)"$/,
+      async (name: string, type: string, vsName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, valueStreamId: valueStreamIds[vsName] });
+        createdValueId = res.body.id;
+      },
+    );
+
+    when(/^I update the value's value stream to "(.*)"$/, async (vsName: string) => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${createdValueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ valueStreamId: valueStreamIds[vsName] });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include value stream "(.*)"$/, (name: string) => {
+      expect(response.body.valueStream).toBeTruthy();
+      expect(response.body.valueStream.name).toBe(name);
+    });
+  });
+
+  test("Remove value's value stream", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
+      await createValueStream(name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)" and value stream "(.*)"$/,
+      async (name: string, type: string, vsName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, valueStreamId: valueStreamIds[vsName] });
+        createdValueId = res.body.id;
+      },
+    );
+
+    when("I update the value's value stream to null", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${createdValueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ valueStreamId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should have null value stream', () => {
+      expect(response.body.valueStream).toBeNull();
+    });
+  });
+
+  test('List values includes value stream data', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
+      await createValueStream(name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)" and value stream "(.*)"$/,
+      async (name: string, type: string, vsName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, valueStreamId: valueStreamIds[vsName] });
+        createdValueId = res.body.id;
+      },
+    );
+
+    when('I request the list of values', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/values')
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the first value in the list should include value stream "(.*)"$/, (name: string) => {
+      expect(response.body.data.length).toBeGreaterThan(0);
+      const value = response.body.data[0];
+      expect(value.valueStream).toBeTruthy();
+      expect(value.valueStream.name).toBe(name);
     });
   });
 });

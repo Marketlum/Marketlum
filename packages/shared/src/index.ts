@@ -92,6 +92,18 @@ export {
 } from './schemas/value-instance.schema';
 
 export {
+  createValueStreamSchema,
+  updateValueStreamSchema,
+  moveValueStreamSchema,
+  valueStreamResponseSchema,
+  type CreateValueStreamInput,
+  type UpdateValueStreamInput,
+  type MoveValueStreamInput,
+  type ValueStreamResponse,
+  type ValueStreamTreeNode,
+} from './schemas/value-stream.schema';
+
+export {
   searchQuerySchema,
   type SearchQuery,
   type SearchResult,

@@ -39,6 +39,7 @@ import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
 import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
 import { useAgents } from '@/hooks/use-agents';
 import { useValues } from '@/hooks/use-values';
+import { useValueStreams } from '@/hooks/use-value-streams';
 import { api } from '@/lib/api-client';
 import { ImageLibraryDialog } from '@/components/agents/image-library-dialog';
 import { FileImagePreview } from '@/components/shared/file-image-preview';
@@ -78,6 +79,7 @@ export function ValueFormDialog({
   const { tree, refresh } = useTaxonomyTree();
   const { agents } = useAgents(open);
   const { values: allValues } = useValues(open);
+  const { valueStreams } = useValueStreams(open);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<{ id: string; originalName: string }[]>([]);
   const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
@@ -128,6 +130,7 @@ export function ValueFormDialog({
           parentId: value.parent?.id ?? null,
           parentType: value.parentType ?? null,
           agentId: value.agent?.id ?? null,
+          valueStreamId: (value as any).valueStream?.id ?? null,
           mainTaxonomyId: value.mainTaxonomy?.id ?? null,
           taxonomyIds: value.taxonomies?.map((t) => t.id) ?? [],
           fileIds: value.files?.map((f) => f.id) ?? [],
@@ -149,6 +152,7 @@ export function ValueFormDialog({
           parentId: null,
           parentType: null,
           agentId: null,
+          valueStreamId: null,
           mainTaxonomyId: null,
           taxonomyIds: [],
           fileIds: [],
@@ -309,6 +313,27 @@ export function ValueFormDialog({
                 {agents.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Value Stream */}
+          <div className="space-y-2">
+            <Label>{t('valueStream')}</Label>
+            <Select
+              value={watch('valueStreamId') ?? 'none'}
+              onValueChange={(v) => setFormValue('valueStreamId', v === 'none' ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('selectValueStream')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-</SelectItem>
+                {valueStreams.map((vs) => (
+                  <SelectItem key={vs.id} value={vs.id}>
+                    {vs.name}
                   </SelectItem>
                 ))}
               </SelectContent>

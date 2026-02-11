@@ -9,6 +9,7 @@ import { ValueType } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
 import { useAgents } from '@/hooks/use-agents';
+import { useValueStreams } from '@/hooks/use-value-streams';
 import { usePagination } from '@/hooks/use-pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { usePerspectives } from '@/hooks/use-perspectives';
@@ -50,9 +51,11 @@ export function ValuesDataTable() {
   const isMobile = useIsMobile();
   const { tree } = useTaxonomyTree();
   const { agents } = useAgents();
+  const { valueStreams } = useValueStreams();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<ValueResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +69,7 @@ export function ValuesDataTable() {
     setTypeFilter(config.filters?.type ?? 'all');
     setTaxonomyFilter(config.filters?.taxonomyId ?? 'all');
     setAgentFilter(config.filters?.agentId ?? 'all');
+    setValueStreamFilter(config.filters?.valueStreamId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -103,9 +107,10 @@ export function ValuesDataTable() {
       ...(typeFilter !== 'all' ? { type: typeFilter } : {}),
       ...(taxonomyFilter !== 'all' ? { taxonomyId: taxonomyFilter } : {}),
       ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
+      ...(valueStreamFilter !== 'all' ? { valueStreamId: valueStreamFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, typeFilter, taxonomyFilter, agentFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -120,6 +125,9 @@ export function ValuesDataTable() {
       if (agentFilter && agentFilter !== 'all') {
         qs += `&agentId=${agentFilter}`;
       }
+      if (valueStreamFilter && valueStreamFilter !== 'all') {
+        qs += `&valueStreamId=${valueStreamFilter}`;
+      }
       const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
       setData(result);
     } catch {
@@ -127,11 +135,11 @@ export function ValuesDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter, taxonomyFilter, agentFilter]);
+  }, [pagination.toQueryString, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, fetchData]);
 
   const handleCreate = async (input: CreateValueInput) => {
     setIsSubmitting(true);
@@ -191,6 +199,7 @@ export function ValuesDataTable() {
       type: tc('type'),
       taxonomy: t('taxonomy'),
       agent: t('agent'),
+      valueStream: t('valueStream'),
       image: t('image'),
       purpose: t('purpose'),
       created: tc('created'),
@@ -206,6 +215,7 @@ export function ValuesDataTable() {
     { id: 'type', label: tc('type') },
     { id: 'mainTaxonomy', label: t('taxonomy') },
     { id: 'agent', label: t('agent') },
+    { id: 'valueStream', label: t('valueStream') },
     { id: 'purpose', label: t('purpose') },
     { id: 'createdAt', label: tc('created') },
   ];
@@ -228,6 +238,10 @@ export function ValuesDataTable() {
       const ag = r.agent as { name?: string } | null;
       return ag?.name ?? '';
     }},
+    { key: 'valueStream', label: t('valueStream'), extract: (r) => {
+      const vs = r.valueStream as { name?: string } | null;
+      return vs?.name ?? '';
+    }},
     { key: 'parent', label: t('parent'), extract: (r) => {
       const p = r.parent as { name?: string } | null;
       return p?.name ?? '';
@@ -248,9 +262,10 @@ export function ValuesDataTable() {
     if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
     if (taxonomyFilter && taxonomyFilter !== 'all') qs += `&taxonomyId=${taxonomyFilter}`;
     if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
+    if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
     const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -293,6 +308,19 @@ export function ValuesDataTable() {
             {agents.map((agent) => (
               <SelectItem key={agent.id} value={agent.id}>
                 {agent.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={t('allValueStreams')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('allValueStreams')}</SelectItem>
+            {valueStreams.map((vs) => (
+              <SelectItem key={vs.id} value={vs.id}>
+                {vs.name}
               </SelectItem>
             ))}
           </SelectContent>

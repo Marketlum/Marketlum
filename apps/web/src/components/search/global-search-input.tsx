@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Gem, Bot, User, Layers, Loader2 } from 'lucide-react';
+import { Search, Gem, Bot, User, Layers, Workflow, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ const typeConfig: Record<
   agent: { icon: Bot, variant: 'secondary' },
   user: { icon: User, variant: 'outline' },
   value_instance: { icon: Layers, variant: 'secondary' },
+  value_stream: { icon: Workflow, variant: 'secondary' },
 };
 
 function resultHref(result: SearchResult): string {
@@ -31,6 +32,8 @@ function resultHref(result: SearchResult): string {
       return '/app/users';
     case 'value_instance':
       return `/app/value-instances/${result.id}`;
+    case 'value_stream':
+      return '/app/value-streams';
   }
 }
 

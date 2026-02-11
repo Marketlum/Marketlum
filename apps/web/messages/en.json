@@ -27,6 +27,7 @@
     "values": "Values",
     "files": "Files",
     "valueInstances": "Value Instances",
+    "valueStreams": "Value Streams",
     "logout": "Logout",
     "collapse": "Collapse",
     "expandSidebar": "Expand sidebar",
@@ -162,7 +163,10 @@
     "notFoundDescription": "The value you are looking for does not exist.",
     "updatedAt": "Updated",
     "taxonomyCreated": "Taxonomy created",
-    "failedToCreateTaxonomy": "Failed to create taxonomy"
+    "failedToCreateTaxonomy": "Failed to create taxonomy",
+    "valueStream": "Value Stream",
+    "selectValueStream": "Select value stream",
+    "allValueStreams": "All value streams"
   },
   "taxonomies": {
     "title": "Taxonomies",
@@ -309,6 +313,35 @@
     "graphNoData": "No connections to display. Value instances need both a from agent and to agent.",
     "graphLoading": "Loading graph data..."
   },
+  "valueStreams": {
+    "title": "Value Streams",
+    "description": "Organize and manage value flows with hierarchical streams.",
+    "addRoot": "Add Root",
+    "addChild": "Add child",
+    "namePlaceholder": "Value stream name...",
+    "purposePlaceholder": "Purpose...",
+    "childNamePlaceholder": "Child name...",
+    "deleteValueStream": "Delete Value Stream",
+    "deleteWithChildren": "Are you sure you want to delete \"{name}\"? This will also delete all child value streams. This action cannot be undone.",
+    "emptyState": "No value streams yet. Click \"Add Root\" to get started.",
+    "rootCreated": "Root value stream created",
+    "created": "Value stream created",
+    "updated": "Value stream updated",
+    "deleted": "Value stream deleted",
+    "failedToLoad": "Failed to load value streams",
+    "failedToCreate": "Failed to create value stream",
+    "failedToUpdate": "Failed to update value stream",
+    "failedToDelete": "Failed to delete value stream",
+    "lead": "Lead",
+    "selectLead": "Select lead",
+    "image": "Image",
+    "purpose": "Purpose",
+    "uploadImage": "Upload",
+    "selectFromLibrary": "Library",
+    "selectImageDescription": "Select an image from your file library.",
+    "removeImage": "Remove",
+    "failedToUploadImage": "Failed to upload image"
+  },
   "search": {
     "title": "Search",
     "description": "Search across values, agents, users, and value instances.",
@@ -320,7 +353,8 @@
       "value": "Value",
       "agent": "Agent",
       "user": "User",
-      "value_instance": "Instance"
+      "value_instance": "Instance",
+      "value_stream": "Stream"
     },
     "viewAll": "View all results"
   },

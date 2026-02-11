@@ -6,6 +6,7 @@ import { ValueImage } from './entities/value-image.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
 import { Agent } from '../agents/entities/agent.entity';
+import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import {
   CreateValueInput,
   UpdateValueInput,
@@ -26,10 +27,12 @@ export class ValuesService {
     private readonly fileRepository: Repository<File>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(ValueStream)
+    private readonly valueStreamRepository: Repository<ValueStream>,
   ) {}
 
   async create(input: CreateValueInput): Promise<Value> {
-    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, valueStreamId, ...rest } = input;
 
     const value = this.valuesRepository.create(rest);
 
@@ -50,6 +53,15 @@ export class ValuesService {
       }
       value.agentId = agentId;
       value.agent = agent;
+    }
+
+    if (valueStreamId) {
+      const vs = await this.valueStreamRepository.findOne({ where: { id: valueStreamId } });
+      if (!vs) {
+        throw new NotFoundException('Value stream not found');
+      }
+      value.valueStreamId = valueStreamId;
+      value.valueStream = vs;
     }
 
     if (mainTaxonomyId) {
@@ -103,8 +115,8 @@ export class ValuesService {
     return this.findOne(saved.id);
   }
 
-  async findAll(query: PaginationQuery & { type?: ValueType; taxonomyId?: string; agentId?: string }) {
-    const { page, limit, search, sortBy, sortOrder, type, taxonomyId, agentId } = query;
+  async findAll(query: PaginationQuery & { type?: ValueType; taxonomyId?: string; agentId?: string; valueStreamId?: string }) {
+    const { page, limit, search, sortBy, sortOrder, type, taxonomyId, agentId, valueStreamId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.valuesRepository.createQueryBuilder('value');
@@ -115,6 +127,7 @@ export class ValuesService {
     qb.leftJoinAndSelect('value.images', 'images');
     qb.leftJoinAndSelect('images.file', 'imageFile');
     qb.leftJoinAndSelect('value.agent', 'agent');
+    qb.leftJoinAndSelect('value.valueStream', 'valueStream');
     qb.leftJoinAndSelect('value.parent', 'parent');
 
     if (type) {
@@ -123,6 +136,10 @@ export class ValuesService {
 
     if (agentId) {
       qb.andWhere('value."agentId" = :agentId', { agentId });
+    }
+
+    if (valueStreamId) {
+      qb.andWhere('value."valueStreamId" = :valueStreamId', { valueStreamId });
     }
 
     if (taxonomyId) {
@@ -169,7 +186,7 @@ export class ValuesService {
   private async findOneRaw(id: string): Promise<Value> {
     const value = await this.valuesRepository.findOne({
       where: { id },
-      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'parent'],
+      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'valueStream', 'parent'],
     });
     if (!value) {
       throw new NotFoundException('Value not found');
@@ -180,7 +197,7 @@ export class ValuesService {
 
   async update(id: string, input: UpdateValueInput): Promise<Value> {
     const value = await this.findOneRaw(id);
-    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, valueStreamId, ...rest } = input;
 
     Object.assign(value, rest);
 
@@ -215,6 +232,20 @@ export class ValuesService {
         }
         value.agentId = agentId;
         value.agent = agent;
+      }
+    }
+
+    if (valueStreamId !== undefined) {
+      if (valueStreamId === null) {
+        value.valueStream = null;
+        value.valueStreamId = null;
+      } else {
+        const vs = await this.valueStreamRepository.findOne({ where: { id: valueStreamId } });
+        if (!vs) {
+          throw new NotFoundException('Value stream not found');
+        }
+        value.valueStreamId = valueStreamId;
+        value.valueStream = vs;
       }
     }
 

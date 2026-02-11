@@ -14,6 +14,7 @@ import { ValueType, ValueParentType } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 import { File } from '../../files/entities/file.entity';
 import { Agent } from '../../agents/entities/agent.entity';
+import { ValueStream } from '../../value-streams/entities/value-stream.entity';
 import { ValueImage } from './value-image.entity';
 
 @Entity('values')
@@ -75,6 +76,13 @@ export class Value {
     inverseJoinColumn: { name: 'fileId', referencedColumnName: 'id' },
   })
   files: File[];
+
+  @ManyToOne(() => ValueStream, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'valueStreamId' })
+  valueStream: ValueStream | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  valueStreamId: string | null;
 
   @OneToMany(() => ValueImage, (vi) => vi.value, { cascade: true })
   images: ValueImage[];

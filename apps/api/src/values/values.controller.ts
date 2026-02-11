@@ -42,8 +42,9 @@ export class ValuesController {
     @Query('type') type?: ValueType,
     @Query('taxonomyId') taxonomyId?: string,
     @Query('agentId') agentId?: string,
+    @Query('valueStreamId') valueStreamId?: string,
   ) {
-    return this.valuesService.findAll({ ...query, type, taxonomyId, agentId });
+    return this.valuesService.findAll({ ...query, type, taxonomyId, agentId, valueStreamId });
   }
 
   @Get(':id')

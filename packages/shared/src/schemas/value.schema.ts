@@ -36,6 +36,11 @@ const agentSummarySchema = z.object({
   type: z.nativeEnum(AgentType),
 });
 
+const valueStreamSummarySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+});
+
 export const createValueSchema = z.object({
   name: z.string().min(1),
   type: z.nativeEnum(ValueType),
@@ -49,6 +54,7 @@ export const createValueSchema = z.object({
   taxonomyIds: z.array(z.string().uuid()).optional(),
   fileIds: z.array(z.string().uuid()).optional(),
   imageIds: z.array(z.string().uuid()).optional(),
+  valueStreamId: z.string().uuid().nullable().optional(),
 });
 
 export const updateValueSchema = z.object({
@@ -64,6 +70,7 @@ export const updateValueSchema = z.object({
   taxonomyIds: z.array(z.string().uuid()).optional(),
   fileIds: z.array(z.string().uuid()).optional(),
   imageIds: z.array(z.string().uuid()).optional(),
+  valueStreamId: z.string().uuid().nullable().optional(),
 });
 
 export const valueResponseSchema = z.object({
@@ -76,6 +83,7 @@ export const valueResponseSchema = z.object({
   parentType: z.nativeEnum(ValueParentType).nullable(),
   parent: parentSummarySchema.nullable(),
   agent: agentSummarySchema.nullable(),
+  valueStream: valueStreamSummarySchema.nullable(),
   mainTaxonomy: taxonomySummarySchema.nullable(),
   taxonomies: z.array(taxonomySummarySchema),
   files: z.array(fileSummarySchema),

@@ -13,6 +13,7 @@ import { FilesModule } from './files/files.module';
 import { ValuesModule } from './values/values.module';
 import { ValueInstancesModule } from './value-instances/value-instances.module';
 import { PerspectivesModule } from './perspectives/perspectives.module';
+import { ValueStreamsModule } from './value-streams/value-streams.module';
 import { SearchModule } from './search/search.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { SearchModule } from './search/search.module';
     ValuesModule,
     ValueInstancesModule,
     PerspectivesModule,
+    ValueStreamsModule,
     SearchModule,
   ],
   providers: [

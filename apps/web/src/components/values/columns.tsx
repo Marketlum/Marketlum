@@ -20,6 +20,7 @@ interface ValueColumnsTranslations {
   purpose: string;
   taxonomy: string;
   agent: string;
+  valueStream: string;
   image: string;
   created: string;
   edit: string;
@@ -90,6 +91,14 @@ export function getValueColumns({ onEdit, onDelete, onSort, translations }: Valu
       cell: ({ row }) => {
         const agent = row.original.agent;
         return agent ? agent.name : '-';
+      },
+    },
+    {
+      id: 'valueStream',
+      header: translations.valueStream,
+      cell: ({ row }) => {
+        const vs = (row.original as any).valueStream;
+        return vs ? vs.name : '-';
       },
     },
     {

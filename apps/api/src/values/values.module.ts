@@ -5,11 +5,12 @@ import { ValueImage } from './entities/value-image.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
 import { Agent } from '../agents/entities/agent.entity';
+import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { ValuesService } from './values.service';
 import { ValuesController } from './values.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Value, ValueImage, Taxonomy, File, Agent])],
+  imports: [TypeOrmModule.forFeature([Value, ValueImage, Taxonomy, File, Agent, ValueStream])],
   controllers: [ValuesController],
   providers: [ValuesService],
 })

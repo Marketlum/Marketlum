@@ -27,6 +27,7 @@
     "values": "Wartości",
     "files": "Pliki",
     "valueInstances": "Instancje wartości",
+    "valueStreams": "Strumienie wartości",
     "logout": "Wyloguj",
     "collapse": "Zwiń",
     "expandSidebar": "Rozwiń panel",
@@ -162,7 +163,10 @@
     "notFoundDescription": "Wartość, której szukasz, nie istnieje.",
     "updatedAt": "Zaktualizowano",
     "taxonomyCreated": "Taksonomia utworzona",
-    "failedToCreateTaxonomy": "Nie udało się utworzyć taksonomii"
+    "failedToCreateTaxonomy": "Nie udało się utworzyć taksonomii",
+    "valueStream": "Strumień wartości",
+    "selectValueStream": "Wybierz strumień wartości",
+    "allValueStreams": "Wszystkie strumienie wartości"
   },
   "taxonomies": {
     "title": "Taksonomie",
@@ -309,6 +313,35 @@
     "graphNoData": "Brak połączeń do wyświetlenia. Instancje wartości wymagają zarówno agenta źródłowego, jak i docelowego.",
     "graphLoading": "Wczytywanie danych grafu..."
   },
+  "valueStreams": {
+    "title": "Strumienie wartości",
+    "description": "Organizuj i zarządzaj przepływami wartości za pomocą hierarchicznych strumieni.",
+    "addRoot": "Dodaj korzeń",
+    "addChild": "Dodaj potomka",
+    "namePlaceholder": "Nazwa strumienia wartości...",
+    "purposePlaceholder": "Cel...",
+    "childNamePlaceholder": "Nazwa potomka...",
+    "deleteValueStream": "Usuń strumień wartości",
+    "deleteWithChildren": "Czy na pewno chcesz usunąć \"{name}\"? Spowoduje to również usunięcie wszystkich strumieni potomnych. Tej operacji nie można cofnąć.",
+    "emptyState": "Brak strumieni wartości. Kliknij \"Dodaj korzeń\", aby rozpocząć.",
+    "rootCreated": "Główny strumień wartości utworzony",
+    "created": "Strumień wartości utworzony",
+    "updated": "Strumień wartości zaktualizowany",
+    "deleted": "Strumień wartości usunięty",
+    "failedToLoad": "Nie udało się wczytać strumieni wartości",
+    "failedToCreate": "Nie udało się utworzyć strumienia wartości",
+    "failedToUpdate": "Nie udało się zaktualizować strumienia wartości",
+    "failedToDelete": "Nie udało się usunąć strumienia wartości",
+    "lead": "Lider",
+    "selectLead": "Wybierz lidera",
+    "image": "Obraz",
+    "purpose": "Cel",
+    "uploadImage": "Prześlij",
+    "selectFromLibrary": "Biblioteka",
+    "selectImageDescription": "Wybierz obraz z biblioteki plików.",
+    "removeImage": "Usuń",
+    "failedToUploadImage": "Nie udało się przesłać obrazu"
+  },
   "search": {
     "title": "Wyszukiwanie",
     "description": "Szukaj wśród wartości, agentów, użytkowników i instancji wartości.",
@@ -320,7 +353,8 @@
       "value": "Wartość",
       "agent": "Agent",
       "user": "Użytkownik",
-      "value_instance": "Instancja"
+      "value_instance": "Instancja",
+      "value_stream": "Strumień"
     },
     "viewAll": "Zobacz wszystkie wyniki"
   },
