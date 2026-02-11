@@ -261,6 +261,19 @@
     "exported": "Dane wyeksportowane",
     "failedToExport": "Nie udało się wyeksportować danych"
   },
+  "search": {
+    "title": "Wyszukiwanie",
+    "description": "Szukaj wśród wartości, agentów i użytkowników.",
+    "placeholder": "Szukaj...",
+    "emptyState": "Wpisz frazę, aby znaleźć wartości, agentów i użytkowników.",
+    "noResults": "Nie znaleziono wyników dla Twojego zapytania.",
+    "resultsCount": "{count, plural, =0 {Brak wyników} =1 {1 wynik} few {# wyniki} many {# wyników} other {# wyników}} dla \"{query}\"",
+    "type": {
+      "value": "Wartość",
+      "agent": "Agent",
+      "user": "Użytkownik"
+    }
+  },
   "locale": {
     "switchLanguage": "Zmień język",
     "en": "English",

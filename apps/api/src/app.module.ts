@@ -12,6 +12,7 @@ import { TaxonomiesModule } from './taxonomies/taxonomies.module';
 import { FilesModule } from './files/files.module';
 import { ValuesModule } from './values/values.module';
 import { PerspectivesModule } from './perspectives/perspectives.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PerspectivesModule } from './perspectives/perspectives.module';
     FilesModule,
     ValuesModule,
     PerspectivesModule,
+    SearchModule,
   ],
   providers: [
     {

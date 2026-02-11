@@ -81,3 +81,10 @@ export {
   type UpdatePerspectiveInput,
   type PerspectiveResponse,
 } from './schemas/perspective.schema';
+
+export {
+  searchQuerySchema,
+  type SearchQuery,
+  type SearchResult,
+  type SearchResponse,
+} from './schemas/search.schema';

@@ -261,6 +261,19 @@
     "exported": "Data exported",
     "failedToExport": "Failed to export data"
   },
+  "search": {
+    "title": "Search",
+    "description": "Search across values, agents, and users.",
+    "placeholder": "Search...",
+    "emptyState": "Enter a search term to find values, agents, and users.",
+    "noResults": "No results found for your search.",
+    "resultsCount": "{count, plural, =0 {No results} =1 {1 result} other {# results}} for \"{query}\"",
+    "type": {
+      "value": "Value",
+      "agent": "Agent",
+      "user": "User"
+    }
+  },
   "locale": {
     "switchLanguage": "Switch language",
     "en": "English",

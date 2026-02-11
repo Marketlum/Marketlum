@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { LocaleSwitcher } from '@/components/shared/locale-switcher';
 import { ThemeSwitcher } from '@/components/shared/theme-switcher';
 import { FileImagePreview } from '@/components/shared/file-image-preview';
+import { GlobalSearchInput } from '@/components/search/global-search-input';
 import type { UserResponse } from '@marketlum/shared';
 
 const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
@@ -114,6 +115,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Link>
                 );
               })}
+              <div className="pt-2">
+                <GlobalSearchInput collapsed={false} />
+              </div>
             </nav>
 
             <div className="border-t border-sidebar-border p-2">
@@ -204,6 +208,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
               return link;
             })}
+            <div className="pt-2">
+              <GlobalSearchInput collapsed={collapsed} />
+            </div>
           </nav>
 
           <div className="border-t border-sidebar-border p-2">
