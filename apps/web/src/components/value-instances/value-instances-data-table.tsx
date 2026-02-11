@@ -31,6 +31,9 @@ import {
 } from '@/components/ui/select';
 import { ExportDropdown } from '@/components/shared/export-dropdown';
 import type { FieldDef } from '@/lib/export-utils';
+import Link from 'next/link';
+import { Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function ValueInstancesDataTable() {
   const router = useRouter();
@@ -333,6 +336,12 @@ export function ValueInstancesDataTable() {
           visibleFields={visibleExportFields}
           filenameBase="value-instances"
         />
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/app/value-instances/graph">
+            <Share2 className="mr-2 h-4 w-4" />
+            {t('viewGraph')}
+          </Link>
+        </Button>
       </DataTableToolbar>
 
       {loading ? (

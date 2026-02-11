@@ -301,7 +301,13 @@
     "backToValueInstances": "Back to value instances",
     "notFound": "Value instance not found",
     "notFoundDescription": "The value instance you are looking for does not exist.",
-    "updatedAt": "Updated"
+    "updatedAt": "Updated",
+    "graph": "Network Graph",
+    "graphDescription": "Visualize value flows between agents as a network graph.",
+    "viewGraph": "Graph",
+    "viewList": "List",
+    "graphNoData": "No connections to display. Value instances need both a from agent and to agent.",
+    "graphLoading": "Loading graph data..."
   },
   "search": {
     "title": "Search",

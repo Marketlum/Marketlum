@@ -301,7 +301,13 @@
     "backToValueInstances": "Powrót do instancji wartości",
     "notFound": "Nie znaleziono instancji wartości",
     "notFoundDescription": "Instancja wartości, której szukasz, nie istnieje.",
-    "updatedAt": "Zaktualizowano"
+    "updatedAt": "Zaktualizowano",
+    "graph": "Graf sieci",
+    "graphDescription": "Wizualizuj przepływy wartości między agentami jako graf sieci.",
+    "viewGraph": "Graf",
+    "viewList": "Lista",
+    "graphNoData": "Brak połączeń do wyświetlenia. Instancje wartości wymagają zarówno agenta źródłowego, jak i docelowego.",
+    "graphLoading": "Wczytywanie danych grafu..."
   },
   "search": {
     "title": "Wyszukiwanie",
