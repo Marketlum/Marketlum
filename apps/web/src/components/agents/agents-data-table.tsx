@@ -29,6 +29,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
+import { ExportDropdown } from '@/components/shared/export-dropdown';
+import type { FieldDef } from '@/lib/export-utils';
 
 const typeTranslationKeys: Record<string, string> = {
   [AgentType.ORGANIZATION]: 'typeOrganization',
@@ -197,6 +199,36 @@ export function AgentsDataTable() {
     { id: 'createdAt', label: tc('created') },
   ];
 
+  const allExportFields: FieldDef[] = [
+    { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'type', label: tc('type'), extract: (r) => String(r.type ?? '') },
+    { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
+    { key: 'mainTaxonomy', label: t('taxonomy'), extract: (r) => {
+      const mt = r.mainTaxonomy as { name?: string } | null;
+      return mt?.name ?? '';
+    }},
+    { key: 'taxonomies', label: t('taxonomies'), extract: (r) => {
+      const taxs = r.taxonomies as { name: string }[] | undefined;
+      return taxs?.map((tx) => tx.name).join(', ') ?? '';
+    }},
+    { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
+    { key: 'updatedAt', label: t('updatedAt'), extract: (r) => String(r.updatedAt ?? '') },
+  ];
+
+  const visibleExportFields = allExportFields.filter(
+    (f) => columnVisibility[f.key] !== false,
+  );
+
+  const fetchAllData = useCallback(async () => {
+    let qs = `page=1&limit=10000`;
+    if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
+    if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
+    if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
+    if (taxonomyFilter && taxonomyFilter !== 'all') qs += `&taxonomyId=${taxonomyFilter}`;
+    const result = await api.get<PaginatedResponse<AgentResponse>>(`/agents?${qs}`);
+    return result.data as unknown as Record<string, unknown>[];
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter]);
+
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
@@ -257,6 +289,13 @@ export function AgentsDataTable() {
             namePlaceholder: tp('namePlaceholder'),
             noPerspectives: tp('noPerspectives'),
           }}
+        />
+        <ExportDropdown
+          visibleData={(data?.data ?? []) as unknown as Record<string, unknown>[]}
+          fetchAllData={fetchAllData}
+          fields={allExportFields}
+          visibleFields={visibleExportFields}
+          filenameBase="agents"
         />
       </DataTableToolbar>
 

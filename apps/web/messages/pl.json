@@ -65,7 +65,8 @@
     "selectFromLibrary": "Biblioteka",
     "selectAvatarDescription": "Wybierz awatar z biblioteki plików.",
     "removeAvatar": "Usuń",
-    "failedToUploadAvatar": "Nie udało się przesłać awataru"
+    "failedToUploadAvatar": "Nie udało się przesłać awataru",
+    "updatedAt": "Zaktualizowano"
   },
   "agents": {
     "title": "Agenci",
@@ -247,6 +248,18 @@
     "failedToDelete": "Nie udało się usunąć perspektywy",
     "columns": "Kolumny",
     "noPerspectives": "Brak zapisanych perspektyw"
+  },
+  "export": {
+    "export": "Eksportuj",
+    "exportVisible": "Eksportuj widoczne",
+    "exportAll": "Eksportuj wszystko",
+    "csv": "CSV",
+    "json": "JSON",
+    "xml": "XML",
+    "markdown": "Markdown",
+    "exporting": "Eksportowanie danych...",
+    "exported": "Dane wyeksportowane",
+    "failedToExport": "Nie udało się wyeksportować danych"
   },
   "locale": {
     "switchLanguage": "Zmień język",

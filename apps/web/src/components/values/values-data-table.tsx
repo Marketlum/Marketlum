@@ -30,6 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
+import { ExportDropdown } from '@/components/shared/export-dropdown';
+import type { FieldDef } from '@/lib/export-utils';
 
 const typeTranslationKeys: Record<string, string> = {
   [ValueType.PRODUCT]: 'typeProduct',
@@ -208,6 +210,48 @@ export function ValuesDataTable() {
     { id: 'createdAt', label: tc('created') },
   ];
 
+  const allExportFields: FieldDef[] = [
+    { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'type', label: tc('type'), extract: (r) => String(r.type ?? '') },
+    { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
+    { key: 'description', label: t('valueDescription'), extract: (r) => String(r.description ?? '') },
+    { key: 'link', label: t('link'), extract: (r) => String(r.link ?? '') },
+    { key: 'mainTaxonomy', label: t('taxonomy'), extract: (r) => {
+      const mt = r.mainTaxonomy as { name?: string } | null;
+      return mt?.name ?? '';
+    }},
+    { key: 'taxonomies', label: t('taxonomies'), extract: (r) => {
+      const taxs = r.taxonomies as { name: string }[] | undefined;
+      return taxs?.map((tx) => tx.name).join(', ') ?? '';
+    }},
+    { key: 'agent', label: t('agent'), extract: (r) => {
+      const ag = r.agent as { name?: string } | null;
+      return ag?.name ?? '';
+    }},
+    { key: 'parent', label: t('parent'), extract: (r) => {
+      const p = r.parent as { name?: string } | null;
+      return p?.name ?? '';
+    }},
+    { key: 'parentType', label: t('parentType'), extract: (r) => String(r.parentType ?? '') },
+    { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
+    { key: 'updatedAt', label: t('updatedAt'), extract: (r) => String(r.updatedAt ?? '') },
+  ];
+
+  const visibleExportFields = allExportFields.filter(
+    (f) => columnVisibility[f.key] !== false,
+  );
+
+  const fetchAllData = useCallback(async () => {
+    let qs = `page=1&limit=10000`;
+    if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
+    if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
+    if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
+    if (taxonomyFilter && taxonomyFilter !== 'all') qs += `&taxonomyId=${taxonomyFilter}`;
+    if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
+    const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
+    return result.data as unknown as Record<string, unknown>[];
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter]);
+
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
@@ -281,6 +325,13 @@ export function ValuesDataTable() {
             namePlaceholder: tp('namePlaceholder'),
             noPerspectives: tp('noPerspectives'),
           }}
+        />
+        <ExportDropdown
+          visibleData={(data?.data ?? []) as unknown as Record<string, unknown>[]}
+          fetchAllData={fetchAllData}
+          fields={allExportFields}
+          visibleFields={visibleExportFields}
+          filenameBase="values"
         />
       </DataTableToolbar>
 

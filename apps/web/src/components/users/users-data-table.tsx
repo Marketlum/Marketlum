@@ -18,6 +18,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '@/lib/column-visibility';
 import { UserFormDialog } from './user-form-dialog';
 import { getUserColumns } from './columns';
+import { ExportDropdown } from '@/components/shared/export-dropdown';
+import type { FieldDef } from '@/lib/export-utils';
 
 export function UsersDataTable() {
   const pagination = usePagination();
@@ -160,6 +162,25 @@ export function UsersDataTable() {
     { id: 'createdAt', label: tc('created') },
   ];
 
+  const allExportFields: FieldDef[] = [
+    { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'email', label: tc('email'), extract: (r) => String(r.email ?? '') },
+    { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
+    { key: 'updatedAt', label: t('updatedAt'), extract: (r) => String(r.updatedAt ?? '') },
+  ];
+
+  const visibleExportFields = allExportFields.filter(
+    (f) => columnVisibility[f.key] !== false,
+  );
+
+  const fetchAllData = useCallback(async () => {
+    let qs = `page=1&limit=10000`;
+    if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
+    if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
+    const result = await api.get<PaginatedResponse<UserResponse>>(`/users?${qs}`);
+    return result.data as unknown as Record<string, unknown>[];
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder]);
+
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
@@ -199,6 +220,13 @@ export function UsersDataTable() {
             namePlaceholder: tp('namePlaceholder'),
             noPerspectives: tp('noPerspectives'),
           }}
+        />
+        <ExportDropdown
+          visibleData={(data?.data ?? []) as unknown as Record<string, unknown>[]}
+          fetchAllData={fetchAllData}
+          fields={allExportFields}
+          visibleFields={visibleExportFields}
+          filenameBase="users"
         />
       </DataTableToolbar>
 

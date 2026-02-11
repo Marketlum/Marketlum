@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const paginationQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(10),
+  limit: z.coerce.number().int().positive().max(10000).default(10),
   search: z.string().optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['ASC', 'DESC']).default('ASC'),

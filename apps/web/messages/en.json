@@ -65,7 +65,8 @@
     "selectFromLibrary": "Library",
     "selectAvatarDescription": "Select an avatar from your file library.",
     "removeAvatar": "Remove",
-    "failedToUploadAvatar": "Failed to upload avatar"
+    "failedToUploadAvatar": "Failed to upload avatar",
+    "updatedAt": "Updated"
   },
   "agents": {
     "title": "Agents",
@@ -247,6 +248,18 @@
     "failedToDelete": "Failed to delete perspective",
     "columns": "Columns",
     "noPerspectives": "No saved perspectives"
+  },
+  "export": {
+    "export": "Export",
+    "exportVisible": "Export visible",
+    "exportAll": "Export all",
+    "csv": "CSV",
+    "json": "JSON",
+    "xml": "XML",
+    "markdown": "Markdown",
+    "exporting": "Exporting data...",
+    "exported": "Data exported",
+    "failedToExport": "Failed to export data"
   },
   "locale": {
     "switchLanguage": "Switch language",
