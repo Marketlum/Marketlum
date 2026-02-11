@@ -41,6 +41,7 @@ import { useAgents } from '@/hooks/use-agents';
 import { useValues } from '@/hooks/use-values';
 import { api } from '@/lib/api-client';
 import { ImageLibraryDialog } from '@/components/agents/image-library-dialog';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { Badge } from '@/components/ui/badge';
 
 const typeTranslationKeys: Record<string, string> = {
@@ -79,6 +80,8 @@ export function ValueFormDialog({
   const { values: allValues } = useValues(open);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<{ id: string; originalName: string }[]>([]);
+  const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<{ id: string; originalName: string; mimeType: string }[]>([]);
 
   const handleCreateTaxonomy = useCallback(
     async (name: string, parentId?: string): Promise<string | null> => {
@@ -128,9 +131,13 @@ export function ValueFormDialog({
           mainTaxonomyId: value.mainTaxonomy?.id ?? null,
           taxonomyIds: value.taxonomies?.map((t) => t.id) ?? [],
           fileIds: value.files?.map((f) => f.id) ?? [],
+          imageIds: (value as any).images?.map((img: any) => img.id) ?? [],
         });
         setSelectedFiles(
           value.files?.map((f) => ({ id: f.id, originalName: f.originalName })) ?? [],
+        );
+        setSelectedImages(
+          (value as any).images?.map((img: any) => ({ id: img.id, originalName: img.originalName, mimeType: img.mimeType })) ?? [],
         );
       } else {
         reset({
@@ -145,8 +152,10 @@ export function ValueFormDialog({
           mainTaxonomyId: null,
           taxonomyIds: [],
           fileIds: [],
+          imageIds: [],
         });
         setSelectedFiles([]);
+        setSelectedImages([]);
       }
     }
   }, [open, value, reset]);
@@ -176,6 +185,21 @@ export function ValueFormDialog({
     const updated = selectedFiles.filter((f) => f.id !== fileId);
     setSelectedFiles(updated);
     setFormValue('fileIds', updated.map((f) => f.id));
+  };
+
+  const handleSelectImage = (file: FileResponse) => {
+    const current = selectedImages;
+    if (!current.find((f) => f.id === file.id)) {
+      const updated = [...current, { id: file.id, originalName: file.originalName, mimeType: file.mimeType }];
+      setSelectedImages(updated);
+      setFormValue('imageIds' as any, updated.map((f) => f.id));
+    }
+  };
+
+  const handleRemoveImage = (imageId: string) => {
+    const updated = selectedImages.filter((f) => f.id !== imageId);
+    setSelectedImages(updated);
+    setFormValue('imageIds' as any, updated.map((f) => f.id));
   };
 
   return (
@@ -315,6 +339,38 @@ export function ValueFormDialog({
             />
           </div>
 
+          {/* Images */}
+          <div className="space-y-2">
+            <Label>{t('images')}</Label>
+            <div className="space-y-2">
+              {selectedImages.length > 0 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {selectedImages.map((img) => (
+                    <div key={img.id} className="relative h-16 w-16 rounded overflow-hidden border bg-muted/30">
+                      <FileImagePreview
+                        fileId={img.id}
+                        mimeType={img.mimeType}
+                        alt={img.originalName}
+                        iconClassName="h-6 w-6 text-muted-foreground/50"
+                        imgClassName="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(img.id)}
+                        className="absolute top-0.5 right-0.5 rounded-full bg-background/80 p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button type="button" variant="outline" size="sm" onClick={() => setImageLibraryOpen(true)}>
+                {t('selectImages')}
+              </Button>
+            </div>
+          </div>
+
           {/* Files */}
           <div className="space-y-2">
             <Label>{t('files')}</Label>
@@ -352,6 +408,12 @@ export function ValueFormDialog({
         open={libraryOpen}
         onOpenChange={setLibraryOpen}
         onSelect={handleSelectFile}
+      />
+
+      <ImageLibraryDialog
+        open={imageLibraryOpen}
+        onOpenChange={setImageLibraryOpen}
+        onSelect={handleSelectImage}
       />
     </Dialog>
   );

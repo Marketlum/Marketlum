@@ -16,6 +16,15 @@ const fileSummarySchema = z.object({
   size: z.number(),
 });
 
+const imageSummarySchema = z.object({
+  id: z.string().uuid(),
+  originalName: z.string(),
+  storedName: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+  position: z.number(),
+});
+
 const parentSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -39,6 +48,7 @@ export const createValueSchema = z.object({
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
   fileIds: z.array(z.string().uuid()).optional(),
+  imageIds: z.array(z.string().uuid()).optional(),
 });
 
 export const updateValueSchema = z.object({
@@ -53,6 +63,7 @@ export const updateValueSchema = z.object({
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
   fileIds: z.array(z.string().uuid()).optional(),
+  imageIds: z.array(z.string().uuid()).optional(),
 });
 
 export const valueResponseSchema = z.object({
@@ -68,6 +79,7 @@ export const valueResponseSchema = z.object({
   mainTaxonomy: taxonomySummarySchema.nullable(),
   taxonomies: z.array(taxonomySummarySchema),
   files: z.array(fileSummarySchema),
+  images: z.array(imageSummarySchema),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

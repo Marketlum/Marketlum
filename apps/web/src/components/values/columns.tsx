@@ -1,8 +1,9 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, ImageIcon } from 'lucide-react';
 import type { ValueResponse } from '@marketlum/shared';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ValueTypeBadge } from './value-type-badge';
@@ -19,6 +20,7 @@ interface ValueColumnsTranslations {
   purpose: string;
   taxonomy: string;
   agent: string;
+  image: string;
   created: string;
   edit: string;
   delete: string;
@@ -34,6 +36,28 @@ interface ValueColumnsOptions {
 
 export function getValueColumns({ onEdit, onDelete, onSort, translations }: ValueColumnsOptions): ColumnDef<ValueResponse>[] {
   return [
+    {
+      id: 'image',
+      header: translations.image,
+      cell: ({ row }) => {
+        const image = (row.original as any).images?.[0];
+        return (
+          <div className="h-8 w-8 rounded overflow-hidden bg-muted/30 flex items-center justify-center">
+            {image ? (
+              <FileImagePreview
+                fileId={image.id}
+                mimeType={image.mimeType}
+                alt={image.originalName}
+                iconClassName="h-4 w-4 text-muted-foreground/50"
+                imgClassName="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
+            )}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: 'name',
       header: () => (

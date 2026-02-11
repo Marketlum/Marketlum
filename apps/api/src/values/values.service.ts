@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Value } from './entities/value.entity';
+import { ValueImage } from './entities/value-image.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
 import { Agent } from '../agents/entities/agent.entity';
@@ -17,6 +18,8 @@ export class ValuesService {
   constructor(
     @InjectRepository(Value)
     private readonly valuesRepository: Repository<Value>,
+    @InjectRepository(ValueImage)
+    private readonly valueImageRepository: Repository<ValueImage>,
     @InjectRepository(Taxonomy)
     private readonly taxonomyRepository: Repository<Taxonomy>,
     @InjectRepository(File)
@@ -26,7 +29,7 @@ export class ValuesService {
   ) {}
 
   async create(input: CreateValueInput): Promise<Value> {
-    const { mainTaxonomyId, taxonomyIds, fileIds, agentId, parentId, parentType, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, ...rest } = input;
 
     const value = this.valuesRepository.create(rest);
 
@@ -85,6 +88,18 @@ export class ValuesService {
     }
 
     const saved = await this.valuesRepository.save(value);
+
+    if (imageIds && imageIds.length > 0) {
+      const files = await this.fileRepository.find({ where: { id: In(imageIds) } });
+      if (files.length !== imageIds.length) {
+        throw new NotFoundException('One or more image files not found');
+      }
+      const imageEntities = imageIds.map((fileId, index) => {
+        return this.valueImageRepository.create({ valueId: saved.id, fileId, position: index });
+      });
+      await this.valueImageRepository.save(imageEntities);
+    }
+
     return this.findOne(saved.id);
   }
 
@@ -97,6 +112,8 @@ export class ValuesService {
     qb.leftJoinAndSelect('value.mainTaxonomy', 'mainTaxonomy');
     qb.leftJoinAndSelect('value.taxonomies', 'taxonomies');
     qb.leftJoinAndSelect('value.files', 'files');
+    qb.leftJoinAndSelect('value.images', 'images');
+    qb.leftJoinAndSelect('images.file', 'imageFile');
     qb.leftJoinAndSelect('value.agent', 'agent');
     qb.leftJoinAndSelect('value.parent', 'parent');
 
@@ -127,13 +144,14 @@ export class ValuesService {
     } else {
       qb.orderBy('value.createdAt', 'DESC');
     }
+    qb.addOrderBy('images.position', 'ASC');
 
     qb.skip(skip).take(limit);
 
     const [data, total] = await qb.getManyAndCount();
 
     return {
-      data,
+      data: data.map((v) => this.transformValue(v)),
       meta: {
         page,
         limit,
@@ -144,19 +162,25 @@ export class ValuesService {
   }
 
   async findOne(id: string): Promise<Value> {
+    const value = await this.findOneRaw(id);
+    return this.transformValue(value);
+  }
+
+  private async findOneRaw(id: string): Promise<Value> {
     const value = await this.valuesRepository.findOne({
       where: { id },
-      relations: ['mainTaxonomy', 'taxonomies', 'files', 'agent', 'parent'],
+      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'parent'],
     });
     if (!value) {
       throw new NotFoundException('Value not found');
     }
+    value.images = (value.images ?? []).sort((a, b) => a.position - b.position);
     return value;
   }
 
   async update(id: string, input: UpdateValueInput): Promise<Value> {
-    const value = await this.findOne(id);
-    const { mainTaxonomyId, taxonomyIds, fileIds, agentId, parentId, parentType, ...rest } = input;
+    const value = await this.findOneRaw(id);
+    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, ...rest } = input;
 
     Object.assign(value, rest);
 
@@ -238,12 +262,45 @@ export class ValuesService {
       }
     }
 
+    // Remove images from entity to avoid cascade issues — managed separately
+    delete (value as any).images;
     await this.valuesRepository.save(value);
+
+    if (imageIds !== undefined) {
+      await this.valueImageRepository.delete({ valueId: id });
+      if (imageIds.length > 0) {
+        const files = await this.fileRepository.find({ where: { id: In(imageIds) } });
+        if (files.length !== imageIds.length) {
+          throw new NotFoundException('One or more image files not found');
+        }
+        const imageEntities = imageIds.map((fileId, index) => {
+          return this.valueImageRepository.create({ valueId: id, fileId, position: index });
+        });
+        await this.valueImageRepository.save(imageEntities);
+      }
+    }
+
     return this.findOne(id);
   }
 
+  private transformValue(value: Value): Value {
+    if (value.images) {
+      (value as any).images = value.images.map((vi) => ({
+        id: vi.file.id,
+        originalName: vi.file.originalName,
+        storedName: vi.file.storedName,
+        mimeType: vi.file.mimeType,
+        size: vi.file.size,
+        position: vi.position,
+      }));
+    } else {
+      (value as any).images = [];
+    }
+    return value;
+  }
+
   async remove(id: string): Promise<void> {
-    const value = await this.findOne(id);
+    const value = await this.findOneRaw(id);
     await this.valuesRepository.remove(value);
   }
 }

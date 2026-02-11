@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   ManyToMany,
+  OneToMany,
   JoinTable,
   JoinColumn,
 } from 'typeorm';
@@ -13,6 +14,7 @@ import { ValueType, ValueParentType } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 import { File } from '../../files/entities/file.entity';
 import { Agent } from '../../agents/entities/agent.entity';
+import { ValueImage } from './value-image.entity';
 
 @Entity('values')
 export class Value {
@@ -73,6 +75,9 @@ export class Value {
     inverseJoinColumn: { name: 'fileId', referencedColumnName: 'id' },
   })
   files: File[];
+
+  @OneToMany(() => ValueImage, (vi) => vi.value, { cascade: true })
+  images: ValueImage[];
 
   @CreateDateColumn()
   createdAt: Date;

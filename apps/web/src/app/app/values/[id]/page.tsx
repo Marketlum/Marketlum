@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Gem, Pencil, Trash2, ArrowLeft, ExternalLink } from 'lucide-react';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 import type { ValueResponse, CreateValueInput } from '@marketlum/shared';
 import { api, ApiError } from '@/lib/api-client';
 import { toast } from 'sonner';
@@ -148,7 +149,17 @@ export default function ValueDetailPage() {
 
       <div className="mb-6 flex items-start gap-4">
         <div className="h-24 w-24 shrink-0 rounded-lg border bg-muted/30 flex items-center justify-center overflow-hidden">
-          <Gem className="h-12 w-12 text-muted-foreground/50" />
+          {(value as any).images?.[0] ? (
+            <FileImagePreview
+              fileId={(value as any).images[0].id}
+              mimeType={(value as any).images[0].mimeType}
+              alt={(value as any).images[0].originalName}
+              iconClassName="h-12 w-12 text-muted-foreground/50"
+              imgClassName="h-full w-full object-cover"
+            />
+          ) : (
+            <Gem className="h-12 w-12 text-muted-foreground/50" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
@@ -255,6 +266,31 @@ export default function ValueDetailPage() {
                   <p>-</p>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('images')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(value as any).images && (value as any).images.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {(value as any).images.map((img: any) => (
+                    <div key={img.id} className="h-24 rounded overflow-hidden border bg-muted/30">
+                      <FileImagePreview
+                        fileId={img.id}
+                        mimeType={img.mimeType}
+                        alt={img.originalName}
+                        iconClassName="h-8 w-8 text-muted-foreground/50"
+                        imgClassName="h-full w-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>-</p>
+              )}
             </CardContent>
           </Card>
 

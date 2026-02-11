@@ -27,6 +27,9 @@ const filesFeature = loadFeature(
 const agentFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-agent.feature'),
 );
+const imagesFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-images.feature'),
+);
 const parentFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-parent.feature'),
 );
@@ -1407,6 +1410,290 @@ defineFeature(filesFeature, (test) => {
       const expected = names.split(',').map((n) => n.trim());
       const actual = response.body.data[0].files.map((f: { originalName: string }) => f.originalName).sort();
       expect(actual).toEqual(expected.sort());
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when(
+      'I create a value with:',
+      async (table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type, purpose: row.purpose });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- ASSIGN VALUE IMAGES ---
+defineFeature(imagesFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let createdValueId: string;
+  const fileIds: Record<string, string> = {};
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    for (const key of Object.keys(fileIds)) {
+      delete fileIds[key];
+    }
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function createFile(name: string): Promise<string> {
+    const buffer = Buffer.from('fake-file-content');
+    const res = await request(getApp().getHttpServer())
+      .post('/files/upload')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .attach('file', buffer, { filename: name, contentType: 'application/octet-stream' });
+    fileIds[name] = res.body.id;
+    return res.body.id;
+  }
+
+  test('Create value with images', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    when(
+      /^I create a value with images "(.*)" and:$/,
+      async (imageNames: string, table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        const ids = imageNames.split(',').map((n) => fileIds[n.trim()]);
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            type: row.type,
+            purpose: row.purpose,
+            imageIds: ids,
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include images "(.*)" in order$/, (names: string) => {
+      const expected = names.split(',').map((n) => n.trim());
+      const actual = response.body.images.map((img: { originalName: string }) => img.originalName);
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  test('Create value with non-existent image', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create a value with a non-existent image and:$/,
+      async (table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            type: row.type,
+            purpose: row.purpose,
+            imageIds: ['00000000-0000-0000-0000-000000000000'],
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test("Update value's images", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)" and images "(.*)"$/,
+      async (name: string, type: string, imageNames: string) => {
+        const ids = imageNames.split(',').map((n) => fileIds[n.trim()]);
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageIds: ids });
+        createdValueId = res.body.id;
+      },
+    );
+
+    when(/^I update the value's images to "(.*)"$/, async (imageNames: string) => {
+      const ids = imageNames.split(',').map((n) => fileIds[n.trim()]);
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${createdValueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ imageIds: ids });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include images "(.*)" in order$/, (names: string) => {
+      const expected = names.split(',').map((n) => n.trim());
+      const actual = response.body.images.map((img: { originalName: string }) => img.originalName);
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  test("Remove value's images", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)" and images "(.*)"$/,
+      async (name: string, type: string, imageNames: string) => {
+        const ids = imageNames.split(',').map((n) => fileIds[n.trim()]);
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageIds: ids });
+        createdValueId = res.body.id;
+      },
+    );
+
+    when("I update the value's images to empty", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${createdValueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ imageIds: [] });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should have empty images', () => {
+      expect(response.body.images).toEqual([]);
+    });
+  });
+
+  test('Get value by ID includes images', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)" and images "(.*)"$/,
+      async (name: string, type: string, imageNames: string) => {
+        const ids = imageNames.split(',').map((n) => fileIds[n.trim()]);
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageIds: ids });
+        createdValueId = res.body.id;
+      },
+    );
+
+    when('I request the value by its ID', async () => {
+      response = await request(getApp().getHttpServer())
+        .get(`/values/${createdValueId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include images "(.*)" in order$/, (names: string) => {
+      const expected = names.split(',').map((n) => n.trim());
+      const actual = response.body.images.map((img: { originalName: string }) => img.originalName);
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  test('List values includes image data', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)" and images "(.*)"$/,
+      async (name: string, type: string, imageNames: string) => {
+        const ids = imageNames.split(',').map((n) => fileIds[n.trim()]);
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, imageIds: ids });
+        createdValueId = res.body.id;
+      },
+    );
+
+    when('I request the list of values', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/values')
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the first value in the list should include images "(.*)" in order$/, (names: string) => {
+      expect(response.body.data.length).toBeGreaterThan(0);
+      const expected = names.split(',').map((n) => n.trim());
+      const actual = response.body.data[0].images.map((img: { originalName: string }) => img.originalName);
+      expect(actual).toEqual(expected);
     });
   });
 
