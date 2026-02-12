@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Handshake } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import { AgreementTreeView } from '@/components/agreements/agreement-tree-view';
+import { AgreementsDataTable } from '@/components/agreements/agreements-data-table';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -34,7 +34,7 @@ export default async function AgreementsPage() {
         {t('agreements.title')}
       </h1>
       <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{t('agreements.description')}</p>
-      <AgreementTreeView />
+      <AgreementsDataTable />
     </div>
   );
 }

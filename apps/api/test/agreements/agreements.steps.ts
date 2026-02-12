@@ -1185,6 +1185,85 @@ defineFeature(searchFeature, (test) => {
     );
   });
 
+  test('Filter agreements by partyId', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(
+      /^an agreement exists with title "(.*)" and parties "(.*)"$/,
+      async (title: string, partiesStr: string) => {
+        const partyNames = partiesStr.split(',').map((s) => s.trim());
+        const partyIds = partyNames.map((name) => agentIds.get(name)!);
+        const res = await createAgreement(authCookie, title, partyIds);
+        agreementIds.set(title, res.body.id);
+      },
+    );
+
+    and(
+      /^an agreement exists with title "(.*)" and parties "(.*)"$/,
+      async (title: string, partiesStr: string) => {
+        const partyNames = partiesStr.split(',').map((s) => s.trim());
+        const partyIds = partyNames.map((name) => agentIds.get(name)!);
+        const res = await createAgreement(authCookie, title, partyIds);
+        agreementIds.set(title, res.body.id);
+      },
+    );
+
+    and(
+      /^an agreement exists with title "(.*)" and parties "(.*)"$/,
+      async (title: string, partiesStr: string) => {
+        const partyNames = partiesStr.split(',').map((s) => s.trim());
+        const partyIds = partyNames.map((name) => agentIds.get(name)!);
+        const res = await createAgreement(authCookie, title, partyIds);
+        agreementIds.set(title, res.body.id);
+      },
+    );
+
+    when(
+      /^I request the list of agreements with partyId for "(.*)"$/,
+      async (agentName: string) => {
+        const partyId = agentIds.get(agentName);
+        response = await request(getApp().getHttpServer())
+          .get(`/agreements/search?partyId=${partyId}`)
+          .set('Cookie', [authCookie]);
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the total count should be (\d+)$/, (count: string) => {
+      expect(response.body.meta.total).toBe(parseInt(count));
+    });
+
+    and(
+      /^all returned agreements should have party "(.*)"$/,
+      (agentName: string) => {
+        const partyId = agentIds.get(agentName);
+        for (const item of response.body.data) {
+          const hasParty = item.parties?.some(
+            (p: { id: string }) => p.id === partyId,
+          );
+          expect(hasParty).toBe(true);
+        }
+      },
+    );
+  });
+
   test('Unauthenticated request is rejected', ({ when, then }) => {
     when('I request the list of agreements', async () => {
       response = await request(getApp().getHttpServer())

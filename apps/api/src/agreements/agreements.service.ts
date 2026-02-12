@@ -62,14 +62,21 @@ export class AgreementsService {
     return this.findOne(saved.id);
   }
 
-  async search(query: PaginationQuery) {
-    const { page, limit, search, sortBy, sortOrder } = query;
+  async search(query: PaginationQuery & { partyId?: string }) {
+    const { page, limit, search, sortBy, sortOrder, partyId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.agreementRepository.createQueryBuilder('agreement');
 
     qb.leftJoinAndSelect('agreement.file', 'file');
     qb.leftJoinAndSelect('agreement.parties', 'parties');
+
+    if (partyId) {
+      qb.andWhere(
+        `agreement.id IN (SELECT "agreementId" FROM "agreement_parties" WHERE "agentId" = :partyId)`,
+        { partyId },
+      );
+    }
 
     if (search) {
       qb.andWhere(

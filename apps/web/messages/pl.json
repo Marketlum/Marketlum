@@ -453,7 +453,10 @@
     "failedToCreate": "Nie udało się utworzyć umowy",
     "failedToUpdate": "Nie udało się zaktualizować umowy",
     "failedToDelete": "Nie udało się usunąć umowy",
-    "noResults": "Nie znaleziono pasujących umów."
+    "noResults": "Nie znaleziono pasujących umów.",
+    "level": "Poziom",
+    "updatedAt": "Zaktualizowano",
+    "allParties": "Wszystkie strony"
   },
   "locale": {
     "switchLanguage": "Zmień język",

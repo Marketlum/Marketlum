@@ -41,8 +41,9 @@ export class AgreementsController {
   @Get('search')
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
+    @Query('partyId') partyId?: string,
   ) {
-    return this.agreementsService.search(query);
+    return this.agreementsService.search({ ...query, partyId });
   }
 
   @Get('tree')

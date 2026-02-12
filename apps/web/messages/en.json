@@ -453,7 +453,10 @@
     "failedToCreate": "Failed to create agreement",
     "failedToUpdate": "Failed to update agreement",
     "failedToDelete": "Failed to delete agreement",
-    "noResults": "No matching agreements found."
+    "noResults": "No matching agreements found.",
+    "level": "Level",
+    "updatedAt": "Updated",
+    "allParties": "All parties"
   },
   "locale": {
     "switchLanguage": "Switch language",

@@ -18,7 +18,7 @@ const partySummarySchema = z.object({
 export const createAgreementSchema = z.object({
   title: z.string().min(1),
   content: z.string().optional(),
-  link: z.string().url().optional(),
+  link: z.union([z.string().url(), z.literal('')]).optional(),
   parentId: z.string().uuid().optional(),
   fileId: z.string().uuid().nullable().optional(),
   partyIds: z.array(z.string().uuid()).min(2),
@@ -27,7 +27,7 @@ export const createAgreementSchema = z.object({
 export const updateAgreementSchema = z.object({
   title: z.string().min(1).optional(),
   content: z.string().optional(),
-  link: z.string().url().optional(),
+  link: z.union([z.string().url(), z.literal('')]).optional(),
   fileId: z.string().uuid().nullable().optional(),
   partyIds: z.array(z.string().uuid()).min(2).optional(),
 });
