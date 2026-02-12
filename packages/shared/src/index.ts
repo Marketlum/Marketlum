@@ -139,3 +139,15 @@ export {
   type AgreementResponse,
   type AgreementTreeNode,
 } from './schemas/agreement.schema';
+
+export {
+  createChannelSchema,
+  updateChannelSchema,
+  moveChannelSchema,
+  channelResponseSchema,
+  type CreateChannelInput,
+  type UpdateChannelInput,
+  type MoveChannelInput,
+  type ChannelResponse,
+  type ChannelTreeNode,
+} from './schemas/channel.schema';

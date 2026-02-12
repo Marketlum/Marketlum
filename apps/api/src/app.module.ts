@@ -17,6 +17,7 @@ import { ValueStreamsModule } from './value-streams/value-streams.module';
 import { SearchModule } from './search/search.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { AgreementsModule } from './agreements/agreements.module';
+import { ChannelsModule } from './channels/channels.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AgreementsModule } from './agreements/agreements.module';
     SearchModule,
     LedgerModule,
     AgreementsModule,
+    ChannelsModule,
   ],
   providers: [
     {
