@@ -6,4 +6,5 @@ export enum TableName {
   USERS = 'users',
   ACCOUNTS = 'accounts',
   TRANSACTIONS = 'transactions',
+  OFFERINGS = 'offerings',
 }

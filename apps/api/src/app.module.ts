@@ -18,6 +18,7 @@ import { SearchModule } from './search/search.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { AgreementsModule } from './agreements/agreements.module';
 import { ChannelsModule } from './channels/channels.module';
+import { OfferingsModule } from './offerings/offerings.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ChannelsModule } from './channels/channels.module';
     LedgerModule,
     AgreementsModule,
     ChannelsModule,
+    OfferingsModule,
   ],
   providers: [
     {

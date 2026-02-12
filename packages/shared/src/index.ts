@@ -2,6 +2,7 @@ export { AgentType } from './enums/agent-type.enum';
 export { ValueType } from './enums/value-type.enum';
 export { ValueParentType } from './enums/value-parent-type.enum';
 export { TableName } from './enums/table-name.enum';
+export { OfferingState } from './enums/offering-state.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
@@ -151,3 +152,14 @@ export {
   type ChannelResponse,
   type ChannelTreeNode,
 } from './schemas/channel.schema';
+
+export {
+  createOfferingSchema,
+  updateOfferingSchema,
+  offeringResponseSchema,
+  createComponentSchema,
+  componentResponseSchema,
+  type CreateOfferingInput,
+  type UpdateOfferingInput,
+  type OfferingResponse,
+} from './schemas/offering.schema';
