@@ -3,6 +3,7 @@ export { ValueType } from './enums/value-type.enum';
 export { ValueParentType } from './enums/value-parent-type.enum';
 export { TableName } from './enums/table-name.enum';
 export { OfferingState } from './enums/offering-state.enum';
+export { ExchangeState } from './enums/exchange-state.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
@@ -176,3 +177,21 @@ export {
   type InvoiceResponse,
   type InvoiceItemResponse,
 } from './schemas/invoice.schema';
+
+export {
+  exchangePartyInputSchema,
+  createExchangeSchema,
+  updateExchangeSchema,
+  exchangeResponseSchema,
+  exchangePartySummarySchema,
+  createExchangeFlowSchema,
+  updateExchangeFlowSchema,
+  exchangeFlowResponseSchema,
+  type ExchangePartyInput,
+  type CreateExchangeInput,
+  type UpdateExchangeInput,
+  type ExchangeResponse,
+  type CreateExchangeFlowInput,
+  type UpdateExchangeFlowInput,
+  type ExchangeFlowResponse,
+} from './schemas/exchange.schema';

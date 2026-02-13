@@ -20,6 +20,7 @@ import { AgreementsModule } from './agreements/agreements.module';
 import { ChannelsModule } from './channels/channels.module';
 import { OfferingsModule } from './offerings/offerings.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { ExchangesModule } from './exchanges/exchanges.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     ChannelsModule,
     OfferingsModule,
     InvoicesModule,
+    ExchangesModule,
   ],
   providers: [
     {
