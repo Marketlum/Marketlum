@@ -19,6 +19,7 @@ import { LedgerModule } from './ledger/ledger.module';
 import { AgreementsModule } from './agreements/agreements.module';
 import { ChannelsModule } from './channels/channels.module';
 import { OfferingsModule } from './offerings/offerings.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { OfferingsModule } from './offerings/offerings.module';
     AgreementsModule,
     ChannelsModule,
     OfferingsModule,
+    InvoicesModule,
   ],
   providers: [
     {

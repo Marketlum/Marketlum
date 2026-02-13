@@ -163,3 +163,16 @@ export {
   type UpdateOfferingInput,
   type OfferingResponse,
 } from './schemas/offering.schema';
+
+export {
+  createInvoiceSchema,
+  updateInvoiceSchema,
+  createInvoiceItemSchema,
+  invoiceResponseSchema,
+  invoiceItemResponseSchema,
+  type CreateInvoiceInput,
+  type CreateInvoiceItemInput,
+  type UpdateInvoiceInput,
+  type InvoiceResponse,
+  type InvoiceItemResponse,
+} from './schemas/invoice.schema';
