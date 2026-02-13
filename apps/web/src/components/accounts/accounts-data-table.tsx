@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ValueCombobox } from '@/components/shared/value-combobox';
 import { ExportDropdown } from '@/components/shared/export-dropdown';
 import type { FieldDef } from '@/lib/export-utils';
 import { SlidersHorizontal } from 'lucide-react';
@@ -310,19 +311,13 @@ export function AccountsDataTable() {
       <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
         <div className="space-y-1">
           <label className="text-sm font-medium">{t('value')}</label>
-          <Select value={valueFilter} onValueChange={setValueFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder={t('allValues')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allValues')}</SelectItem>
-              {values.map((v) => (
-                <SelectItem key={v.id} value={v.id}>
-                  {v.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ValueCombobox
+            values={values}
+            value={valueFilter === 'all' ? null : valueFilter}
+            onSelect={(id) => setValueFilter(id ?? 'all')}
+            placeholder={t('allValues')}
+            noneLabel={t('allValues')}
+          />
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium">{t('agent')}</label>

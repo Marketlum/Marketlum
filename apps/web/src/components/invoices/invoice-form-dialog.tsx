@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ValueCombobox } from '@/components/shared/value-combobox';
 import { useAgents } from '@/hooks/use-agents';
 import { useValues } from '@/hooks/use-values';
 import { useValueStreams } from '@/hooks/use-value-streams';
@@ -234,22 +235,12 @@ export function InvoiceFormDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t('currency')}</Label>
-              <Select
-                value={watch('currencyId') || '__none__'}
-                onValueChange={(v) => setFormValue('currencyId', v === '__none__' ? '' : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('selectCurrency')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">{t('selectCurrency')}</SelectItem>
-                  {values.map((val) => (
-                    <SelectItem key={val.id} value={val.id}>
-                      {val.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ValueCombobox
+                values={values}
+                value={watch('currencyId') || null}
+                onSelect={(id) => setFormValue('currencyId', id ?? '')}
+                placeholder={t('selectCurrency')}
+              />
             </div>
             <div className="space-y-2">
               <Label>{t('paid')}</Label>
@@ -323,22 +314,12 @@ export function InvoiceFormDialog({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">{t('value')}</Label>
-                        <Select
-                          value={item.valueId || '__none__'}
-                          onValueChange={(v) => updateItem(idx, 'valueId', v === '__none__' ? '' : v)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('selectValue')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">{t('selectValue')}</SelectItem>
-                            {values.map((val) => (
-                              <SelectItem key={val.id} value={val.id}>
-                                {val.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <ValueCombobox
+                          values={values}
+                          value={item.valueId || null}
+                          onSelect={(id) => updateItem(idx, 'valueId', id ?? '')}
+                          placeholder={t('selectValue')}
+                        />
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">

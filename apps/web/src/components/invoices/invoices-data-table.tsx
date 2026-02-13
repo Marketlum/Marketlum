@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ValueCombobox } from '@/components/shared/value-combobox';
 import type { FieldDef } from '@/lib/export-utils';
 
 interface InvoiceItemRow {
@@ -425,19 +426,13 @@ export function InvoicesDataTable() {
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium">{t('currency')}</label>
-          <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allCurrencies')}</SelectItem>
-              {values.map((val) => (
-                <SelectItem key={val.id} value={val.id}>
-                  {val.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ValueCombobox
+            values={values}
+            value={currencyFilter === 'all' ? null : currencyFilter}
+            onSelect={(id) => setCurrencyFilter(id ?? 'all')}
+            placeholder={t('allCurrencies')}
+            noneLabel={t('allCurrencies')}
+          />
         </div>
       </DataTableFilterSheet>
 

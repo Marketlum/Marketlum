@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ValueCombobox } from '@/components/shared/value-combobox';
 import { useValues } from '@/hooks/use-values';
 import { useAgents } from '@/hooks/use-agents';
 
@@ -106,21 +107,12 @@ export function AccountFormDialog({
 
           <div className="space-y-2">
             <Label>{t('value')}</Label>
-            <Select
-              value={valueIdValue ?? ''}
-              onValueChange={(v) => setFormValue('valueId', v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('selectValue')} />
-              </SelectTrigger>
-              <SelectContent>
-                {values.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    {v.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ValueCombobox
+              values={values}
+              value={valueIdValue ?? null}
+              onSelect={(id) => setFormValue('valueId', id ?? '')}
+              placeholder={t('selectValue')}
+            />
             {errors.valueId && <p className="text-sm text-destructive">{errors.valueId.message}</p>}
           </div>
 

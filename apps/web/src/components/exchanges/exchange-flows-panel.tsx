@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ValueCombobox } from '@/components/shared/value-combobox';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 
 interface FlowRow {
@@ -251,23 +252,16 @@ export function ExchangeFlowsPanel({
           <form onSubmit={handleSubmitFlow} className="space-y-4">
             <div className="space-y-1">
               <Label>{t('flowValue')}</Label>
-              <Select
-                value={valueId}
-                onValueChange={(v) => {
-                  setValueId(v);
-                  if (v !== 'none') setValueInstanceId('none');
+              <ValueCombobox
+                values={values}
+                value={valueId === 'none' ? null : valueId}
+                onSelect={(id) => {
+                  setValueId(id ?? 'none');
+                  if (id) setValueInstanceId('none');
                 }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('selectValue')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">&mdash;</SelectItem>
-                  {values.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder={t('selectValue')}
+                noneLabel={'\u2014'}
+              />
             </div>
 
             <div className="space-y-1">

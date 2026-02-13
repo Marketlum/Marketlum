@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ValueCombobox } from '@/components/shared/value-combobox';
 import { TaxonomyTreeSelect } from '@/components/shared/taxonomy-tree-select';
 import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
 import { useAgents } from '@/hooks/use-agents';
@@ -256,24 +257,14 @@ export function ValueFormDialog({
           {/* Parent */}
           <div className="space-y-2">
             <Label>{t('parent')}</Label>
-            <Select
-              value={parentIdValue ?? 'none'}
-              onValueChange={(v) => setFormValue('parentId', v === 'none' ? null : v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('selectParent')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">-</SelectItem>
-                {allValues
-                  .filter((v) => v.id !== value?.id)
-                  .map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            <ValueCombobox
+              values={allValues}
+              value={parentIdValue ?? null}
+              onSelect={(id) => setFormValue('parentId', id)}
+              placeholder={t('selectParent')}
+              noneLabel="-"
+              excludeId={value?.id}
+            />
           </div>
 
           {parentIdValue && (

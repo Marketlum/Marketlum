@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ValueCombobox } from '@/components/shared/value-combobox';
 import { useAgents } from '@/hooks/use-agents';
 import { useValueStreams } from '@/hooks/use-value-streams';
 import { useValues } from '@/hooks/use-values';
@@ -281,22 +282,12 @@ export function OfferingFormDialog({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">{t('value')}</Label>
-                        <Select
-                          value={comp.valueId || '__none__'}
-                          onValueChange={(v) => updateComponent(idx, 'valueId', v === '__none__' ? '' : v)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('selectValue')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">{t('selectValue')}</SelectItem>
-                            {values.map((val) => (
-                              <SelectItem key={val.id} value={val.id}>
-                                {val.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <ValueCombobox
+                          values={values}
+                          value={comp.valueId || null}
+                          onSelect={(id) => updateComponent(idx, 'valueId', id ?? '')}
+                          placeholder={t('selectValue')}
+                        />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">{t('quantity')}</Label>
