@@ -195,3 +195,10 @@ export {
   type UpdateExchangeFlowInput,
   type ExchangeFlowResponse,
 } from './schemas/exchange.schema';
+
+export {
+  dashboardQuerySchema,
+  type DashboardQuery,
+  type DashboardTimeSeriesPoint,
+  type DashboardSummaryResponse,
+} from './schemas/dashboard.schema';

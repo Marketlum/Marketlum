@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -57,6 +57,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   const navGroups = [
+    { label: '', items: [
+      { href: '/app/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    ]},
     { label: t('groupActors'), items: [
       { href: '/app/users', label: t('users'), icon: Users },
       { href: '/app/agents', label: t('agents'), icon: Bot },
@@ -144,10 +147,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             <nav className="flex-1 overflow-y-auto p-2">
               {filteredGroups.map((group) => (
-                <div key={group.label}>
-                  <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
-                    {group.label}
-                  </div>
+                <div key={group.label || '_top'}>
+                  {group.label && (
+                    <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
+                      {group.label}
+                    </div>
+                  )}
                   {group.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname.startsWith(item.href);
@@ -245,7 +250,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <nav className="flex-1 overflow-y-auto p-2">
             {collapsed
               ? navGroups.map((group, gi) => (
-                  <div key={group.label}>
+                  <div key={group.label || '_top'}>
                     {gi > 0 && <div className="my-1 border-b border-sidebar-border" />}
                     {group.items.map((item) => {
                       const Icon = item.icon;
@@ -271,10 +276,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 ))
               : filteredGroups.map((group) => (
-                  <div key={group.label}>
-                    <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
-                      {group.label}
-                    </div>
+                  <div key={group.label || '_top'}>
+                    {group.label && (
+                      <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
+                        {group.label}
+                      </div>
+                    )}
                     {group.items.map((item) => {
                       const Icon = item.icon;
                       const isActive = pathname.startsWith(item.href);
