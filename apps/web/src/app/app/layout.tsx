@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [menuFilter, setMenuFilter] = useState('');
 
   useEffect(() => {
     setCollapsed(localStorage.getItem(SIDEBAR_KEY) === 'true');
@@ -55,22 +56,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     router.push('/login');
   };
 
-  const navItems = [
-    { href: '/app/users', label: t('users'), icon: Users },
-    { href: '/app/agents', label: t('agents'), icon: Bot },
-    { href: '/app/values', label: t('values'), icon: Gem },
-    { href: '/app/value-instances', label: t('valueInstances'), icon: Layers },
-    { href: '/app/value-streams', label: t('valueStreams'), icon: Workflow },
-    { href: '/app/accounts', label: t('accounts'), icon: Wallet },
-    { href: '/app/transactions', label: t('transactions'), icon: ArrowLeftRight },
-    { href: '/app/agreements', label: t('agreements'), icon: Handshake },
-    { href: '/app/channels', label: t('channels'), icon: Hash },
-    { href: '/app/offerings', label: t('offerings'), icon: Package },
-    { href: '/app/invoices', label: t('invoices'), icon: FileText },
-    { href: '/app/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
-    { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
-    { href: '/app/files', label: t('files'), icon: FileIcon },
+  const navGroups = [
+    { label: t('groupActors'), items: [
+      { href: '/app/users', label: t('users'), icon: Users },
+      { href: '/app/agents', label: t('agents'), icon: Bot },
+    ]},
+    { label: t('groupValues'), items: [
+      { href: '/app/values', label: t('values'), icon: Gem },
+      { href: '/app/value-instances', label: t('valueInstances'), icon: Layers },
+      { href: '/app/value-streams', label: t('valueStreams'), icon: Workflow },
+    ]},
+    { label: t('groupLedger'), items: [
+      { href: '/app/accounts', label: t('accounts'), icon: Wallet },
+      { href: '/app/transactions', label: t('transactions'), icon: ArrowLeftRight },
+    ]},
+    { label: t('groupCommerce'), items: [
+      { href: '/app/agreements', label: t('agreements'), icon: Handshake },
+      { href: '/app/channels', label: t('channels'), icon: Hash },
+      { href: '/app/offerings', label: t('offerings'), icon: Package },
+      { href: '/app/invoices', label: t('invoices'), icon: FileText },
+      { href: '/app/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
+    ]},
+    { label: t('groupSystem'), items: [
+      { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
+      { href: '/app/files', label: t('files'), icon: FileIcon },
+    ]},
   ];
+
+  const filteredGroups = menuFilter
+    ? navGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) =>
+            item.label.toLowerCase().includes(menuFilter.toLowerCase()),
+          ),
+        }))
+        .filter((group) => group.items.length > 0)
+    : navGroups;
 
   if (!user) return null;
 
@@ -107,26 +129,46 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            <nav className="flex-1 space-y-1 p-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname.startsWith(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setSheetOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                      isActive
-                        ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
-                        : 'text-sidebar-muted-foreground hover:bg-sidebar-secondary hover:text-sidebar-foreground'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <div className="px-3 pt-3">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-muted-foreground" />
+                <input
+                  type="text"
+                  value={menuFilter}
+                  onChange={(e) => setMenuFilter(e.target.value)}
+                  placeholder={t('searchMenu')}
+                  className="h-8 w-full rounded-md border-0 bg-sidebar-secondary pl-8 pr-3 text-xs text-sidebar-foreground placeholder:text-sidebar-muted-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-primary"
+                />
+              </div>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto p-2">
+              {filteredGroups.map((group) => (
+                <div key={group.label}>
+                  <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
+                    {group.label}
+                  </div>
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname.startsWith(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => { setSheetOpen(false); setMenuFilter(''); }}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                          isActive
+                            ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
+                            : 'text-sidebar-muted-foreground hover:bg-sidebar-secondary hover:text-sidebar-foreground'
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
             </nav>
 
             <div className="border-t border-sidebar-border p-2">
@@ -185,38 +227,75 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          <nav className="flex-1 space-y-1 p-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname.startsWith(item.href);
-              const link = (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                    collapsed ? 'justify-center' : ''
-                  } ${
-                    isActive
-                      ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
-                      : 'text-sidebar-muted-foreground hover:bg-sidebar-secondary hover:text-sidebar-foreground'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {!collapsed && item.label}
-                </Link>
-              );
+          {!collapsed && (
+            <div className="px-3 pt-3">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-muted-foreground" />
+                <input
+                  type="text"
+                  value={menuFilter}
+                  onChange={(e) => setMenuFilter(e.target.value)}
+                  placeholder={t('searchMenu')}
+                  className="h-8 w-full rounded-md border-0 bg-sidebar-secondary pl-8 pr-3 text-xs text-sidebar-foreground placeholder:text-sidebar-muted-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-primary"
+                />
+              </div>
+            </div>
+          )}
 
-              if (collapsed) {
-                return (
-                  <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>{link}</TooltipTrigger>
-                    <TooltipContent side="right">{item.label}</TooltipContent>
-                  </Tooltip>
-                );
-              }
-
-              return link;
-            })}
+          <nav className="flex-1 overflow-y-auto p-2">
+            {collapsed
+              ? navGroups.map((group, gi) => (
+                  <div key={group.label}>
+                    {gi > 0 && <div className="my-1 border-b border-sidebar-border" />}
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname.startsWith(item.href);
+                      return (
+                        <Tooltip key={item.href}>
+                          <TooltipTrigger asChild>
+                            <Link
+                              href={item.href}
+                              className={`flex items-center justify-center rounded-lg px-3 py-2 text-sm transition-colors ${
+                                isActive
+                                  ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
+                                  : 'text-sidebar-muted-foreground hover:bg-sidebar-secondary hover:text-sidebar-foreground'
+                              }`}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">{item.label}</TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                ))
+              : filteredGroups.map((group) => (
+                  <div key={group.label}>
+                    <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
+                      {group.label}
+                    </div>
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname.startsWith(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMenuFilter('')}
+                          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                            isActive
+                              ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
+                              : 'text-sidebar-muted-foreground hover:bg-sidebar-secondary hover:text-sidebar-foreground'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
           </nav>
 
           <div className="border-t border-sidebar-border p-2">

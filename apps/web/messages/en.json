@@ -44,7 +44,13 @@
     "menu": "Menu",
     "theme": "Theme",
     "lightMode": "Light",
-    "darkMode": "Dark"
+    "darkMode": "Dark",
+    "searchMenu": "Search menu...",
+    "groupActors": "Actors",
+    "groupValues": "Values",
+    "groupLedger": "Ledger",
+    "groupCommerce": "Commerce",
+    "groupSystem": "System"
   },
   "auth": {
     "signIn": "Sign in",

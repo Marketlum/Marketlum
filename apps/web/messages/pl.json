@@ -44,7 +44,13 @@
     "menu": "Menu",
     "theme": "Motyw",
     "lightMode": "Jasny",
-    "darkMode": "Ciemny"
+    "darkMode": "Ciemny",
+    "searchMenu": "Szukaj w menu...",
+    "groupActors": "Aktorzy",
+    "groupValues": "Wartości",
+    "groupLedger": "Księga",
+    "groupCommerce": "Handel",
+    "groupSystem": "System"
   },
   "auth": {
     "signIn": "Zaloguj się",
