@@ -612,6 +612,7 @@
     "description": "Przegląd przychodów i wydatków z faktur.",
     "allAgents": "Wszyscy agenci",
     "allValueStreams": "Wszystkie strumienie",
+    "allChannels": "Wszystkie kanały",
     "fromDate": "Od daty",
     "toDate": "Do daty",
     "totalRevenue": "Łączny przychód",

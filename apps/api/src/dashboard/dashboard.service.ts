@@ -16,18 +16,19 @@ export class DashboardService {
   ) {}
 
   async getSummary(query: DashboardQuery): Promise<DashboardSummaryResponse> {
-    const { agentId, valueStreamId, fromDate, toDate } = query;
+    const { agentId, valueStreamId, channelId, fromDate, toDate } = query;
 
     if (agentId) {
-      return this.getSummaryByAgent(agentId, valueStreamId, fromDate, toDate);
+      return this.getSummaryByAgent(agentId, valueStreamId, channelId, fromDate, toDate);
     }
 
-    return this.getSummaryAll(valueStreamId, fromDate, toDate);
+    return this.getSummaryAll(valueStreamId, channelId, fromDate, toDate);
   }
 
   private async getSummaryByAgent(
     agentId: string,
     valueStreamId?: string,
+    channelId?: string,
     fromDate?: string,
     toDate?: string,
   ): Promise<DashboardSummaryResponse> {
@@ -35,6 +36,7 @@ export class DashboardService {
       'i."fromAgentId" = $1',
       [agentId],
       valueStreamId,
+      channelId,
       fromDate,
       toDate,
     );
@@ -43,6 +45,7 @@ export class DashboardService {
       'i."toAgentId" = $1',
       [agentId],
       valueStreamId,
+      channelId,
       fromDate,
       toDate,
     );
@@ -88,10 +91,11 @@ export class DashboardService {
 
   private async getSummaryAll(
     valueStreamId?: string,
+    channelId?: string,
     fromDate?: string,
     toDate?: string,
   ): Promise<DashboardSummaryResponse> {
-    const rows = await this.queryTimeSeries('1=1', [], valueStreamId, fromDate, toDate);
+    const rows = await this.queryTimeSeries('1=1', [], valueStreamId, channelId, fromDate, toDate);
 
     const timeSeries: DashboardTimeSeriesPoint[] = rows.map((row) => ({
       period: row.period,
@@ -116,6 +120,7 @@ export class DashboardService {
     agentCondition: string,
     agentParams: string[],
     valueStreamId?: string,
+    channelId?: string,
     fromDate?: string,
     toDate?: string,
   ): Promise<{ period: string; amount: string; count: string }[]> {
@@ -126,6 +131,12 @@ export class DashboardService {
     if (valueStreamId) {
       conditions.push(`i."valueStreamId" = $${paramIndex}`);
       params.push(valueStreamId);
+      paramIndex++;
+    }
+
+    if (channelId) {
+      conditions.push(`i."channelId" = $${paramIndex}`);
+      params.push(channelId);
       paramIndex++;
     }
 

@@ -652,6 +652,7 @@
     "description": "Overview of revenue and expenses from invoices.",
     "allAgents": "All Agents",
     "allValueStreams": "All Value Streams",
+    "allChannels": "All Channels",
     "fromDate": "From date",
     "toDate": "To date",
     "totalRevenue": "Total Revenue",

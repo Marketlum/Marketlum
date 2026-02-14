@@ -6,6 +6,7 @@ import type { DashboardSummaryResponse } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { useAgents } from '@/hooks/use-agents';
 import { useValueStreams } from '@/hooks/use-value-streams';
+import { useChannels } from '@/hooks/use-channels';
 import { RevenueExpensesChart } from './revenue-expenses-chart';
 
 function formatDate(d: Date): string {
@@ -57,9 +58,11 @@ export function Dashboard() {
   const t = useTranslations('dashboard');
   const { agents } = useAgents();
   const { valueStreams } = useValueStreams();
+  const { channels } = useChannels();
 
   const [agentId, setAgentId] = useState('');
   const [valueStreamId, setValueStreamId] = useState('');
+  const [channelId, setChannelId] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [preset, setPreset] = useState('all');
@@ -97,6 +100,7 @@ export function Dashboard() {
       const params = new URLSearchParams();
       if (agentId) params.set('agentId', agentId);
       if (valueStreamId) params.set('valueStreamId', valueStreamId);
+      if (channelId) params.set('channelId', channelId);
       if (fromDate) params.set('fromDate', fromDate);
       if (toDate) params.set('toDate', toDate);
       const qs = params.toString();
@@ -109,7 +113,7 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [agentId, valueStreamId, fromDate, toDate]);
+  }, [agentId, valueStreamId, channelId, fromDate, toDate]);
 
   useEffect(() => {
     fetchData();
@@ -141,6 +145,16 @@ export function Dashboard() {
           <option value="">{t('allValueStreams')}</option>
           {valueStreams.map((vs) => (
             <option key={vs.id} value={vs.id}>{vs.name}</option>
+          ))}
+        </select>
+        <select
+          value={channelId}
+          onChange={(e) => setChannelId(e.target.value)}
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="">{t('allChannels')}</option>
+          {channels.map((ch) => (
+            <option key={ch.id} value={ch.id}>{ch.name}</option>
           ))}
         </select>
         <select
