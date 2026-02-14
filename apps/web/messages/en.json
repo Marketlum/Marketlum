@@ -541,7 +541,11 @@
     "failedToCreate": "Failed to create offering",
     "failedToUpdate": "Failed to update offering",
     "failedToDelete": "Failed to delete offering",
-    "updatedAt": "Updated"
+    "updatedAt": "Updated",
+    "details": "Details",
+    "notFound": "Offering not found",
+    "notFoundDescription": "The offering you are looking for does not exist.",
+    "backToOfferings": "Back to offerings"
   },
   "invoices": {
     "title": "Invoices",
