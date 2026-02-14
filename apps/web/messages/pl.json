@@ -605,7 +605,12 @@
     "failedToCreateFlow": "Nie udało się utworzyć przepływu",
     "failedToUpdateFlow": "Nie udało się zaktualizować przepływu",
     "failedToDeleteFlow": "Nie udało się usunąć przepływu",
-    "noFlows": "Brak przepływów"
+    "noFlows": "Brak przepływów",
+    "details": "Szczegóły",
+    "updatedAt": "Zaktualizowano",
+    "notFound": "Nie znaleziono wymiany",
+    "notFoundDescription": "Szukana wymiana nie istnieje.",
+    "backToExchanges": "Powrót do wymian"
   },
   "dashboard": {
     "title": "Pulpit",

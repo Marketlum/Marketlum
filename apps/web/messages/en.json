@@ -645,7 +645,12 @@
     "failedToCreateFlow": "Failed to create flow",
     "failedToUpdateFlow": "Failed to update flow",
     "failedToDeleteFlow": "Failed to delete flow",
-    "noFlows": "No flows"
+    "noFlows": "No flows",
+    "details": "Details",
+    "updatedAt": "Updated At",
+    "notFound": "Exchange not found",
+    "notFoundDescription": "The exchange you are looking for does not exist.",
+    "backToExchanges": "Back to exchanges"
   },
   "dashboard": {
     "title": "Dashboard",
