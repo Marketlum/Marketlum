@@ -30,6 +30,7 @@ const agentIds = new Map<string, string>();
 const valueIds = new Map<string, string>();
 const valueInstanceIds = new Map<string, string>();
 const valueStreamIds = new Map<string, string>();
+const channelIds = new Map<string, string>();
 
 async function createAgent(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
@@ -75,6 +76,16 @@ async function createValueStream(authCookie: string, name: string): Promise<stri
   return res.body.id;
 }
 
+async function createChannel(authCookie: string, name: string): Promise<string> {
+  const res = await request(getApp().getHttpServer())
+    .post('/channels')
+    .set('Cookie', [authCookie])
+    .set('X-CSRF-Protection', '1')
+    .send({ name, color: '#ff0000' });
+  channelIds.set(name, res.body.id);
+  return res.body.id;
+}
+
 async function createInvoice(
   authCookie: string,
   number: string,
@@ -85,6 +96,7 @@ async function createInvoice(
     currencyName?: string;
     items?: { valueId?: string; valueInstanceId?: string; quantity: string; unitPrice: string; total: string }[];
     valueStreamId?: string;
+    channelId?: string;
   } = {},
 ): Promise<request.Response> {
   const fromAgentId = agentIds.get(fromAgentName)!;
@@ -101,6 +113,7 @@ async function createInvoice(
   if (opts.paid !== undefined) body.paid = opts.paid;
   if (opts.items) body.items = opts.items;
   if (opts.valueStreamId) body.valueStreamId = opts.valueStreamId;
+  if (opts.channelId) body.channelId = opts.channelId;
   return request(getApp().getHttpServer())
     .post('/invoices')
     .set('Cookie', [authCookie])
@@ -114,6 +127,7 @@ function clearMaps() {
   valueIds.clear();
   valueInstanceIds.clear();
   valueStreamIds.clear();
+  channelIds.clear();
 }
 
 // --- CREATE INVOICE ---
@@ -353,6 +367,52 @@ defineFeature(createFeature, (test) => {
     });
   });
 
+  test('Create invoice with channel', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a value exists with name "(.*)"$/, async (name: string) => {
+      await createValue(authCookie, name);
+    });
+
+    and(/^a channel exists with name "(.*)"$/, async (name: string) => {
+      await createChannel(authCookie, name);
+    });
+
+    when(
+      /^I create an invoice with channel "(.*)":/,
+      async (channelName: string, table: { number: string }[]) => {
+        const row = table[0];
+        const channelId = channelIds.get(channelName)!;
+        response = await createInvoice(authCookie, row.number, 'Seller Corp', 'Buyer Inc', {
+          channelId,
+        });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an invoice with number "(.*)"$/, (number: string) => {
+      expect(response.body.number).toBe(number);
+    });
+
+    and(/^the response should contain a channel with name "(.*)"$/, (name: string) => {
+      expect(response.body.channel).toBeDefined();
+      expect(response.body.channel.name).toBe(name);
+    });
+  });
+
   test('Reject missing required fields', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
@@ -529,6 +589,57 @@ defineFeature(getFeature, (test) => {
 
     and(/^the response total should be "(.*)"$/, (total: string) => {
       expect(response.body.total).toBe(total);
+    });
+  });
+
+  test('Get invoice with channel', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a value exists with name "(.*)"$/, async (name: string) => {
+      await createValue(authCookie, name);
+    });
+
+    and(/^a channel exists with name "(.*)"$/, async (name: string) => {
+      await createChannel(authCookie, name);
+    });
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)" with channel "(.*)"$/,
+      async (number: string, from: string, to: string, channelName: string) => {
+        const channelId = channelIds.get(channelName)!;
+        const res = await createInvoice(authCookie, number, from, to, { channelId });
+        invoiceIds.set(number, res.body.id);
+      },
+    );
+
+    when('I request the invoice by its ID', async () => {
+      const id = invoiceIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .get(`/invoices/${id}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an invoice with number "(.*)"$/, (number: string) => {
+      expect(response.body.number).toBe(number);
+    });
+
+    and(/^the response should contain a channel with name "(.*)"$/, (name: string) => {
+      expect(response.body.channel).toBeDefined();
+      expect(response.body.channel.name).toBe(name);
     });
   });
 
@@ -725,6 +836,103 @@ defineFeature(updateFeature, (test) => {
 
     and(/^the response total should be "(.*)"$/, (total: string) => {
       expect(response.body.total).toBe(total);
+    });
+  });
+
+  test('Update invoice channel', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a value exists with name "(.*)"$/, async (name: string) => {
+      await createValue(authCookie, name);
+    });
+
+    and(/^a channel exists with name "(.*)"$/, async (name: string) => {
+      await createChannel(authCookie, name);
+    });
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)"$/,
+      async (number: string, from: string, to: string) => {
+        const res = await createInvoice(authCookie, number, from, to);
+        invoiceIds.set(number, res.body.id);
+      },
+    );
+
+    when(/^I update the invoice's channel to "(.*)"$/, async (channelName: string) => {
+      const id = invoiceIds.values().next().value;
+      const channelId = channelIds.get(channelName)!;
+      response = await request(getApp().getHttpServer())
+        .patch(`/invoices/${id}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ channelId });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a channel with name "(.*)"$/, (name: string) => {
+      expect(response.body.channel).toBeDefined();
+      expect(response.body.channel.name).toBe(name);
+    });
+  });
+
+  test('Clear invoice channel', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a value exists with name "(.*)"$/, async (name: string) => {
+      await createValue(authCookie, name);
+    });
+
+    and(/^a channel exists with name "(.*)"$/, async (name: string) => {
+      await createChannel(authCookie, name);
+    });
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)" with channel "(.*)"$/,
+      async (number: string, from: string, to: string, channelName: string) => {
+        const channelId = channelIds.get(channelName)!;
+        const res = await createInvoice(authCookie, number, from, to, { channelId });
+        invoiceIds.set(number, res.body.id);
+      },
+    );
+
+    when("I update the invoice's channel to null", async () => {
+      const id = invoiceIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .patch(`/invoices/${id}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ channelId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response channel should be null', () => {
+      expect(response.body.channel).toBeNull();
     });
   });
 
@@ -1276,6 +1484,58 @@ defineFeature(searchFeature, (test) => {
       const currencyId = valueIds.get(currencyName);
       response = await request(getApp().getHttpServer())
         .get(`/invoices/search?currencyId=${currencyId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the total count should be (\d+)$/, (count: string) => {
+      expect(response.body.meta.total).toBe(parseInt(count));
+    });
+  });
+
+  test('Filter by channelId', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a value exists with name "(.*)"$/, async (name: string) => {
+      await createValue(authCookie, name);
+    });
+
+    and(/^a channel exists with name "(.*)"$/, async (name: string) => {
+      await createChannel(authCookie, name);
+    });
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)" with channel "(.*)"$/,
+      async (number: string, from: string, to: string, channelName: string) => {
+        const channelId = channelIds.get(channelName)!;
+        await createInvoice(authCookie, number, from, to, { channelId });
+      },
+    );
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)"$/,
+      async (number: string, from: string, to: string) => {
+        await createInvoice(authCookie, number, from, to);
+      },
+    );
+
+    when(/^I search invoices with channelId for "(.*)"$/, async (channelName: string) => {
+      const channelId = channelIds.get(channelName);
+      response = await request(getApp().getHttpServer())
+        .get(`/invoices/search?channelId=${channelId}`)
         .set('Cookie', [authCookie]);
     });
 

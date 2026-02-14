@@ -467,7 +467,13 @@
     "noResults": "Nie znaleziono pasujących umów.",
     "level": "Poziom",
     "updatedAt": "Zaktualizowano",
-    "allParties": "Wszystkie strony"
+    "allParties": "Wszystkie strony",
+    "details": "Szczegóły",
+    "notFound": "Nie znaleziono umowy",
+    "notFoundDescription": "Umowa, której szukasz, nie istnieje lub została usunięta.",
+    "backToAgreements": "Wróć do umów",
+    "children": "Potomne",
+    "noChildren": "Brak umów potomnych."
   },
   "channels": {
     "title": "Kanały",
@@ -535,7 +541,10 @@
     "failedToLoad": "Nie udało się wczytać faktur",
     "failedToCreate": "Nie udało się utworzyć faktury",
     "failedToUpdate": "Nie udało się zaktualizować faktury",
-    "failedToDelete": "Nie udało się usunąć faktury"
+    "failedToDelete": "Nie udało się usunąć faktury",
+    "channel": "Kanał",
+    "selectChannel": "Wybierz kanał",
+    "allChannels": "Wszystkie kanały"
   },
   "exchanges": {
     "title": "Wymiany",

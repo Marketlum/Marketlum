@@ -32,6 +32,7 @@ import { ValueCombobox } from '@/components/shared/value-combobox';
 import { useAgents } from '@/hooks/use-agents';
 import { useValues } from '@/hooks/use-values';
 import { useValueStreams } from '@/hooks/use-value-streams';
+import { useChannels } from '@/hooks/use-channels';
 
 interface ItemRow {
   valueId: string;
@@ -53,6 +54,7 @@ interface InvoiceData {
   link: string | null;
   file: unknown;
   valueStream: { id: string; name: string } | null;
+  channel: { id: string; name: string } | null;
   items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string }[];
 }
 
@@ -78,6 +80,7 @@ export function InvoiceFormDialog({
   const { agents } = useAgents(open);
   const { values } = useValues(open);
   const { valueStreams } = useValueStreams(open);
+  const { channels } = useChannels(open);
   const [items, setItems] = useState<ItemRow[]>([]);
 
   const {
@@ -104,6 +107,7 @@ export function InvoiceFormDialog({
           paid: invoice.paid,
           link: invoice.link ?? '',
           valueStreamId: invoice.valueStream?.id ?? null,
+          channelId: invoice.channel?.id ?? null,
         });
         setItems(
           (invoice.items ?? []).map((item) => ({
@@ -125,6 +129,7 @@ export function InvoiceFormDialog({
           paid: false,
           link: '',
           valueStreamId: null,
+          channelId: null,
         });
         setItems([]);
       }
@@ -283,6 +288,26 @@ export function InvoiceFormDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('channel')}</Label>
+            <Select
+              value={watch('channelId') ?? '__none__'}
+              onValueChange={(v) => setFormValue('channelId', v === '__none__' ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('selectChannel')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">&mdash;</SelectItem>
+                {channels.map((ch) => (
+                  <SelectItem key={ch.id} value={ch.id}>
+                    {ch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

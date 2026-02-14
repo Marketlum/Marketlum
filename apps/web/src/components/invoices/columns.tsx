@@ -24,6 +24,7 @@ interface InvoiceRow {
   link: string | null;
   file: unknown;
   valueStream: { id: string; name: string } | null;
+  channel: { id: string; name: string } | null;
   items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string }[];
   createdAt: string;
   updatedAt: string;
@@ -40,6 +41,7 @@ interface InvoiceColumnsTranslations {
   paid: string;
   paidYes: string;
   paidNo: string;
+  channel: string;
   link: string;
   edit: string;
   delete: string;
@@ -129,6 +131,12 @@ export function getInvoiceColumns({
           </Badge>
         );
       },
+    },
+    {
+      id: 'channel',
+      header: translations.channel,
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => row.original.channel?.name ?? '\u2014',
     },
     {
       id: 'link',

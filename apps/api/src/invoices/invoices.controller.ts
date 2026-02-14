@@ -43,6 +43,7 @@ export class InvoicesController {
     @Query('toAgentId') toAgentId?: string,
     @Query('paid') paid?: string,
     @Query('currencyId') currencyId?: string,
+    @Query('channelId') channelId?: string,
   ) {
     return this.invoicesService.search({
       ...query,
@@ -50,6 +51,7 @@ export class InvoicesController {
       toAgentId,
       paid,
       currencyId,
+      channelId,
     });
   }
 

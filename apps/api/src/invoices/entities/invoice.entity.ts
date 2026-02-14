@@ -13,6 +13,7 @@ import {
 import { Agent } from '../../agents/entities/agent.entity';
 import { Value } from '../../values/entities/value.entity';
 import { ValueStream } from '../../value-streams/entities/value-stream.entity';
+import { Channel } from '../../channels/channel.entity';
 import { File } from '../../files/entities/file.entity';
 import { InvoiceItem } from './invoice-item.entity';
 
@@ -71,6 +72,13 @@ export class Invoice {
 
   @Column({ type: 'uuid', nullable: true })
   valueStreamId: string | null;
+
+  @ManyToOne(() => Channel, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'channelId' })
+  channel: Channel | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  channelId: string | null;
 
   @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items: InvoiceItem[];

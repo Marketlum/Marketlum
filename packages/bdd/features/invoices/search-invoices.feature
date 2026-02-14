@@ -73,6 +73,18 @@ Feature: Search Invoices
     Then the response status should be 200
     And the total count should be 1
 
+  Scenario: Filter by channelId
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Seller Corp"
+    And an agent exists with name "Buyer Inc"
+    And a value exists with name "USD"
+    And a channel exists with name "Online Store"
+    And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc" with channel "Online Store"
+    And an invoice exists with number "INV-002" from "Seller Corp" to "Buyer Inc"
+    When I search invoices with channelId for "Online Store"
+    Then the response status should be 200
+    And the total count should be 1
+
   Scenario: Sort by number ascending
     Given I am authenticated as "admin@marketlum.com"
     And an agent exists with name "Seller Corp"

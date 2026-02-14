@@ -43,6 +43,28 @@ Feature: Update Invoice
     When I update the second invoice's number to "INV-001"
     Then the response status should be 409
 
+  Scenario: Update invoice channel
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Seller Corp"
+    And an agent exists with name "Buyer Inc"
+    And a value exists with name "USD"
+    And a channel exists with name "Online Store"
+    And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
+    When I update the invoice's channel to "Online Store"
+    Then the response status should be 200
+    And the response should contain a channel with name "Online Store"
+
+  Scenario: Clear invoice channel
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Seller Corp"
+    And an agent exists with name "Buyer Inc"
+    And a value exists with name "USD"
+    And a channel exists with name "Online Store"
+    And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc" with channel "Online Store"
+    When I update the invoice's channel to null
+    Then the response status should be 200
+    And the response channel should be null
+
   Scenario: Update a non-existent invoice returns 404
     Given I am authenticated as "admin@marketlum.com"
     When I update the invoice with ID "00000000-0000-0000-0000-000000000000" with number "INV-999"

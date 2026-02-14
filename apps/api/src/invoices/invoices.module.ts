@@ -7,6 +7,7 @@ import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { File } from '../files/entities/file.entity';
+import { Channel } from '../channels/channel.entity';
 import { InvoicesService } from './invoices.service';
 import { InvoicesController } from './invoices.controller';
 
@@ -20,6 +21,7 @@ import { InvoicesController } from './invoices.controller';
       ValueInstance,
       ValueStream,
       File,
+      Channel,
     ]),
   ],
   controllers: [InvoicesController],

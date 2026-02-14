@@ -22,6 +22,11 @@ const valueStreamSummarySchema = z.object({
   name: z.string(),
 });
 
+const channelSummarySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+});
+
 const decimalStringRegex = /^\d+(\.\d{1,2})?$/;
 
 export const createInvoiceItemSchema = z.object({
@@ -43,6 +48,7 @@ export const createInvoiceSchema = z.object({
   link: z.string().optional(),
   fileId: z.string().uuid().nullable().optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
+  channelId: z.string().uuid().nullable().optional(),
   items: z.array(createInvoiceItemSchema).optional(),
 });
 
@@ -57,6 +63,7 @@ export const updateInvoiceSchema = z.object({
   link: z.string().nullable().optional(),
   fileId: z.string().uuid().nullable().optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
+  channelId: z.string().uuid().nullable().optional(),
   items: z.array(createInvoiceItemSchema).optional(),
 });
 
@@ -81,6 +88,7 @@ export const invoiceResponseSchema = z.object({
   link: z.string().nullable(),
   file: z.any().nullable(),
   valueStream: valueStreamSummarySchema.nullable(),
+  channel: channelSummarySchema.nullable(),
   items: z.array(invoiceItemResponseSchema),
   total: z.string(),
   createdAt: z.string(),

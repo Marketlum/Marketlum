@@ -11,6 +11,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { usePerspectives } from '@/hooks/use-perspectives';
 import { useAgents } from '@/hooks/use-agents';
 import { useValues } from '@/hooks/use-values';
+import { useChannels } from '@/hooks/use-channels';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
@@ -58,6 +59,7 @@ interface InvoiceRow {
   link: string | null;
   file: unknown;
   valueStream: { id: string; name: string } | null;
+  channel: { id: string; name: string } | null;
   items: InvoiceItemRow[];
   createdAt: string;
   updatedAt: string;
@@ -72,10 +74,12 @@ export function InvoicesDataTable() {
   const isMobile = useIsMobile();
   const { agents } = useAgents();
   const { values } = useValues();
+  const { channels } = useChannels();
   const [fromAgentFilter, setFromAgentFilter] = useState<string>('all');
   const [toAgentFilter, setToAgentFilter] = useState<string>('all');
   const [paidFilter, setPaidFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
+  const [channelFilter, setChannelFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<InvoiceRow> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,6 +95,7 @@ export function InvoicesDataTable() {
     setToAgentFilter(config.filters?.toAgentId ?? 'all');
     setPaidFilter(config.filters?.paid ?? 'all');
     setCurrencyFilter(config.filters?.currencyId ?? 'all');
+    setChannelFilter(config.filters?.channelId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -129,9 +134,10 @@ export function InvoicesDataTable() {
       ...(toAgentFilter !== 'all' ? { toAgentId: toAgentFilter } : {}),
       ...(paidFilter !== 'all' ? { paid: paidFilter } : {}),
       ...(currencyFilter !== 'all' ? { currencyId: currencyFilter } : {}),
+      ...(channelFilter !== 'all' ? { channelId: channelFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -141,6 +147,7 @@ export function InvoicesDataTable() {
       if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
       if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
       if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
+      if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
       const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
       setData(result);
     } catch {
@@ -148,11 +155,11 @@ export function InvoicesDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter]);
+  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingInvoice(null);
@@ -219,6 +226,7 @@ export function InvoicesDataTable() {
       paid: t('paid'),
       paidYes: t('paidYes'),
       paidNo: t('paidNo'),
+      channel: t('channel'),
       link: t('link'),
       edit: tc('edit'),
       delete: tc('delete'),
@@ -234,6 +242,7 @@ export function InvoicesDataTable() {
     { id: 'currency', label: t('currency') },
     { id: 'total', label: t('total') },
     { id: 'paid', label: t('paid') },
+    { id: 'channel', label: t('channel') },
     { id: 'link', label: t('link') },
   ];
 
@@ -255,6 +264,10 @@ export function InvoicesDataTable() {
     }},
     { key: 'total', label: t('total'), extract: (r) => String(r.total ?? '0.00') },
     { key: 'paid', label: t('paid'), extract: (r) => r.paid ? t('paidYes') : t('paidNo') },
+    { key: 'channel', label: t('channel'), extract: (r) => {
+      const ch = r.channel as { name: string } | null;
+      return ch?.name ?? '';
+    }},
     { key: 'link', label: t('link'), extract: (r) => String(r.link ?? '') },
   ];
 
@@ -270,9 +283,10 @@ export function InvoicesDataTable() {
     if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
     if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
     if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
+    if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
     const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -314,8 +328,17 @@ export function InvoicesDataTable() {
         onClear: () => setCurrencyFilter('all'),
       });
     }
+    if (channelFilter !== 'all') {
+      const channel = channels.find((ch) => ch.id === channelFilter);
+      filters.push({
+        key: 'channel',
+        label: t('channel'),
+        displayValue: channel?.name ?? channelFilter,
+        onClear: () => setChannelFilter('all'),
+      });
+    }
     return filters;
-  }, [fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, agents, values, t]);
+  }, [fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, agents, values, channels, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -433,6 +456,22 @@ export function InvoicesDataTable() {
             placeholder={t('allCurrencies')}
             noneLabel={t('allCurrencies')}
           />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('channel')}</label>
+          <Select value={channelFilter} onValueChange={setChannelFilter}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allChannels')}</SelectItem>
+              {channels.map((ch) => (
+                <SelectItem key={ch.id} value={ch.id}>
+                  {ch.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </DataTableFilterSheet>
 

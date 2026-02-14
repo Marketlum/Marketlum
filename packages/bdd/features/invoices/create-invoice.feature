@@ -61,6 +61,19 @@ Feature: Create Invoice
     When I create an invoice with non-existent fromAgentId
     Then the response status should be 404
 
+  Scenario: Create invoice with channel
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Seller Corp"
+    And an agent exists with name "Buyer Inc"
+    And a value exists with name "USD"
+    And a channel exists with name "Online Store"
+    When I create an invoice with channel "Online Store":
+      | number  |
+      | INV-CH1 |
+    Then the response status should be 201
+    And the response should contain an invoice with number "INV-CH1"
+    And the response should contain a channel with name "Online Store"
+
   Scenario: Unauthenticated request is rejected
     When I create an invoice without authentication
     Then the response status should be 401

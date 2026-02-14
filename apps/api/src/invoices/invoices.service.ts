@@ -11,6 +11,7 @@ import { Agent } from '../agents/entities/agent.entity';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
+import { Channel } from '../channels/channel.entity';
 import { File } from '../files/entities/file.entity';
 import {
   CreateInvoiceInput,
@@ -35,6 +36,8 @@ export class InvoicesService {
     private readonly valueStreamRepository: Repository<ValueStream>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
+    @InjectRepository(Channel)
+    private readonly channelRepository: Repository<Channel>,
   ) {}
 
   async create(input: CreateInvoiceInput): Promise<Invoice> {
@@ -44,6 +47,7 @@ export class InvoicesService {
       currencyId,
       fileId,
       valueStreamId,
+      channelId,
       items,
       ...rest
     } = input;
@@ -80,6 +84,14 @@ export class InvoicesService {
       if (!vs) throw new NotFoundException('Value stream not found');
     }
 
+    // Validate channel if provided
+    if (channelId) {
+      const ch = await this.channelRepository.findOne({
+        where: { id: channelId },
+      });
+      if (!ch) throw new NotFoundException('Channel not found');
+    }
+
     // Check unique constraint (fromAgentId, number)
     const existing = await this.invoiceRepository.findOne({
       where: { fromAgentId, number: rest.number },
@@ -100,6 +112,7 @@ export class InvoicesService {
       link: rest.link ?? null,
       fileId: fileId ?? null,
       valueStreamId: valueStreamId ?? null,
+      channelId: channelId ?? null,
     });
 
     const saved = await this.invoiceRepository.save(invoice);
@@ -117,6 +130,7 @@ export class InvoicesService {
       toAgentId?: string;
       paid?: string;
       currencyId?: string;
+      channelId?: string;
     },
   ) {
     const {
@@ -129,6 +143,7 @@ export class InvoicesService {
       toAgentId,
       paid,
       currencyId,
+      channelId,
     } = query;
     const skip = (page - 1) * limit;
 
@@ -139,6 +154,7 @@ export class InvoicesService {
     qb.leftJoinAndSelect('invoice.currency', 'currency');
     qb.leftJoinAndSelect('invoice.file', 'file');
     qb.leftJoinAndSelect('invoice.valueStream', 'valueStream');
+    qb.leftJoinAndSelect('invoice.channel', 'channel');
 
     // Computed total subquery
     qb.addSelect(
@@ -160,6 +176,10 @@ export class InvoicesService {
 
     if (currencyId) {
       qb.andWhere('invoice.currencyId = :currencyId', { currencyId });
+    }
+
+    if (channelId) {
+      qb.andWhere('invoice.channelId = :channelId', { channelId });
     }
 
     if (search) {
@@ -205,6 +225,9 @@ export class InvoicesService {
     if (currencyId) {
       countQb.andWhere('invoice.currencyId = :currencyId', { currencyId });
     }
+    if (channelId) {
+      countQb.andWhere('invoice.channelId = :channelId', { channelId });
+    }
     if (search) {
       countQb.andWhere(
         '(invoice.number ILIKE :search OR fromAgent.name ILIKE :search OR toAgent.name ILIKE :search)',
@@ -234,6 +257,7 @@ export class InvoicesService {
         'currency',
         'file',
         'valueStream',
+        'channel',
         'items',
         'items.value',
         'items.valueInstance',
@@ -261,6 +285,7 @@ export class InvoicesService {
       currencyId,
       fileId,
       valueStreamId,
+      channelId,
       items,
       ...rest
     } = input;
@@ -322,6 +347,19 @@ export class InvoicesService {
       }
     }
 
+    if (channelId !== undefined) {
+      if (channelId === null) {
+        invoice.channel = null;
+        invoice.channelId = null;
+      } else {
+        const ch = await this.channelRepository.findOne({
+          where: { id: channelId },
+        });
+        if (!ch) throw new NotFoundException('Channel not found');
+        invoice.channelId = channelId;
+      }
+    }
+
     // Check unique constraint on update
     const effectiveFromAgentId = fromAgentId ?? invoice.fromAgentId;
     const effectiveNumber = rest.number ?? invoice.number;
@@ -341,6 +379,7 @@ export class InvoicesService {
     delete (invoice as any).currency;
     delete (invoice as any).file;
     delete (invoice as any).valueStream;
+    delete (invoice as any).channel;
     delete (invoice as any).total;
     await this.invoiceRepository.save(invoice);
 
