@@ -544,7 +544,12 @@
     "failedToDelete": "Nie udało się usunąć faktury",
     "channel": "Kanał",
     "selectChannel": "Wybierz kanał",
-    "allChannels": "Wszystkie kanały"
+    "allChannels": "Wszystkie kanały",
+    "details": "Szczegóły",
+    "updatedAt": "Zaktualizowano",
+    "notFound": "Nie znaleziono faktury",
+    "notFoundDescription": "Szukana faktura nie istnieje.",
+    "backToInvoices": "Powrót do faktur"
   },
   "exchanges": {
     "title": "Wymiany",

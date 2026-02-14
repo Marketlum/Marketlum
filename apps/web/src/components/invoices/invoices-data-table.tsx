@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { SlidersHorizontal } from 'lucide-react';
@@ -66,6 +67,7 @@ interface InvoiceRow {
 }
 
 export function InvoicesDataTable() {
+  const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('invoices');
@@ -479,7 +481,7 @@ export function InvoicesDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(invoice) => router.push(`/app/invoices/${invoice.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

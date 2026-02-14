@@ -584,7 +584,12 @@
     "failedToDelete": "Failed to delete invoice",
     "channel": "Channel",
     "selectChannel": "Select channel",
-    "allChannels": "All channels"
+    "allChannels": "All channels",
+    "details": "Details",
+    "updatedAt": "Updated",
+    "notFound": "Invoice not found",
+    "notFoundDescription": "The invoice you are looking for does not exist.",
+    "backToInvoices": "Back to invoices"
   },
   "exchanges": {
     "title": "Exchanges",
