@@ -4,6 +4,7 @@ export { ValueParentType } from './enums/value-parent-type.enum';
 export { TableName } from './enums/table-name.enum';
 export { OfferingState } from './enums/offering-state.enum';
 export { ExchangeState } from './enums/exchange-state.enum';
+export { GeographyType } from './enums/geography-type.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
@@ -202,3 +203,15 @@ export {
   type DashboardTimeSeriesPoint,
   type DashboardSummaryResponse,
 } from './schemas/dashboard.schema';
+
+export {
+  createGeographySchema,
+  updateGeographySchema,
+  moveGeographySchema,
+  geographyResponseSchema,
+  type CreateGeographyInput,
+  type UpdateGeographyInput,
+  type MoveGeographyInput,
+  type GeographyResponse,
+  type GeographyTreeNode,
+} from './schemas/geography.schema';

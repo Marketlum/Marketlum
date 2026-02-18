@@ -51,7 +51,8 @@
     "groupValues": "Wartości",
     "groupLedger": "Księga",
     "groupCommerce": "Handel",
-    "groupSystem": "System"
+    "groupSystem": "System",
+    "geographies": "Geografie"
   },
   "auth": {
     "signIn": "Zaloguj się",
@@ -686,6 +687,38 @@
     "presetThisYear": "Ten rok",
     "presetLastYear": "Poprzedni rok",
     "presetCustom": "Zakres niestandardowy"
+  },
+  "geographies": {
+    "title": "Geografie",
+    "description": "Zarządzaj hierarchicznymi lokalizacjami geograficznymi i terytoriami.",
+    "addRoot": "Dodaj planetę",
+    "addChild": "Dodaj potomka",
+    "code": "Kod",
+    "type": "Typ",
+    "codePlaceholder": "Kod (np. kod ISO)...",
+    "nameLabel": "Nazwa",
+    "namePlaceholder": "Nazwa geografii...",
+    "childNamePlaceholder": "Nazwa potomka...",
+    "childCodePlaceholder": "Kod potomka...",
+    "deleteGeography": "Usuń geografię",
+    "deleteWithChildren": "Czy na pewno chcesz usunąć \"{name}\"? Spowoduje to również usunięcie wszystkich geografii potomnych. Tej operacji nie można cofnąć.",
+    "emptyState": "Brak geografii. Kliknij \"Dodaj planetę\", aby rozpocząć.",
+    "noChildAllowed": "Ten typ geografii nie pozwala na dodawanie potomków.",
+    "rootCreated": "Planeta utworzona",
+    "created": "Geografia utworzona",
+    "updated": "Geografia zaktualizowana",
+    "deleted": "Geografia usunięta",
+    "failedToLoad": "Nie udało się wczytać geografii",
+    "failedToCreate": "Nie udało się utworzyć geografii",
+    "failedToUpdate": "Nie udało się zaktualizować geografii",
+    "failedToDelete": "Nie udało się usunąć geografii",
+    "typePlanet": "Planeta",
+    "typeContinent": "Kontynent",
+    "typeContinentalSection": "Sekcja kontynentalna",
+    "typeCountry": "Kraj",
+    "typeRegion": "Region",
+    "typeCity": "Miasto",
+    "typeDistrict": "Dzielnica"
   },
   "locale": {
     "switchLanguage": "Zmień język",

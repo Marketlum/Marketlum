@@ -11,4 +11,5 @@ export enum TableName {
   CHANNELS = 'channels',
   INVOICES = 'invoices',
   AGREEMENTS = 'agreements',
+  GEOGRAPHIES = 'geographies',
 }

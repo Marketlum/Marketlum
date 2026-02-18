@@ -51,7 +51,8 @@
     "groupValues": "Values",
     "groupLedger": "Ledger",
     "groupCommerce": "Commerce",
-    "groupSystem": "System"
+    "groupSystem": "System",
+    "geographies": "Geographies"
   },
   "auth": {
     "signIn": "Sign in",
@@ -686,6 +687,38 @@
     "presetThisYear": "This year",
     "presetLastYear": "Last year",
     "presetCustom": "Custom range"
+  },
+  "geographies": {
+    "title": "Geographies",
+    "description": "Manage hierarchical geographic locations and territories.",
+    "addRoot": "Add Planet",
+    "addChild": "Add child",
+    "code": "Code",
+    "type": "Type",
+    "codePlaceholder": "Code (e.g. ISO code)...",
+    "nameLabel": "Name",
+    "namePlaceholder": "Geography name...",
+    "childNamePlaceholder": "Child name...",
+    "childCodePlaceholder": "Child code...",
+    "deleteGeography": "Delete Geography",
+    "deleteWithChildren": "Are you sure you want to delete \"{name}\"? This will also delete all child geographies. This action cannot be undone.",
+    "emptyState": "No geographies yet. Click \"Add Planet\" to get started.",
+    "noChildAllowed": "No child type allowed for this geography.",
+    "rootCreated": "Planet created",
+    "created": "Geography created",
+    "updated": "Geography updated",
+    "deleted": "Geography deleted",
+    "failedToLoad": "Failed to load geographies",
+    "failedToCreate": "Failed to create geography",
+    "failedToUpdate": "Failed to update geography",
+    "failedToDelete": "Failed to delete geography",
+    "typePlanet": "Planet",
+    "typeContinent": "Continent",
+    "typeContinentalSection": "Continental Section",
+    "typeCountry": "Country",
+    "typeRegion": "Region",
+    "typeCity": "City",
+    "typeDistrict": "District"
   },
   "locale": {
     "switchLanguage": "Switch language",

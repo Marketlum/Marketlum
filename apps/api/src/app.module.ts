@@ -22,6 +22,7 @@ import { OfferingsModule } from './offerings/offerings.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { ExchangesModule } from './exchanges/exchanges.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { GeographiesModule } from './geographies/geographies.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     InvoicesModule,
     ExchangesModule,
     DashboardModule,
+    GeographiesModule,
   ],
   providers: [
     {
