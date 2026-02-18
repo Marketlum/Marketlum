@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Layers, Check, Star, Trash2, RotateCcw } from 'lucide-react';
 import type { PerspectiveResponse, PerspectiveConfig } from '@marketlum/shared';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 
 interface PerspectiveSelectorProps {
   perspectives: PerspectiveResponse[];
@@ -47,8 +49,10 @@ export function PerspectiveSelector({
   getCurrentConfig,
   translations,
 }: PerspectiveSelectorProps) {
+  const tc = useTranslations('common');
   const [saveName, setSaveName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<PerspectiveResponse | null>(null);
 
   const activePerspective = perspectives.find((p) => p.id === activePerspectiveId);
 
@@ -60,7 +64,8 @@ export function PerspectiveSelector({
   };
 
   return (
-    <DropdownMenu>
+    <>
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-9">
           <Layers className="mr-2 h-4 w-4" />
@@ -128,7 +133,7 @@ export function PerspectiveSelector({
               {activePerspective.isDefault ? translations.removeDefault : translations.setAsDefault}
             </DropdownMenuItem>
             <DropdownMenuItem
-              onSelect={() => onDelete(activePerspective.id)}
+              onSelect={() => setDeleteTarget(activePerspective)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -144,5 +149,18 @@ export function PerspectiveSelector({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            onDelete(deleteTarget.id);
+            setDeleteTarget(null);
+          }
+        }}
+        title={translations.deletePerspective}
+        description={tc('confirmDeleteDescription', { name: deleteTarget?.name ?? '' })}
+      />
+    </>
   );
 }
