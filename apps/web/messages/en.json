@@ -52,7 +52,8 @@
     "groupLedger": "Ledger",
     "groupCommerce": "Commerce",
     "groupSystem": "System",
-    "geographies": "Geographies"
+    "geographies": "Geographies",
+    "archetypes": "Archetypes"
   },
   "auth": {
     "signIn": "Sign in",
@@ -719,6 +720,32 @@
     "typeRegion": "Region",
     "typeCity": "City",
     "typeDistrict": "District"
+  },
+  "archetypes": {
+    "title": "Archetypes",
+    "description": "Define and manage archetypes with taxonomy collections.",
+    "createArchetype": "Create Archetype",
+    "editArchetype": "Edit Archetype",
+    "deleteArchetype": "Delete Archetype",
+    "createDescription": "Fill in the details to create a new archetype.",
+    "editDescription": "Update archetype details below.",
+    "purpose": "Purpose",
+    "archetypeDescription": "Description",
+    "taxonomies": "Taxonomies",
+    "selectTaxonomies": "Select taxonomies",
+    "allTaxonomies": "All taxonomies",
+    "created": "Archetype created",
+    "updated": "Archetype updated",
+    "deleted": "Archetype deleted",
+    "failedToLoad": "Failed to load archetypes",
+    "failedToCreate": "Failed to create archetype",
+    "failedToUpdate": "Failed to update archetype",
+    "failedToDelete": "Failed to delete archetype",
+    "updatedAt": "Updated",
+    "details": "Details",
+    "notFound": "Archetype not found",
+    "notFoundDescription": "The archetype you are looking for does not exist.",
+    "backToArchetypes": "Back to archetypes"
   },
   "locale": {
     "switchLanguage": "Switch language",

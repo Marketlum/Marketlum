@@ -23,6 +23,7 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { ExchangesModule } from './exchanges/exchanges.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { GeographiesModule } from './geographies/geographies.module';
+import { ArchetypesModule } from './archetypes/archetypes.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { GeographiesModule } from './geographies/geographies.module';
     ExchangesModule,
     DashboardModule,
     GeographiesModule,
+    ArchetypesModule,
   ],
   providers: [
     {

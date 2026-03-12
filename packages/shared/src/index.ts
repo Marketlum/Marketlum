@@ -215,3 +215,12 @@ export {
   type GeographyResponse,
   type GeographyTreeNode,
 } from './schemas/geography.schema';
+
+export {
+  createArchetypeSchema,
+  updateArchetypeSchema,
+  archetypeResponseSchema,
+  type CreateArchetypeInput,
+  type UpdateArchetypeInput,
+  type ArchetypeResponse,
+} from './schemas/archetype.schema';

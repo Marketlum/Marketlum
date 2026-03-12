@@ -52,7 +52,8 @@
     "groupLedger": "Księga",
     "groupCommerce": "Handel",
     "groupSystem": "System",
-    "geographies": "Geografie"
+    "geographies": "Geografie",
+    "archetypes": "Archetypy"
   },
   "auth": {
     "signIn": "Zaloguj się",
@@ -719,6 +720,32 @@
     "typeRegion": "Region",
     "typeCity": "Miasto",
     "typeDistrict": "Dzielnica"
+  },
+  "archetypes": {
+    "title": "Archetypy",
+    "description": "Definiuj i zarządzaj archetypami z kolekcjami taksonomii.",
+    "createArchetype": "Utwórz archetyp",
+    "editArchetype": "Edytuj archetyp",
+    "deleteArchetype": "Usuń archetyp",
+    "createDescription": "Wypełnij szczegóły, aby utworzyć nowy archetyp.",
+    "editDescription": "Zaktualizuj szczegóły archetypu poniżej.",
+    "purpose": "Cel",
+    "archetypeDescription": "Opis",
+    "taxonomies": "Taksonomie",
+    "selectTaxonomies": "Wybierz taksonomie",
+    "allTaxonomies": "Wszystkie taksonomie",
+    "created": "Archetyp utworzony",
+    "updated": "Archetyp zaktualizowany",
+    "deleted": "Archetyp usunięty",
+    "failedToLoad": "Nie udało się wczytać archetypów",
+    "failedToCreate": "Nie udało się utworzyć archetypu",
+    "failedToUpdate": "Nie udało się zaktualizować archetypu",
+    "failedToDelete": "Nie udało się usunąć archetypu",
+    "updatedAt": "Zaktualizowano",
+    "details": "Szczegóły",
+    "notFound": "Nie znaleziono archetypu",
+    "notFoundDescription": "Archetyp, którego szukasz, nie istnieje.",
+    "backToArchetypes": "Wróć do archetypów"
   },
   "locale": {
     "switchLanguage": "Zmień język",
