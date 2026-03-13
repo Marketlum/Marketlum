@@ -10,6 +10,8 @@ import { api, ApiError } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { ArchetypeFormDialog } from '@/components/archetypes/archetype-form-dialog';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { MarkdownContent } from '@/components/shared/markdown-editor';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -135,12 +137,24 @@ export default function ArchetypeDetailPage() {
 
       <div className="mb-6 flex items-start gap-4">
         <div className="h-24 w-24 shrink-0 rounded-lg border bg-muted/30 flex items-center justify-center overflow-hidden">
-          <Shapes className="h-12 w-12 text-muted-foreground/50" />
+          {archetype.image ? (
+            <FileImagePreview
+              fileId={archetype.image.id}
+              mimeType={archetype.image.mimeType}
+              alt={archetype.image.originalName}
+              iconClassName="h-12 w-12 text-muted-foreground/50"
+              imgClassName="h-full w-full object-cover"
+            />
+          ) : (
+            <Shapes className="h-12 w-12 text-muted-foreground/50" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl md:text-3xl font-bold truncate mb-1">{archetype.name}</h1>
           {archetype.purpose && (
-            <p className="text-muted-foreground mb-2">{archetype.purpose}</p>
+            <div className="text-muted-foreground mb-2">
+              <MarkdownContent content={archetype.purpose} />
+            </div>
           )}
           <div className="flex gap-2 mt-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
@@ -164,7 +178,7 @@ export default function ArchetypeDetailPage() {
             {archetype.description && (
               <div>
                 <p className="text-sm text-muted-foreground">{t('archetypeDescription')}</p>
-                <p>{archetype.description}</p>
+                <MarkdownContent content={archetype.description} />
               </div>
             )}
             <div>

@@ -67,7 +67,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { label: t('groupValues'), items: [
       { href: '/app/values', label: t('values'), icon: Gem },
       { href: '/app/value-instances', label: t('valueInstances'), icon: Layers },
-      { href: '/app/value-streams', label: t('valueStreams'), icon: Workflow },
     ]},
     { label: t('groupLedger'), items: [
       { href: '/app/accounts', label: t('accounts'), icon: Wallet },
@@ -75,16 +74,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     ]},
     { label: t('groupCommerce'), items: [
       { href: '/app/agreements', label: t('agreements'), icon: Handshake },
-      { href: '/app/channels', label: t('channels'), icon: Hash },
       { href: '/app/offerings', label: t('offerings'), icon: Package },
-      { href: '/app/invoices', label: t('invoices'), icon: FileText },
       { href: '/app/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
+      { href: '/app/invoices', label: t('invoices'), icon: FileText },
     ]},
     { label: t('groupSystem'), items: [
       { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
-      { href: '/app/geographies', label: t('geographies'), icon: Globe },
-      { href: '/app/files', label: t('files'), icon: FileIcon },
       { href: '/app/archetypes', label: t('archetypes'), icon: Shapes },
+      { href: '/app/channels', label: t('channels'), icon: Hash },
+      { href: '/app/geographies', label: t('geographies'), icon: Globe },
+      { href: '/app/value-streams', label: t('valueStreams'), icon: Workflow },
+      { href: '/app/files', label: t('files'), icon: FileIcon },
     ]},
   ];
 

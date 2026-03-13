@@ -5,11 +5,20 @@ const taxonomySummarySchema = z.object({
   name: z.string(),
 });
 
+const fileSummarySchema = z.object({
+  id: z.string().uuid(),
+  originalName: z.string(),
+  storedName: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+});
+
 export const createArchetypeSchema = z.object({
   name: z.string().min(1),
   purpose: z.string().optional(),
   description: z.string().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
+  imageId: z.string().uuid().nullable().optional(),
 });
 
 export const updateArchetypeSchema = z.object({
@@ -17,6 +26,7 @@ export const updateArchetypeSchema = z.object({
   purpose: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
+  imageId: z.string().uuid().nullable().optional(),
 });
 
 export const archetypeResponseSchema = z.object({
@@ -25,6 +35,7 @@ export const archetypeResponseSchema = z.object({
   purpose: z.string().nullable(),
   description: z.string().nullable(),
   taxonomies: z.array(taxonomySummarySchema),
+  image: fileSummarySchema.nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

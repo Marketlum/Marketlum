@@ -5,9 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  ManyToOne,
   JoinTable,
+  JoinColumn,
 } from 'typeorm';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
+import { File } from '../../files/entities/file.entity';
 
 @Entity('archetypes')
 export class Archetype {
@@ -30,6 +33,13 @@ export class Archetype {
     inverseJoinColumn: { name: 'taxonomyId', referencedColumnName: 'id' },
   })
   taxonomies: Taxonomy[];
+
+  @ManyToOne(() => File, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'imageId' })
+  image: File | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  imageId: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

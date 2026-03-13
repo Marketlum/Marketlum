@@ -745,7 +745,13 @@
     "details": "Details",
     "notFound": "Archetype not found",
     "notFoundDescription": "The archetype you are looking for does not exist.",
-    "backToArchetypes": "Back to archetypes"
+    "backToArchetypes": "Back to archetypes",
+    "image": "Image",
+    "uploadImage": "Upload",
+    "selectFromLibrary": "Library",
+    "selectImageDescription": "Select an image from your file library.",
+    "removeImage": "Remove",
+    "failedToUploadImage": "Failed to upload image"
   },
   "locale": {
     "switchLanguage": "Switch language",

@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Archetype } from './entities/archetype.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
+import { File } from '../files/entities/file.entity';
 import {
   CreateArchetypeInput,
   UpdateArchetypeInput,
@@ -20,10 +21,12 @@ export class ArchetypesService {
     private readonly archetypeRepository: Repository<Archetype>,
     @InjectRepository(Taxonomy)
     private readonly taxonomyRepository: Repository<Taxonomy>,
+    @InjectRepository(File)
+    private readonly fileRepository: Repository<File>,
   ) {}
 
   async create(input: CreateArchetypeInput): Promise<Archetype> {
-    const { taxonomyIds, ...rest } = input;
+    const { taxonomyIds, imageId, ...rest } = input;
 
     const existing = await this.archetypeRepository.findOne({
       where: { name: rest.name },
@@ -32,10 +35,18 @@ export class ArchetypesService {
       throw new ConflictException('Archetype with this name already exists');
     }
 
+    if (imageId) {
+      const file = await this.fileRepository.findOne({ where: { id: imageId } });
+      if (!file) {
+        throw new NotFoundException('Image file not found');
+      }
+    }
+
     const archetype = this.archetypeRepository.create({
       ...rest,
       purpose: rest.purpose ?? null,
       description: rest.description ?? null,
+      imageId: imageId ?? null,
     });
 
     if (taxonomyIds && taxonomyIds.length > 0) {
@@ -61,6 +72,7 @@ export class ArchetypesService {
     const qb = this.archetypeRepository.createQueryBuilder('archetype');
 
     qb.leftJoinAndSelect('archetype.taxonomies', 'taxonomies');
+    qb.leftJoinAndSelect('archetype.image', 'image');
 
     if (taxonomyId) {
       qb.andWhere(
@@ -100,7 +112,7 @@ export class ArchetypesService {
   async findOne(id: string): Promise<Archetype> {
     const archetype = await this.archetypeRepository.findOne({
       where: { id },
-      relations: ['taxonomies'],
+      relations: ['taxonomies', 'image'],
     });
     if (!archetype) {
       throw new NotFoundException('Archetype not found');
@@ -110,7 +122,7 @@ export class ArchetypesService {
 
   async update(id: string, input: UpdateArchetypeInput): Promise<Archetype> {
     const archetype = await this.findOne(id);
-    const { taxonomyIds, ...rest } = input;
+    const { taxonomyIds, imageId, ...rest } = input;
 
     if (rest.name !== undefined && rest.name !== archetype.name) {
       const existing = await this.archetypeRepository.findOne({
@@ -125,6 +137,20 @@ export class ArchetypesService {
     if (rest.purpose !== undefined) archetype.purpose = rest.purpose ?? null;
     if (rest.description !== undefined)
       archetype.description = rest.description ?? null;
+
+    if (imageId !== undefined) {
+      if (imageId === null) {
+        archetype.imageId = null;
+        archetype.image = null;
+      } else {
+        const file = await this.fileRepository.findOne({ where: { id: imageId } });
+        if (!file) {
+          throw new NotFoundException('Image file not found');
+        }
+        archetype.imageId = imageId;
+        archetype.image = file;
+      }
+    }
 
     if (taxonomyIds !== undefined) {
       if (taxonomyIds.length === 0) {

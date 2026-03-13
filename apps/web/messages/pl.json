@@ -745,7 +745,13 @@
     "details": "Szczegóły",
     "notFound": "Nie znaleziono archetypu",
     "notFoundDescription": "Archetyp, którego szukasz, nie istnieje.",
-    "backToArchetypes": "Wróć do archetypów"
+    "backToArchetypes": "Wróć do archetypów",
+    "image": "Obraz",
+    "uploadImage": "Prześlij",
+    "selectFromLibrary": "Biblioteka",
+    "selectImageDescription": "Wybierz obraz z biblioteki plików.",
+    "removeImage": "Usuń",
+    "failedToUploadImage": "Nie udało się przesłać obrazu"
   },
   "locale": {
     "switchLanguage": "Zmień język",

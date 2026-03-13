@@ -1,10 +1,11 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, ImageIcon } from 'lucide-react';
 import type { ArchetypeResponse } from '@marketlum/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { FileImagePreview } from '@/components/shared/file-image-preview';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import {
 
 interface ArchetypeColumnsTranslations {
   name: string;
+  image: string;
   purpose: string;
   taxonomies: string;
   created: string;
@@ -36,6 +38,28 @@ export function getArchetypeColumns({
   translations,
 }: ArchetypeColumnsOptions): ColumnDef<ArchetypeResponse>[] {
   return [
+    {
+      id: 'image',
+      header: translations.image,
+      cell: ({ row }) => {
+        const image = row.original.image;
+        return (
+          <div className="h-8 w-8 rounded overflow-hidden bg-muted/30 flex items-center justify-center">
+            {image ? (
+              <FileImagePreview
+                fileId={image.id}
+                mimeType={image.mimeType}
+                alt={image.originalName}
+                iconClassName="h-4 w-4 text-muted-foreground/50"
+                imgClassName="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
+            )}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: 'name',
       header: () => (

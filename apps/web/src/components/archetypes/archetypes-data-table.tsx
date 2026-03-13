@@ -170,6 +170,7 @@ export function ArchetypesDataTable() {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      image: t('image'),
       purpose: t('purpose'),
       taxonomies: t('taxonomies'),
       created: tc('created'),

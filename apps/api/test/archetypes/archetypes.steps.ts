@@ -24,6 +24,9 @@ const deleteFeature = loadFeature(
 const searchFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/archetypes/search-archetypes.feature'),
 );
+const imageFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/archetypes/assign-archetype-image.feature'),
+);
 
 const archetypeIds = new Map<string, string>();
 const taxonomyIds = new Map<string, string>();
@@ -1017,6 +1020,271 @@ defineFeature(searchFeature, (test) => {
     when('I search archetypes', async () => {
       response = await request(getApp().getHttpServer())
         .get('/archetypes/search');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- ASSIGN ARCHETYPE IMAGE ---
+defineFeature(imageFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let createdArchetypeId: string;
+  const fileIds: Record<string, string> = {};
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    archetypeIds.clear();
+    taxonomyIds.clear();
+    for (const key of Object.keys(fileIds)) {
+      delete fileIds[key];
+    }
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function createFile(name: string): Promise<string> {
+    const buffer = Buffer.from('fake-image-content');
+    const res = await request(getApp().getHttpServer())
+      .post('/files/upload')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .attach('file', buffer, { filename: name, contentType: 'image/png' });
+    fileIds[name] = res.body.id;
+    return res.body.id;
+  }
+
+  test('Create archetype with image', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    when(
+      /^I create an archetype with image "(.*)" and:$/,
+      async (imageName: string, table: { name: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/archetypes')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            imageId: fileIds[imageName],
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include image "(.*)"$/, (name: string) => {
+      expect(response.body.image).toBeTruthy();
+      expect(response.body.image.originalName).toBe(name);
+    });
+  });
+
+  test('Create archetype with non-existent image', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create an archetype with a non-existent image and:$/,
+      async (table: { name: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/archetypes')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            imageId: '00000000-0000-0000-0000-000000000000',
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test("Update archetype's image", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an archetype exists with name "(.*)" and image "(.*)"$/,
+      async (name: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/archetypes')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, imageId: fileIds[imageName] });
+        createdArchetypeId = res.body.id;
+      },
+    );
+
+    when(/^I update the archetype's image to "(.*)"$/, async (imageName: string) => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/archetypes/${createdArchetypeId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ imageId: fileIds[imageName] });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include image "(.*)"$/, (name: string) => {
+      expect(response.body.image).toBeTruthy();
+      expect(response.body.image.originalName).toBe(name);
+    });
+  });
+
+  test("Remove archetype's image", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an archetype exists with name "(.*)" and image "(.*)"$/,
+      async (name: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/archetypes')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, imageId: fileIds[imageName] });
+        createdArchetypeId = res.body.id;
+      },
+    );
+
+    when("I update the archetype's image to null", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/archetypes/${createdArchetypeId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ imageId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should have null image', () => {
+      expect(response.body.image).toBeNull();
+    });
+  });
+
+  test('Get archetype by ID includes image', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an archetype exists with name "(.*)" and image "(.*)"$/,
+      async (name: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/archetypes')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, imageId: fileIds[imageName] });
+        createdArchetypeId = res.body.id;
+      },
+    );
+
+    when('I request the archetype by its ID', async () => {
+      response = await request(getApp().getHttpServer())
+        .get(`/archetypes/${createdArchetypeId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include image "(.*)"$/, (name: string) => {
+      expect(response.body.image).toBeTruthy();
+      expect(response.body.image.originalName).toBe(name);
+    });
+  });
+
+  test('Search archetypes includes image data', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a file exists with name "(.*)"$/, async (name: string) => {
+      await createFile(name);
+    });
+
+    and(
+      /^an archetype exists with name "(.*)" and image "(.*)"$/,
+      async (name: string, imageName: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/archetypes')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, imageId: fileIds[imageName] });
+        createdArchetypeId = res.body.id;
+      },
+    );
+
+    when('I search archetypes', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/archetypes/search')
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the first archetype in the list should include image "(.*)"$/, (name: string) => {
+      expect(response.body.data.length).toBeGreaterThan(0);
+      const arch = response.body.data[0];
+      expect(arch.image).toBeTruthy();
+      expect(arch.image.originalName).toBe(name);
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when('I create an archetype without authentication', async () => {
+      response = await request(getApp().getHttpServer())
+        .post('/archetypes')
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Test' });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
