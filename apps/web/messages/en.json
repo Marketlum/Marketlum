@@ -503,7 +503,9 @@
     "failedToUpdate": "Failed to update channel",
     "failedToDelete": "Failed to delete channel",
     "noResults": "No matching channels found.",
-    "updatedAt": "Updated"
+    "updatedAt": "Updated",
+    "treeView": "Tree",
+    "tableView": "Table"
   },
   "offerings": {
     "title": "Offerings",

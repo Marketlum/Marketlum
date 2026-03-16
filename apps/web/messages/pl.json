@@ -503,7 +503,9 @@
     "failedToUpdate": "Nie udało się zaktualizować kanału",
     "failedToDelete": "Nie udało się usunąć kanału",
     "noResults": "Nie znaleziono pasujących kanałów.",
-    "updatedAt": "Zaktualizowano"
+    "updatedAt": "Zaktualizowano",
+    "treeView": "Drzewo",
+    "tableView": "Tabela"
   },
   "offerings": {
     "title": "Oferty",
