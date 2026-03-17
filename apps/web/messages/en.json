@@ -47,10 +47,9 @@
     "lightMode": "Light",
     "darkMode": "Dark",
     "searchMenu": "Search menu...",
-    "groupActors": "Actors",
-    "groupValues": "Values",
+    "groupCreate": "Create",
     "groupLedger": "Ledger",
-    "groupCommerce": "Commerce",
+    "groupExchange": "Exchange",
     "groupSystem": "System",
     "geographies": "Geographies",
     "archetypes": "Archetypes"

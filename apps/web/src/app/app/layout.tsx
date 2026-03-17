@@ -60,11 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { label: '', items: [
       { href: '/app/dashboard', label: t('dashboard'), icon: LayoutDashboard },
     ]},
-    { label: t('groupActors'), items: [
-      { href: '/app/users', label: t('users'), icon: Users },
-      { href: '/app/agents', label: t('agents'), icon: Bot },
-    ]},
-    { label: t('groupValues'), items: [
+    { label: t('groupCreate'), items: [
       { href: '/app/values', label: t('values'), icon: Gem },
       { href: '/app/value-instances', label: t('valueInstances'), icon: Layers },
     ]},
@@ -72,13 +68,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       { href: '/app/accounts', label: t('accounts'), icon: Wallet },
       { href: '/app/transactions', label: t('transactions'), icon: ArrowLeftRight },
     ]},
-    { label: t('groupCommerce'), items: [
+    { label: t('groupExchange'), items: [
+      { href: '/app/agents', label: t('agents'), icon: Bot },
       { href: '/app/agreements', label: t('agreements'), icon: Handshake },
       { href: '/app/offerings', label: t('offerings'), icon: Package },
       { href: '/app/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
       { href: '/app/invoices', label: t('invoices'), icon: FileText },
     ]},
     { label: t('groupSystem'), items: [
+      { href: '/app/users', label: t('users'), icon: Users },
       { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
       { href: '/app/archetypes', label: t('archetypes'), icon: Shapes },
       { href: '/app/channels', label: t('channels'), icon: Hash },
