@@ -52,7 +52,8 @@
     "groupExchange": "Exchange",
     "groupSystem": "System",
     "geographies": "Geographies",
-    "archetypes": "Archetypes"
+    "archetypes": "Archetypes",
+    "locales": "Locales"
   },
   "auth": {
     "signIn": "Sign in",
@@ -753,6 +754,22 @@
     "selectImageDescription": "Select an image from your file library.",
     "removeImage": "Remove",
     "failedToUploadImage": "Failed to upload image"
+  },
+  "locales": {
+    "title": "Locales",
+    "description": "Manage supported locales for internationalization.",
+    "createLocale": "Add Locale",
+    "deleteLocale": "Delete Locale",
+    "code": "Code",
+    "language": "Language",
+    "region": "Region",
+    "selectCode": "Select a locale code...",
+    "noAvailableCodes": "All supported locale codes are already added.",
+    "created": "Locale created",
+    "deleted": "Locale deleted",
+    "failedToLoad": "Failed to load locales",
+    "failedToCreate": "Failed to create locale",
+    "failedToDelete": "Failed to delete locale"
   },
   "locale": {
     "switchLanguage": "Switch language",

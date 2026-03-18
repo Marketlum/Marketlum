@@ -224,3 +224,12 @@ export {
   type UpdateArchetypeInput,
   type ArchetypeResponse,
 } from './schemas/archetype.schema';
+
+export {
+  SUPPORTED_LOCALE_CODES,
+  createLocaleSchema,
+  localeResponseSchema,
+  type SupportedLocaleCode,
+  type CreateLocaleInput,
+  type LocaleResponse,
+} from './schemas/locale.schema';

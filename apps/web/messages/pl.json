@@ -52,7 +52,8 @@
     "groupExchange": "Wymiana",
     "groupSystem": "System",
     "geographies": "Geografie",
-    "archetypes": "Archetypy"
+    "archetypes": "Archetypy",
+    "locales": "Lokalizacje"
   },
   "auth": {
     "signIn": "Zaloguj się",
@@ -753,6 +754,22 @@
     "selectImageDescription": "Wybierz obraz z biblioteki plików.",
     "removeImage": "Usuń",
     "failedToUploadImage": "Nie udało się przesłać obrazu"
+  },
+  "locales": {
+    "title": "Lokalizacje",
+    "description": "Zarządzaj obsługiwanymi lokalizacjami do internacjonalizacji.",
+    "createLocale": "Dodaj lokalizację",
+    "deleteLocale": "Usuń lokalizację",
+    "code": "Kod",
+    "language": "Język",
+    "region": "Region",
+    "selectCode": "Wybierz kod lokalizacji...",
+    "noAvailableCodes": "Wszystkie obsługiwane kody lokalizacji zostały już dodane.",
+    "created": "Lokalizacja utworzona",
+    "deleted": "Lokalizacja usunięta",
+    "failedToLoad": "Nie udało się wczytać lokalizacji",
+    "failedToCreate": "Nie udało się utworzyć lokalizacji",
+    "failedToDelete": "Nie udało się usunąć lokalizacji"
   },
   "locale": {
     "switchLanguage": "Zmień język",

@@ -24,6 +24,7 @@ import { ExchangesModule } from './exchanges/exchanges.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { GeographiesModule } from './geographies/geographies.module';
 import { ArchetypesModule } from './archetypes/archetypes.module';
+import { LocalesModule } from './locales/locales.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ArchetypesModule } from './archetypes/archetypes.module';
     DashboardModule,
     GeographiesModule,
     ArchetypesModule,
+    LocalesModule,
   ],
   providers: [
     {
