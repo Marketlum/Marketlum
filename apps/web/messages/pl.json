@@ -208,7 +208,10 @@
     "failedToLoad": "Nie udało się wczytać taksonomii",
     "failedToCreate": "Nie udało się utworzyć taksonomii",
     "failedToUpdate": "Nie udało się zaktualizować taksonomii",
-    "failedToDelete": "Nie udało się usunąć taksonomii"
+    "failedToDelete": "Nie udało się usunąć taksonomii",
+    "moved": "Taksonomia przeniesiona",
+    "failedToMove": "Nie udało się przenieść taksonomii",
+    "dropHere": "Upuść tutaj, aby przenieść do korzenia"
   },
   "files": {
     "title": "Pliki",

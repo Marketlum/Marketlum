@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDroppable, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core';
 import type { TaxonomyTreeNode, TaxonomyResponse, PaginatedResponse } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,20 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getMobileColumnVisibility } from '@/lib/column-visibility';
 
+function RootDropZone({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('taxonomies');
+  const { setNodeRef, isOver } = useDroppable({ id: 'drop-root', data: { parentId: null } });
+
+  return (
+    <div ref={setNodeRef}>
+      {children}
+      <div className={`mt-2 rounded-md border-2 border-dashed p-3 text-center text-sm transition-colors ${isOver ? 'border-primary bg-primary/10 text-primary' : 'border-transparent text-transparent'}`}>
+        {t('dropHere')}
+      </div>
+    </div>
+  );
+}
+
 export function TaxonomyTreeView() {
   const t = useTranslations('taxonomies');
   const tc = useTranslations('common');
@@ -29,6 +44,11 @@ export function TaxonomyTreeView() {
   const [newRootLink, setNewRootLink] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [draggedName, setDraggedName] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,6 +167,33 @@ export function TaxonomyTreeView() {
     }
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setDraggedName(event.active.data.current?.name ?? null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setDraggedName(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggedId = active.id as string;
+    const targetParentId = over.data.current?.parentId as string | null;
+
+    // Don't move onto self
+    if (targetParentId === draggedId) return;
+    // Extract drop-{id} to check if dropping onto own parent (no-op)
+    const dropTargetId = (over.id as string).replace('drop-', '');
+    if (dropTargetId === draggedId) return;
+
+    try {
+      await api.patch(`/taxonomies/${draggedId}/move`, { parentId: targetParentId });
+      toast.success(t('moved'));
+      fetchTree();
+    } catch {
+      toast.error(t('failedToMove'));
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
@@ -260,18 +307,29 @@ export function TaxonomyTreeView() {
               {t('emptyState')}
             </div>
           ) : (
-            <div className="rounded-md border p-2">
-              {tree.map((node) => (
-                <TaxonomyTreeNodeComponent
-                  key={node.id}
-                  node={node}
-                  depth={0}
-                  onCreateChild={handleCreateChild}
-                  onUpdate={handleUpdate}
-                  onDelete={(id, name) => setDeleteTarget({ id, name })}
-                />
-              ))}
-            </div>
+            <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+              <RootDropZone>
+                <div className="rounded-md border p-2">
+                  {tree.map((node) => (
+                    <TaxonomyTreeNodeComponent
+                      key={node.id}
+                      node={node}
+                      depth={0}
+                      onCreateChild={handleCreateChild}
+                      onUpdate={handleUpdate}
+                      onDelete={(id, name) => setDeleteTarget({ id, name })}
+                    />
+                  ))}
+                </div>
+              </RootDropZone>
+              <DragOverlay>
+                {draggedName ? (
+                  <div className="rounded-md border bg-background px-3 py-1.5 text-sm shadow-md">
+                    {draggedName}
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           )}
         </>
       )}

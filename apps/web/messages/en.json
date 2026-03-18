@@ -208,7 +208,10 @@
     "failedToLoad": "Failed to load taxonomies",
     "failedToCreate": "Failed to create taxonomy",
     "failedToUpdate": "Failed to update taxonomy",
-    "failedToDelete": "Failed to delete taxonomy"
+    "failedToDelete": "Failed to delete taxonomy",
+    "moved": "Taxonomy moved",
+    "failedToMove": "Failed to move taxonomy",
+    "dropHere": "Drop here to move to root"
   },
   "files": {
     "title": "Files",

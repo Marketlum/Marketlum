@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, Folder, FolderOpen, MoreHorizontal, Plus, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { ChevronRight, Folder, FolderOpen, MoreHorizontal, Plus, Pencil, Trash2, ExternalLink, GripVertical } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { TaxonomyTreeNode } from '@marketlum/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +44,16 @@ export function TaxonomyTreeNodeComponent({
   const [newChildLink, setNewChildLink] = useState('');
 
   const hasChildren = node.children && node.children.length > 0;
+
+  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
+    id: node.id,
+    data: { name: node.name },
+  });
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `drop-${node.id}`,
+    data: { parentId: node.id },
+  });
 
   const handleSaveEdit = async () => {
     const trimmedName = editName.trim();
@@ -93,11 +104,20 @@ export function TaxonomyTreeNodeComponent({
   };
 
   return (
-    <div>
+    <div ref={setDropRef} className={isOver ? 'rounded-md bg-primary/10' : ''}>
       <div
-        className="group flex items-start gap-1 rounded-md px-1 py-1 hover:bg-secondary/50"
+        ref={setDragRef}
+        className={`group flex items-start gap-1 rounded-md px-1 py-1 hover:bg-secondary/50 ${isDragging ? 'opacity-50' : ''}`}
         style={{ paddingLeft: depth * (isMobile ? 16 : 24) + 4 }}
       >
+        <button
+          className="mt-0.5 flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+
         <button
           className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
           onClick={() => setExpanded(!expanded)}
@@ -180,6 +200,18 @@ export function TaxonomyTreeNodeComponent({
                 <p className="truncate text-xs text-muted-foreground">{node.description}</p>
               )}
             </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
+              onClick={() => {
+                setAddingChild(true);
+                setExpanded(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
