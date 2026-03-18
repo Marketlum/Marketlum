@@ -17,6 +17,7 @@ interface AgreementColumnsTranslations {
   link: string;
   parties: string;
   file: string;
+  template: string;
   created: string;
   updatedAt: string;
   edit: string;
@@ -97,6 +98,16 @@ export function getAgreementColumns({
         const file = row.original.file;
         if (!file) return '-';
         return <FileIcon className="h-4 w-4 text-muted-foreground" />;
+      },
+    },
+    {
+      id: 'template',
+      header: translations.template,
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => {
+        const template = row.original.agreementTemplate;
+        if (!template) return '-';
+        return <Badge variant="outline">{template.name}</Badge>;
       },
     },
     {

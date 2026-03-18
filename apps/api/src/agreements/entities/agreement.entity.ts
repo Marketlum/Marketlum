@@ -15,6 +15,7 @@ import {
 } from 'typeorm';
 import { File } from '../../files/entities/file.entity';
 import { Agent } from '../../agents/entities/agent.entity';
+import { AgreementTemplate } from '../../agreement-templates/entities/agreement-template.entity';
 
 @Entity('agreements')
 @Tree('closure-table')
@@ -46,6 +47,13 @@ export class Agreement {
 
   @Column({ type: 'uuid', nullable: true })
   fileId: string | null;
+
+  @ManyToOne(() => AgreementTemplate, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'agreementTemplateId' })
+  agreementTemplate: AgreementTemplate | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  agreementTemplateId: string | null;
 
   @ManyToMany(() => Agent)
   @JoinTable({

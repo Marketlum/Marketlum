@@ -4,6 +4,7 @@ import { TreeRepository, Repository, In } from 'typeorm';
 import { Agreement } from './entities/agreement.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { File } from '../files/entities/file.entity';
+import { AgreementTemplate } from '../agreement-templates/entities/agreement-template.entity';
 import {
   CreateAgreementInput,
   UpdateAgreementInput,
@@ -20,10 +21,12 @@ export class AgreementsService {
     private readonly agentRepository: Repository<Agent>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
+    @InjectRepository(AgreementTemplate)
+    private readonly agreementTemplateRepository: Repository<AgreementTemplate>,
   ) {}
 
   async create(input: CreateAgreementInput): Promise<Agreement> {
-    const { parentId, fileId, partyIds, ...rest } = input;
+    const { parentId, fileId, partyIds, agreementTemplateId, ...rest } = input;
 
     const agreement = this.agreementRepository.create({
       ...rest,
@@ -52,6 +55,17 @@ export class AgreementsService {
       agreement.file = file;
     }
 
+    if (agreementTemplateId) {
+      const template = await this.agreementTemplateRepository.findOne({
+        where: { id: agreementTemplateId },
+      });
+      if (!template) {
+        throw new NotFoundException('Agreement template not found');
+      }
+      agreement.agreementTemplateId = agreementTemplateId;
+      agreement.agreementTemplate = template;
+    }
+
     const agents = await this.agentRepository.findBy({ id: In(partyIds) });
     if (agents.length < 2) {
       throw new BadRequestException('At least 2 valid parties are required');
@@ -70,6 +84,7 @@ export class AgreementsService {
 
     qb.leftJoinAndSelect('agreement.file', 'file');
     qb.leftJoinAndSelect('agreement.parties', 'parties');
+    qb.leftJoinAndSelect('agreement.agreementTemplate', 'agreementTemplate');
 
     if (partyId) {
       qb.andWhere(
@@ -108,7 +123,7 @@ export class AgreementsService {
 
   async findTree(): Promise<Agreement[]> {
     const trees = await this.agreementRepository.findTrees({
-      relations: ['file', 'parties'],
+      relations: ['file', 'parties', 'agreementTemplate'],
     });
     return trees;
   }
@@ -120,7 +135,7 @@ export class AgreementsService {
   async findOne(id: string): Promise<Agreement> {
     const agreement = await this.agreementRepository.findOne({
       where: { id },
-      relations: ['file', 'parties'],
+      relations: ['file', 'parties', 'agreementTemplate'],
     });
     if (!agreement) {
       throw new NotFoundException('Agreement not found');
@@ -143,7 +158,7 @@ export class AgreementsService {
 
   async update(id: string, input: UpdateAgreementInput): Promise<Agreement> {
     const agreement = await this.findOne(id);
-    const { fileId, partyIds, ...rest } = input;
+    const { fileId, partyIds, agreementTemplateId, ...rest } = input;
 
     Object.assign(agreement, rest);
 
@@ -160,6 +175,22 @@ export class AgreementsService {
         }
         agreement.fileId = fileId;
         agreement.file = file;
+      }
+    }
+
+    if (agreementTemplateId !== undefined) {
+      if (agreementTemplateId === null) {
+        agreement.agreementTemplate = null;
+        agreement.agreementTemplateId = null;
+      } else {
+        const template = await this.agreementTemplateRepository.findOne({
+          where: { id: agreementTemplateId },
+        });
+        if (!template) {
+          throw new NotFoundException('Agreement template not found');
+        }
+        agreement.agreementTemplateId = agreementTemplateId;
+        agreement.agreementTemplate = template;
       }
     }
 

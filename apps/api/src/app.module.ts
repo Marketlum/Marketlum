@@ -25,6 +25,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { GeographiesModule } from './geographies/geographies.module';
 import { ArchetypesModule } from './archetypes/archetypes.module';
 import { LocalesModule } from './locales/locales.module';
+import { AgreementTemplatesModule } from './agreement-templates/agreement-templates.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { LocalesModule } from './locales/locales.module';
     GeographiesModule,
     ArchetypesModule,
     LocalesModule,
+    AgreementTemplatesModule,
   ],
   providers: [
     {

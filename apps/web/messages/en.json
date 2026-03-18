@@ -53,7 +53,8 @@
     "groupSystem": "System",
     "geographies": "Geographies",
     "archetypes": "Archetypes",
-    "locales": "Locales"
+    "locales": "Locales",
+    "agreementTemplates": "Agreement Templates"
   },
   "auth": {
     "signIn": "Sign in",
@@ -478,7 +479,8 @@
     "notFoundDescription": "The agreement you are looking for does not exist or has been removed.",
     "backToAgreements": "Back to agreements",
     "children": "Children",
-    "noChildren": "No child agreements."
+    "noChildren": "No child agreements.",
+    "template": "Template"
   },
   "channels": {
     "title": "Channels",
@@ -773,6 +775,43 @@
     "failedToLoad": "Failed to load locales",
     "failedToCreate": "Failed to create locale",
     "failedToDelete": "Failed to delete locale"
+  },
+  "agreementTemplates": {
+    "title": "Agreement Templates",
+    "subtitle": "Manage hierarchical agreement templates.",
+    "tableView": "Table",
+    "treeView": "Tree",
+    "createTemplate": "Create Template",
+    "editTemplate": "Edit Template",
+    "deleteTemplate": "Delete Template",
+    "createDescription": "Create a new agreement template.",
+    "editDescription": "Edit this agreement template.",
+    "deleteConfirmation": "Are you sure you want to delete \"{name}\"? Templates with children cannot be deleted.",
+    "type": "Type",
+    "purpose": "Purpose",
+    "description": "Description",
+    "link": "Link",
+    "valueStream": "Value Stream",
+    "typeMainAgreement": "Main Agreement",
+    "typeAnnex": "Annex",
+    "typeSchedule": "Schedule",
+    "typeExhibit": "Exhibit",
+    "allTypes": "All types",
+    "allValueStreams": "All value streams",
+    "addRoot": "Add Root",
+    "addChild": "Add Child",
+    "emptyState": "No agreement templates yet.",
+    "rootCreated": "Root template created",
+    "created": "Template created",
+    "updated": "Template updated",
+    "deleted": "Template deleted",
+    "moved": "Template moved",
+    "failedToLoad": "Failed to load templates",
+    "failedToCreate": "Failed to create template",
+    "failedToUpdate": "Failed to update template",
+    "failedToDelete": "Failed to delete template",
+    "failedToMove": "Failed to move template",
+    "dropHere": "Drop here to move to root level"
   },
   "locale": {
     "switchLanguage": "Switch language",

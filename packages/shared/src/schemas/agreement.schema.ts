@@ -22,6 +22,7 @@ export const createAgreementSchema = z.object({
   parentId: z.string().uuid().optional(),
   fileId: z.string().uuid().nullable().optional(),
   partyIds: z.array(z.string().uuid()).min(2),
+  agreementTemplateId: z.string().uuid().nullable().optional(),
 });
 
 export const updateAgreementSchema = z.object({
@@ -30,6 +31,7 @@ export const updateAgreementSchema = z.object({
   link: z.union([z.string().url(), z.literal('')]).optional(),
   fileId: z.string().uuid().nullable().optional(),
   partyIds: z.array(z.string().uuid()).min(2).optional(),
+  agreementTemplateId: z.string().uuid().nullable().optional(),
 });
 
 export const moveAgreementSchema = z.object({
@@ -44,6 +46,10 @@ export const agreementResponseSchema = z.object({
   level: z.number(),
   file: fileSummarySchema.nullable(),
   parties: z.array(partySummarySchema),
+  agreementTemplate: z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+  }).nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

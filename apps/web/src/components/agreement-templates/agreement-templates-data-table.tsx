@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { SlidersHorizontal } from 'lucide-react';
-import type { AgreementResponse, PaginatedResponse, CreateAgreementInput, PerspectiveConfig } from '@marketlum/shared';
+import { AgreementTemplateType, type AgreementTemplateResponse, type PaginatedResponse, type CreateAgreementTemplateInput, type PerspectiveConfig } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { usePagination } from '@/hooks/use-pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { usePerspectives } from '@/hooks/use-perspectives';
-import { useAgents } from '@/hooks/use-agents';
+import { useValueStreams } from '@/hooks/use-value-streams';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
 import { DataTableToolbar } from '@/components/shared/data-table-toolbar';
@@ -22,8 +21,8 @@ import { PerspectiveSelector } from '@/components/shared/perspective-selector';
 import { ExportDropdown } from '@/components/shared/export-dropdown';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '@/lib/column-visibility';
-import { AgreementFormDialog } from './agreement-form-dialog';
-import { getAgreementColumns } from './columns';
+import { AgreementTemplateFormDialog } from './agreement-template-form-dialog';
+import { getAgreementTemplateColumns } from './columns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -35,29 +34,37 @@ import {
 } from '@/components/ui/select';
 import type { FieldDef } from '@/lib/export-utils';
 
-export function AgreementsDataTable() {
-  const router = useRouter();
+export function AgreementTemplatesDataTable() {
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
-  const t = useTranslations('agreements');
+  const t = useTranslations('agreementTemplates');
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
-  const { agents } = useAgents();
-  const [partyFilter, setPartyFilter] = useState<string>('all');
+  const { valueStreams } = useValueStreams();
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
-  const [data, setData] = useState<PaginatedResponse<AgreementResponse> | null>(null);
+  const [data, setData] = useState<PaginatedResponse<AgreementTemplateResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [editingAgreement, setEditingAgreement] = useState<AgreementResponse | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<AgreementTemplateResponse | null>(null);
   const [parentId, setParentId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<AgreementResponse | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AgreementTemplateResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
+  const typeLabels: Record<string, string> = {
+    main_agreement: t('typeMainAgreement'),
+    annex: t('typeAnnex'),
+    schedule: t('typeSchedule'),
+    exhibit: t('typeExhibit'),
+  };
+
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
-    setPartyFilter(config.filters?.partyId ?? 'all');
+    setTypeFilter(config.filters?.type ?? 'all');
+    setValueStreamFilter(config.filters?.valueStreamId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -84,7 +91,7 @@ export function AgreementsDataTable() {
     deletePerspective,
     resetPerspective,
   } = usePerspectives({
-    table: 'agreements',
+    table: 'agreement_templates',
     onApply: onApplyPerspective,
     translations: perspectiveTranslations,
   });
@@ -92,47 +99,51 @@ export function AgreementsDataTable() {
   const getCurrentConfig = useCallback((): PerspectiveConfig => ({
     columnVisibility,
     filters: {
-      ...(partyFilter !== 'all' ? { partyId: partyFilter } : {}),
+      ...(typeFilter !== 'all' ? { type: typeFilter } : {}),
+      ...(valueStreamFilter !== 'all' ? { valueStreamId: valueStreamFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, partyFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, typeFilter, valueStreamFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       let qs = pagination.toQueryString();
-      if (partyFilter && partyFilter !== 'all') {
-        qs += `&partyId=${partyFilter}`;
+      if (typeFilter && typeFilter !== 'all') {
+        qs += `&type=${typeFilter}`;
       }
-      const result = await api.get<PaginatedResponse<AgreementResponse>>(`/agreements/search?${qs}`);
+      if (valueStreamFilter && valueStreamFilter !== 'all') {
+        qs += `&valueStreamId=${valueStreamFilter}`;
+      }
+      const result = await api.get<PaginatedResponse<AgreementTemplateResponse>>(`/agreement-templates/search?${qs}`);
       setData(result);
     } catch {
       toast.error(t('failedToLoad'));
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, partyFilter]);
+  }, [pagination.toQueryString, typeFilter, valueStreamFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, partyFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, typeFilter, valueStreamFilter, fetchData]);
 
   const handleOpenCreate = () => {
-    setEditingAgreement(null);
+    setEditingTemplate(null);
     setParentId(null);
     setFormOpen(true);
   };
 
-  const handleOpenAddChild = (agreement: AgreementResponse) => {
-    setEditingAgreement(null);
-    setParentId(agreement.id);
+  const handleOpenAddChild = (template: AgreementTemplateResponse) => {
+    setEditingTemplate(null);
+    setParentId(template.id);
     setFormOpen(true);
   };
 
-  const handleOpenEdit = async (agreement: AgreementResponse) => {
+  const handleOpenEdit = async (template: AgreementTemplateResponse) => {
     try {
-      const full = await api.get<AgreementResponse>(`/agreements/${agreement.id}`);
-      setEditingAgreement(full);
+      const full = await api.get<AgreementTemplateResponse>(`/agreement-templates/${template.id}`);
+      setEditingTemplate(full);
       setParentId(null);
       setFormOpen(true);
     } catch {
@@ -140,21 +151,21 @@ export function AgreementsDataTable() {
     }
   };
 
-  const handleFormSubmit = async (input: CreateAgreementInput) => {
+  const handleFormSubmit = async (input: CreateAgreementTemplateInput) => {
     setIsSubmitting(true);
     try {
-      if (editingAgreement) {
-        await api.patch(`/agreements/${editingAgreement.id}`, input);
+      if (editingTemplate) {
+        await api.patch(`/agreement-templates/${editingTemplate.id}`, input);
         toast.success(t('updated'));
       } else {
-        await api.post('/agreements', input);
+        await api.post('/agreement-templates', input);
         toast.success(parentId ? t('created') : t('rootCreated'));
       }
       setFormOpen(false);
-      setEditingAgreement(null);
+      setEditingTemplate(null);
       fetchData();
     } catch {
-      toast.error(editingAgreement ? t('failedToUpdate') : t('failedToCreate'));
+      toast.error(editingTemplate ? t('failedToUpdate') : t('failedToCreate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -164,7 +175,7 @@ export function AgreementsDataTable() {
     if (!deleteTarget) return;
     setIsSubmitting(true);
     try {
-      await api.delete(`/agreements/${deleteTarget.id}`);
+      await api.delete(`/agreement-templates/${deleteTarget.id}`);
       toast.success(t('deleted'));
       setDeleteTarget(null);
       fetchData();
@@ -175,43 +186,44 @@ export function AgreementsDataTable() {
     }
   };
 
-  const columns = getAgreementColumns({
+  const columns = getAgreementTemplateColumns({
     onEdit: handleOpenEdit,
-    onDelete: (agreement) => setDeleteTarget(agreement),
+    onDelete: (template) => setDeleteTarget(template),
     onAddChild: handleOpenAddChild,
     onSort: pagination.setSort,
     translations: {
-      title: tc('name'),
-      link: t('link'),
-      parties: t('parties'),
-      file: t('file'),
-      template: t('template'),
+      name: tc('name'),
+      type: t('type'),
+      purpose: t('purpose'),
+      description: t('description'),
+      valueStream: t('valueStream'),
       created: tc('created'),
-      updatedAt: t('updatedAt'),
       edit: tc('edit'),
       delete: tc('delete'),
       addChild: t('addChild'),
     },
+    typeLabels,
   });
 
   const columnMeta = [
-    { id: 'title', label: tc('name') },
-    { id: 'link', label: t('link') },
-    { id: 'parties', label: t('parties') },
-    { id: 'file', label: t('file') },
+    { id: 'name', label: tc('name') },
+    { id: 'type', label: t('type') },
+    { id: 'purpose', label: t('purpose') },
+    { id: 'description', label: t('description') },
+    { id: 'valueStream', label: t('valueStream') },
     { id: 'createdAt', label: tc('created') },
-    { id: 'updatedAt', label: t('updatedAt') },
   ];
 
   const allExportFields: FieldDef[] = [
-    { key: 'title', label: tc('name'), extract: (r) => String(r.title ?? '') },
-    { key: 'link', label: t('link'), extract: (r) => String(r.link ?? '') },
-    { key: 'parties', label: t('parties'), extract: (r) => {
-      const parties = r.parties as { name: string }[] | undefined;
-      return parties?.map((p) => p.name).join(', ') ?? '';
+    { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'type', label: t('type'), extract: (r) => typeLabels[String(r.type)] ?? String(r.type ?? '') },
+    { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
+    { key: 'description', label: t('description'), extract: (r) => String(r.description ?? '') },
+    { key: 'valueStream', label: t('valueStream'), extract: (r) => {
+      const vs = r.valueStream as { name: string } | null | undefined;
+      return vs?.name ?? '';
     }},
     { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
-    { key: 'updatedAt', label: t('updatedAt'), extract: (r) => String(r.updatedAt ?? '') },
   ];
 
   const visibleExportFields = allExportFields.filter(
@@ -222,27 +234,36 @@ export function AgreementsDataTable() {
     let qs = `page=1&limit=10000`;
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
-    if (partyFilter && partyFilter !== 'all') qs += `&partyId=${partyFilter}`;
-    const result = await api.get<PaginatedResponse<AgreementResponse>>(`/agreements/search?${qs}`);
+    if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
+    if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+    const result = await api.get<PaginatedResponse<AgreementTemplateResponse>>(`/agreement-templates/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, partyFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, valueStreamFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];
-    if (partyFilter !== 'all') {
-      const agent = agents.find((a) => a.id === partyFilter);
+    if (typeFilter !== 'all') {
       filters.push({
-        key: 'party',
-        label: t('parties'),
-        displayValue: agent?.name ?? partyFilter,
-        onClear: () => setPartyFilter('all'),
+        key: 'type',
+        label: t('type'),
+        displayValue: typeLabels[typeFilter] ?? typeFilter,
+        onClear: () => setTypeFilter('all'),
+      });
+    }
+    if (valueStreamFilter !== 'all') {
+      const vs = valueStreams.find((v) => v.id === valueStreamFilter);
+      filters.push({
+        key: 'valueStream',
+        label: t('valueStream'),
+        displayValue: vs?.name ?? valueStreamFilter,
+        onClear: () => setValueStreamFilter('all'),
       });
     }
     return filters;
-  }, [partyFilter, agents, t]);
+  }, [typeFilter, valueStreamFilter, valueStreams, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -252,7 +273,7 @@ export function AgreementsDataTable() {
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
         onCreateClick={handleOpenCreate}
-        createLabel={t('createAgreement')}
+        createLabel={t('createTemplate')}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />
@@ -299,28 +320,46 @@ export function AgreementsDataTable() {
           fetchAllData={fetchAllData}
           fields={allExportFields}
           visibleFields={visibleExportFields}
-          filenameBase="agreements"
+          filenameBase="agreement-templates"
         />
       </DataTableToolbar>
 
       <ActiveFilters filters={activeFilters} />
 
       <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">{t('parties')}</label>
-          <Select value={partyFilter} onValueChange={setPartyFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allParties')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-sm font-medium">{t('type')}</label>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allTypes')}</SelectItem>
+                {Object.values(AgreementTemplateType).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {typeLabels[type] ?? type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">{t('valueStream')}</label>
+            <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allValueStreams')}</SelectItem>
+                {valueStreams.map((vs) => (
+                  <SelectItem key={vs.id} value={vs.id}>
+                    {vs.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </DataTableFilterSheet>
 
@@ -328,7 +367,7 @@ export function AgreementsDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(agreement) => router.push(`/app/agreements/${agreement.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} />
           {data && (
             <DataTablePagination
               page={data.meta.page}
@@ -342,19 +381,19 @@ export function AgreementsDataTable() {
         </>
       )}
 
-      <AgreementFormDialog
-        open={formOpen && !editingAgreement}
+      <AgreementTemplateFormDialog
+        open={formOpen && !editingTemplate}
         onOpenChange={setFormOpen}
         onSubmit={handleFormSubmit}
         parentId={parentId}
         isSubmitting={isSubmitting}
       />
 
-      <AgreementFormDialog
-        open={!!editingAgreement}
-        onOpenChange={(open) => { if (!open) { setEditingAgreement(null); setFormOpen(false); } }}
+      <AgreementTemplateFormDialog
+        open={!!editingTemplate}
+        onOpenChange={(open) => { if (!open) { setEditingTemplate(null); setFormOpen(false); } }}
         onSubmit={handleFormSubmit}
-        agreement={editingAgreement}
+        template={editingTemplate}
         isSubmitting={isSubmitting}
       />
 
@@ -362,8 +401,8 @@ export function AgreementsDataTable() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title={t('deleteAgreement')}
-        description={t('deleteWithChildren', { name: deleteTarget?.title ?? '' })}
+        title={t('deleteTemplate')}
+        description={t('deleteConfirmation', { name: deleteTarget?.name ?? '' })}
         isDeleting={isSubmitting}
       />
     </div>

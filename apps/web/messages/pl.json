@@ -53,7 +53,8 @@
     "groupSystem": "System",
     "geographies": "Geografie",
     "archetypes": "Archetypy",
-    "locales": "Lokalizacje"
+    "locales": "Lokalizacje",
+    "agreementTemplates": "Szablony umów"
   },
   "auth": {
     "signIn": "Zaloguj się",
@@ -478,7 +479,8 @@
     "notFoundDescription": "Umowa, której szukasz, nie istnieje lub została usunięta.",
     "backToAgreements": "Wróć do umów",
     "children": "Potomne",
-    "noChildren": "Brak umów potomnych."
+    "noChildren": "Brak umów potomnych.",
+    "template": "Szablon"
   },
   "channels": {
     "title": "Kanały",
@@ -773,6 +775,43 @@
     "failedToLoad": "Nie udało się wczytać lokalizacji",
     "failedToCreate": "Nie udało się utworzyć lokalizacji",
     "failedToDelete": "Nie udało się usunąć lokalizacji"
+  },
+  "agreementTemplates": {
+    "title": "Szablony umów",
+    "subtitle": "Zarządzaj hierarchicznymi szablonami umów.",
+    "tableView": "Tabela",
+    "treeView": "Drzewo",
+    "createTemplate": "Utwórz szablon",
+    "editTemplate": "Edytuj szablon",
+    "deleteTemplate": "Usuń szablon",
+    "createDescription": "Utwórz nowy szablon umowy.",
+    "editDescription": "Edytuj ten szablon umowy.",
+    "deleteConfirmation": "Czy na pewno chcesz usunąć \"{name}\"? Szablony z potomkami nie mogą zostać usunięte.",
+    "type": "Typ",
+    "purpose": "Cel",
+    "description": "Opis",
+    "link": "Link",
+    "valueStream": "Strumień wartości",
+    "typeMainAgreement": "Umowa główna",
+    "typeAnnex": "Aneks",
+    "typeSchedule": "Harmonogram",
+    "typeExhibit": "Załącznik",
+    "allTypes": "Wszystkie typy",
+    "allValueStreams": "Wszystkie strumienie wartości",
+    "addRoot": "Dodaj korzeń",
+    "addChild": "Dodaj potomka",
+    "emptyState": "Brak szablonów umów.",
+    "rootCreated": "Szablon główny utworzony",
+    "created": "Szablon utworzony",
+    "updated": "Szablon zaktualizowany",
+    "deleted": "Szablon usunięty",
+    "moved": "Szablon przeniesiony",
+    "failedToLoad": "Nie udało się wczytać szablonów",
+    "failedToCreate": "Nie udało się utworzyć szablonu",
+    "failedToUpdate": "Nie udało się zaktualizować szablonu",
+    "failedToDelete": "Nie udało się usunąć szablonu",
+    "failedToMove": "Nie udało się przenieść szablonu",
+    "dropHere": "Upuść tutaj, aby przenieść do korzenia"
   },
   "locale": {
     "switchLanguage": "Zmień język",

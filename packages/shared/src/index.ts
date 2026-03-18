@@ -5,6 +5,7 @@ export { TableName } from './enums/table-name.enum';
 export { OfferingState } from './enums/offering-state.enum';
 export { ExchangeState } from './enums/exchange-state.enum';
 export { GeographyType } from './enums/geography-type.enum';
+export { AgreementTemplateType } from './enums/agreement-template-type.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
@@ -233,3 +234,15 @@ export {
   type CreateLocaleInput,
   type LocaleResponse,
 } from './schemas/locale.schema';
+
+export {
+  createAgreementTemplateSchema,
+  updateAgreementTemplateSchema,
+  moveAgreementTemplateSchema,
+  agreementTemplateResponseSchema,
+  type CreateAgreementTemplateInput,
+  type UpdateAgreementTemplateInput,
+  type MoveAgreementTemplateInput,
+  type AgreementTemplateResponse,
+  type AgreementTemplateTreeNode,
+} from './schemas/agreement-template.schema';

@@ -25,8 +25,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAgents } from '@/hooks/use-agents';
+import { useAgreementTemplates } from '@/hooks/use-agreement-templates';
 import { ImageLibraryDialog } from '@/components/agents/image-library-dialog';
 import { FileImagePreview } from '@/components/shared/file-image-preview';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AgreementFormDialogProps {
   open: boolean;
@@ -50,6 +58,7 @@ export function AgreementFormDialog({
   const t = useTranslations('agreements');
   const tc = useTranslations('common');
   const { agents } = useAgents(open);
+  const { agreementTemplates } = useAgreementTemplates(open);
   const [fileLibraryOpen, setFileLibraryOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<{ id: string; originalName: string; mimeType: string } | null>(null);
   const [selectedPartyIds, setSelectedPartyIds] = useState<string[]>([]);
@@ -59,6 +68,7 @@ export function AgreementFormDialog({
     handleSubmit,
     reset,
     setValue: setFormValue,
+    watch,
     formState: { errors },
   } = useForm<CreateAgreementInput>({
     resolver: zodResolver(schema),
@@ -74,6 +84,7 @@ export function AgreementFormDialog({
           link: agreement.link ?? '',
           fileId: agreement.file?.id ?? null,
           partyIds: existingPartyIds,
+          agreementTemplateId: agreement.agreementTemplate?.id ?? null,
         });
         setSelectedFile(
           agreement.file
@@ -89,6 +100,7 @@ export function AgreementFormDialog({
           parentId: parentId ?? undefined,
           fileId: null,
           partyIds: [],
+          agreementTemplateId: null,
         });
         setSelectedFile(null);
         setSelectedPartyIds([]);
@@ -141,6 +153,26 @@ export function AgreementFormDialog({
             <Label htmlFor="ag-link">{t('link')}</Label>
             <Input id="ag-link" type="url" {...register('link')} placeholder="https://..." />
             {errors.link && <p className="text-sm text-destructive">{errors.link.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('template')}</Label>
+            <Select
+              value={watch('agreementTemplateId') ?? 'none'}
+              onValueChange={(val) => setFormValue('agreementTemplateId', val === 'none' ? null : val)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-</SelectItem>
+                {agreementTemplates.map((tmpl) => (
+                  <SelectItem key={tmpl.id} value={tmpl.id}>
+                    {tmpl.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
