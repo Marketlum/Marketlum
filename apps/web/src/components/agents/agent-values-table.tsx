@@ -67,6 +67,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
       taxonomy: tv('taxonomy'),
       agent: tv('agent'),
       valueStream: tv('valueStream'),
+      abstract: tv('abstract'),
       image: tv('image'),
       purpose: tv('purpose'),
       created: tc('created'),

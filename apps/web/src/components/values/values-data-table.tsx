@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
@@ -37,7 +38,7 @@ import { ExportDropdown } from '@/components/shared/export-dropdown';
 import type { FieldDef } from '@/lib/export-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, Share2 } from 'lucide-react';
 
 function flattenTree(nodes: TaxonomyTreeNode[]): TaxonomyTreeNode[] {
   return nodes.flatMap((n) => [n, ...flattenTree(n.children)]);
@@ -210,6 +211,7 @@ export function ValuesDataTable() {
       taxonomy: t('taxonomy'),
       agent: t('agent'),
       valueStream: t('valueStream'),
+      abstract: t('abstract'),
       image: t('image'),
       purpose: t('purpose'),
       created: tc('created'),
@@ -377,6 +379,12 @@ export function ValuesDataTable() {
           visibleFields={visibleExportFields}
           filenameBase="values"
         />
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/app/values/graph">
+            <Share2 className="mr-2 h-4 w-4" />
+            {t('viewGraph')}
+          </Link>
+        </Button>
       </DataTableToolbar>
 
       <ActiveFilters filters={activeFilters} />

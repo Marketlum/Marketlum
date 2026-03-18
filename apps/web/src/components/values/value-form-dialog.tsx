@@ -128,6 +128,7 @@ export function ValueFormDialog({
           purpose: value.purpose ?? '',
           description: value.description ?? '',
           link: value.link ?? '',
+          abstract: value.abstract ?? false,
           parentId: value.parent?.id ?? null,
           parentType: value.parentType ?? null,
           agentId: value.agent?.id ?? null,
@@ -150,6 +151,7 @@ export function ValueFormDialog({
           purpose: '',
           description: '',
           link: '',
+          abstract: false,
           parentId: null,
           parentType: null,
           agentId: null,
@@ -252,6 +254,15 @@ export function ValueFormDialog({
           <div className="space-y-2">
             <Label htmlFor="link">{t('link')}</Label>
             <Input id="link" {...register('link')} />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="abstract"
+              {...register('abstract')}
+              className="h-4 w-4 rounded border-input"
+            />
+            <Label htmlFor="abstract">{t('abstract')}</Label>
           </div>
 
           {/* Parent */}

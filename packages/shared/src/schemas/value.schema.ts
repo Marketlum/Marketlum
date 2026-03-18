@@ -55,6 +55,7 @@ export const createValueSchema = z.object({
   fileIds: z.array(z.string().uuid()).optional(),
   imageIds: z.array(z.string().uuid()).optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
+  abstract: z.boolean().optional(),
 });
 
 export const updateValueSchema = z.object({
@@ -71,6 +72,7 @@ export const updateValueSchema = z.object({
   fileIds: z.array(z.string().uuid()).optional(),
   imageIds: z.array(z.string().uuid()).optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
+  abstract: z.boolean().optional(),
 });
 
 export const valueResponseSchema = z.object({
@@ -80,6 +82,7 @@ export const valueResponseSchema = z.object({
   purpose: z.string().nullable(),
   description: z.string().nullable(),
   link: z.string().nullable(),
+  abstract: z.boolean(),
   parentType: z.nativeEnum(ValueParentType).nullable(),
   parent: parentSummarySchema.nullable(),
   agent: agentSummarySchema.nullable(),

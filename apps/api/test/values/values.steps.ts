@@ -36,6 +36,9 @@ const parentFeature = loadFeature(
 const valueStreamFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-value-stream.feature'),
 );
+const abstractFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/values/abstract-value.feature'),
+);
 
 // --- CREATE VALUE ---
 defineFeature(createFeature, (test) => {
@@ -2503,6 +2506,149 @@ defineFeature(valueStreamFeature, (test) => {
       const value = response.body.data[0];
       expect(value.valueStream).toBeTruthy();
       expect(value.valueStream.name).toBe(name);
+    });
+  });
+});
+
+// --- ABSTRACT VALUE ---
+defineFeature(abstractFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let valueId: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Create a value marked as abstract', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a value with:',
+      async (table: { name: string; type: string; abstract: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type, abstract: row.abstract === 'true' });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a value with name "(.*)"$/, (name: string) => {
+      expect(response.body.name).toBe(name);
+    });
+
+    and(/^the response should have abstract set to (.*)$/, (val: string) => {
+      expect(response.body.abstract).toBe(val === 'true');
+    });
+  });
+
+  test('Create a value defaults to non-abstract', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a value with:',
+      async (table: { name: string; type: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should have abstract set to (.*)$/, (val: string) => {
+      expect(response.body.abstract).toBe(val === 'true');
+    });
+  });
+
+  test('Update a value to be abstract', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type });
+        valueId = res.body.id;
+      },
+    );
+
+    when("I update the value's abstract flag to true", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${valueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ abstract: true });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should have abstract set to (.*)$/, (val: string) => {
+      expect(response.body.abstract).toBe(val === 'true');
+    });
+  });
+
+  test('Update a value to not be abstract', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^an abstract value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type, abstract: true });
+        valueId = res.body.id;
+      },
+    );
+
+    when("I update the value's abstract flag to false", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${valueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ abstract: false });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should have abstract set to (.*)$/, (val: string) => {
+      expect(response.body.abstract).toBe(val === 'true');
     });
   });
 });

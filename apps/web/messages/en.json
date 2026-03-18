@@ -186,7 +186,13 @@
     "failedToCreateTaxonomy": "Failed to create taxonomy",
     "valueStream": "Value Stream",
     "selectValueStream": "Select value stream",
-    "allValueStreams": "All value streams"
+    "allValueStreams": "All value streams",
+    "abstract": "Abstract",
+    "graph": "Network Graph",
+    "graphDescription": "Visualize values and their parent-child relationships as a network graph.",
+    "viewGraph": "Graph",
+    "graphLoading": "Loading graph data...",
+    "graphNoData": "No values to display. Create values to see the network graph."
   },
   "taxonomies": {
     "title": "Taxonomies",

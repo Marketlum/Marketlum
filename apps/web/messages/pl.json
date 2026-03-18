@@ -186,7 +186,13 @@
     "failedToCreateTaxonomy": "Nie udało się utworzyć taksonomii",
     "valueStream": "Strumień wartości",
     "selectValueStream": "Wybierz strumień wartości",
-    "allValueStreams": "Wszystkie strumienie wartości"
+    "allValueStreams": "Wszystkie strumienie wartości",
+    "abstract": "Abstrakcyjna",
+    "graph": "Graf sieci",
+    "graphDescription": "Wizualizuj wartości i ich relacje rodzic-potomek jako graf sieci.",
+    "viewGraph": "Graf",
+    "graphLoading": "Wczytywanie danych grafu...",
+    "graphNoData": "Brak wartości do wyświetlenia. Utwórz wartości, aby zobaczyć graf sieci."
   },
   "taxonomies": {
     "title": "Taksonomie",

@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, ImageIcon } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, ImageIcon, Check } from 'lucide-react';
 import type { ValueResponse } from '@marketlum/shared';
 import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ interface ValueColumnsTranslations {
   taxonomy: string;
   agent: string;
   valueStream: string;
+  abstract: string;
   image: string;
   created: string;
   edit: string;
@@ -99,6 +100,13 @@ export function getValueColumns({ onEdit, onDelete, onSort, translations }: Valu
       cell: ({ row }) => {
         const vs = (row.original as any).valueStream;
         return vs ? vs.name : '-';
+      },
+    },
+    {
+      accessorKey: 'abstract',
+      header: translations.abstract,
+      cell: ({ row }) => {
+        return row.original.abstract ? <Check className="h-4 w-4 text-muted-foreground" /> : '-';
       },
     },
     {

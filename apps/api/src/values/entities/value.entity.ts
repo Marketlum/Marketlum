@@ -37,6 +37,9 @@ export class Value {
   @Column({ type: 'text', nullable: true })
   link: string | null;
 
+  @Column({ type: 'boolean', default: false })
+  abstract: boolean;
+
   @Column({ type: 'enum', enum: ValueParentType, nullable: true })
   parentType: ValueParentType | null;
 
