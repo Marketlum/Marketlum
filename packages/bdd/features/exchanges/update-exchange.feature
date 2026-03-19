@@ -33,50 +33,6 @@ Feature: Update Exchange
     And the response should contain a party with agent "Agent B"
     And the response should contain a party with agent "Agent C"
 
-  Scenario: Transition state from open to closed
-    Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
-    And an exchange exists with name "Open Exchange"
-    When I update the exchange's state to "closed"
-    Then the response status should be 200
-    And the response should contain an exchange with state "closed"
-
-  Scenario: Transition state from open to completed sets completedAt
-    Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
-    And an exchange exists with name "Open Exchange"
-    When I update the exchange's state to "completed"
-    Then the response status should be 200
-    And the response should contain an exchange with state "completed"
-    And the response should contain a completedAt timestamp
-
-  Scenario: Transition state from closed to open (re-open)
-    Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
-    And an exchange exists with name "Closed Exchange" and state "closed"
-    When I update the exchange's state to "open"
-    Then the response status should be 200
-    And the response should contain an exchange with state "open"
-
-  Scenario: Reject transition from completed state (terminal)
-    Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
-    And an exchange exists with name "Done Exchange" and state "completed"
-    When I update the exchange's state to "open"
-    Then the response status should be 400
-
-  Scenario: Reject transition from closed to completed
-    Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
-    And an exchange exists with name "Closed Exchange" and state "closed"
-    When I update the exchange's state to "completed"
-    Then the response status should be 400
-
   Scenario: Update a non-existent exchange returns 404
     Given I am authenticated as "admin@marketlum.com"
     When I update the exchange with ID "00000000-0000-0000-0000-000000000000" with name "Test"

@@ -682,7 +682,12 @@
     "updatedAt": "Updated At",
     "notFound": "Exchange not found",
     "notFoundDescription": "The exchange you are looking for does not exist.",
-    "backToExchanges": "Back to exchanges"
+    "backToExchanges": "Back to exchanges",
+    "stateChanged": "Exchange state changed",
+    "failedToTransition": "Failed to transition exchange",
+    "close": "Close",
+    "complete": "Complete",
+    "reopen": "Reopen"
   },
   "dashboard": {
     "title": "Dashboard",

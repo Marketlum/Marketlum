@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ExchangeState } from '../enums/exchange-state.enum';
+import { ExchangeTransitionAction } from '../enums/exchange-transition-action.enum';
 import { AgentType } from '../enums/agent-type.enum';
 
 const agentSummarySchema = z.object({
@@ -69,8 +70,11 @@ export const updateExchangeSchema = z.object({
   channelId: z.string().uuid().nullable().optional(),
   link: z.string().nullable().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
-  state: z.nativeEnum(ExchangeState).optional(),
   parties: z.array(exchangePartyInputSchema).min(2).optional(),
+});
+
+export const transitionExchangeSchema = z.object({
+  action: z.nativeEnum(ExchangeTransitionAction),
 });
 
 export const exchangeResponseSchema = z.object({
@@ -131,6 +135,7 @@ export const exchangeFlowResponseSchema = z.object({
 export type ExchangePartyInput = z.infer<typeof exchangePartyInputSchema>;
 export type CreateExchangeInput = z.infer<typeof createExchangeSchema>;
 export type UpdateExchangeInput = z.infer<typeof updateExchangeSchema>;
+export type TransitionExchangeInput = z.infer<typeof transitionExchangeSchema>;
 export type ExchangeResponse = z.infer<typeof exchangeResponseSchema>;
 export type CreateExchangeFlowInput = z.infer<typeof createExchangeFlowSchema>;
 export type UpdateExchangeFlowInput = z.infer<typeof updateExchangeFlowSchema>;

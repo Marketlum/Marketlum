@@ -40,6 +40,9 @@ const updateFlowFeature = loadFeature(
 const deleteFlowFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/delete-exchange-flow.feature'),
 );
+const transitionFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/transition-exchange.feature'),
+);
 
 const exchangeIds = new Map<string, string>();
 const agentIds = new Map<string, string>();
@@ -151,16 +154,16 @@ async function createExchange(
   if (opts.state && opts.state !== 'open') {
     if (opts.state === 'closed') {
       await request(getApp().getHttpServer())
-        .patch(`/exchanges/${res.body.id}`)
+        .post(`/exchanges/${res.body.id}/transitions`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ state: 'closed' });
+        .send({ action: 'close' });
     } else if (opts.state === 'completed') {
       await request(getApp().getHttpServer())
-        .patch(`/exchanges/${res.body.id}`)
+        .post(`/exchanges/${res.body.id}/transitions`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ state: 'completed' });
+        .send({ action: 'complete' });
     }
   }
 
@@ -1188,187 +1191,6 @@ defineFeature(updateFeature, (test) => {
     });
   });
 
-  test('Transition state from open to closed', ({ given, when, then, and }) => {
-    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
-      authCookie = await createAuthenticatedUser(email, 'password123');
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
-      await createExchange(authCookie, name);
-    });
-
-    when(/^I update the exchange's state to "(.*)"$/, async (state: string) => {
-      const id = exchangeIds.values().next().value;
-      response = await request(getApp().getHttpServer())
-        .patch(`/exchanges/${id}`)
-        .set('Cookie', [authCookie])
-        .set('X-CSRF-Protection', '1')
-        .send({ state });
-    });
-
-    then(/^the response status should be (\d+)$/, (status: string) => {
-      expect(response.status).toBe(parseInt(status));
-    });
-
-    and(/^the response should contain an exchange with state "(.*)"$/, (state: string) => {
-      expect(response.body.state).toBe(state);
-    });
-  });
-
-  test('Transition state from open to completed sets completedAt', ({ given, when, then, and }) => {
-    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
-      authCookie = await createAuthenticatedUser(email, 'password123');
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
-      await createExchange(authCookie, name);
-    });
-
-    when(/^I update the exchange's state to "(.*)"$/, async (state: string) => {
-      const id = exchangeIds.values().next().value;
-      response = await request(getApp().getHttpServer())
-        .patch(`/exchanges/${id}`)
-        .set('Cookie', [authCookie])
-        .set('X-CSRF-Protection', '1')
-        .send({ state });
-    });
-
-    then(/^the response status should be (\d+)$/, (status: string) => {
-      expect(response.status).toBe(parseInt(status));
-    });
-
-    and(/^the response should contain an exchange with state "(.*)"$/, (state: string) => {
-      expect(response.body.state).toBe(state);
-    });
-
-    and('the response should contain a completedAt timestamp', () => {
-      expect(response.body.completedAt).toBeDefined();
-      expect(response.body.completedAt).not.toBeNull();
-    });
-  });
-
-  test('Transition state from closed to open (re-open)', ({ given, when, then, and }) => {
-    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
-      authCookie = await createAuthenticatedUser(email, 'password123');
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(
-      /^an exchange exists with name "(.*)" and state "(.*)"$/,
-      async (name: string, state: string) => {
-        await createExchange(authCookie, name, { state });
-      },
-    );
-
-    when(/^I update the exchange's state to "(.*)"$/, async (state: string) => {
-      const id = exchangeIds.values().next().value;
-      response = await request(getApp().getHttpServer())
-        .patch(`/exchanges/${id}`)
-        .set('Cookie', [authCookie])
-        .set('X-CSRF-Protection', '1')
-        .send({ state });
-    });
-
-    then(/^the response status should be (\d+)$/, (status: string) => {
-      expect(response.status).toBe(parseInt(status));
-    });
-
-    and(/^the response should contain an exchange with state "(.*)"$/, (state: string) => {
-      expect(response.body.state).toBe(state);
-    });
-  });
-
-  test('Reject transition from completed state (terminal)', ({ given, when, then, and }) => {
-    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
-      authCookie = await createAuthenticatedUser(email, 'password123');
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(
-      /^an exchange exists with name "(.*)" and state "(.*)"$/,
-      async (name: string, state: string) => {
-        await createExchange(authCookie, name, { state });
-      },
-    );
-
-    when(/^I update the exchange's state to "(.*)"$/, async (state: string) => {
-      const id = exchangeIds.values().next().value;
-      response = await request(getApp().getHttpServer())
-        .patch(`/exchanges/${id}`)
-        .set('Cookie', [authCookie])
-        .set('X-CSRF-Protection', '1')
-        .send({ state });
-    });
-
-    then(/^the response status should be (\d+)$/, (status: string) => {
-      expect(response.status).toBe(parseInt(status));
-    });
-  });
-
-  test('Reject transition from closed to completed', ({ given, when, then, and }) => {
-    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
-      authCookie = await createAuthenticatedUser(email, 'password123');
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(
-      /^an exchange exists with name "(.*)" and state "(.*)"$/,
-      async (name: string, state: string) => {
-        await createExchange(authCookie, name, { state });
-      },
-    );
-
-    when(/^I update the exchange's state to "(.*)"$/, async (state: string) => {
-      const id = exchangeIds.values().next().value;
-      response = await request(getApp().getHttpServer())
-        .patch(`/exchanges/${id}`)
-        .set('Cookie', [authCookie])
-        .set('X-CSRF-Protection', '1')
-        .send({ state });
-    });
-
-    then(/^the response status should be (\d+)$/, (status: string) => {
-      expect(response.status).toBe(parseInt(status));
-    });
-  });
-
   test('Update a non-existent exchange returns 404', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
@@ -1398,6 +1220,243 @@ defineFeature(updateFeature, (test) => {
           .patch(`/exchanges/${id}`)
           .set('X-CSRF-Protection', '1')
           .send({ name });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- TRANSITION EXCHANGE ---
+defineFeature(transitionFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    clearMaps();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Close an open exchange', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
+      await createExchange(authCookie, name);
+    });
+
+    when(/^I transition the exchange with action "(.*)"$/, async (action: string) => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/exchanges/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an exchange with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+  });
+
+  test('Complete an open exchange', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
+      await createExchange(authCookie, name);
+    });
+
+    when(/^I transition the exchange with action "(.*)"$/, async (action: string) => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/exchanges/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an exchange with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+
+    and('the response should contain a completedAt timestamp', () => {
+      expect(response.body.completedAt).toBeDefined();
+      expect(response.body.completedAt).not.toBeNull();
+    });
+  });
+
+  test('Reopen a closed exchange', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(
+      /^an exchange exists with name "(.*)" and state "(.*)"$/,
+      async (name: string, state: string) => {
+        await createExchange(authCookie, name, { state });
+      },
+    );
+
+    when(/^I transition the exchange with action "(.*)"$/, async (action: string) => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/exchanges/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an exchange with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+  });
+
+  test('Reject transition from completed state', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(
+      /^an exchange exists with name "(.*)" and state "(.*)"$/,
+      async (name: string, state: string) => {
+        await createExchange(authCookie, name, { state });
+      },
+    );
+
+    when(/^I transition the exchange with action "(.*)"$/, async (action: string) => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/exchanges/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Reject transition from closed to completed', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(
+      /^an exchange exists with name "(.*)" and state "(.*)"$/,
+      async (name: string, state: string) => {
+        await createExchange(authCookie, name, { state });
+      },
+    );
+
+    when(/^I transition the exchange with action "(.*)"$/, async (action: string) => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/exchanges/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Non-existent exchange returns 404', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I transition the exchange with ID "(.*)" with action "(.*)"$/,
+      async (id: string, action: string) => {
+        response = await request(getApp().getHttpServer())
+          .post(`/exchanges/${id}/transitions`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ action });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when(
+      /^I transition the exchange with ID "(.*)" with action "(.*)"$/,
+      async (id: string, action: string) => {
+        response = await request(getApp().getHttpServer())
+          .post(`/exchanges/${id}/transitions`)
+          .set('X-CSRF-Protection', '1')
+          .send({ action });
       },
     );
 

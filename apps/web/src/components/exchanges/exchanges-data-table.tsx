@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { SlidersHorizontal } from 'lucide-react';
-import type { PaginatedResponse, PerspectiveConfig, CreateExchangeInput, ExchangeState } from '@marketlum/shared';
+import type { PaginatedResponse, PerspectiveConfig, CreateExchangeInput } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { usePagination } from '@/hooks/use-pagination';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -185,7 +185,7 @@ export function ExchangesDataTable() {
     }
   };
 
-  const handleFormSubmit = async (input: CreateExchangeInput & { state?: ExchangeState }) => {
+  const handleFormSubmit = async (input: CreateExchangeInput) => {
     setIsSubmitting(true);
     try {
       if (editingExchange) {

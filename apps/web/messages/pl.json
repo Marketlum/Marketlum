@@ -681,7 +681,12 @@
     "updatedAt": "Zaktualizowano",
     "notFound": "Nie znaleziono wymiany",
     "notFoundDescription": "Szukana wymiana nie istnieje.",
-    "backToExchanges": "Powrót do wymian"
+    "backToExchanges": "Powrót do wymian",
+    "stateChanged": "Status wymiany zmieniony",
+    "failedToTransition": "Nie udało się zmienić statusu wymiany",
+    "close": "Zamknij",
+    "complete": "Zakończ",
+    "reopen": "Otwórz ponownie"
   },
   "dashboard": {
     "title": "Pulpit",

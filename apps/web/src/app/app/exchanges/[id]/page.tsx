@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Pencil, Trash2, ArrowLeft, ArrowRightLeft, ExternalLink } from 'lucide-react';
-import type { ExchangeResponse, CreateExchangeInput, ExchangeState } from '@marketlum/shared';
+import type { ExchangeResponse, CreateExchangeInput } from '@marketlum/shared';
 import type { PaginatedResponse } from '@marketlum/shared';
 import { api, ApiError } from '@/lib/api-client';
 import { toast } from 'sonner';
@@ -78,7 +78,18 @@ export default function ExchangeDetailPage() {
     fetchExchange();
   }, [fetchExchange]);
 
-  const handleEdit = async (input: CreateExchangeInput & { state?: ExchangeState }) => {
+  const handleTransition = async (action: string) => {
+    if (!exchange) return;
+    try {
+      await api.post(`/exchanges/${exchange.id}/transitions`, { action });
+      toast.success(t('stateChanged'));
+      fetchExchange();
+    } catch {
+      toast.error(t('failedToTransition'));
+    }
+  };
+
+  const handleEdit = async (input: CreateExchangeInput) => {
     if (!exchange) return;
     setIsSubmitting(true);
     try {
@@ -169,6 +180,21 @@ export default function ExchangeDetailPage() {
             <p className="text-muted-foreground mb-2">{exchange.purpose}</p>
           )}
           <div className="flex gap-2 mt-2">
+            {exchange.state === 'open' && (
+              <>
+                <Button variant="secondary" size="sm" onClick={() => handleTransition('close')}>
+                  {t('close')}
+                </Button>
+                <Button size="sm" onClick={() => handleTransition('complete')}>
+                  {t('complete')}
+                </Button>
+              </>
+            )}
+            {exchange.state === 'closed' && (
+              <Button variant="outline" size="sm" onClick={() => handleTransition('reopen')}>
+                {t('reopen')}
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => setFlowsOpen(true)}>
               {t('flows')}
             </Button>

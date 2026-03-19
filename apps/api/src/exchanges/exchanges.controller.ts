@@ -17,9 +17,11 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createExchangeSchema,
   updateExchangeSchema,
+  transitionExchangeSchema,
   paginationQuerySchema,
   CreateExchangeInput,
   UpdateExchangeInput,
+  TransitionExchangeInput,
   PaginationQuery,
 } from '@marketlum/shared';
 
@@ -58,6 +60,15 @@ export class ExchangesController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.exchangesService.findOne(id);
+  }
+
+  @Post(':id/transitions')
+  @HttpCode(HttpStatus.OK)
+  async transition(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(transitionExchangeSchema)) body: TransitionExchangeInput,
+  ) {
+    return this.exchangesService.transition(id, body.action);
   }
 
   @Patch(':id')

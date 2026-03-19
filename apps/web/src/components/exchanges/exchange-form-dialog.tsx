@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus, X } from 'lucide-react';
-import type { CreateExchangeInput, ExchangeState } from '@marketlum/shared';
+import type { CreateExchangeInput } from '@marketlum/shared';
 import {
   Dialog,
   DialogContent,
@@ -50,7 +50,7 @@ interface ExchangeData {
 interface ExchangeFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateExchangeInput & { state?: ExchangeState }) => Promise<void>;
+  onSubmit: (data: CreateExchangeInput) => Promise<void>;
   exchange?: ExchangeData | null;
   isSubmitting?: boolean;
   channels?: { id: string; name: string }[];
@@ -78,7 +78,6 @@ export function ExchangeFormDialog({
   const [valueStreamId, setValueStreamId] = useState<string>('none');
   const [channelId, setChannelId] = useState<string>('none');
   const [leadUserId, setLeadUserId] = useState<string>('none');
-  const [state, setState] = useState<string>('open');
   const [parties, setParties] = useState<PartyRow[]>([
     { agentId: '', role: '' },
     { agentId: '', role: '' },
@@ -93,7 +92,6 @@ export function ExchangeFormDialog({
       setValueStreamId(exchange.valueStream?.id ?? 'none');
       setChannelId(exchange.channel?.id ?? 'none');
       setLeadUserId(exchange.lead?.id ?? 'none');
-      setState(exchange.state);
       setParties(
         exchange.parties.map((p) => ({
           agentId: p.agent.id,
@@ -108,7 +106,6 @@ export function ExchangeFormDialog({
       setValueStreamId('none');
       setChannelId('none');
       setLeadUserId('none');
-      setState('open');
       setParties([
         { agentId: '', role: '' },
         { agentId: '', role: '' },
@@ -128,8 +125,7 @@ export function ExchangeFormDialog({
     body.valueStreamId = valueStreamId !== 'none' ? valueStreamId : null;
     body.channelId = channelId !== 'none' ? channelId : null;
     body.leadUserId = leadUserId !== 'none' ? leadUserId : null;
-    if (isEditing) body.state = state;
-    await onSubmit(body as CreateExchangeInput & { state?: ExchangeState });
+    await onSubmit(body as CreateExchangeInput);
   };
 
   const addParty = () => {
@@ -171,22 +167,6 @@ export function ExchangeFormDialog({
             <Label>{t('link')}</Label>
             <Input value={link} onChange={(e) => setLink(e.target.value)} />
           </div>
-
-          {isEditing && (
-            <div className="space-y-1">
-              <Label>{t('state')}</Label>
-              <Select value={state} onValueChange={setState}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="open">{t('stateOpen')}</SelectItem>
-                  <SelectItem value="closed">{t('stateClosed')}</SelectItem>
-                  <SelectItem value="completed">{t('stateCompleted')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
 
           <div className="space-y-1">
             <Label>{t('valueStream')}</Label>

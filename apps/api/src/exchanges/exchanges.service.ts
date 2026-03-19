@@ -15,14 +15,11 @@ import {
   CreateExchangeInput,
   UpdateExchangeInput,
   ExchangeState,
+  ExchangeTransitionAction,
   PaginationQuery,
+  exchangeMachine,
 } from '@marketlum/shared';
-
-const ALLOWED_TRANSITIONS: Record<ExchangeState, ExchangeState[]> = {
-  [ExchangeState.OPEN]: [ExchangeState.CLOSED, ExchangeState.COMPLETED],
-  [ExchangeState.CLOSED]: [ExchangeState.OPEN],
-  [ExchangeState.COMPLETED]: [],
-};
+import { createActor, getNextSnapshot } from 'xstate';
 
 @Injectable()
 export class ExchangesService {
@@ -230,23 +227,39 @@ export class ExchangesService {
     };
   }
 
+  async transition(id: string, action: ExchangeTransitionAction): Promise<Exchange> {
+    const exchange = await this.findOne(id);
+
+    const nextSnapshot = getNextSnapshot(
+      exchangeMachine,
+      exchangeMachine.resolveState({ value: exchange.state, context: {} }),
+      { type: action },
+    );
+
+    if (nextSnapshot.value === exchange.state) {
+      throw new BadRequestException(
+        `Cannot transition from ${exchange.state} using action "${action}"`,
+      );
+    }
+
+    exchange.state = nextSnapshot.value as ExchangeState;
+    if (exchange.state === ExchangeState.COMPLETED) {
+      exchange.completedAt = new Date();
+    }
+
+    delete (exchange as any).parties;
+    delete (exchange as any).flows;
+    delete (exchange as any).valueStream;
+    delete (exchange as any).channel;
+    delete (exchange as any).lead;
+    await this.exchangeRepository.save(exchange);
+
+    return this.findOne(id);
+  }
+
   async update(id: string, input: UpdateExchangeInput): Promise<Exchange> {
     const exchange = await this.findOne(id);
-    const { parties, valueStreamId, channelId, leadUserId, state, ...rest } = input;
-
-    // State transition validation
-    if (state !== undefined && state !== exchange.state) {
-      const allowed = ALLOWED_TRANSITIONS[exchange.state];
-      if (!allowed.includes(state)) {
-        throw new BadRequestException(
-          `Cannot transition from ${exchange.state} to ${state}`,
-        );
-      }
-      exchange.state = state;
-      if (state === ExchangeState.COMPLETED) {
-        exchange.completedAt = new Date();
-      }
-    }
+    const { parties, valueStreamId, channelId, leadUserId, ...rest } = input;
 
     // Update scalar fields
     if (rest.name !== undefined) exchange.name = rest.name;

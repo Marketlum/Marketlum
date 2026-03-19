@@ -83,6 +83,9 @@ importers:
       typeorm:
         specifier: ^0.3.20
         version: 0.3.28(pg@8.18.0)(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@20.19.32)(typescript@5.9.3))
+      xstate:
+        specifier: ^5.28.0
+        version: 5.28.0
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -270,6 +273,9 @@ importers:
 
   packages/shared:
     dependencies:
+      xstate:
+        specifier: ^5.28.0
+        version: 5.28.0
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -5546,6 +5552,9 @@ packages:
   write-file-atomic@4.0.2:
     resolution: {integrity: sha512-7KxauUdBmSdWnmpaGFg+ppNjKF8uNLry8LyzjauQDOVONfFLNKrKvQOxZ/VuTIcS/gge/YNahf5RIIQWTSarlg==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
+
+  xstate@5.28.0:
+    resolution: {integrity: sha512-Iaqq6ZrUzqeUtA3hC5LQKZfR8ZLzEFTImMHJM3jWEdVvXWdKvvVLXZEiNQWm3SCA9ZbEou/n5rcsna1wb9t28A==}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -11834,6 +11843,8 @@ snapshots:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
+
+  xstate@5.28.0: {}
 
   xtend@4.0.2: {}
 
