@@ -72,6 +72,7 @@ interface ValueFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateValueInput) => Promise<void>;
   value?: ValueResponse | null;
+  initialData?: ValueResponse | null;
   isSubmitting?: boolean;
 }
 
@@ -80,9 +81,11 @@ export function ValueFormDialog({
   onOpenChange,
   onSubmit,
   value,
+  initialData,
   isSubmitting,
 }: ValueFormDialogProps) {
   const isEditing = !!value;
+  const prefill = value ?? initialData;
   const schema = isEditing ? updateValueSchema : createValueSchema;
   const t = useTranslations('values');
   const tc = useTranslations('common');
@@ -130,29 +133,29 @@ export function ValueFormDialog({
 
   useEffect(() => {
     if (open) {
-      if (value) {
+      if (prefill) {
         reset({
-          name: value.name,
-          type: value.type as ValueType,
-          purpose: value.purpose ?? '',
-          description: value.description ?? '',
-          link: value.link ?? '',
-          abstract: value.abstract ?? false,
-          lifecycleStage: value.lifecycleStage ?? null,
-          parentId: value.parent?.id ?? null,
-          parentType: value.parentType ?? null,
-          agentId: value.agent?.id ?? null,
-          valueStreamId: (value as any).valueStream?.id ?? null,
-          mainTaxonomyId: value.mainTaxonomy?.id ?? null,
-          taxonomyIds: value.taxonomies?.map((t) => t.id) ?? [],
-          fileIds: value.files?.map((f) => f.id) ?? [],
-          imageIds: (value as any).images?.map((img: any) => img.id) ?? [],
+          name: prefill.name,
+          type: prefill.type as ValueType,
+          purpose: prefill.purpose ?? '',
+          description: prefill.description ?? '',
+          link: prefill.link ?? '',
+          abstract: prefill.abstract ?? false,
+          lifecycleStage: prefill.lifecycleStage ?? null,
+          parentId: prefill.parent?.id ?? null,
+          parentType: prefill.parentType ?? null,
+          agentId: prefill.agent?.id ?? null,
+          valueStreamId: (prefill as any).valueStream?.id ?? null,
+          mainTaxonomyId: prefill.mainTaxonomy?.id ?? null,
+          taxonomyIds: prefill.taxonomies?.map((t) => t.id) ?? [],
+          fileIds: prefill.files?.map((f) => f.id) ?? [],
+          imageIds: (prefill as any).images?.map((img: any) => img.id) ?? [],
         });
         setSelectedFiles(
-          value.files?.map((f) => ({ id: f.id, originalName: f.originalName })) ?? [],
+          prefill.files?.map((f) => ({ id: f.id, originalName: f.originalName })) ?? [],
         );
         setSelectedImages(
-          (value as any).images?.map((img: any) => ({ id: img.id, originalName: img.originalName, mimeType: img.mimeType })) ?? [],
+          (prefill as any).images?.map((img: any) => ({ id: img.id, originalName: img.originalName, mimeType: img.mimeType })) ?? [],
         );
       } else {
         reset({
@@ -176,7 +179,7 @@ export function ValueFormDialog({
         setSelectedImages([]);
       }
     }
-  }, [open, value, reset]);
+  }, [open, prefill, reset]);
 
   const toggleTaxonomyId = (id: string) => {
     const current = taxonomyIdsValue;

@@ -65,6 +65,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
 
   const allColumns = getValueColumns({
     onEdit: () => {},
+    onDuplicate: () => {},
     onDelete: () => {},
     onSort: pagination.setSort,
     translations: {
@@ -80,6 +81,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
       purpose: tv('purpose'),
       created: tc('created'),
       edit: tc('edit'),
+      duplicate: tc('duplicate'),
       delete: tc('delete'),
       typeLabels,
     },

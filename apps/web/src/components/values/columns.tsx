@@ -28,18 +28,20 @@ interface ValueColumnsTranslations {
   image: string;
   created: string;
   edit: string;
+  duplicate: string;
   delete: string;
   typeLabels: Record<string, string>;
 }
 
 interface ValueColumnsOptions {
   onEdit: (value: ValueResponse) => void;
+  onDuplicate: (value: ValueResponse) => void;
   onDelete: (value: ValueResponse) => void;
   onSort: (column: string) => void;
   translations: ValueColumnsTranslations;
 }
 
-export function getValueColumns({ onEdit, onDelete, onSort, translations }: ValueColumnsOptions): ColumnDef<ValueResponse>[] {
+export function getValueColumns({ onEdit, onDuplicate, onDelete, onSort, translations }: ValueColumnsOptions): ColumnDef<ValueResponse>[] {
   return [
     {
       id: 'image',
@@ -166,6 +168,7 @@ export function getValueColumns({ onEdit, onDelete, onSort, translations }: Valu
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(value)}>{translations.edit}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDuplicate(value)}>{translations.duplicate}</DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => onDelete(value)}
                   className="text-destructive focus:text-destructive"

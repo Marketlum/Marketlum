@@ -21,7 +21,8 @@
     "type": "Typ",
     "filters": "Filtry",
     "filtersDescription": "Zawęź wyniki za pomocą poniższych filtrów.",
-    "rowsPerPage": "Wierszy na stronę"
+    "rowsPerPage": "Wierszy na stronę",
+    "duplicate": "Duplikuj"
   },
   "nav": {
     "users": "Użytkownicy",

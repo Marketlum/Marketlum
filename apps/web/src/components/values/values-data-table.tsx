@@ -80,6 +80,7 @@ export function ValuesDataTable() {
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editingValue, setEditingValue] = useState<ValueResponse | null>(null);
+  const [duplicatingValue, setDuplicatingValue] = useState<ValueResponse | null>(null);
   const [deleteValue, setDeleteValue] = useState<ValueResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -180,6 +181,29 @@ export function ValuesDataTable() {
     }
   };
 
+  const handleDuplicate = async (value: ValueResponse) => {
+    try {
+      const full = await api.get<ValueResponse>(`/values/${value.id}`);
+      setDuplicatingValue(full);
+    } catch {
+      toast.error(t('failedToLoad'));
+    }
+  };
+
+  const handleDuplicateSubmit = async (input: CreateValueInput) => {
+    setIsSubmitting(true);
+    try {
+      await api.post('/values', input);
+      toast.success(t('created'));
+      setDuplicatingValue(null);
+      fetchData();
+    } catch {
+      toast.error(t('failedToCreate'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleEdit = async (input: CreateValueInput) => {
     if (!editingValue) return;
     setIsSubmitting(true);
@@ -222,6 +246,7 @@ export function ValuesDataTable() {
 
   const columns = getValueColumns({
     onEdit: (value) => setEditingValue(value),
+    onDuplicate: handleDuplicate,
     onDelete: (value) => setDeleteValue(value),
     onSort: pagination.setSort,
     translations: {
@@ -237,6 +262,7 @@ export function ValuesDataTable() {
       purpose: t('purpose'),
       created: tc('created'),
       edit: tc('edit'),
+      duplicate: tc('duplicate'),
       delete: tc('delete'),
       typeLabels,
     },
@@ -526,6 +552,14 @@ export function ValuesDataTable() {
         onOpenChange={(open) => !open && setEditingValue(null)}
         onSubmit={handleEdit}
         value={editingValue}
+        isSubmitting={isSubmitting}
+      />
+
+      <ValueFormDialog
+        open={!!duplicatingValue}
+        onOpenChange={(open) => !open && setDuplicatingValue(null)}
+        onSubmit={handleDuplicateSubmit}
+        initialData={duplicatingValue}
         isSubmitting={isSubmitting}
       />
 

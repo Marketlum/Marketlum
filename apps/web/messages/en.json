@@ -22,7 +22,8 @@
     "filters": "Filters",
     "filtersDescription": "Narrow down results using the filters below.",
     "rowsPerPage": "Rows per page",
-    "none": "None"
+    "none": "None",
+    "duplicate": "Duplicate"
   },
   "nav": {
     "users": "Users",
