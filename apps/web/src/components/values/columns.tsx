@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, ImageIcon, Check } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, ImageIcon, Check, Folder } from 'lucide-react';
 import type { ValueResponse } from '@marketlum/shared';
 import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { Button } from '@/components/ui/button';
@@ -102,7 +102,25 @@ export function getValueColumns({ onEdit, onDelete, onSort, translations }: Valu
       header: translations.valueStream,
       cell: ({ row }) => {
         const vs = (row.original as any).valueStream;
-        return vs ? vs.name : '-';
+        if (!vs) return '-';
+        return (
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 shrink-0 rounded overflow-hidden bg-muted/30 flex items-center justify-center">
+              {vs.image ? (
+                <FileImagePreview
+                  fileId={vs.image.id}
+                  mimeType={vs.image.mimeType}
+                  alt={vs.name}
+                  iconClassName="h-3 w-3 text-muted-foreground/50"
+                  imgClassName="h-full w-full object-cover"
+                />
+              ) : (
+                <Folder className="h-3 w-3 text-muted-foreground/50" />
+              )}
+            </div>
+            <span>{vs.name}</span>
+          </div>
+        );
       },
     },
     {

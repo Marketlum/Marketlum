@@ -129,6 +129,7 @@ export class ValuesService {
     qb.leftJoinAndSelect('images.file', 'imageFile');
     qb.leftJoinAndSelect('value.agent', 'agent');
     qb.leftJoinAndSelect('value.valueStream', 'valueStream');
+    qb.leftJoinAndSelect('valueStream.image', 'valueStreamImage');
     qb.leftJoinAndSelect('value.parent', 'parent');
 
     if (type) {
@@ -191,7 +192,7 @@ export class ValuesService {
   private async findOneRaw(id: string): Promise<Value> {
     const value = await this.valuesRepository.findOne({
       where: { id },
-      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'valueStream', 'parent'],
+      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'valueStream', 'valueStream.image', 'parent'],
     });
     if (!value) {
       throw new NotFoundException('Value not found');

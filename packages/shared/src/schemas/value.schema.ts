@@ -40,6 +40,7 @@ const agentSummarySchema = z.object({
 const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  image: fileSummarySchema.nullable(),
 });
 
 export const createValueSchema = z.object({
