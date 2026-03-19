@@ -11,6 +11,7 @@ import {
   updateValueSchema,
   ValueType,
   ValueParentType,
+  ValueLifecycleStage,
   type CreateValueInput,
   type ValueResponse,
   type TaxonomyResponse,
@@ -51,6 +52,14 @@ const typeTranslationKeys: Record<string, string> = {
   [ValueType.SERVICE]: 'typeService',
   [ValueType.RELATIONSHIP]: 'typeRelationship',
   [ValueType.RIGHT]: 'typeRight',
+};
+
+const lifecycleTranslationKeys: Record<string, string> = {
+  [ValueLifecycleStage.IDEA]: 'lifecycleIdea',
+  [ValueLifecycleStage.ALPHA]: 'lifecycleAlpha',
+  [ValueLifecycleStage.BETA]: 'lifecycleBeta',
+  [ValueLifecycleStage.STABLE]: 'lifecycleStable',
+  [ValueLifecycleStage.LEGACY]: 'lifecycleLegacy',
 };
 
 const parentTypeTranslationKeys: Record<string, string> = {
@@ -129,6 +138,7 @@ export function ValueFormDialog({
           description: value.description ?? '',
           link: value.link ?? '',
           abstract: value.abstract ?? false,
+          lifecycleStage: value.lifecycleStage ?? null,
           parentId: value.parent?.id ?? null,
           parentType: value.parentType ?? null,
           agentId: value.agent?.id ?? null,
@@ -152,6 +162,7 @@ export function ValueFormDialog({
           description: '',
           link: '',
           abstract: false,
+          lifecycleStage: null,
           parentId: null,
           parentType: null,
           agentId: null,
@@ -263,6 +274,25 @@ export function ValueFormDialog({
               className="h-4 w-4 rounded border-input"
             />
             <Label htmlFor="abstract">{t('abstract')}</Label>
+          </div>
+          <div className="space-y-2">
+            <Label>{t('lifecycleStage')}</Label>
+            <Select
+              value={watch('lifecycleStage') ?? 'none'}
+              onValueChange={(v) => setFormValue('lifecycleStage', v === 'none' ? null : v as ValueLifecycleStage)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-</SelectItem>
+                {Object.values(ValueLifecycleStage).map((stage) => (
+                  <SelectItem key={stage} value={stage}>
+                    {t(lifecycleTranslationKeys[stage])}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Parent */}

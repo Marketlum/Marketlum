@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import * as d3 from 'd3';
 import type { ValueResponse, PaginatedResponse } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
@@ -28,6 +30,8 @@ const TYPE_COLORS: Record<string, { fill: string; stroke: string }> = {
   right: { fill: '#f3e8ff', stroke: '#d8b4fe' },
 };
 
+const GRID_SIZE = 40;
+
 function clamp(min: number, val: number, max: number) {
   return Math.max(min, Math.min(max, val));
 }
@@ -43,8 +47,6 @@ function buildGraph(values: ValueResponse[]) {
       connectionCounts.set(v.parent.id, (connectionCounts.get(v.parent.id) ?? 0) + 1);
     }
   }
-
-  const valueMap = new Map(values.map((v) => [v.id, v]));
 
   const nodes: GraphNode[] = values.map((v) => ({
     id: v.id,
@@ -75,6 +77,26 @@ export function ValuesNetworkGraph() {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; links: GraphLink[] } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (!document.fullscreenElement) {
+      container.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleChange);
+    return () => document.removeEventListener('fullscreenchange', handleChange);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,7 +129,7 @@ export function ValuesNetworkGraph() {
     const width = svgEl.clientWidth;
     const height = svgEl.clientHeight;
 
-    // Arrowhead marker
+    // Defs: arrowhead + grid pattern
     const defs = svg.append('defs');
     defs
       .append('marker')
@@ -122,6 +144,31 @@ export function ValuesNetworkGraph() {
       .attr('d', 'M0,-5L10,0L0,5')
       .attr('fill', 'hsl(var(--border))');
 
+    const gridPattern = defs
+      .append('pattern')
+      .attr('id', 'grid-pattern')
+      .attr('width', GRID_SIZE)
+      .attr('height', GRID_SIZE)
+      .attr('patternUnits', 'userSpaceOnUse');
+
+    gridPattern
+      .append('path')
+      .attr('d', `M ${GRID_SIZE} 0 L 0 0 0 ${GRID_SIZE}`)
+      .attr('fill', 'none')
+      .attr('stroke', 'hsl(var(--border))')
+      .attr('stroke-width', 0.5)
+      .attr('opacity', 0.5);
+
+    // Grid background — large enough to cover panning
+    const gridExtent = 10000;
+    const gridBg = svg
+      .append('rect')
+      .attr('x', -gridExtent / 2)
+      .attr('y', -gridExtent / 2)
+      .attr('width', gridExtent)
+      .attr('height', gridExtent)
+      .attr('fill', 'url(#grid-pattern)');
+
     const g = svg.append('g');
 
     const zoom = d3
@@ -129,6 +176,7 @@ export function ValuesNetworkGraph() {
       .scaleExtent([0.1, 4])
       .on('zoom', (event) => {
         g.attr('transform', event.transform);
+        gridBg.attr('transform', event.transform);
       });
     svg.call(zoom);
 
@@ -253,7 +301,7 @@ export function ValuesNetworkGraph() {
       .attr('r', (d) => clamp(10, 8 + d.connectionCount * 3, 24))
       .attr('fill', (d) => TYPE_COLORS[d.type]?.fill ?? '#6b7280')
       .attr('stroke', (d) => TYPE_COLORS[d.type]?.stroke ?? '#4b5563')
-      .attr('stroke-width', (d) => (d.abstract ? 2 : 2))
+      .attr('stroke-width', 2)
       .attr('stroke-dasharray', (d) => (d.abstract ? '4 2' : 'none'));
 
     // Node labels
@@ -316,10 +364,20 @@ export function ValuesNetworkGraph() {
     <>
       <Card
         ref={containerRef}
-        className="relative overflow-hidden"
-        style={{ height: 'calc(100vh - 240px)', minHeight: 400 }}
+        className="relative overflow-hidden bg-background"
+        style={{ height: isFullscreen ? '100vh' : 'calc(100vh - 240px)', minHeight: 400 }}
       >
         <svg ref={svgRef} className="h-full w-full" />
+
+        {/* Fullscreen toggle */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute top-3 right-3 h-8 w-8 bg-background/90 backdrop-blur-sm"
+          onClick={toggleFullscreen}
+        >
+          {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </Button>
 
         {/* Legend */}
         <div className="absolute bottom-3 left-3 rounded-md border bg-background/90 p-2 text-xs backdrop-blur-sm">

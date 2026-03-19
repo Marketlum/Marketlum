@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import type { ValueResponse, PaginatedResponse } from '@marketlum/shared';
-import { ValueType } from '@marketlum/shared';
+import { ValueType, ValueLifecycleStage } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { usePagination } from '@/hooks/use-pagination';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -57,6 +57,12 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
     typeLabels[valueType] = tv(typeTranslationKeys[valueType]);
   }
 
+  const lifecycleStageLabels: Record<string, string> = {};
+  for (const stage of Object.values(ValueLifecycleStage)) {
+    const key = `lifecycle${stage.charAt(0).toUpperCase()}${stage.slice(1)}`;
+    lifecycleStageLabels[stage] = tv(key);
+  }
+
   const allColumns = getValueColumns({
     onEdit: () => {},
     onDelete: () => {},
@@ -68,6 +74,8 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
       agent: tv('agent'),
       valueStream: tv('valueStream'),
       abstract: tv('abstract'),
+      lifecycleStage: tv('lifecycleStage'),
+      lifecycleStageLabels,
       image: tv('image'),
       purpose: tv('purpose'),
       created: tc('created'),

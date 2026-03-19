@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ValueType } from '../enums/value-type.enum';
 import { ValueParentType } from '../enums/value-parent-type.enum';
+import { ValueLifecycleStage } from '../enums/value-lifecycle-stage.enum';
 import { AgentType } from '../enums/agent-type.enum';
 
 const taxonomySummarySchema = z.object({
@@ -56,6 +57,7 @@ export const createValueSchema = z.object({
   imageIds: z.array(z.string().uuid()).optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
   abstract: z.boolean().optional(),
+  lifecycleStage: z.nativeEnum(ValueLifecycleStage).nullable().optional(),
 });
 
 export const updateValueSchema = z.object({
@@ -73,6 +75,7 @@ export const updateValueSchema = z.object({
   imageIds: z.array(z.string().uuid()).optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
   abstract: z.boolean().optional(),
+  lifecycleStage: z.nativeEnum(ValueLifecycleStage).nullable().optional(),
 });
 
 export const valueResponseSchema = z.object({
@@ -83,6 +86,7 @@ export const valueResponseSchema = z.object({
   description: z.string().nullable(),
   link: z.string().nullable(),
   abstract: z.boolean(),
+  lifecycleStage: z.nativeEnum(ValueLifecycleStage).nullable(),
   parentType: z.nativeEnum(ValueParentType).nullable(),
   parent: parentSummarySchema.nullable(),
   agent: agentSummarySchema.nullable(),

@@ -22,6 +22,7 @@ import {
   UpdateValueInput,
   PaginationQuery,
   ValueType,
+  ValueLifecycleStage,
 } from '@marketlum/shared';
 
 @Controller('values')
@@ -43,8 +44,9 @@ export class ValuesController {
     @Query('taxonomyId') taxonomyId?: string,
     @Query('agentId') agentId?: string,
     @Query('valueStreamId') valueStreamId?: string,
+    @Query('lifecycleStage') lifecycleStage?: ValueLifecycleStage,
   ) {
-    return this.valuesService.findAll({ ...query, type, taxonomyId, agentId, valueStreamId });
+    return this.valuesService.findAll({ ...query, type, taxonomyId, agentId, valueStreamId, lifecycleStage });
   }
 
   @Get(':id')

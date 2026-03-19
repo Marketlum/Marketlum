@@ -7,6 +7,7 @@ import { FileImagePreview } from '@/components/shared/file-image-preview';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ValueTypeBadge } from './value-type-badge';
+import { ValueLifecycleBadge } from './value-lifecycle-badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,8 @@ interface ValueColumnsTranslations {
   agent: string;
   valueStream: string;
   abstract: string;
+  lifecycleStage: string;
+  lifecycleStageLabels: Record<string, string>;
   image: string;
   created: string;
   edit: string;
@@ -107,6 +110,15 @@ export function getValueColumns({ onEdit, onDelete, onSort, translations }: Valu
       header: translations.abstract,
       cell: ({ row }) => {
         return row.original.abstract ? <Check className="h-4 w-4 text-muted-foreground" /> : '-';
+      },
+    },
+    {
+      id: 'lifecycleStage',
+      header: translations.lifecycleStage,
+      cell: ({ row }) => {
+        const stage = row.original.lifecycleStage;
+        if (!stage) return '-';
+        return <ValueLifecycleBadge stage={stage} label={translations.lifecycleStageLabels[stage] ?? stage} />;
       },
     },
     {

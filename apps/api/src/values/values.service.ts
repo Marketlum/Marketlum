@@ -12,6 +12,7 @@ import {
   UpdateValueInput,
   PaginationQuery,
   ValueType,
+  ValueLifecycleStage,
 } from '@marketlum/shared';
 
 @Injectable()
@@ -115,8 +116,8 @@ export class ValuesService {
     return this.findOne(saved.id);
   }
 
-  async findAll(query: PaginationQuery & { type?: ValueType; taxonomyId?: string; agentId?: string; valueStreamId?: string }) {
-    const { page, limit, search, sortBy, sortOrder, type, taxonomyId, agentId, valueStreamId } = query;
+  async findAll(query: PaginationQuery & { type?: ValueType; taxonomyId?: string; agentId?: string; valueStreamId?: string; lifecycleStage?: ValueLifecycleStage }) {
+    const { page, limit, search, sortBy, sortOrder, type, taxonomyId, agentId, valueStreamId, lifecycleStage } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.valuesRepository.createQueryBuilder('value');
@@ -140,6 +141,10 @@ export class ValuesService {
 
     if (valueStreamId) {
       qb.andWhere('value."valueStreamId" = :valueStreamId', { valueStreamId });
+    }
+
+    if (lifecycleStage) {
+      qb.andWhere('value."lifecycleStage" = :lifecycleStage', { lifecycleStage });
     }
 
     if (taxonomyId) {

@@ -39,6 +39,9 @@ const valueStreamFeature = loadFeature(
 const abstractFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/abstract-value.feature'),
 );
+const lifecycleFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/values/lifecycle-stage.feature'),
+);
 
 // --- CREATE VALUE ---
 defineFeature(createFeature, (test) => {
@@ -2649,6 +2652,170 @@ defineFeature(abstractFeature, (test) => {
 
     and(/^the response should have abstract set to (.*)$/, (val: string) => {
       expect(response.body.abstract).toBe(val === 'true');
+    });
+  });
+});
+
+// --- LIFECYCLE STAGE ---
+defineFeature(lifecycleFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let valueId: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Create a value with a lifecycle stage', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a value with:',
+      async (table: { name: string; type: string; lifecycleStage: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type, lifecycleStage: row.lifecycleStage });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a value with name "(.*)"$/, (name: string) => {
+      expect(response.body.name).toBe(name);
+    });
+
+    and(/^the response should have lifecycleStage "(.*)"$/, (stage: string) => {
+      expect(response.body.lifecycleStage).toBe(stage);
+    });
+  });
+
+  test('Create a value without lifecycle stage defaults to null', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a value with:',
+      async (table: { name: string; type: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should have lifecycleStage null', () => {
+      expect(response.body.lifecycleStage).toBeNull();
+    });
+  });
+
+  test("Update a value's lifecycle stage", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type });
+        valueId = res.body.id;
+      },
+    );
+
+    when(/^I update the value's lifecycleStage to "(.*)"$/, async (stage: string) => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${valueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ lifecycleStage: stage });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should have lifecycleStage "(.*)"$/, (stage: string) => {
+      expect(response.body.lifecycleStage).toBe(stage);
+    });
+  });
+
+  test('Create a value with invalid lifecycle stage fails', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a value with:',
+      async (table: { name: string; type: string; lifecycleStage: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type, lifecycleStage: row.lifecycleStage });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Filter values by lifecycle stage', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      'the following values exist:',
+      async (table: { name: string; type: string; lifecycleStage: string }[]) => {
+        for (const row of table) {
+          await request(getApp().getHttpServer())
+            .post('/values')
+            .set('Cookie', [authCookie])
+            .set('X-CSRF-Protection', '1')
+            .send({ name: row.name, type: row.type, lifecycleStage: row.lifecycleStage });
+        }
+      },
+    );
+
+    when(/^I request the list of values filtered by lifecycleStage "(.*)"$/, async (stage: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/values?lifecycleStage=${stage}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain (\d+) values$/, (count: string) => {
+      expect(response.body.data.length).toBe(parseInt(count));
     });
   });
 });

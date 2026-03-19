@@ -10,7 +10,7 @@ import {
   JoinTable,
   JoinColumn,
 } from 'typeorm';
-import { ValueType, ValueParentType } from '@marketlum/shared';
+import { ValueType, ValueParentType, ValueLifecycleStage } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 import { File } from '../../files/entities/file.entity';
 import { Agent } from '../../agents/entities/agent.entity';
@@ -39,6 +39,9 @@ export class Value {
 
   @Column({ type: 'boolean', default: false })
   abstract: boolean;
+
+  @Column({ type: 'enum', enum: ValueLifecycleStage, nullable: true })
+  lifecycleStage: ValueLifecycleStage | null;
 
   @Column({ type: 'enum', enum: ValueParentType, nullable: true })
   parentType: ValueParentType | null;

@@ -6,6 +6,7 @@ export { OfferingState } from './enums/offering-state.enum';
 export { ExchangeState } from './enums/exchange-state.enum';
 export { GeographyType } from './enums/geography-type.enum';
 export { AgreementTemplateType } from './enums/agreement-template-type.enum';
+export { ValueLifecycleStage } from './enums/value-lifecycle-stage.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 

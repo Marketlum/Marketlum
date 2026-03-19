@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import type { ValueResponse, PaginatedResponse, CreateValueInput, PerspectiveConfig, TaxonomyTreeNode } from '@marketlum/shared';
-import { ValueType } from '@marketlum/shared';
+import { ValueType, ValueLifecycleStage } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { useTaxonomyTree } from '@/hooks/use-taxonomy-tree';
 import { useAgents } from '@/hooks/use-agents';
@@ -51,6 +51,14 @@ const typeTranslationKeys: Record<string, string> = {
   [ValueType.RIGHT]: 'typeRight',
 };
 
+const lifecycleTranslationKeys: Record<string, string> = {
+  [ValueLifecycleStage.IDEA]: 'lifecycleIdea',
+  [ValueLifecycleStage.ALPHA]: 'lifecycleAlpha',
+  [ValueLifecycleStage.BETA]: 'lifecycleBeta',
+  [ValueLifecycleStage.STABLE]: 'lifecycleStable',
+  [ValueLifecycleStage.LEGACY]: 'lifecycleLegacy',
+};
+
 export function ValuesDataTable() {
   const router = useRouter();
   const pagination = usePagination();
@@ -66,6 +74,7 @@ export function ValuesDataTable() {
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
+  const [lifecycleStageFilter, setLifecycleStageFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<ValueResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,6 +90,7 @@ export function ValuesDataTable() {
     setTaxonomyFilter(config.filters?.taxonomyId ?? 'all');
     setAgentFilter(config.filters?.agentId ?? 'all');
     setValueStreamFilter(config.filters?.valueStreamId ?? 'all');
+    setLifecycleStageFilter(config.filters?.lifecycleStage ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -119,9 +129,10 @@ export function ValuesDataTable() {
       ...(taxonomyFilter !== 'all' ? { taxonomyId: taxonomyFilter } : {}),
       ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
       ...(valueStreamFilter !== 'all' ? { valueStreamId: valueStreamFilter } : {}),
+      ...(lifecycleStageFilter !== 'all' ? { lifecycleStage: lifecycleStageFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -139,6 +150,9 @@ export function ValuesDataTable() {
       if (valueStreamFilter && valueStreamFilter !== 'all') {
         qs += `&valueStreamId=${valueStreamFilter}`;
       }
+      if (lifecycleStageFilter && lifecycleStageFilter !== 'all') {
+        qs += `&lifecycleStage=${lifecycleStageFilter}`;
+      }
       const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
       setData(result);
     } catch {
@@ -146,11 +160,11 @@ export function ValuesDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter]);
+  }, [pagination.toQueryString, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter, fetchData]);
 
   const handleCreate = async (input: CreateValueInput) => {
     setIsSubmitting(true);
@@ -201,6 +215,11 @@ export function ValuesDataTable() {
     typeLabels[valueType] = t(typeTranslationKeys[valueType]);
   }
 
+  const lifecycleStageLabels: Record<string, string> = {};
+  for (const stage of Object.values(ValueLifecycleStage)) {
+    lifecycleStageLabels[stage] = t(lifecycleTranslationKeys[stage]);
+  }
+
   const columns = getValueColumns({
     onEdit: (value) => setEditingValue(value),
     onDelete: (value) => setDeleteValue(value),
@@ -212,6 +231,8 @@ export function ValuesDataTable() {
       agent: t('agent'),
       valueStream: t('valueStream'),
       abstract: t('abstract'),
+      lifecycleStage: t('lifecycleStage'),
+      lifecycleStageLabels,
       image: t('image'),
       purpose: t('purpose'),
       created: tc('created'),
@@ -275,9 +296,10 @@ export function ValuesDataTable() {
     if (taxonomyFilter && taxonomyFilter !== 'all') qs += `&taxonomyId=${taxonomyFilter}`;
     if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
     if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+    if (lifecycleStageFilter && lifecycleStageFilter !== 'all') qs += `&lifecycleStage=${lifecycleStageFilter}`;
     const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -317,6 +339,14 @@ export function ValuesDataTable() {
         label: t('valueStream'),
         displayValue: vs?.name ?? valueStreamFilter,
         onClear: () => setValueStreamFilter('all'),
+      });
+    }
+    if (lifecycleStageFilter !== 'all') {
+      filters.push({
+        key: 'lifecycleStage',
+        label: t('lifecycleStage'),
+        displayValue: t(lifecycleTranslationKeys[lifecycleStageFilter]),
+        onClear: () => setLifecycleStageFilter('all'),
       });
     }
     return filters;
@@ -443,6 +473,22 @@ export function ValuesDataTable() {
               {valueStreams.map((vs) => (
                 <SelectItem key={vs.id} value={vs.id}>
                   {vs.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('lifecycleStage')}</label>
+          <Select value={lifecycleStageFilter} onValueChange={setLifecycleStageFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allLifecycleStages')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allLifecycleStages')}</SelectItem>
+              {Object.values(ValueLifecycleStage).map((stage) => (
+                <SelectItem key={stage} value={stage}>
+                  {t(lifecycleTranslationKeys[stage])}
                 </SelectItem>
               ))}
             </SelectContent>
