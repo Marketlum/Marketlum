@@ -200,7 +200,10 @@
     "graphDescription": "Wizualizuj wartości i ich relacje rodzic-potomek jako graf sieci.",
     "viewGraph": "Graf",
     "graphLoading": "Wczytywanie danych grafu...",
-    "graphNoData": "Brak wartości do wyświetlenia. Utwórz wartości, aby zobaczyć graf sieci."
+    "graphNoData": "Brak wartości do wyświetlenia. Utwórz wartości, aby zobaczyć graf sieci.",
+    "composition": "Kompozycja",
+    "noComposition": "Nie znaleziono części kompozycji.",
+    "viewDetails": "Zobacz szczegóły"
   },
   "taxonomies": {
     "title": "Taksonomie",

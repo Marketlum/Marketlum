@@ -201,7 +201,10 @@
     "graphDescription": "Visualize values and their parent-child relationships as a network graph.",
     "viewGraph": "Graph",
     "graphLoading": "Loading graph data...",
-    "graphNoData": "No values to display. Create values to see the network graph."
+    "graphNoData": "No values to display. Create values to see the network graph.",
+    "composition": "Composition",
+    "noComposition": "No composition parts found.",
+    "viewDetails": "View details"
   },
   "taxonomies": {
     "title": "Taxonomies",

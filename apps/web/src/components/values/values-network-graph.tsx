@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2, X, ExternalLink } from 'lucide-react';
 import * as d3 from 'd3';
+import Link from 'next/link';
 import type { ValueResponse, PaginatedResponse } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
@@ -23,6 +24,14 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   parentType: string | null;
 }
 
+interface PackNode {
+  id: string;
+  name: string;
+  type: string;
+  children?: PackNode[];
+  value?: number;
+}
+
 const TYPE_COLORS: Record<string, { fill: string; stroke: string }> = {
   product: { fill: '#dbeafe', stroke: '#93c5fd' },
   service: { fill: '#fef9c3', stroke: '#fde047' },
@@ -37,18 +46,23 @@ function clamp(min: number, val: number, max: number) {
 }
 
 function buildGraph(values: ValueResponse[]) {
+  // Only include values with no parent or on_top_of relationship in the network graph
+  const graphValues = values.filter((v) => !v.parentType || v.parentType === 'on_top_of');
+
   const connectionCounts = new Map<string, number>();
   const parentLinks: { childId: string; parentId: string; parentType: string | null }[] = [];
 
-  for (const v of values) {
-    if (v.parent) {
+  const graphValueIds = new Set(graphValues.map((v) => v.id));
+
+  for (const v of graphValues) {
+    if (v.parent && graphValueIds.has(v.parent.id)) {
       parentLinks.push({ childId: v.id, parentId: v.parent.id, parentType: v.parentType });
       connectionCounts.set(v.id, (connectionCounts.get(v.id) ?? 0) + 1);
       connectionCounts.set(v.parent.id, (connectionCounts.get(v.parent.id) ?? 0) + 1);
     }
   }
 
-  const nodes: GraphNode[] = values.map((v) => ({
+  const nodes: GraphNode[] = graphValues.map((v) => ({
     id: v.id,
     name: v.name,
     type: v.type,
@@ -70,14 +84,55 @@ function buildGraph(values: ValueResponse[]) {
   return { nodes, links };
 }
 
+function buildPartOfTree(values: ValueResponse[], rootId: string): PackNode | null {
+  const root = values.find((v) => v.id === rootId);
+  if (!root) return null;
+
+  function getChildren(parentId: string): PackNode[] {
+    return values
+      .filter((v) => v.parent?.id === parentId && v.parentType === 'part_of')
+      .map((v) => {
+        const children = getChildren(v.id);
+        if (children.length > 0) {
+          return { id: v.id, name: v.name, type: v.type, children };
+        }
+        return { id: v.id, name: v.name, type: v.type, value: 1 };
+      });
+  }
+
+  const children = getChildren(rootId);
+  if (children.length > 0) {
+    return { id: root.id, name: root.name, type: root.type, children };
+  }
+  return { id: root.id, name: root.name, type: root.type, value: 1 };
+}
+
 export function ValuesNetworkGraph() {
   const t = useTranslations('values');
   const svgRef = useRef<SVGSVGElement>(null);
+  const packRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
+  const [allValues, setAllValues] = useState<ValueResponse[]>([]);
   const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; links: GraphLink[] } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const selectedValue = useMemo(
+    () => (selectedNodeId ? allValues.find((v) => v.id === selectedNodeId) ?? null : null),
+    [selectedNodeId, allValues],
+  );
+
+  const packData = useMemo(
+    () => (selectedNodeId ? buildPartOfTree(allValues, selectedNodeId) : null),
+    [selectedNodeId, allValues],
+  );
+
+  const hasPartOfChildren = useMemo(
+    () => packData !== null && 'children' in packData && (packData.children?.length ?? 0) > 0,
+    [packData],
+  );
 
   const toggleFullscreen = useCallback(() => {
     const container = containerRef.current;
@@ -105,9 +160,11 @@ export function ValuesNetworkGraph() {
       try {
         const res = await api.get<PaginatedResponse<ValueResponse>>('/values?limit=10000');
         if (cancelled) return;
+        setAllValues(res.data);
         const data = buildGraph(res.data);
         setGraphData(data);
       } catch {
+        setAllValues([]);
         setGraphData({ nodes: [], links: [] });
       } finally {
         if (!cancelled) setLoading(false);
@@ -118,6 +175,7 @@ export function ValuesNetworkGraph() {
     return () => { cancelled = true; };
   }, []);
 
+  // Network graph rendering
   useEffect(() => {
     if (!graphData || graphData.nodes.length === 0 || !svgRef.current) return;
 
@@ -184,6 +242,7 @@ export function ValuesNetworkGraph() {
       linkGroup.attr('opacity', 1);
       linkLabelGroup.attr('opacity', 1);
       nodeGroup.attr('opacity', 1);
+      setSelectedNodeId(null);
     });
 
     const simulation = d3
@@ -253,6 +312,8 @@ export function ValuesNetworkGraph() {
           const targetId = typeof l.target === 'object' ? (l.target as GraphNode).id : String(l.target);
           return sourceId === d.id || targetId === d.id ? 1 : 0.15;
         });
+
+        setSelectedNodeId(d.id);
       })
       .on('mouseenter', (event: MouseEvent, d: GraphNode) => {
         const tooltip = tooltipRef.current;
@@ -344,6 +405,105 @@ export function ValuesNetworkGraph() {
     };
   }, [graphData]);
 
+  // Circle packing rendering
+  useEffect(() => {
+    if (!packRef.current || !packData || !hasPartOfChildren) return;
+
+    const container = packRef.current;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (width === 0 || height === 0) return;
+
+    // Clear previous
+    d3.select(container).select('svg').remove();
+
+    const svg = d3
+      .select(container)
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('viewBox', `-${width / 2} -${height / 2} ${width} ${height}`)
+      .style('cursor', 'pointer');
+
+    const hierarchy = d3
+      .hierarchy<PackNode>(packData)
+      .sum((d) => d.value ?? 0)
+      .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+
+    const diameter = Math.min(width, height);
+    const pack = d3.pack<PackNode>().size([diameter, diameter]).padding(3);
+    const root = pack(hierarchy);
+
+    let focus: d3.HierarchyCircularNode<PackNode> = root;
+    let view: [number, number, number];
+
+    const color = (type: string) => TYPE_COLORS[type]?.fill ?? '#e5e7eb';
+    const strokeColor = (type: string) => TYPE_COLORS[type]?.stroke ?? '#9ca3af';
+
+    const node = svg
+      .append('g')
+      .selectAll<SVGCircleElement, d3.HierarchyCircularNode<PackNode>>('circle')
+      .data(root.descendants())
+      .join('circle')
+      .attr('fill', (d) => color(d.data.type))
+      .attr('stroke', (d) => strokeColor(d.data.type))
+      .attr('stroke-width', 1.5)
+      .style('cursor', (d) => (d.children ? 'pointer' : 'default'))
+      .on('click', (event, d) => {
+        if (focus !== d && d.children) {
+          zoomTo(d);
+          event.stopPropagation();
+        }
+      });
+
+    const label = svg
+      .append('g')
+      .attr('pointer-events', 'none')
+      .attr('text-anchor', 'middle')
+      .selectAll<SVGTextElement, d3.HierarchyCircularNode<PackNode>>('text')
+      .data(root.descendants())
+      .join('text')
+      .style('fill-opacity', (d) => (d.parent === root ? 1 : 0))
+      .style('display', (d) => (d.parent === root ? 'inline' : 'none'))
+      .attr('font-size', '11px')
+      .attr('fill', 'hsl(var(--foreground))')
+      .text((d) => d.data.name);
+
+    svg.on('click', () => zoomTo(root));
+
+    zoomTo(root, false);
+
+    function zoomTo(d: d3.HierarchyCircularNode<PackNode>, animate = true) {
+      focus = d;
+      const k = diameter / (d.r * 2);
+      view = [d.x, d.y, d.r * 2];
+
+      // Pack layout is in (0,0)→(diameter,diameter) space.
+      // viewBox origin is (-width/2, -height/2).
+      // We translate so the focused node lands at the SVG center (0,0 in viewBox coords).
+      const t = animate
+        ? svg.transition().duration(500).ease(d3.easeCubicOut)
+        : svg.transition().duration(0);
+
+      node
+        .transition(t as any)
+        .attr('cx', (n) => (n.x - view[0]) * k)
+        .attr('cy', (n) => (n.y - view[1]) * k)
+        .attr('r', (n) => n.r * k);
+
+      label
+        .transition(t as any)
+        .attr('x', (n) => (n.x - view[0]) * k)
+        .attr('y', (n) => (n.y - view[1]) * k)
+        .style('fill-opacity', (n) => (n.parent === focus ? 1 : 0))
+        .style('display', (n) => (n.parent === focus ? 'inline' : 'none'));
+    }
+
+    return () => {
+      d3.select(container).select('svg').remove();
+    };
+  }, [packData, hasPartOfChildren, selectedNodeId]);
+
   if (loading) {
     return (
       <Card className="flex items-center justify-center" style={{ height: 'calc(100vh - 240px)', minHeight: 400 }}>
@@ -364,44 +524,88 @@ export function ValuesNetworkGraph() {
     <>
       <Card
         ref={containerRef}
-        className="relative overflow-hidden bg-background"
+        className="relative overflow-hidden bg-background flex"
         style={{ height: isFullscreen ? '100vh' : 'calc(100vh - 240px)', minHeight: 400 }}
       >
-        <svg ref={svgRef} className="h-full w-full" />
+        {/* Network graph */}
+        <div className={`transition-all duration-300 relative ${selectedNodeId ? 'w-[60%]' : 'w-full'}`}>
+          <svg ref={svgRef} className="h-full w-full" />
 
-        {/* Fullscreen toggle */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute top-3 right-3 h-8 w-8 bg-background/90 backdrop-blur-sm"
-          onClick={toggleFullscreen}
-        >
-          {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-        </Button>
+          {/* Fullscreen toggle */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-3 right-3 h-8 w-8 bg-background/90 backdrop-blur-sm"
+            onClick={toggleFullscreen}
+          >
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
 
-        {/* Legend */}
-        <div className="absolute bottom-3 left-3 rounded-md border bg-background/90 p-2 text-xs backdrop-blur-sm">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#dbeafe', borderColor: '#93c5fd' }} />
-            <span>{t('typeProduct')}</span>
-          </div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#fef9c3', borderColor: '#fde047' }} />
-            <span>{t('typeService')}</span>
-          </div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#fee2e2', borderColor: '#fca5a5' }} />
-            <span>{t('typeRelationship')}</span>
-          </div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#f3e8ff', borderColor: '#d8b4fe' }} />
-            <span>{t('typeRight')}</span>
-          </div>
-          <div className="flex items-center gap-2 mt-2 border-t pt-1">
-            <span className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-muted-foreground" />
-            <span className="italic">{t('abstract')}</span>
+          {/* Legend */}
+          <div className="absolute bottom-3 left-3 rounded-md border bg-background/90 p-2 text-xs backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#dbeafe', borderColor: '#93c5fd' }} />
+              <span>{t('typeProduct')}</span>
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#fef9c3', borderColor: '#fde047' }} />
+              <span>{t('typeService')}</span>
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#fee2e2', borderColor: '#fca5a5' }} />
+              <span>{t('typeRelationship')}</span>
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#f3e8ff', borderColor: '#d8b4fe' }} />
+              <span>{t('typeRight')}</span>
+            </div>
+            <div className="flex items-center gap-2 mt-2 border-t pt-1">
+              <span className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-muted-foreground" />
+              <span className="italic">{t('abstract')}</span>
+            </div>
           </div>
         </div>
+
+        {/* Composition side pane */}
+        {selectedNodeId && (
+          <div className="w-[40%] border-l flex flex-col bg-background">
+            {/* Pane header */}
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold truncate">{selectedValue?.name}</h3>
+                <p className="text-xs text-muted-foreground">{t('composition')}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                onClick={() => setSelectedNodeId(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Circle packing area */}
+            {hasPartOfChildren ? (
+              <div ref={packRef} className="flex-1 min-h-0" />
+            ) : (
+              <div className="flex-1 flex items-center justify-center px-4">
+                <p className="text-sm text-muted-foreground text-center">{t('noComposition')}</p>
+              </div>
+            )}
+
+            {/* Detail link */}
+            <div className="border-t px-4 py-3">
+              <Link
+                href={`/app/values/${selectedNodeId}`}
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                {t('viewDetails')}
+              </Link>
+            </div>
+          </div>
+        )}
       </Card>
 
       <div
