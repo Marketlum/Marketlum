@@ -21,7 +21,8 @@
     "type": "Type",
     "filters": "Filters",
     "filtersDescription": "Narrow down results using the filters below.",
-    "rowsPerPage": "Rows per page"
+    "rowsPerPage": "Rows per page",
+    "none": "None"
   },
   "nav": {
     "users": "Users",

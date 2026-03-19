@@ -17,19 +17,19 @@ export class Transaction {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  @ManyToOne(() => Account, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'fromAccountId' })
-  fromAccount: Account;
+  fromAccount: Account | null;
 
-  @Column({ type: 'uuid' })
-  fromAccountId: string;
+  @Column({ type: 'uuid', nullable: true })
+  fromAccountId: string | null;
 
-  @ManyToOne(() => Account, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'toAccountId' })
-  toAccount: Account;
+  toAccount: Account | null;
 
-  @Column({ type: 'uuid' })
-  toAccountId: string;
+  @Column({ type: 'uuid', nullable: true })
+  toAccountId: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   amount: string;

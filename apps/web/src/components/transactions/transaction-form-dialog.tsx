@@ -71,8 +71,8 @@ export function TransactionFormDialog({
       if (transaction) {
         reset({
           description: transaction.description ?? '',
-          fromAccountId: transaction.fromAccount.id,
-          toAccountId: transaction.toAccount.id,
+          fromAccountId: transaction.fromAccount?.id ?? '',
+          toAccountId: transaction.toAccount?.id ?? '',
           amount: transaction.amount,
           timestamp: transaction.timestamp ? new Date(transaction.timestamp).toISOString().slice(0, 16) : '',
         });
@@ -97,17 +97,25 @@ export function TransactionFormDialog({
             {isEditing ? t('editDescription') : t('createDescription')}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit((data) => {
+          const submitted = {
+            ...data,
+            fromAccountId: data.fromAccountId || null,
+            toAccountId: data.toAccountId || null,
+          };
+          return onSubmit(submitted as any);
+        })} className="space-y-4">
           <div className="space-y-2">
             <Label>{t('fromAccount')}</Label>
             <Select
               value={fromAccountIdValue ?? ''}
-              onValueChange={(v) => setFormValue('fromAccountId', v)}
+              onValueChange={(v) => setFormValue('fromAccountId', v === '__none__' ? '' : v)}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t('selectFromAccount')} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="__none__">{tc('none')}</SelectItem>
                 {accounts.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
@@ -122,12 +130,13 @@ export function TransactionFormDialog({
             <Label>{t('toAccount')}</Label>
             <Select
               value={toAccountIdValue ?? ''}
-              onValueChange={(v) => setFormValue('toAccountId', v)}
+              onValueChange={(v) => setFormValue('toAccountId', v === '__none__' ? '' : v)}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t('selectToAccount')} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="__none__">{tc('none')}</SelectItem>
                 {accounts.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}

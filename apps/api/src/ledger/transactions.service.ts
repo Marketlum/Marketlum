@@ -21,24 +21,28 @@ export class TransactionsService {
   async create(input: CreateTransactionInput): Promise<Transaction> {
     const { fromAccountId, toAccountId, ...rest } = input;
 
-    if (fromAccountId === toAccountId) {
+    if (fromAccountId && toAccountId && fromAccountId === toAccountId) {
       throw new BadRequestException('From and to accounts must be different');
     }
 
-    const fromAccount = await this.accountsRepository.findOne({ where: { id: fromAccountId } });
-    if (!fromAccount) {
-      throw new NotFoundException('From account not found');
+    if (fromAccountId) {
+      const fromAccount = await this.accountsRepository.findOne({ where: { id: fromAccountId } });
+      if (!fromAccount) {
+        throw new NotFoundException('From account not found');
+      }
     }
 
-    const toAccount = await this.accountsRepository.findOne({ where: { id: toAccountId } });
-    if (!toAccount) {
-      throw new NotFoundException('To account not found');
+    if (toAccountId) {
+      const toAccount = await this.accountsRepository.findOne({ where: { id: toAccountId } });
+      if (!toAccount) {
+        throw new NotFoundException('To account not found');
+      }
     }
 
     const transaction = this.repository.create({
       ...rest,
-      fromAccountId,
-      toAccountId,
+      fromAccountId: fromAccountId ?? null,
+      toAccountId: toAccountId ?? null,
     });
     const saved = await this.repository.save(transaction);
     return this.findOne(saved.id);
@@ -109,27 +113,42 @@ export class TransactionsService {
     Object.assign(transaction, rest);
 
     if (fromAccountId !== undefined) {
-      const fromAccount = await this.accountsRepository.findOne({ where: { id: fromAccountId } });
-      if (!fromAccount) {
-        throw new NotFoundException('From account not found');
+      if (fromAccountId === null) {
+        transaction.fromAccountId = null;
+        transaction.fromAccount = null;
+      } else {
+        const fromAccount = await this.accountsRepository.findOne({ where: { id: fromAccountId } });
+        if (!fromAccount) {
+          throw new NotFoundException('From account not found');
+        }
+        transaction.fromAccountId = fromAccountId;
+        transaction.fromAccount = fromAccount;
       }
-      transaction.fromAccountId = fromAccountId;
-      transaction.fromAccount = fromAccount;
     }
 
     if (toAccountId !== undefined) {
-      const toAccount = await this.accountsRepository.findOne({ where: { id: toAccountId } });
-      if (!toAccount) {
-        throw new NotFoundException('To account not found');
+      if (toAccountId === null) {
+        transaction.toAccountId = null;
+        transaction.toAccount = null;
+      } else {
+        const toAccount = await this.accountsRepository.findOne({ where: { id: toAccountId } });
+        if (!toAccount) {
+          throw new NotFoundException('To account not found');
+        }
+        transaction.toAccountId = toAccountId;
+        transaction.toAccount = toAccount;
       }
-      transaction.toAccountId = toAccountId;
-      transaction.toAccount = toAccount;
     }
 
-    // Validate that effective from/to are different
+    // Validate at least one account remains
     const effectiveFrom = transaction.fromAccountId;
     const effectiveTo = transaction.toAccountId;
-    if (effectiveFrom === effectiveTo) {
+    if (!effectiveFrom && !effectiveTo) {
+      throw new BadRequestException('At least one account must be provided');
+    }
+
+    // Validate that effective from/to are different when both set
+    if (effectiveFrom && effectiveTo && effectiveFrom === effectiveTo) {
       throw new BadRequestException('From and to accounts must be different');
     }
 

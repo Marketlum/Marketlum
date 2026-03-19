@@ -93,7 +93,25 @@ function makeHelpers() {
     return res.body.id;
   }
 
-  return { valueIds, agentIds, accountIds, get lastTransactionId() { return lastTransactionId; }, set lastTransactionId(v: string) { lastTransactionId = v; }, clear, createValue, createAgent, createAccount, createTransaction };
+  async function createOneSidedTransaction(
+    authCookie: string,
+    opts: { fromName?: string; toName?: string },
+    amount: string,
+    description?: string,
+  ): Promise<string> {
+    const body: any = { amount, description };
+    if (opts.fromName) body.fromAccountId = accountIds[opts.fromName];
+    if (opts.toName) body.toAccountId = accountIds[opts.toName];
+    const res = await request(getApp().getHttpServer())
+      .post('/transactions')
+      .set('Cookie', [authCookie])
+      .set('X-CSRF-Protection', '1')
+      .send(body);
+    lastTransactionId = res.body.id;
+    return res.body.id;
+  }
+
+  return { valueIds, agentIds, accountIds, get lastTransactionId() { return lastTransactionId; }, set lastTransactionId(v: string) { lastTransactionId = v; }, clear, createValue, createAgent, createAccount, createTransaction, createOneSidedTransaction };
 }
 
 // --- CREATE TRANSACTION ---
@@ -179,6 +197,143 @@ defineFeature(createFeature, (test) => {
 
     and(/^the response should contain a transaction with amount "(.*)"$/, (amount: string) => {
       expect(response.body.amount).toBe(amount);
+    });
+  });
+
+  test('Successfully create a transaction with only fromAccount', ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createValue(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createAgent(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an account exists with name "(.*)" for agent "(.*)"$/,
+      async (name: string, agentName: string) => {
+        await h.createAccount(authCookie, name, { agentName });
+      },
+    );
+
+    when(
+      /^I create a transaction from "(.*)" with amount "(.*)"$/,
+      async (fromName: string, amount: string) => {
+        response = await request(getApp().getHttpServer())
+          .post('/transactions')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            fromAccountId: h.accountIds[fromName],
+            amount,
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a transaction with fromAccount "(.*)"$/, (name: string) => {
+      expect(response.body.fromAccount).toBeTruthy();
+      expect(response.body.fromAccount.name).toBe(name);
+    });
+
+    and('the response should contain a transaction with toAccount null', () => {
+      expect(response.body.toAccount).toBeNull();
+    });
+
+    and(/^the response should contain a transaction with amount "(.*)"$/, (amount: string) => {
+      expect(response.body.amount).toBe(amount);
+    });
+  });
+
+  test('Successfully create a transaction with only toAccount', ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createValue(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createAgent(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an account exists with name "(.*)" for agent "(.*)"$/,
+      async (name: string, agentName: string) => {
+        await h.createAccount(authCookie, name, { agentName });
+      },
+    );
+
+    when(
+      /^I create a transaction to "(.*)" with amount "(.*)"$/,
+      async (toName: string, amount: string) => {
+        response = await request(getApp().getHttpServer())
+          .post('/transactions')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            toAccountId: h.accountIds[toName],
+            amount,
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should contain a transaction with fromAccount null', () => {
+      expect(response.body.fromAccount).toBeNull();
+    });
+
+    and(/^the response should contain a transaction with toAccount "(.*)"$/, (name: string) => {
+      expect(response.body.toAccount).toBeTruthy();
+      expect(response.body.toAccount.name).toBe(name);
+    });
+
+    and(/^the response should contain a transaction with amount "(.*)"$/, (amount: string) => {
+      expect(response.body.amount).toBe(amount);
+    });
+  });
+
+  test('Creating a transaction without any account fails', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create a transaction without any account with amount "(.*)"$/,
+      async (amount: string) => {
+        response = await request(getApp().getHttpServer())
+          .post('/transactions')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ amount });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
     });
   });
 
@@ -917,6 +1072,121 @@ defineFeature(updateFeature, (test) => {
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({ fromAccountId: h.accountIds[accountName] });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Successfully update a transaction to remove fromAccount', ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createValue(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createAgent(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createAgent(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an account exists with name "(.*)" for agent "(.*)"$/,
+      async (name: string, agentName: string) => {
+        await h.createAccount(authCookie, name, { agentName });
+      },
+    );
+
+    and(
+      /^an account exists with name "(.*)" for agent "(.*)"$/,
+      async (name: string, agentName: string) => {
+        await h.createAccount(authCookie, name, { agentName });
+      },
+    );
+
+    and(
+      /^a transaction exists from "(.*)" to "(.*)" with amount "(.*)"$/,
+      async (fromName: string, toName: string, amount: string) => {
+        await h.createTransaction(authCookie, fromName, toName, amount);
+      },
+    );
+
+    when("I update the transaction's fromAccountId to null", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/transactions/${h.lastTransactionId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ fromAccountId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should contain a transaction with fromAccount null', () => {
+      expect(response.body.fromAccount).toBeNull();
+    });
+
+    and(/^the response should contain a transaction with toAccount "(.*)"$/, (name: string) => {
+      expect(response.body.toAccount).toBeTruthy();
+      expect(response.body.toAccount.name).toBe(name);
+    });
+  });
+
+  test('Updating a transaction to remove both accounts fails', ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createValue(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await h.createAgent(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^an account exists with name "(.*)" for agent "(.*)"$/,
+      async (name: string, agentName: string) => {
+        await h.createAccount(authCookie, name, { agentName });
+      },
+    );
+
+    and(
+      /^a transaction exists from "(.*)" with amount "(.*)"$/,
+      async (fromName: string, amount: string) => {
+        await h.createOneSidedTransaction(authCookie, { fromName }, amount);
+      },
+    );
+
+    when("I update the transaction's fromAccountId to null", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/transactions/${h.lastTransactionId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ fromAccountId: null });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {

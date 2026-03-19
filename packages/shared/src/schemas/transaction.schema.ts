@@ -5,18 +5,26 @@ const accountSummarySchema = z.object({
   name: z.string(),
 });
 
+const optionalAccountId = z.preprocess(
+  (v) => (v === '' ? null : v),
+  z.string().uuid().nullable(),
+).optional();
+
 export const createTransactionSchema = z.object({
   description: z.string().optional(),
-  fromAccountId: z.string().uuid(),
-  toAccountId: z.string().uuid(),
+  fromAccountId: optionalAccountId,
+  toAccountId: optionalAccountId,
   amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
   timestamp: z.string().optional(),
-});
+}).refine(
+  (data) => data.fromAccountId || data.toAccountId,
+  { message: 'At least one account must be provided', path: ['fromAccountId'] },
+);
 
 export const updateTransactionSchema = z.object({
   description: z.string().optional(),
-  fromAccountId: z.string().uuid().optional(),
-  toAccountId: z.string().uuid().optional(),
+  fromAccountId: optionalAccountId,
+  toAccountId: optionalAccountId,
   amount: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
   timestamp: z.string().optional(),
 });
@@ -24,8 +32,8 @@ export const updateTransactionSchema = z.object({
 export const transactionResponseSchema = z.object({
   id: z.string().uuid(),
   description: z.string().nullable(),
-  fromAccount: accountSummarySchema,
-  toAccount: accountSummarySchema,
+  fromAccount: accountSummarySchema.nullable(),
+  toAccount: accountSummarySchema.nullable(),
   amount: z.string(),
   timestamp: z.string(),
   createdAt: z.string(),
