@@ -527,7 +527,10 @@
     "noResults": "Nie znaleziono pasujących kanałów.",
     "updatedAt": "Zaktualizowano",
     "treeView": "Drzewo",
-    "tableView": "Tabela"
+    "tableView": "Tabela",
+    "moved": "Kanał przeniesiony",
+    "failedToMove": "Nie udało się przenieść kanału",
+    "dropHere": "Upuść tutaj, aby przenieść do korzenia"
   },
   "offerings": {
     "title": "Oferty",

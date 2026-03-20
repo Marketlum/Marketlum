@@ -528,7 +528,10 @@
     "noResults": "No matching channels found.",
     "updatedAt": "Updated",
     "treeView": "Tree",
-    "tableView": "Table"
+    "tableView": "Table",
+    "moved": "Channel moved",
+    "failedToMove": "Failed to move channel",
+    "dropHere": "Drop here to move to root"
   },
   "offerings": {
     "title": "Offerings",

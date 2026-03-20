@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, FolderOpen, Folder, Hash, MoreHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, FolderOpen, Folder, Hash, MoreHorizontal, Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { ChannelTreeNode } from '@marketlum/shared';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,12 +36,31 @@ export function ChannelTreeNodeComponent({
 
   const hasChildren = node.children && node.children.length > 0;
 
+  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
+    id: node.id,
+    data: { name: node.name },
+  });
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `drop-${node.id}`,
+    data: { parentId: node.id },
+  });
+
   return (
-    <div>
+    <div ref={setDropRef} className={isOver ? 'rounded-md bg-primary/10' : ''}>
       <div
-        className="group flex items-center gap-1 rounded-md px-1 py-1 hover:bg-secondary/50"
+        ref={setDragRef}
+        className={`group flex items-center gap-1 rounded-md px-1 py-1 hover:bg-secondary/50 ${isDragging ? 'opacity-50' : ''}`}
         style={{ paddingLeft: depth * (isMobile ? 16 : 24) + 4 }}
       >
+        <button
+          className="flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+
         <button
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
           onClick={() => setExpanded(!expanded)}

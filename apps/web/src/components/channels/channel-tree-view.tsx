@@ -4,12 +4,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDroppable, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core';
 import type { ChannelTreeNode, CreateChannelInput, ChannelResponse } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { ChannelTreeNodeComponent } from './channel-tree-node';
 import { ChannelFormDialog } from './channel-form-dialog';
+
+function RootDropZone({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('channels');
+  const { setNodeRef, isOver } = useDroppable({ id: 'drop-root', data: { parentId: null } });
+
+  return (
+    <div ref={setNodeRef}>
+      {children}
+      <div className={`mt-2 rounded-md border-2 border-dashed p-3 text-center text-sm transition-colors ${isOver ? 'border-primary bg-primary/10 text-primary' : 'border-transparent text-transparent'}`}>
+        {t('dropHere')}
+      </div>
+    </div>
+  );
+}
 
 export function ChannelTreeView() {
   const t = useTranslations('channels');
@@ -18,11 +33,16 @@ export function ChannelTreeView() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [draggedName, setDraggedName] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [formParentId, setFormParentId] = useState<string | null>(null);
   const [formEditTarget, setFormEditTarget] = useState<ChannelResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   const fetchTree = useCallback(async () => {
     try {
@@ -81,6 +101,32 @@ export function ChannelTreeView() {
     }
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setDraggedName(event.active.data.current?.name ?? null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setDraggedName(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggedId = active.id as string;
+    const targetParentId = over.data.current?.parentId as string | null;
+
+    // Don't move onto self
+    if (targetParentId === draggedId) return;
+    const dropTargetId = (over.id as string).replace('drop-', '');
+    if (dropTargetId === draggedId) return;
+
+    try {
+      await api.patch(`/channels/${draggedId}/move`, { parentId: targetParentId });
+      toast.success(t('moved'));
+      fetchTree();
+    } catch {
+      toast.error(t('failedToMove'));
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
@@ -118,18 +164,29 @@ export function ChannelTreeView() {
           {t('emptyState')}
         </div>
       ) : (
-        <div className="rounded-md border p-2">
-          {tree.map((node) => (
-            <ChannelTreeNodeComponent
-              key={node.id}
-              node={node}
-              depth={0}
-              onEdit={handleOpenEdit}
-              onAddChild={handleOpenAddChild}
-              onDelete={(id, name) => setDeleteTarget({ id, name })}
-            />
-          ))}
-        </div>
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <RootDropZone>
+            <div className="rounded-md border p-2">
+              {tree.map((node) => (
+                <ChannelTreeNodeComponent
+                  key={node.id}
+                  node={node}
+                  depth={0}
+                  onEdit={handleOpenEdit}
+                  onAddChild={handleOpenAddChild}
+                  onDelete={(id, name) => setDeleteTarget({ id, name })}
+                />
+              ))}
+            </div>
+          </RootDropZone>
+          <DragOverlay>
+            {draggedName ? (
+              <div className="rounded-md border bg-background px-3 py-1.5 text-sm shadow-md">
+                {draggedName}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       <ChannelFormDialog
