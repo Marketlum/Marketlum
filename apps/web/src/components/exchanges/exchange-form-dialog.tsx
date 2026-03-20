@@ -39,6 +39,7 @@ interface ExchangeData {
   description: string | null;
   valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
+  pipeline: { id: string; name: string; color: string } | null;
   state: string;
   openedAt: string;
   completedAt: string | null;
@@ -54,6 +55,7 @@ interface ExchangeFormDialogProps {
   exchange?: ExchangeData | null;
   isSubmitting?: boolean;
   channels?: { id: string; name: string }[];
+  pipelines?: { id: string; name: string; color: string }[];
 }
 
 export function ExchangeFormDialog({
@@ -63,6 +65,7 @@ export function ExchangeFormDialog({
   exchange,
   isSubmitting,
   channels = [],
+  pipelines = [],
 }: ExchangeFormDialogProps) {
   const isEditing = !!exchange;
   const t = useTranslations('exchanges');
@@ -77,6 +80,7 @@ export function ExchangeFormDialog({
   const [link, setLink] = useState('');
   const [valueStreamId, setValueStreamId] = useState<string>('none');
   const [channelId, setChannelId] = useState<string>('none');
+  const [pipelineId, setPipelineId] = useState<string>('none');
   const [leadUserId, setLeadUserId] = useState<string>('none');
   const [parties, setParties] = useState<PartyRow[]>([
     { agentId: '', role: '' },
@@ -91,6 +95,7 @@ export function ExchangeFormDialog({
       setLink(exchange.link ?? '');
       setValueStreamId(exchange.valueStream?.id ?? 'none');
       setChannelId(exchange.channel?.id ?? 'none');
+      setPipelineId(exchange.pipeline?.id ?? 'none');
       setLeadUserId(exchange.lead?.id ?? 'none');
       setParties(
         exchange.parties.map((p) => ({
@@ -105,6 +110,7 @@ export function ExchangeFormDialog({
       setLink('');
       setValueStreamId('none');
       setChannelId('none');
+      setPipelineId('none');
       setLeadUserId('none');
       setParties([
         { agentId: '', role: '' },
@@ -124,6 +130,7 @@ export function ExchangeFormDialog({
     if (link) body.link = link;
     body.valueStreamId = valueStreamId !== 'none' ? valueStreamId : null;
     body.channelId = channelId !== 'none' ? channelId : null;
+    body.pipelineId = pipelineId !== 'none' ? pipelineId : null;
     body.leadUserId = leadUserId !== 'none' ? leadUserId : null;
     await onSubmit(body as CreateExchangeInput);
   };
@@ -193,6 +200,26 @@ export function ExchangeFormDialog({
                 <SelectItem value="none">&mdash;</SelectItem>
                 {channels.map((ch) => (
                   <SelectItem key={ch.id} value={ch.id}>{ch.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <Label>{t('pipeline')}</Label>
+            <Select value={pipelineId} onValueChange={setPipelineId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('selectPipeline')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">&mdash;</SelectItem>
+                {pipelines.map((pl) => (
+                  <SelectItem key={pl.id} value={pl.id}>
+                    <span className="flex items-center gap-2">
+                      <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: pl.color }} />
+                      {pl.name}
+                    </span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

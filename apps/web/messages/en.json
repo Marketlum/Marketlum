@@ -56,7 +56,8 @@
     "geographies": "Geographies",
     "archetypes": "Archetypes",
     "locales": "Locales",
-    "agreementTemplates": "Agreement Templates"
+    "agreementTemplates": "Agreement Templates",
+    "pipelines": "Pipelines"
   },
   "auth": {
     "signIn": "Sign in",
@@ -646,6 +647,9 @@
     "valueStream": "Value Stream",
     "selectValueStream": "Select value stream",
     "allValueStreams": "All value streams",
+    "pipeline": "Pipeline",
+    "selectPipeline": "Select pipeline",
+    "allPipelines": "All pipelines",
     "lead": "Lead",
     "selectLead": "Select lead",
     "allUsers": "All users",
@@ -838,6 +842,29 @@
     "failedToDelete": "Failed to delete template",
     "failedToMove": "Failed to move template",
     "dropHere": "Drop here to move to root level"
+  },
+  "pipelines": {
+    "title": "Pipelines",
+    "description": "Organize exchanges into pipelines for tracking and management.",
+    "createPipeline": "Create Pipeline",
+    "editPipeline": "Edit Pipeline",
+    "deletePipeline": "Delete Pipeline",
+    "createDescription": "Fill in the details to create a new pipeline.",
+    "editDescription": "Update pipeline details below.",
+    "purpose": "Purpose",
+    "pipelineDescription": "Description",
+    "color": "Color",
+    "valueStream": "Value Stream",
+    "selectValueStream": "Select value stream",
+    "allValueStreams": "All value streams",
+    "created": "Pipeline created",
+    "updated": "Pipeline updated",
+    "deleted": "Pipeline deleted",
+    "failedToLoad": "Failed to load pipelines",
+    "failedToCreate": "Failed to create pipeline",
+    "failedToUpdate": "Failed to update pipeline",
+    "failedToDelete": "Failed to delete pipeline",
+    "updatedAt": "Updated"
   },
   "locale": {
     "switchLanguage": "Switch language",

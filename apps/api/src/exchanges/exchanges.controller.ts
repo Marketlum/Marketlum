@@ -44,6 +44,7 @@ export class ExchangesController {
     @Query('state') state?: string,
     @Query('channelId') channelId?: string,
     @Query('valueStreamId') valueStreamId?: string,
+    @Query('pipelineId') pipelineId?: string,
     @Query('partyAgentId') partyAgentId?: string,
     @Query('leadUserId') leadUserId?: string,
   ) {
@@ -52,6 +53,7 @@ export class ExchangesController {
       state,
       channelId,
       valueStreamId,
+      pipelineId,
       partyAgentId,
       leadUserId,
     });

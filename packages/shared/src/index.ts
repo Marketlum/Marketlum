@@ -183,6 +183,17 @@ export {
 } from './schemas/invoice.schema';
 
 export {
+  createPipelineSchema,
+  updatePipelineSchema,
+  pipelineResponseSchema,
+  pipelineSummarySchema,
+  type CreatePipelineInput,
+  type UpdatePipelineInput,
+  type PipelineResponse,
+  type PipelineSummary,
+} from './schemas/pipeline.schema';
+
+export {
   exchangePartyInputSchema,
   createExchangeSchema,
   updateExchangeSchema,

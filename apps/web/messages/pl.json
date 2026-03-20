@@ -55,7 +55,8 @@
     "geographies": "Geografie",
     "archetypes": "Archetypy",
     "locales": "Lokalizacje",
-    "agreementTemplates": "Szablony umów"
+    "agreementTemplates": "Szablony umów",
+    "pipelines": "Lejki"
   },
   "auth": {
     "signIn": "Zaloguj się",
@@ -645,6 +646,9 @@
     "valueStream": "Strumień wartości",
     "selectValueStream": "Wybierz strumień wartości",
     "allValueStreams": "Wszystkie strumienie",
+    "pipeline": "Lejek",
+    "selectPipeline": "Wybierz lejek",
+    "allPipelines": "Wszystkie lejki",
     "lead": "Prowadzący",
     "selectLead": "Wybierz prowadzącego",
     "allUsers": "Wszyscy użytkownicy",
@@ -837,6 +841,29 @@
     "failedToDelete": "Nie udało się usunąć szablonu",
     "failedToMove": "Nie udało się przenieść szablonu",
     "dropHere": "Upuść tutaj, aby przenieść do korzenia"
+  },
+  "pipelines": {
+    "title": "Lejki",
+    "description": "Organizuj wymiany w lejki do śledzenia i zarządzania.",
+    "createPipeline": "Utwórz lejek",
+    "editPipeline": "Edytuj lejek",
+    "deletePipeline": "Usuń lejek",
+    "createDescription": "Wypełnij dane, aby utworzyć nowy lejek.",
+    "editDescription": "Zaktualizuj dane lejka poniżej.",
+    "purpose": "Cel",
+    "pipelineDescription": "Opis",
+    "color": "Kolor",
+    "valueStream": "Strumień wartości",
+    "selectValueStream": "Wybierz strumień wartości",
+    "allValueStreams": "Wszystkie strumienie wartości",
+    "created": "Lejek utworzony",
+    "updated": "Lejek zaktualizowany",
+    "deleted": "Lejek usunięty",
+    "failedToLoad": "Nie udało się wczytać lejków",
+    "failedToCreate": "Nie udało się utworzyć lejka",
+    "failedToUpdate": "Nie udało się zaktualizować lejka",
+    "failedToDelete": "Nie udało się usunąć lejka",
+    "updatedAt": "Zaktualizowano"
   },
   "locale": {
     "switchLanguage": "Zmień język",

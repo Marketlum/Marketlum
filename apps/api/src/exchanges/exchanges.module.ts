@@ -8,6 +8,7 @@ import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Channel } from '../channels/channel.entity';
+import { Pipeline } from '../pipelines/entities/pipeline.entity';
 import { User } from '../users/entities/user.entity';
 import { ExchangesService } from './exchanges.service';
 import { ExchangeFlowsService } from './exchange-flows.service';
@@ -25,6 +26,7 @@ import { ExchangeFlowsController } from './exchange-flows.controller';
       ValueInstance,
       ValueStream,
       Channel,
+      Pipeline,
       User,
     ]),
   ],

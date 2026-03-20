@@ -12,6 +12,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { usePerspectives } from '@/hooks/use-perspectives';
 import { useAgents } from '@/hooks/use-agents';
 import { useValueStreams } from '@/hooks/use-value-streams';
+import { usePipelines } from '@/hooks/use-pipelines';
 import { useUsers } from '@/hooks/use-users';
 import { DataTable } from '@/components/shared/data-table';
 import { DataTablePagination } from '@/components/shared/data-table-pagination';
@@ -45,6 +46,7 @@ interface ExchangeRow {
   description: string | null;
   valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
+  pipeline: { id: string; name: string; color: string } | null;
   state: string;
   openedAt: string;
   completedAt: string | null;
@@ -65,10 +67,12 @@ export function ExchangesDataTable() {
   const isMobile = useIsMobile();
   const { agents } = useAgents();
   const { valueStreams } = useValueStreams();
+  const { pipelines } = usePipelines();
   const { users } = useUsers();
   const [channels, setChannels] = useState<{ id: string; name: string }[]>([]);
   const [stateFilter, setStateFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
+  const [pipelineFilter, setPipelineFilter] = useState<string>('all');
   const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
   const [partyAgentFilter, setPartyAgentFilter] = useState<string>('all');
   const [leadFilter, setLeadFilter] = useState<string>('all');
@@ -93,6 +97,7 @@ export function ExchangesDataTable() {
     setColumnVisibility(config.columnVisibility ?? {});
     setStateFilter(config.filters?.state ?? 'all');
     setChannelFilter(config.filters?.channelId ?? 'all');
+    setPipelineFilter(config.filters?.pipelineId ?? 'all');
     setValueStreamFilter(config.filters?.valueStreamId ?? 'all');
     setPartyAgentFilter(config.filters?.partyAgentId ?? 'all');
     setLeadFilter(config.filters?.leadUserId ?? 'all');
@@ -132,12 +137,13 @@ export function ExchangesDataTable() {
     filters: {
       ...(stateFilter !== 'all' ? { state: stateFilter } : {}),
       ...(channelFilter !== 'all' ? { channelId: channelFilter } : {}),
+      ...(pipelineFilter !== 'all' ? { pipelineId: pipelineFilter } : {}),
       ...(valueStreamFilter !== 'all' ? { valueStreamId: valueStreamFilter } : {}),
       ...(partyAgentFilter !== 'all' ? { partyAgentId: partyAgentFilter } : {}),
       ...(leadFilter !== 'all' ? { leadUserId: leadFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, stateFilter, channelFilter, valueStreamFilter, partyAgentFilter, leadFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -145,6 +151,7 @@ export function ExchangesDataTable() {
       let qs = pagination.toQueryString();
       if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
       if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
+      if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
       if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
       if (partyAgentFilter && partyAgentFilter !== 'all') qs += `&partyAgentId=${partyAgentFilter}`;
       if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
@@ -155,11 +162,11 @@ export function ExchangesDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, stateFilter, channelFilter, valueStreamFilter, partyAgentFilter, leadFilter]);
+  }, [pagination.toQueryString, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, channelFilter, valueStreamFilter, partyAgentFilter, leadFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingExchange(null);
@@ -230,6 +237,7 @@ export function ExchangesDataTable() {
       purpose: t('purpose'),
       state: t('state'),
       channel: t('channel'),
+      pipeline: t('pipeline'),
       valueStream: t('valueStream'),
       lead: t('lead'),
       parties: t('parties'),
@@ -247,6 +255,7 @@ export function ExchangesDataTable() {
     { id: 'purpose', label: t('purpose') },
     { id: 'state', label: t('state') },
     { id: 'channel', label: t('channel') },
+    { id: 'pipeline', label: t('pipeline') },
     { id: 'valueStream', label: t('valueStream') },
     { id: 'lead', label: t('lead') },
     { id: 'parties', label: t('parties') },
@@ -262,6 +271,10 @@ export function ExchangesDataTable() {
     { key: 'channel', label: t('channel'), extract: (r) => {
       const ch = r.channel as { name: string } | null;
       return ch?.name ?? '';
+    }},
+    { key: 'pipeline', label: t('pipeline'), extract: (r) => {
+      const pl = r.pipeline as { name: string } | null;
+      return pl?.name ?? '';
     }},
     { key: 'valueStream', label: t('valueStream'), extract: (r) => {
       const vs = r.valueStream as { name: string } | null;
@@ -290,12 +303,13 @@ export function ExchangesDataTable() {
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
+    if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
     if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
     if (partyAgentFilter && partyAgentFilter !== 'all') qs += `&partyAgentId=${partyAgentFilter}`;
     if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
     const result = await api.get<PaginatedResponse<ExchangeRow>>(`/exchanges/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, channelFilter, valueStreamFilter, partyAgentFilter, leadFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -317,6 +331,15 @@ export function ExchangesDataTable() {
         label: t('channel'),
         displayValue: ch?.name ?? channelFilter,
         onClear: () => setChannelFilter('all'),
+      });
+    }
+    if (pipelineFilter !== 'all') {
+      const pl = pipelines.find((p) => p.id === pipelineFilter);
+      filters.push({
+        key: 'pipeline',
+        label: t('pipeline'),
+        displayValue: pl?.name ?? pipelineFilter,
+        onClear: () => setPipelineFilter('all'),
       });
     }
     if (valueStreamFilter !== 'all') {
@@ -347,7 +370,7 @@ export function ExchangesDataTable() {
       });
     }
     return filters;
-  }, [stateFilter, channelFilter, valueStreamFilter, partyAgentFilter, leadFilter, channels, valueStreams, agents, users, t]);
+  }, [stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, channels, pipelines, valueStreams, agents, users, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -440,6 +463,25 @@ export function ExchangesDataTable() {
           </Select>
         </div>
         <div className="space-y-1">
+          <label className="text-sm font-medium">{t('pipeline')}</label>
+          <Select value={pipelineFilter} onValueChange={setPipelineFilter}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allPipelines')}</SelectItem>
+              {pipelines.map((pl) => (
+                <SelectItem key={pl.id} value={pl.id}>
+                  <span className="flex items-center gap-2">
+                    <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: pl.color }} />
+                    {pl.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
           <label className="text-sm font-medium">{t('valueStream')}</label>
           <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
             <SelectTrigger>
@@ -507,6 +549,7 @@ export function ExchangesDataTable() {
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
         channels={channels}
+        pipelines={pipelines}
       />
 
       <ExchangeFormDialog
@@ -516,6 +559,7 @@ export function ExchangesDataTable() {
         exchange={editingExchange}
         isSubmitting={isSubmitting}
         channels={channels}
+        pipelines={pipelines}
       />
 
       <ConfirmDeleteDialog

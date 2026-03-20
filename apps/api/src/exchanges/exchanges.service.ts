@@ -10,6 +10,7 @@ import { ExchangeParty } from './entities/exchange-party.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Channel } from '../channels/channel.entity';
+import { Pipeline } from '../pipelines/entities/pipeline.entity';
 import { User } from '../users/entities/user.entity';
 import {
   CreateExchangeInput,
@@ -34,12 +35,14 @@ export class ExchangesService {
     private readonly valueStreamRepository: Repository<ValueStream>,
     @InjectRepository(Channel)
     private readonly channelRepository: Repository<Channel>,
+    @InjectRepository(Pipeline)
+    private readonly pipelineRepository: Repository<Pipeline>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
   async create(input: CreateExchangeInput): Promise<Exchange> {
-    const { parties, valueStreamId, channelId, leadUserId, ...rest } = input;
+    const { parties, valueStreamId, channelId, pipelineId, leadUserId, ...rest } = input;
 
     // Validate valueStream
     if (valueStreamId) {
@@ -51,6 +54,12 @@ export class ExchangesService {
     if (channelId) {
       const ch = await this.channelRepository.findOne({ where: { id: channelId } });
       if (!ch) throw new NotFoundException('Channel not found');
+    }
+
+    // Validate pipeline
+    if (pipelineId) {
+      const pl = await this.pipelineRepository.findOne({ where: { id: pipelineId } });
+      if (!pl) throw new NotFoundException('Pipeline not found');
     }
 
     // Validate lead user
@@ -78,6 +87,7 @@ export class ExchangesService {
       link: rest.link ?? null,
       valueStreamId: valueStreamId ?? null,
       channelId: channelId ?? null,
+      pipelineId: pipelineId ?? null,
       leadUserId: leadUserId ?? null,
       state: ExchangeState.OPEN,
       openedAt: new Date(),
@@ -105,6 +115,7 @@ export class ExchangesService {
       relations: [
         'valueStream',
         'channel',
+        'pipeline',
         'lead',
         'parties',
         'parties.agent',
@@ -121,6 +132,7 @@ export class ExchangesService {
       state?: string;
       channelId?: string;
       valueStreamId?: string;
+      pipelineId?: string;
       partyAgentId?: string;
       leadUserId?: string;
     },
@@ -134,6 +146,7 @@ export class ExchangesService {
       state,
       channelId,
       valueStreamId,
+      pipelineId,
       partyAgentId,
       leadUserId,
     } = query;
@@ -142,6 +155,7 @@ export class ExchangesService {
     const qb = this.exchangeRepository.createQueryBuilder('exchange');
     qb.leftJoinAndSelect('exchange.valueStream', 'valueStream');
     qb.leftJoinAndSelect('exchange.channel', 'channel');
+    qb.leftJoinAndSelect('exchange.pipeline', 'pipeline');
     qb.leftJoinAndSelect('exchange.lead', 'lead');
     qb.leftJoinAndSelect('exchange.parties', 'parties');
     qb.leftJoinAndSelect('parties.agent', 'partyAgent');
@@ -156,6 +170,10 @@ export class ExchangesService {
 
     if (valueStreamId) {
       qb.andWhere('exchange.valueStreamId = :valueStreamId', { valueStreamId });
+    }
+
+    if (pipelineId) {
+      qb.andWhere('exchange.pipelineId = :pipelineId', { pipelineId });
     }
 
     if (leadUserId) {
@@ -197,6 +215,9 @@ export class ExchangesService {
     }
     if (valueStreamId) {
       countQb.andWhere('exchange.valueStreamId = :valueStreamId', { valueStreamId });
+    }
+    if (pipelineId) {
+      countQb.andWhere('exchange.pipelineId = :pipelineId', { pipelineId });
     }
     if (leadUserId) {
       countQb.andWhere('exchange.leadUserId = :leadUserId', { leadUserId });
@@ -251,6 +272,7 @@ export class ExchangesService {
     delete (exchange as any).flows;
     delete (exchange as any).valueStream;
     delete (exchange as any).channel;
+    delete (exchange as any).pipeline;
     delete (exchange as any).lead;
     await this.exchangeRepository.save(exchange);
 
@@ -259,7 +281,7 @@ export class ExchangesService {
 
   async update(id: string, input: UpdateExchangeInput): Promise<Exchange> {
     const exchange = await this.findOne(id);
-    const { parties, valueStreamId, channelId, leadUserId, ...rest } = input;
+    const { parties, valueStreamId, channelId, pipelineId, leadUserId, ...rest } = input;
 
     // Update scalar fields
     if (rest.name !== undefined) exchange.name = rest.name;
@@ -290,6 +312,17 @@ export class ExchangesService {
       }
     }
 
+    if (pipelineId !== undefined) {
+      if (pipelineId === null) {
+        exchange.pipeline = null;
+        exchange.pipelineId = null;
+      } else {
+        const pl = await this.pipelineRepository.findOne({ where: { id: pipelineId } });
+        if (!pl) throw new NotFoundException('Pipeline not found');
+        exchange.pipelineId = pipelineId;
+      }
+    }
+
     if (leadUserId !== undefined) {
       if (leadUserId === null) {
         exchange.lead = null;
@@ -306,6 +339,7 @@ export class ExchangesService {
     delete (exchange as any).flows;
     delete (exchange as any).valueStream;
     delete (exchange as any).channel;
+    delete (exchange as any).pipeline;
     delete (exchange as any).lead;
     await this.exchangeRepository.save(exchange);
 

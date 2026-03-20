@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -79,6 +79,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       { href: '/app/users', label: t('users'), icon: Users },
       { href: '/app/taxonomies', label: t('taxonomies'), icon: FolderTree },
       { href: '/app/archetypes', label: t('archetypes'), icon: Shapes },
+      { href: '/app/pipelines', label: t('pipelines'), icon: GitBranch },
       { href: '/app/channels', label: t('channels'), icon: Hash },
       { href: '/app/geographies', label: t('geographies'), icon: Globe },
       { href: '/app/value-streams', label: t('valueStreams'), icon: Workflow },

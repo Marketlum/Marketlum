@@ -62,6 +62,18 @@ Feature: Create Exchange
     When I create an exchange with duplicate agent in parties
     Then the response status should be 400
 
+  Scenario: Create exchange with pipeline
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Agent A"
+    And an agent exists with name "Agent B"
+    And a pipeline exists with name "Sales Pipeline" and color "#3b82f6"
+    When I create an exchange with pipeline "Sales Pipeline" and:
+      | name           | purpose          |
+      | Pipeline Deal  | Pipeline test    |
+    Then the response status should be 201
+    And the response should contain an exchange with name "Pipeline Deal"
+    And the response should contain a pipeline with name "Sales Pipeline"
+
   Scenario: Unauthenticated request is rejected
     When I create an exchange without authentication
     Then the response status should be 401

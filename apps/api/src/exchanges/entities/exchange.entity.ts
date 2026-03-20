@@ -11,6 +11,7 @@ import {
 import { ExchangeState } from '@marketlum/shared';
 import { ValueStream } from '../../value-streams/entities/value-stream.entity';
 import { Channel } from '../../channels/channel.entity';
+import { Pipeline } from '../../pipelines/entities/pipeline.entity';
 import { User } from '../../users/entities/user.entity';
 import { ExchangeParty } from './exchange-party.entity';
 import { ExchangeFlow } from './exchange-flow.entity';
@@ -42,6 +43,13 @@ export class Exchange {
 
   @Column({ type: 'uuid', nullable: true })
   channelId: string | null;
+
+  @ManyToOne(() => Pipeline, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'pipelineId' })
+  pipeline: Pipeline | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  pipelineId: string | null;
 
   @Column({ type: 'enum', enum: ExchangeState, default: ExchangeState.OPEN })
   state: ExchangeState;

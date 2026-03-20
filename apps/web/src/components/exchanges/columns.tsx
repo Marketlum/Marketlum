@@ -18,6 +18,7 @@ interface ExchangeRow {
   description: string | null;
   valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
+  pipeline: { id: string; name: string; color: string } | null;
   state: string;
   openedAt: string;
   completedAt: string | null;
@@ -33,6 +34,7 @@ interface ExchangeColumnsTranslations {
   purpose: string;
   state: string;
   channel: string;
+  pipeline: string;
   valueStream: string;
   lead: string;
   parties: string;
@@ -101,6 +103,21 @@ export function getExchangeColumns({
       header: translations.channel,
       meta: { hideOnMobile: true },
       cell: ({ row }) => row.original.channel?.name ?? '\u2014',
+    },
+    {
+      id: 'pipeline',
+      header: translations.pipeline,
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => {
+        const pipeline = row.original.pipeline;
+        if (!pipeline) return '\u2014';
+        return (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: pipeline.color }} />
+            {pipeline.name}
+          </span>
+        );
+      },
     },
     {
       id: 'valueStream',

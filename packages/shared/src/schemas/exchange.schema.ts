@@ -29,6 +29,12 @@ const channelSummarySchema = z.object({
   name: z.string(),
 });
 
+const pipelineSummarySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  color: z.string(),
+});
+
 const userSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -59,6 +65,7 @@ export const createExchangeSchema = z.object({
   channelId: z.string().uuid().nullable().optional(),
   link: z.string().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
+  pipelineId: z.string().uuid().nullable().optional(),
   parties: z.array(exchangePartyInputSchema).min(2),
 });
 
@@ -70,6 +77,7 @@ export const updateExchangeSchema = z.object({
   channelId: z.string().uuid().nullable().optional(),
   link: z.string().nullable().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
+  pipelineId: z.string().uuid().nullable().optional(),
   parties: z.array(exchangePartyInputSchema).min(2).optional(),
 });
 
@@ -84,6 +92,7 @@ export const exchangeResponseSchema = z.object({
   description: z.string().nullable(),
   valueStream: valueStreamSummarySchema.nullable(),
   channel: channelSummarySchema.nullable(),
+  pipeline: pipelineSummarySchema.nullable(),
   state: z.nativeEnum(ExchangeState),
   openedAt: z.string(),
   completedAt: z.string().nullable(),

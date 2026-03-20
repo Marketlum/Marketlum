@@ -50,6 +50,7 @@ const valueIds = new Map<string, string>();
 const valueInstanceIds = new Map<string, string>();
 const valueStreamIds = new Map<string, string>();
 const channelIds = new Map<string, string>();
+const pipelineIds = new Map<string, string>();
 const userIds = new Map<string, string>();
 const flowIds = new Map<string, string>();
 
@@ -104,6 +105,16 @@ async function createChannel(authCookie: string, name: string): Promise<string> 
     .set('X-CSRF-Protection', '1')
     .send({ name, color: '#ff0000' });
   channelIds.set(name, res.body.id);
+  return res.body.id;
+}
+
+async function createPipeline(authCookie: string, name: string, color: string): Promise<string> {
+  const res = await request(getApp().getHttpServer())
+    .post('/pipelines')
+    .set('Cookie', [authCookie])
+    .set('X-CSRF-Protection', '1')
+    .send({ name, color });
+  pipelineIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -208,6 +219,7 @@ function clearMaps() {
   valueInstanceIds.clear();
   valueStreamIds.clear();
   channelIds.clear();
+  pipelineIds.clear();
   userIds.clear();
   flowIds.clear();
 }
@@ -519,6 +531,58 @@ defineFeature(createFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Create exchange with pipeline', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a pipeline exists with name "(.*)" and color "(.*)"$/, async (name: string, color: string) => {
+      await createPipeline(authCookie, name, color);
+    });
+
+    when(
+      /^I create an exchange with pipeline "(.*)" and:$/,
+      async (pipelineName: string, table: { name: string; purpose: string }[]) => {
+        const row = table[0];
+        const agentNames = [...agentIds.keys()];
+        response = await request(getApp().getHttpServer())
+          .post('/exchanges')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            purpose: row.purpose,
+            pipelineId: pipelineIds.get(pipelineName),
+            parties: [
+              { agentId: agentIds.get(agentNames[0])!, role: 'seller' },
+              { agentId: agentIds.get(agentNames[1])!, role: 'buyer' },
+            ],
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an exchange with name "(.*)"$/, (name: string) => {
+      expect(response.body.name).toBe(name);
+    });
+
+    and(/^the response should contain a pipeline with name "(.*)"$/, (name: string) => {
+      expect(response.body.pipeline).not.toBeNull();
+      expect(response.body.pipeline.name).toBe(name);
     });
   });
 
@@ -1188,6 +1252,63 @@ defineFeature(updateFeature, (test) => {
     and(/^the response should contain a party with agent "(.*)"$/, (name: string) => {
       const party = response.body.parties.find((p: any) => p.agent.name === name);
       expect(party).toBeDefined();
+    });
+  });
+
+  test('Set and clear exchange pipeline', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a pipeline exists with name "(.*)" and color "(.*)"$/, async (name: string, color: string) => {
+      await createPipeline(authCookie, name, color);
+    });
+
+    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
+      await createExchange(authCookie, name);
+    });
+
+    when(/^I update the exchange's pipeline to "(.*)"$/, async (pipelineName: string) => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .patch(`/exchanges/${id}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ pipelineId: pipelineIds.get(pipelineName) });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a pipeline with name "(.*)"$/, (name: string) => {
+      expect(response.body.pipeline).not.toBeNull();
+      expect(response.body.pipeline.name).toBe(name);
+    });
+
+    when("I clear the exchange's pipeline", async () => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .patch(`/exchanges/${id}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ pipelineId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response pipeline should be null', () => {
+      expect(response.body.pipeline).toBeNull();
     });
   });
 
