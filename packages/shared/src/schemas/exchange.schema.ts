@@ -46,13 +46,13 @@ const decimalStringRegex = /^\d+(\.\d{1,2})?$/;
 
 export const exchangePartyInputSchema = z.object({
   agentId: z.string().uuid(),
-  role: z.string().min(1),
+  role: z.string().min(1).nullable().optional(),
 });
 
 export const exchangePartySummarySchema = z.object({
   id: z.string().uuid(),
   agent: agentSummarySchema,
-  role: z.string(),
+  role: z.string().nullable(),
 });
 
 // --- Exchange ---

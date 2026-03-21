@@ -62,6 +62,18 @@ Feature: Create Exchange
     When I create an exchange with duplicate agent in parties
     Then the response status should be 400
 
+  Scenario: Create exchange with parties without roles
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Agent A"
+    And an agent exists with name "Agent B"
+    When I create an exchange with parties without roles and:
+      | name           | purpose          |
+      | Roleless Deal  | No roles needed  |
+    Then the response status should be 201
+    And the response should contain an exchange with name "Roleless Deal"
+    And the response should contain 2 parties
+    And the response parties should have null roles
+
   Scenario: Create exchange with pipeline
     Given I am authenticated as "admin@marketlum.com"
     And an agent exists with name "Agent A"

@@ -101,7 +101,7 @@ export class ExchangesService {
       this.partyRepository.create({
         exchangeId: saved.id,
         agentId: p.agentId,
-        role: p.role,
+        role: p.role ?? null,
       }),
     );
     await this.partyRepository.save(partyEntities);
@@ -368,7 +368,7 @@ export class ExchangesService {
 
   private async replaceParties(
     exchangeId: string,
-    parties: { agentId: string; role: string }[],
+    parties: { agentId: string; role?: string | null }[],
   ): Promise<void> {
     await this.partyRepository.delete({ exchangeId });
 
@@ -387,7 +387,7 @@ export class ExchangesService {
       this.partyRepository.create({
         exchangeId,
         agentId: p.agentId,
-        role: p.role,
+        role: p.role ?? null,
       }),
     );
     await this.partyRepository.save(partyEntities);

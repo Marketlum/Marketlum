@@ -45,7 +45,7 @@ interface ExchangeData {
   completedAt: string | null;
   link: string | null;
   lead: { id: string; name: string } | null;
-  parties: { id: string; agent: { id: string; name: string }; role: string }[];
+  parties: { id: string; agent: { id: string; name: string }; role: string | null }[];
 }
 
 interface ExchangeFormDialogProps {
@@ -100,7 +100,7 @@ export function ExchangeFormDialog({
       setParties(
         exchange.parties.map((p) => ({
           agentId: p.agent.id,
-          role: p.role,
+          role: p.role ?? '',
         })),
       );
     } else if (open) {
@@ -124,7 +124,10 @@ export function ExchangeFormDialog({
     const body: Record<string, unknown> = {
       name,
       purpose,
-      parties: parties.filter((p) => p.agentId && p.role),
+      parties: parties.filter((p) => p.agentId).map((p) => ({
+        agentId: p.agentId,
+        role: p.role || null,
+      })),
     };
     if (description) body.description = description;
     if (link) body.link = link;

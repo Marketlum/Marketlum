@@ -29,6 +29,6 @@ export class ExchangeParty {
   @Column({ type: 'uuid' })
   agentId: string;
 
-  @Column()
-  role: string;
+  @Column({ type: 'varchar', nullable: true })
+  role: string | null;
 }

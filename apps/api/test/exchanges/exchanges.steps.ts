@@ -534,6 +534,58 @@ defineFeature(createFeature, (test) => {
     });
   });
 
+  test('Create exchange with parties without roles', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    when(
+      /^I create an exchange with parties without roles and:$/,
+      async (table: { name: string; purpose: string }[]) => {
+        const row = table[0];
+        const agentNames = [...agentIds.keys()];
+        response = await request(getApp().getHttpServer())
+          .post('/exchanges')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            name: row.name,
+            purpose: row.purpose,
+            parties: [
+              { agentId: agentIds.get(agentNames[0])! },
+              { agentId: agentIds.get(agentNames[1])! },
+            ],
+          });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an exchange with name "(.*)"$/, (name: string) => {
+      expect(response.body.name).toBe(name);
+    });
+
+    and(/^the response should contain (\d+) parties$/, (count: string) => {
+      expect(response.body.parties).toHaveLength(parseInt(count));
+    });
+
+    and('the response parties should have null roles', () => {
+      for (const party of response.body.parties) {
+        expect(party.role).toBeNull();
+      }
+    });
+  });
+
   test('Create exchange with pipeline', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
