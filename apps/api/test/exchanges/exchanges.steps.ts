@@ -43,6 +43,9 @@ const deleteFlowFeature = loadFeature(
 const transitionFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/transition-exchange.feature'),
 );
+const flowGraphFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/exchange-flow-graph.feature'),
+);
 
 const exchangeIds = new Map<string, string>();
 const agentIds = new Map<string, string>();
@@ -64,12 +67,12 @@ async function createAgent(authCookie: string, name: string): Promise<string> {
   return res.body.id;
 }
 
-async function createValue(authCookie: string, name: string): Promise<string> {
+async function createValue(authCookie: string, name: string, type = 'product'): Promise<string> {
   const res = await request(getApp().getHttpServer())
     .post('/values')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({ name, type: 'product' });
+    .send({ name, type });
   valueIds.set(name, res.body.id);
   return res.body.id;
 }
@@ -2630,5 +2633,189 @@ defineFeature(deleteFlowFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });
+  });
+});
+
+// --- EXCHANGE FLOW GRAPH DATA ---
+defineFeature(flowGraphFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    clearMaps();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Flow response includes value type for color coding', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await createValue(authCookie, name, type);
+      },
+    );
+
+    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
+      await createExchange(authCookie, name);
+    });
+
+    and(
+      /^a flow exists with value "(.*)" from "(.*)" to "(.*)" with quantity "(.*)"$/,
+      async (valueName: string, from: string, to: string, quantity: string) => {
+        await createFlow(authCookie, [...exchangeIds.keys()][0], {
+          valueName,
+          fromAgentName: from,
+          toAgentName: to,
+          quantity,
+        });
+      },
+    );
+
+    when('I list flows for the exchange', async () => {
+      const exchangeId = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .get(`/exchanges/${exchangeId}/flows`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain (\d+) flow$/, (count: string) => {
+      expect(response.body).toHaveLength(parseInt(count));
+    });
+
+    and('each flow should include value with id, name, and type', () => {
+      for (const flow of response.body) {
+        expect(flow.value).toHaveProperty('id');
+        expect(flow.value).toHaveProperty('name');
+        expect(flow.value).toHaveProperty('type');
+      }
+    });
+
+    and('each flow should include fromAgent with id, name, and type', () => {
+      for (const flow of response.body) {
+        expect(flow.fromAgent).toHaveProperty('id');
+        expect(flow.fromAgent).toHaveProperty('name');
+        expect(flow.fromAgent).toHaveProperty('type');
+      }
+    });
+
+    and('each flow should include toAgent with id, name, and type', () => {
+      for (const flow of response.body) {
+        expect(flow.toAgent).toHaveProperty('id');
+        expect(flow.toAgent).toHaveProperty('name');
+        expect(flow.toAgent).toHaveProperty('type');
+      }
+    });
+  });
+
+  test('Flows for different value types return correct type info', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await createValue(authCookie, name, type);
+      },
+    );
+
+    and(
+      /^a value exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await createValue(authCookie, name, type);
+      },
+    );
+
+    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
+      await createExchange(authCookie, name);
+    });
+
+    and(
+      /^a flow exists with value "(.*)" from "(.*)" to "(.*)" with quantity "(.*)"$/,
+      async (valueName: string, from: string, to: string, quantity: string) => {
+        await createFlow(authCookie, [...exchangeIds.keys()][0], {
+          valueName,
+          fromAgentName: from,
+          toAgentName: to,
+          quantity,
+        });
+      },
+    );
+
+    and(
+      /^a flow exists with value "(.*)" from "(.*)" to "(.*)" with quantity "(.*)"$/,
+      async (valueName: string, from: string, to: string, quantity: string) => {
+        await createFlow(authCookie, [...exchangeIds.keys()][0], {
+          valueName,
+          fromAgentName: from,
+          toAgentName: to,
+          quantity,
+        });
+      },
+    );
+
+    when('I list flows for the exchange', async () => {
+      const exchangeId = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .get(`/exchanges/${exchangeId}/flows`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain (\d+) flows$/, (count: string) => {
+      expect(response.body).toHaveLength(parseInt(count));
+    });
+
+    and(
+      /^the flow for value "(.*)" should have type "(.*)"$/,
+      (valueName: string, type: string) => {
+        const flow = response.body.find((f: any) => f.value?.name === valueName);
+        expect(flow).toBeDefined();
+        expect(flow.value.type).toBe(type);
+      },
+    );
+
+    and(
+      /^the flow for value "(.*)" should have type "(.*)"$/,
+      (valueName: string, type: string) => {
+        const flow = response.body.find((f: any) => f.value?.name === valueName);
+        expect(flow).toBeDefined();
+        expect(flow.value.type).toBe(type);
+      },
+    );
   });
 });

@@ -698,7 +698,13 @@
     "failedToTransition": "Failed to transition exchange",
     "close": "Close",
     "complete": "Complete",
-    "reopen": "Reopen"
+    "reopen": "Reopen",
+    "flowGraph": "Flow Graph",
+    "flowGraphDescription": "Visualize exchange flows between agents as an animated network graph.",
+    "flowGraphLoading": "Loading exchange flow graph...",
+    "flowGraphNoData": "No exchange flows to visualize.",
+    "flowCount": "flows",
+    "viewGraph": "Flow Graph"
   },
   "dashboard": {
     "title": "Dashboard",

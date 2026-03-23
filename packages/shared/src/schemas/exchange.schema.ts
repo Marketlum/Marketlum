@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ExchangeState } from '../enums/exchange-state.enum';
 import { ExchangeTransitionAction } from '../enums/exchange-transition-action.enum';
 import { AgentType } from '../enums/agent-type.enum';
+import { ValueType } from '../enums/value-type.enum';
 
 const agentSummarySchema = z.object({
   id: z.string().uuid(),
@@ -12,6 +13,7 @@ const agentSummarySchema = z.object({
 const valueSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  type: z.nativeEnum(ValueType),
 });
 
 const valueInstanceSummarySchema = z.object({

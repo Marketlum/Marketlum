@@ -697,7 +697,13 @@
     "failedToTransition": "Nie udało się zmienić statusu wymiany",
     "close": "Zamknij",
     "complete": "Zakończ",
-    "reopen": "Otwórz ponownie"
+    "reopen": "Otwórz ponownie",
+    "flowGraph": "Graf przepływów",
+    "flowGraphDescription": "Wizualizuj przepływy wymian między agentami jako animowany graf sieci.",
+    "flowGraphLoading": "Ładowanie grafu przepływów wymian...",
+    "flowGraphNoData": "Brak przepływów wymian do wizualizacji.",
+    "flowCount": "przepływów",
+    "viewGraph": "Graf przepływów"
   },
   "dashboard": {
     "title": "Pulpit",

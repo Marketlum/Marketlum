@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { SlidersHorizontal } from 'lucide-react';
+import Link from 'next/link';
+import { SlidersHorizontal, Share2 } from 'lucide-react';
 import type { PaginatedResponse, PerspectiveConfig, CreateExchangeInput } from '@marketlum/shared';
 import { api } from '@/lib/api-client';
 import { usePagination } from '@/hooks/use-pagination';
@@ -429,6 +430,12 @@ export function ExchangesDataTable() {
           visibleFields={visibleExportFields}
           filenameBase="exchanges"
         />
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/app/exchanges/graph">
+            <Share2 className="mr-2 h-4 w-4" />
+            {t('viewGraph')}
+          </Link>
+        </Button>
       </DataTableToolbar>
 
       <ActiveFilters filters={activeFilters} />
