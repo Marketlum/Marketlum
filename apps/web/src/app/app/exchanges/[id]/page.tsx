@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Pencil, Trash2, ArrowLeft, ArrowRightLeft, ExternalLink } from 'lucide-react';
-import type { ExchangeResponse, CreateExchangeInput } from '@marketlum/shared';
+import { Pencil, Trash2, ArrowLeft, ArrowRightLeft, ExternalLink, ArrowRight } from 'lucide-react';
+import type { ExchangeResponse, ExchangeFlowResponse, CreateExchangeInput } from '@marketlum/shared';
 import type { PaginatedResponse } from '@marketlum/shared';
 import { api, ApiError } from '@/lib/api-client';
 import { toast } from 'sonner';
@@ -51,6 +51,7 @@ export default function ExchangeDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [flowsOpen, setFlowsOpen] = useState(false);
+  const [flows, setFlows] = useState<ExchangeFlowResponse[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -65,6 +66,8 @@ export default function ExchangeDetailPage() {
       const result = await api.get<ExchangeResponse>(`/exchanges/${params.id}`);
       setExchange(result);
       setNotFound(false);
+      const flowsResult = await api.get<ExchangeFlowResponse[]>(`/exchanges/${params.id}/flows`);
+      setFlows(flowsResult);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setNotFound(true);
@@ -296,6 +299,49 @@ export default function ExchangeDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-4">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{t('flows')}</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => setFlowsOpen(true)}>
+            {t('manageFlows')}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {flows.length === 0 ? (
+            <p className="text-muted-foreground">{t('noFlows')}</p>
+          ) : (
+            <div className="rounded-md border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="p-2 text-left font-medium">{t('flowValue')}</th>
+                    <th className="p-2 text-left font-medium">{t('fromAgent')}</th>
+                    <th className="p-2 text-center font-medium"></th>
+                    <th className="p-2 text-left font-medium">{t('toAgent')}</th>
+                    <th className="p-2 text-right font-medium">{t('quantity')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {flows.map((flow) => (
+                    <tr key={flow.id} className="border-b last:border-0">
+                      <td className="p-2">
+                        {flow.value?.name ?? flow.valueInstance?.name ?? '\u2014'}
+                      </td>
+                      <td className="p-2">{flow.fromAgent.name}</td>
+                      <td className="p-2 text-center text-muted-foreground">
+                        <ArrowRight className="h-3 w-3 inline" />
+                      </td>
+                      <td className="p-2">{flow.toAgent.name}</td>
+                      <td className="p-2 text-right font-mono">{flow.quantity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <ExchangeFormDialog
         open={editOpen}
