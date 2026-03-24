@@ -48,6 +48,7 @@ interface FolderNodeProps {
   onCreateChild: (parentId: string, name: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
   onDelete: (id: string, name: string) => void;
+  onFileDrop: (fileId: string, folderId: string) => void;
   isMobile: boolean;
 }
 
@@ -59,6 +60,7 @@ function FolderNode({
   onCreateChild,
   onRename,
   onDelete,
+  onFileDrop,
   isMobile,
 }: FolderNodeProps) {
   const t = useTranslations('files');
@@ -68,6 +70,7 @@ function FolderNode({
   const [editName, setEditName] = useState(node.name);
   const [addingChild, setAddingChild] = useState(false);
   const [newChildName, setNewChildName] = useState('');
+  const [dragOver, setDragOver] = useState(false);
 
   const hasChildren = node.children && node.children.length > 0;
   const isSelected = selectedFolderId === node.id;
@@ -95,10 +98,29 @@ function FolderNode({
     <div>
       <div
         className={`group flex items-center gap-1 rounded-md px-1 py-1 cursor-pointer ${
-          isSelected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-secondary/50'
+          dragOver ? 'bg-primary/20 ring-2 ring-primary/40' : isSelected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-secondary/50'
         }`}
         style={{ paddingLeft: depth * (isMobile ? 12 : 20) + 4 }}
         onClick={() => onSelect(node.id)}
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes('application/x-file-id')) {
+            e.preventDefault();
+            setDragOver(true);
+          }
+        }}
+        onDragEnter={(e) => {
+          if (e.dataTransfer.types.includes('application/x-file-id')) {
+            e.preventDefault();
+            setDragOver(true);
+          }
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          const fileId = e.dataTransfer.getData('application/x-file-id');
+          if (fileId) onFileDrop(fileId, node.id);
+        }}
       >
         <button
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
@@ -194,6 +216,7 @@ function FolderNode({
               onCreateChild={onCreateChild}
               onRename={onRename}
               onDelete={onDelete}
+              onFileDrop={onFileDrop}
               isMobile={isMobile}
             />
           ))}
@@ -258,6 +281,7 @@ export function FilesManager() {
 
   // Drag and drop
   const [dragging, setDragging] = useState(false);
+  const [rootDropOver, setRootDropOver] = useState(false);
   const dragCounter = useRef(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -457,6 +481,16 @@ export function FilesManager() {
     }
   };
 
+  const handleMoveFileToFolder = async (fileId: string, folderId: string | null) => {
+    try {
+      await api.patch(`/files/${fileId}`, { folderId });
+      toast.success(t('fileMoved'));
+      fetchFiles();
+    } catch {
+      toast.error(t('failedToMove'));
+    }
+  };
+
   const handleDeleteFile = async () => {
     if (!deleteFileTarget) return;
     setIsDeleting(true);
@@ -516,13 +550,32 @@ export function FilesManager() {
           {/* Root files option */}
           <div
             className={`flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer text-sm ${
-              !showAllFiles && !selectedFolderId
+              rootDropOver ? 'bg-primary/20 ring-2 ring-primary/40' : !showAllFiles && !selectedFolderId
                 ? 'bg-primary/10 text-primary font-medium'
                 : 'hover:bg-secondary/50 text-muted-foreground'
             }`}
             onClick={() => {
               setSelectedFolderId(null);
               setShowAllFiles(false);
+            }}
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes('application/x-file-id')) {
+                e.preventDefault();
+                setRootDropOver(true);
+              }
+            }}
+            onDragEnter={(e) => {
+              if (e.dataTransfer.types.includes('application/x-file-id')) {
+                e.preventDefault();
+                setRootDropOver(true);
+              }
+            }}
+            onDragLeave={() => setRootDropOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setRootDropOver(false);
+              const fileId = e.dataTransfer.getData('application/x-file-id');
+              if (fileId) handleMoveFileToFolder(fileId, null);
             }}
           >
             <FileIcon className="h-4 w-4 shrink-0" />
@@ -561,6 +614,7 @@ export function FilesManager() {
               onCreateChild={handleCreateChildFolder}
               onRename={handleRenameFolder}
               onDelete={(id, name) => setDeleteFolderTarget({ id, name })}
+              onFileDrop={handleMoveFileToFolder}
               isMobile={isMobile}
             />
           ))}
@@ -605,7 +659,12 @@ export function FilesManager() {
                 return (
                   <div
                     key={file.id}
-                    className="group relative flex flex-col rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow"
+                    className="group relative flex flex-col rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/x-file-id', file.id);
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
                   >
                     {/* Thumbnail / Icon area */}
                     <div className="relative aspect-square flex items-center justify-center bg-muted/30">

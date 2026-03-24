@@ -40,6 +40,9 @@ const updateFileFeature = loadFeature(
 const deleteFileFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/files/delete-file.feature'),
 );
+const moveFileToFolderFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/files/move-file-to-folder.feature'),
+);
 
 // Track folder names → IDs
 const folderIds = new Map<string, string>();
@@ -1307,6 +1310,134 @@ defineFeature(deleteFileFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- MOVE FILE TO FOLDER ---
+defineFeature(moveFileToFolderFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let uploadedFileId: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    folderIds.clear();
+    fileIds.clear();
+    cleanUploads();
+    uploadedFileId = '';
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Move a file into a folder', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a root folder exists with name "(.*)"$/, async (name: string) => {
+      const res = await createFolder(authCookie, name);
+      folderIds.set(name, res.body.id);
+    });
+
+    and(/^a file "(.*)" has been uploaded$/, async (filename: string) => {
+      const res = await uploadFile(authCookie, filename, 'image/png');
+      uploadedFileId = res.body.id;
+    });
+
+    when(/^I move the file to folder "(.*)"$/, async (folderName: string) => {
+      const folderId = folderIds.get(folderName);
+      response = await request(getApp().getHttpServer())
+        .patch(`/files/${uploadedFileId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ folderId });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should have a folderId', () => {
+      expect(response.body.folderId).toBeTruthy();
+    });
+  });
+
+  test('Move a file back to root', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a root folder exists with name "(.*)"$/, async (name: string) => {
+      const res = await createFolder(authCookie, name);
+      folderIds.set(name, res.body.id);
+    });
+
+    and(/^a file "(.*)" has been uploaded to folder "(.*)"$/, async (filename: string, folderName: string) => {
+      const folderId = folderIds.get(folderName);
+      const res = await uploadFile(authCookie, filename, 'image/png', folderId);
+      uploadedFileId = res.body.id;
+    });
+
+    when('I move the file to root', async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/files/${uploadedFileId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ folderId: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response folderId should be null', () => {
+      expect(response.body.folderId).toBeNull();
+    });
+  });
+
+  test('Move a file to a different folder', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a root folder exists with name "(.*)"$/, async (name: string) => {
+      const res = await createFolder(authCookie, name);
+      folderIds.set(name, res.body.id);
+    });
+
+    and(/^a root folder exists with name "(.*)"$/, async (name: string) => {
+      const res = await createFolder(authCookie, name);
+      folderIds.set(name, res.body.id);
+    });
+
+    and(/^a file "(.*)" has been uploaded to folder "(.*)"$/, async (filename: string, folderName: string) => {
+      const folderId = folderIds.get(folderName);
+      const res = await uploadFile(authCookie, filename, 'image/png', folderId);
+      uploadedFileId = res.body.id;
+    });
+
+    when(/^I move the file to folder "(.*)"$/, async (folderName: string) => {
+      const folderId = folderIds.get(folderName);
+      response = await request(getApp().getHttpServer())
+        .patch(`/files/${uploadedFileId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ folderId });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should have a folderId matching "(.*)"$/, (folderName: string) => {
+      expect(response.body.folderId).toBe(folderIds.get(folderName));
     });
   });
 });
