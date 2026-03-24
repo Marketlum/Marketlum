@@ -64,16 +64,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       { href: '/app/values', label: t('values'), icon: Gem },
       { href: '/app/value-instances', label: t('valueInstances'), icon: Layers },
     ]},
-    { label: t('groupLedger'), items: [
-      { href: '/app/accounts', label: t('accounts'), icon: Wallet },
-      { href: '/app/transactions', label: t('transactions'), icon: ArrowLeftRight },
-    ]},
     { label: t('groupExchange'), items: [
       { href: '/app/agents', label: t('agents'), icon: Bot },
       { href: '/app/agreements', label: t('agreements'), icon: Handshake },
       { href: '/app/offerings', label: t('offerings'), icon: Package },
       { href: '/app/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
       { href: '/app/invoices', label: t('invoices'), icon: FileText },
+    ]},
+    { label: t('groupLedger'), items: [
+      { href: '/app/accounts', label: t('accounts'), icon: Wallet },
+      { href: '/app/transactions', label: t('transactions'), icon: ArrowLeftRight },
     ]},
     { label: t('groupSystem'), items: [
       { href: '/app/users', label: t('users'), icon: Users },
