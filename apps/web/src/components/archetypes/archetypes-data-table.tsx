@@ -313,7 +313,7 @@ export function ArchetypesDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(archetype) => router.push(`/app/archetypes/${archetype.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(archetype) => router.push(`/admin/archetypes/${archetype.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

@@ -406,7 +406,7 @@ export function ValueInstancesDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(vi) => router.push(`/app/value-instances/${vi.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(vi) => router.push(`/admin/value-instances/${vi.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

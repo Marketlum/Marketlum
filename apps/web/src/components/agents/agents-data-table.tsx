@@ -359,7 +359,7 @@ export function AgentsDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(agent) => router.push(`/app/agents/${agent.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(agent) => router.push(`/admin/agents/${agent.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

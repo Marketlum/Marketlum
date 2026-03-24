@@ -481,7 +481,7 @@ export function InvoicesDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(invoice) => router.push(`/app/invoices/${invoice.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(invoice) => router.push(`/admin/invoices/${invoice.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

@@ -89,7 +89,7 @@ export function ValueStreamTreeNodeComponent({
               <button
                 type="button"
                 className="truncate text-sm hover:underline text-left"
-                onClick={() => router.push(`/app/value-streams/${node.id}`)}
+                onClick={() => router.push(`/admin/value-streams/${node.id}`)}
               >
                 {node.name}
               </button>

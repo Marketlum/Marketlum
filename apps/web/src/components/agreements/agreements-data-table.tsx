@@ -328,7 +328,7 @@ export function AgreementsDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(agreement) => router.push(`/app/agreements/${agreement.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(agreement) => router.push(`/admin/agreements/${agreement.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

@@ -105,7 +105,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
             columns={columns}
             data={data?.data ?? []}
             columnVisibility={getMobileColumnVisibility(columns, isMobile)}
-            onRowClick={(value) => router.push(`/app/values/${value.id}`)}
+            onRowClick={(value) => router.push(`/admin/values/${value.id}`)}
           />
           {data && (
             <DataTablePagination

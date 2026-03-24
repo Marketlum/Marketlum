@@ -384,7 +384,7 @@ export function OfferingsDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(offering) => router.push(`/app/offerings/${offering.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(offering) => router.push(`/admin/offerings/${offering.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}

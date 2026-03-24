@@ -25,13 +25,13 @@ const typeConfig: Record<
 function resultHref(result: SearchResult): string {
   switch (result.type) {
     case 'value':
-      return `/app/values/${result.id}`;
+      return `/admin/values/${result.id}`;
     case 'agent':
-      return `/app/agents/${result.id}`;
+      return `/admin/agents/${result.id}`;
     case 'user':
       return '/admin/users';
     case 'value_instance':
-      return `/app/value-instances/${result.id}`;
+      return `/admin/value-instances/${result.id}`;
     case 'value_stream':
       return '/admin/value-streams';
   }
@@ -86,7 +86,7 @@ export function GlobalSearchInput() {
 
   const navigateToSearch = useCallback(() => {
     if (query.trim()) {
-      router.push(`/app/search?q=${encodeURIComponent(query.trim())}`);
+      router.push(`/admin/search?q=${encodeURIComponent(query.trim())}`);
     } else {
       router.push('/admin/search');
     }
@@ -170,7 +170,7 @@ export function GlobalSearchInput() {
             })}
             <div className="border-t">
               <Link
-                href={`/app/search?q=${encodeURIComponent(query.trim())}`}
+                href={`/admin/search?q=${encodeURIComponent(query.trim())}`}
                 onClick={handleResultClick}
                 className="flex items-center justify-center px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
