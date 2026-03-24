@@ -173,7 +173,7 @@ export default function ValueInstanceDetailPage() {
             <div>
               <p className="text-sm text-muted-foreground">{t('value')}</p>
               {item.value ? (
-                <Link href={`/app/values/${item.value.id}`} className="text-primary hover:underline">
+                <Link href={`/admin/values/${item.value.id}`} className="text-primary hover:underline">
                   {item.value.name}
                 </Link>
               ) : (
@@ -225,7 +225,7 @@ export default function ValueInstanceDetailPage() {
           <CardContent className="space-y-3">
             <div>
               {item.fromAgent ? (
-                <Link href={`/app/agents/${item.fromAgent.id}`} className="text-primary hover:underline">
+                <Link href={`/admin/agents/${item.fromAgent.id}`} className="text-primary hover:underline">
                   {item.fromAgent.name}
                 </Link>
               ) : (
@@ -242,7 +242,7 @@ export default function ValueInstanceDetailPage() {
           <CardContent className="space-y-3">
             <div>
               {item.toAgent ? (
-                <Link href={`/app/agents/${item.toAgent.id}`} className="text-primary hover:underline">
+                <Link href={`/admin/agents/${item.toAgent.id}`} className="text-primary hover:underline">
                   {item.toAgent.name}
                 </Link>
               ) : (

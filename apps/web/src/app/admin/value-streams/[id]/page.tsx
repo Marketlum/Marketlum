@@ -204,7 +204,7 @@ export default function ValueStreamDetailPage() {
                 {children.map((child) => (
                   <li key={child.id}>
                     <Link
-                      href={`/app/value-streams/${child.id}`}
+                      href={`/admin/value-streams/${child.id}`}
                       className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary/50"
                     >
                       {child.image ? (

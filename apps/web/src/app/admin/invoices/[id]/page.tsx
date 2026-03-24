@@ -176,13 +176,13 @@ export default function InvoiceDetailPage() {
           <CardContent className="space-y-3">
             <div>
               <p className="text-sm text-muted-foreground">{t('from')}</p>
-              <Link href={`/app/agents/${invoice.fromAgent.id}`} className="text-primary hover:underline">
+              <Link href={`/admin/agents/${invoice.fromAgent.id}`} className="text-primary hover:underline">
                 {invoice.fromAgent.name}
               </Link>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">{t('to')}</p>
-              <Link href={`/app/agents/${invoice.toAgent.id}`} className="text-primary hover:underline">
+              <Link href={`/admin/agents/${invoice.toAgent.id}`} className="text-primary hover:underline">
                 {invoice.toAgent.name}
               </Link>
             </div>

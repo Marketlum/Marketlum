@@ -237,7 +237,7 @@ export default function AgreementDetailPage() {
                   {agreement.parties.map((party) => (
                     <li key={party.id}>
                       <Link
-                        href={`/app/agents/${party.id}`}
+                        href={`/admin/agents/${party.id}`}
                         className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary/50"
                       >
                         <span className="text-sm">{party.name}</span>
@@ -262,7 +262,7 @@ export default function AgreementDetailPage() {
                   {children.map((child) => (
                     <li key={child.id}>
                       <Link
-                        href={`/app/agreements/${child.id}`}
+                        href={`/admin/agreements/${child.id}`}
                         className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary/50"
                       >
                         <Handshake className="h-4 w-4 shrink-0 text-muted-foreground" />

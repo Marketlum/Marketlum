@@ -32,13 +32,13 @@ const typeConfig: Record<
 function resultHref(result: SearchResult): string {
   switch (result.type) {
     case 'value':
-      return `/app/values/${result.id}`;
+      return `/admin/values/${result.id}`;
     case 'agent':
-      return `/app/agents/${result.id}`;
+      return `/admin/agents/${result.id}`;
     case 'user':
       return '/admin/users';
     case 'value_instance':
-      return `/app/value-instances/${result.id}`;
+      return `/admin/value-instances/${result.id}`;
     case 'value_stream':
       return '/admin/value-streams';
   }
@@ -87,7 +87,7 @@ export default function SearchPage() {
     setQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      router.replace(`/app/search?q=${encodeURIComponent(value)}`);
+      router.replace(`/admin/search?q=${encodeURIComponent(value)}`);
       doSearch(value);
     }, 300);
   };

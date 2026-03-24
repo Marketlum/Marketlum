@@ -208,7 +208,7 @@ export default function ValueDetailPage() {
               <p className="text-sm text-muted-foreground">{t('parent')}</p>
               {value.parent ? (
                 <div className="flex items-center gap-2">
-                  <Link href={`/app/values/${value.parent.id}`} className="text-primary hover:underline">
+                  <Link href={`/admin/values/${value.parent.id}`} className="text-primary hover:underline">
                     {value.parent.name}
                   </Link>
                   {value.parentType && (
@@ -222,7 +222,7 @@ export default function ValueDetailPage() {
             <div>
               <p className="text-sm text-muted-foreground">{t('agent')}</p>
               {value.agent ? (
-                <Link href={`/app/agents/${value.agent.id}`} className="text-primary hover:underline">
+                <Link href={`/admin/agents/${value.agent.id}`} className="text-primary hover:underline">
                   {value.agent.name}
                 </Link>
               ) : (

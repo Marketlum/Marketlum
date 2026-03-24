@@ -286,7 +286,7 @@ export default function ExchangeDetailPage() {
                 {exchange.parties.map((party) => (
                   <li key={party.id}>
                     <Link
-                      href={`/app/agents/${party.agent.id}`}
+                      href={`/admin/agents/${party.agent.id}`}
                       className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary/50"
                     >
                       <span className="text-sm">{party.agent.name}</span>
