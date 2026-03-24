@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { PipelinesService } from './pipelines.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createPipelineSchema,
@@ -24,7 +24,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('pipelines')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class PipelinesController {
   constructor(private readonly pipelinesService: PipelinesService) {}
 

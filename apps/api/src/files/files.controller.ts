@@ -19,7 +19,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { FilesService } from './files.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   updateFileSchema,
@@ -29,7 +29,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('files')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 

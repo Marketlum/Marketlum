@@ -431,7 +431,7 @@ export function ExchangesDataTable() {
           filenameBase="exchanges"
         />
         <Button variant="outline" size="sm" asChild>
-          <Link href="/app/exchanges/graph">
+          <Link href="/admin/exchanges/graph">
             <Share2 className="mr-2 h-4 w-4" />
             {t('viewGraph')}
           </Link>

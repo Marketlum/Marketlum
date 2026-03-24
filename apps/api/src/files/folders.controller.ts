@@ -11,7 +11,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { FoldersService } from './folders.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createFolderSchema,
@@ -23,7 +23,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('folders')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class FoldersController {
   constructor(private readonly foldersService: FoldersService) {}
 

@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ValueInstancesService } from './value-instances.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createValueInstanceSchema,
@@ -24,7 +24,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('value-instances')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class ValueInstancesController {
   constructor(private readonly valueInstancesService: ValueInstancesService) {}
 

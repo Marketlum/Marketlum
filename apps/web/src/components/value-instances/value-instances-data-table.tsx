@@ -348,7 +348,7 @@ export function ValueInstancesDataTable() {
           filenameBase="value-instances"
         />
         <Button variant="outline" size="sm" asChild>
-          <Link href="/app/value-instances/graph">
+          <Link href="/admin/value-instances/graph">
             <Share2 className="mr-2 h-4 w-4" />
             {t('viewGraph')}
           </Link>

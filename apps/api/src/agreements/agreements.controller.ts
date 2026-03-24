@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { AgreementsService } from './agreements.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createAgreementSchema,
@@ -26,7 +26,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('agreements')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class AgreementsController {
   constructor(private readonly agreementsService: AgreementsService) {}
 

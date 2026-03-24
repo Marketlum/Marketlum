@@ -436,7 +436,7 @@ export function ValuesDataTable() {
           filenameBase="values"
         />
         <Button variant="outline" size="sm" asChild>
-          <Link href="/app/values/graph">
+          <Link href="/admin/values/graph">
             <Share2 className="mr-2 h-4 w-4" />
             {t('viewGraph')}
           </Link>

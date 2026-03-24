@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ArchetypesService } from './archetypes.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createArchetypeSchema,
@@ -24,7 +24,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('archetypes')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class ArchetypesController {
   constructor(private readonly archetypesService: ArchetypesService) {}
 

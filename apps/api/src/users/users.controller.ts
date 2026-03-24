@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createUserSchema,
@@ -28,7 +28,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async create(
     @Body(new ZodValidationPipe(createUserSchema)) body: CreateUserInput,
   ) {
@@ -37,20 +37,20 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async findAll(@Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery) {
     return this.usersService.findAll(query);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async findOne(@Param('id') id: string) {
     const user = await this.usersService.findOne(id);
     return this.usersService.stripPassword(user);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async update(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateUserSchema)) body: UpdateUserInput,
@@ -60,7 +60,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
     await this.usersService.remove(id);

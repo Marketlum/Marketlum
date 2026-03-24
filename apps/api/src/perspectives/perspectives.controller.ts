@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { PerspectivesService } from './perspectives.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
@@ -25,7 +25,7 @@ import {
 import { User } from '../users/entities/user.entity';
 
 @Controller('perspectives')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class PerspectivesController {
   constructor(private readonly perspectivesService: PerspectivesService) {}
 

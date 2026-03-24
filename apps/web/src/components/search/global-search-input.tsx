@@ -29,11 +29,11 @@ function resultHref(result: SearchResult): string {
     case 'agent':
       return `/app/agents/${result.id}`;
     case 'user':
-      return '/app/users';
+      return '/admin/users';
     case 'value_instance':
       return `/app/value-instances/${result.id}`;
     case 'value_stream':
-      return '/app/value-streams';
+      return '/admin/value-streams';
   }
 }
 
@@ -88,7 +88,7 @@ export function GlobalSearchInput() {
     if (query.trim()) {
       router.push(`/app/search?q=${encodeURIComponent(query.trim())}`);
     } else {
-      router.push('/app/search');
+      router.push('/admin/search');
     }
     setOpen(false);
   }, [query, router]);

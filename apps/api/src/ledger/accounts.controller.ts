@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createAccountSchema,
@@ -24,7 +24,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('accounts')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 

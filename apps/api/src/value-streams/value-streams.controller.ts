@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ValueStreamsService } from './value-streams.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createValueStreamSchema,
@@ -26,7 +26,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('value-streams')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class ValueStreamsController {
   constructor(private readonly valueStreamsService: ValueStreamsService) {}
 

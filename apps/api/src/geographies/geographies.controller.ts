@@ -11,7 +11,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { GeographiesService } from './geographies.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createGeographySchema,
@@ -23,7 +23,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('geographies')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class GeographiesController {
   constructor(private readonly geographiesService: GeographiesService) {}
 

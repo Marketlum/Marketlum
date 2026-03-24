@@ -1,11 +1,11 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { dashboardQuerySchema, type DashboardQuery } from '@marketlum/shared';
 
 @Controller('dashboard')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 

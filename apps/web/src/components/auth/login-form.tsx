@@ -30,7 +30,7 @@ export function LoginForm() {
     try {
       setError(null);
       await login(data);
-      router.push('/app');
+      router.push('/admin');
     } catch {
       setError(t('invalidCredentials'));
     }

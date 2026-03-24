@@ -12,7 +12,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
@@ -41,7 +41,7 @@ export class AuthController {
     return this.usersService.stripPassword(req.user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Res({ passthrough: true }) res: Response) {
@@ -52,7 +52,7 @@ export class AuthController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   @Get('me')
   async me(@CurrentUser() user: User) {
     return this.usersService.stripPassword(user);

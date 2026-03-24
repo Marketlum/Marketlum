@@ -11,7 +11,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { LocalesService } from './locales.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createLocaleSchema,
@@ -21,7 +21,7 @@ import {
 } from '@marketlum/shared';
 
 @Controller('locales')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AdminGuard)
 export class LocalesController {
   constructor(private readonly localesService: LocalesService) {}
 

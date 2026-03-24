@@ -5,13 +5,13 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 
-  // If on login page and has token, redirect to app
+  // If on login page and has token, redirect to admin
   if (pathname === '/login' && token) {
-    return NextResponse.redirect(new URL('/app', request.url));
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
 
-  // If on app routes and no token, redirect to login
-  if (pathname.startsWith('/app') && !token) {
+  // If on admin routes and no token, redirect to login
+  if (pathname.startsWith('/admin') && !token) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -19,5 +19,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/app/:path*'],
+  matcher: ['/login', '/admin/:path*'],
 };
