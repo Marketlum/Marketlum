@@ -704,7 +704,7 @@
     "flowGraphLoading": "Loading exchange flow graph...",
     "flowGraphNoData": "No exchange flows to visualize.",
     "flowCount": "flows",
-    "viewGraph": "Flow Graph"
+    "viewGraph": "Graph"
   },
   "dashboard": {
     "title": "Dashboard",

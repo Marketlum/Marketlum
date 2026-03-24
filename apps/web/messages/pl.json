@@ -703,7 +703,7 @@
     "flowGraphLoading": "Ładowanie grafu przepływów wymian...",
     "flowGraphNoData": "Brak przepływów wymian do wizualizacji.",
     "flowCount": "przepływów",
-    "viewGraph": "Graf przepływów"
+    "viewGraph": "Graf"
   },
   "dashboard": {
     "title": "Pulpit",
