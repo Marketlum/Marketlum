@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { ALL_ENTITIES, ALL_MIGRATIONS } from '@marketlum/core';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -11,7 +12,7 @@ export default new DataSource({
   username: process.env.DATABASE_USERNAME || 'marketlum',
   password: process.env.DATABASE_PASSWORD || 'marketlum',
   database: process.env.DATABASE_NAME || 'marketlum',
-  entities: [__dirname + '/**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  entities: ALL_ENTITIES,
+  migrations: ALL_MIGRATIONS,
   synchronize: false,
 });

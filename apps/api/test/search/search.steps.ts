@@ -9,9 +9,7 @@ import {
   createAuthenticatedUser,
   createUserViaService,
 } from '../setup';
-import { ValuesService } from '../../src/values/values.service';
-import { ValueInstancesService } from '../../src/value-instances/value-instances.service';
-import { AgentsService } from '../../src/agents/agents.service';
+import { ValuesService, ValueInstancesService, AgentsService } from '@marketlum/core';
 
 const feature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/search/global-search.feature'),

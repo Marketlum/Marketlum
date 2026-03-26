@@ -2,16 +2,16 @@
   "name": "marketlum",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @marketlum/shared run build && pnpm --parallel --filter=!@marketlum/shared -r run dev",
+    "dev": "pnpm --filter @marketlum/shared run build && pnpm --filter @marketlum/core run build && pnpm --parallel --filter=!@marketlum/shared --filter=!@marketlum/core -r run dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "migration:generate": "pnpm --filter @marketlum/api run migration:generate",
-    "migration:run": "pnpm --filter @marketlum/api run migration:run",
-    "migration:revert": "pnpm --filter @marketlum/api run migration:revert",
-    "test:e2e": "pnpm --filter @marketlum/api run test:e2e",
-    "seed": "pnpm --filter @marketlum/api run seed"
+    "migration:generate": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run migration:generate",
+    "migration:run": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run migration:run",
+    "migration:revert": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run migration:revert",
+    "test:e2e": "pnpm --filter @marketlum/shared run build && pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run test:e2e",
+    "seed": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run seed"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

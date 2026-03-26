@@ -11,7 +11,7 @@ import request from 'supertest';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
-import { UsersService } from '../src/users/users.service';
+import { UsersService } from '@marketlum/core';
 
 let app: INestApplication;
 let dataSource: DataSource;
