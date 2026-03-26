@@ -1,0 +1,15 @@
+{
+  "name": "create-marketlum-app",
+  "version": "0.0.1",
+  "description": "Create a new Marketlum market application",
+  "type": "module",
+  "bin": {
+    "create-marketlum-app": "./bin/create-marketlum-app.mjs"
+  },
+  "files": ["bin", "lib", "template"],
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "picocolors": "^1.1.1"
+  },
+  "engines": { "node": ">=20" }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "build": "pnpm -r run build",
+    "migration:run": "pnpm --filter api run migration:run",
+    "migration:revert": "pnpm --filter api run migration:revert",
+    "seed": "pnpm --filter api run seed"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@nestjs/core", "bcrypt", "unrs-resolver"]
+  },
+  "engines": { "node": ">=20" },
+  "packageManager": "pnpm@10.6.2"
+}
