@@ -10,6 +10,7 @@ import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Channel } from '../channels/channel.entity';
 import { Pipeline } from '../pipelines/entities/pipeline.entity';
 import { User } from '../users/entities/user.entity';
+import { Tension } from '../tensions/entities/tension.entity';
 import { ExchangesService } from './exchanges.service';
 import { ExchangeFlowsService } from './exchange-flows.service';
 import { ExchangesController } from './exchanges.controller';
@@ -28,6 +29,7 @@ import { ExchangeFlowsController } from './exchange-flows.controller';
       Channel,
       Pipeline,
       User,
+      Tension,
     ]),
   ],
   controllers: [ExchangesController, ExchangeFlowsController],

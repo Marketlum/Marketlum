@@ -56,7 +56,8 @@
     "archetypes": "Archetypy",
     "locales": "Lokalizacje",
     "agreementTemplates": "Szablony umów",
-    "pipelines": "Lejki"
+    "pipelines": "Lejki",
+    "tensions": "Napięcia"
   },
   "auth": {
     "signIn": "Zaloguj się",
@@ -703,7 +704,40 @@
     "flowGraphLoading": "Ładowanie grafu przepływów wymian...",
     "flowGraphNoData": "Brak przepływów wymian do wizualizacji.",
     "flowCount": "przepływów",
-    "viewGraph": "Graf"
+    "viewGraph": "Graf",
+    "tension": "Napięcie",
+    "selectTension": "Wybierz napięcie"
+  },
+  "tensions": {
+    "title": "Napięcia",
+    "description": "Identyfikuj i śledź luki między bieżącą rzeczywistością a potencjalną przyszłością.",
+    "createTension": "Utwórz napięcie",
+    "editTension": "Edytuj napięcie",
+    "deleteTension": "Usuń napięcie",
+    "createDescription": "Wypełnij dane, aby utworzyć nowe napięcie.",
+    "editDescription": "Zaktualizuj dane napięcia poniżej.",
+    "agent": "Agent",
+    "selectAgent": "Wybierz agenta",
+    "allAgents": "Wszyscy agenci",
+    "lead": "Prowadzący",
+    "selectLead": "Wybierz prowadzącego",
+    "allUsers": "Wszyscy użytkownicy",
+    "score": "Wynik",
+    "currentContext": "Bieżący kontekst",
+    "potentialFuture": "Potencjalna przyszłość",
+    "linkedExchanges": "Powiązane wymiany",
+    "created": "Napięcie utworzone",
+    "updated": "Napięcie zaktualizowane",
+    "deleted": "Napięcie usunięte",
+    "failedToLoad": "Nie udało się wczytać napięć",
+    "failedToCreate": "Nie udało się utworzyć napięcia",
+    "failedToUpdate": "Nie udało się zaktualizować napięcia",
+    "failedToDelete": "Nie udało się usunąć napięcia",
+    "updatedAt": "Zaktualizowano",
+    "details": "Szczegóły",
+    "notFound": "Nie znaleziono napięcia",
+    "notFoundDescription": "Szukane napięcie nie istnieje.",
+    "backToTensions": "Powrót do napięć"
   },
   "dashboard": {
     "title": "Pulpit",

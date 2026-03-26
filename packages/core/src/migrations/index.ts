@@ -33,6 +33,7 @@ import { AddLifecycleStageToValues1700000000031 } from './1700000000031-AddLifec
 import { MakeTransactionAccountsOptional1700000000032 } from './1700000000032-MakeTransactionAccountsOptional';
 import { AddPipelines1700000000033 } from './1700000000033-AddPipelines';
 import { MakeExchangePartyRoleOptional1700000000034 } from './1700000000034-MakeExchangePartyRoleOptional';
+import { AddTensions1700000000035 } from './1700000000035-AddTensions';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -70,4 +71,5 @@ export const ALL_MIGRATIONS = [
   MakeTransactionAccountsOptional1700000000032,
   AddPipelines1700000000033,
   MakeExchangePartyRoleOptional1700000000034,
+  AddTensions1700000000035,
 ];

@@ -24,6 +24,7 @@ import { Archetype } from './archetypes/entities/archetype.entity';
 import { Locale } from './locales/locale.entity';
 import { AgreementTemplate } from './agreement-templates/entities/agreement-template.entity';
 import { Pipeline } from './pipelines/entities/pipeline.entity';
+import { Tension } from './tensions/entities/tension.entity';
 
 export const ALL_ENTITIES = [
   User,
@@ -52,4 +53,5 @@ export const ALL_ENTITIES = [
   Locale,
   AgreementTemplate,
   Pipeline,
+  Tension,
 ];

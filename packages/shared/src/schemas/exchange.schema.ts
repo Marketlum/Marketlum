@@ -68,6 +68,7 @@ export const createExchangeSchema = z.object({
   link: z.string().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
   pipelineId: z.string().uuid().nullable().optional(),
+  tensionId: z.string().uuid().nullable().optional(),
   parties: z.array(exchangePartyInputSchema).min(2),
 });
 
@@ -80,6 +81,7 @@ export const updateExchangeSchema = z.object({
   link: z.string().nullable().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
   pipelineId: z.string().uuid().nullable().optional(),
+  tensionId: z.string().uuid().nullable().optional(),
   parties: z.array(exchangePartyInputSchema).min(2).optional(),
 });
 

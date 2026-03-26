@@ -20,6 +20,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { OfferingsModule } from './offerings/offerings.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { PipelinesModule } from './pipelines/pipelines.module';
+import { TensionsModule } from './tensions/tensions.module';
 import { ExchangesModule } from './exchanges/exchanges.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { GeographiesModule } from './geographies/geographies.module';
@@ -47,6 +48,7 @@ import { AgreementTemplatesModule } from './agreement-templates/agreement-templa
     OfferingsModule,
     InvoicesModule,
     PipelinesModule,
+    TensionsModule,
     ExchangesModule,
     DashboardModule,
     GeographiesModule,

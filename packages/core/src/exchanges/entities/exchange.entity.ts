@@ -13,6 +13,7 @@ import { ValueStream } from '../../value-streams/entities/value-stream.entity';
 import { Channel } from '../../channels/channel.entity';
 import { Pipeline } from '../../pipelines/entities/pipeline.entity';
 import { User } from '../../users/entities/user.entity';
+import { Tension } from '../../tensions/entities/tension.entity';
 import { ExchangeParty } from './exchange-party.entity';
 import { ExchangeFlow } from './exchange-flow.entity';
 
@@ -69,6 +70,13 @@ export class Exchange {
 
   @Column({ type: 'uuid', nullable: true })
   leadUserId: string | null;
+
+  @ManyToOne(() => Tension, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'tensionId' })
+  tension: Tension | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  tensionId: string | null;
 
   @OneToMany(() => ExchangeParty, (party) => party.exchange, { cascade: true })
   parties: ExchangeParty[];

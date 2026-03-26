@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Gem, Bot, User, Layers, Workflow, Loader2 } from 'lucide-react';
+import { Search, Gem, Bot, User, Layers, Workflow, Flame, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { api } from '../../lib/api-client';
 import { Input } from '../../components/ui/input';
@@ -27,6 +27,7 @@ const typeConfig: Record<
   user: { icon: User, variant: 'outline' },
   value_instance: { icon: Layers, variant: 'secondary' },
   value_stream: { icon: Workflow, variant: 'secondary' },
+  tension: { icon: Flame, variant: 'default' },
 };
 
 function resultHref(result: SearchResult): string {
@@ -39,6 +40,8 @@ function resultHref(result: SearchResult): string {
       return '/admin/users';
     case 'value_instance':
       return `/admin/value-instances/${result.id}`;
+    case 'tension':
+      return `/admin/tensions/${result.id}`;
     case 'value_stream':
       return '/admin/value-streams';
   }

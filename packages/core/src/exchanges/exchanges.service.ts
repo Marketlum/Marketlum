@@ -12,6 +12,7 @@ import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Channel } from '../channels/channel.entity';
 import { Pipeline } from '../pipelines/entities/pipeline.entity';
 import { User } from '../users/entities/user.entity';
+import { Tension } from '../tensions/entities/tension.entity';
 import {
   CreateExchangeInput,
   UpdateExchangeInput,
@@ -39,10 +40,12 @@ export class ExchangesService {
     private readonly pipelineRepository: Repository<Pipeline>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Tension)
+    private readonly tensionRepository: Repository<Tension>,
   ) {}
 
   async create(input: CreateExchangeInput): Promise<Exchange> {
-    const { parties, valueStreamId, channelId, pipelineId, leadUserId, ...rest } = input;
+    const { parties, valueStreamId, channelId, pipelineId, leadUserId, tensionId, ...rest } = input;
 
     // Validate valueStream
     if (valueStreamId) {
@@ -68,6 +71,12 @@ export class ExchangesService {
       if (!user) throw new NotFoundException('Lead user not found');
     }
 
+    // Validate tension
+    if (tensionId) {
+      const tension = await this.tensionRepository.findOne({ where: { id: tensionId } });
+      if (!tension) throw new NotFoundException('Tension not found');
+    }
+
     // Validate no duplicate agents in parties
     const agentIds = parties.map((p) => p.agentId);
     const uniqueAgentIds = [...new Set(agentIds)];
@@ -89,6 +98,7 @@ export class ExchangesService {
       channelId: channelId ?? null,
       pipelineId: pipelineId ?? null,
       leadUserId: leadUserId ?? null,
+      tensionId: tensionId ?? null,
       state: ExchangeState.OPEN,
       openedAt: new Date(),
       completedAt: null,
@@ -117,6 +127,7 @@ export class ExchangesService {
         'channel',
         'pipeline',
         'lead',
+        'tension',
         'parties',
         'parties.agent',
       ],
@@ -274,6 +285,7 @@ export class ExchangesService {
     delete (exchange as any).channel;
     delete (exchange as any).pipeline;
     delete (exchange as any).lead;
+    delete (exchange as any).tension;
     await this.exchangeRepository.save(exchange);
 
     return this.findOne(id);
@@ -281,7 +293,7 @@ export class ExchangesService {
 
   async update(id: string, input: UpdateExchangeInput): Promise<Exchange> {
     const exchange = await this.findOne(id);
-    const { parties, valueStreamId, channelId, pipelineId, leadUserId, ...rest } = input;
+    const { parties, valueStreamId, channelId, pipelineId, leadUserId, tensionId, ...rest } = input;
 
     // Update scalar fields
     if (rest.name !== undefined) exchange.name = rest.name;
@@ -334,6 +346,17 @@ export class ExchangesService {
       }
     }
 
+    if (tensionId !== undefined) {
+      if (tensionId === null) {
+        exchange.tension = null;
+        exchange.tensionId = null;
+      } else {
+        const tension = await this.tensionRepository.findOne({ where: { id: tensionId } });
+        if (!tension) throw new NotFoundException('Tension not found');
+        exchange.tensionId = tensionId;
+      }
+    }
+
     // Delete relations before save to avoid cascade issues
     delete (exchange as any).parties;
     delete (exchange as any).flows;
@@ -341,6 +364,7 @@ export class ExchangesService {
     delete (exchange as any).channel;
     delete (exchange as any).pipeline;
     delete (exchange as any).lead;
+    delete (exchange as any).tension;
     await this.exchangeRepository.save(exchange);
 
     // Replace parties if provided

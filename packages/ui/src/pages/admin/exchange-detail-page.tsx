@@ -238,6 +238,16 @@ export function ExchangeDetailPage() {
               <p>{exchange.lead?.name ?? '-'}</p>
             </div>
             <div>
+              <p className="text-sm text-muted-foreground">{t('tension')}</p>
+              {(exchange as any).tension ? (
+                <Link href={`/admin/tensions/${(exchange as any).tension.id}`} className="text-primary hover:underline">
+                  {(exchange as any).tension.name}
+                </Link>
+              ) : (
+                <p>-</p>
+              )}
+            </div>
+            <div>
               <p className="text-sm text-muted-foreground">{t('link')}</p>
               {exchange.link ? (
                 <a

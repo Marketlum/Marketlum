@@ -244,6 +244,15 @@ export {
 } from './schemas/archetype.schema';
 
 export {
+  createTensionSchema,
+  updateTensionSchema,
+  tensionResponseSchema,
+  type CreateTensionInput,
+  type UpdateTensionInput,
+  type TensionResponse,
+} from './schemas/tension.schema';
+
+export {
   SUPPORTED_LOCALE_CODES,
   createLocaleSchema,
   localeResponseSchema,

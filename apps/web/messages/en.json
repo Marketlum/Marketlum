@@ -57,7 +57,8 @@
     "archetypes": "Archetypes",
     "locales": "Locales",
     "agreementTemplates": "Agreement Templates",
-    "pipelines": "Pipelines"
+    "pipelines": "Pipelines",
+    "tensions": "Tensions"
   },
   "auth": {
     "signIn": "Sign in",
@@ -704,7 +705,40 @@
     "flowGraphLoading": "Loading exchange flow graph...",
     "flowGraphNoData": "No exchange flows to visualize.",
     "flowCount": "flows",
-    "viewGraph": "Graph"
+    "viewGraph": "Graph",
+    "tension": "Tension",
+    "selectTension": "Select tension"
+  },
+  "tensions": {
+    "title": "Tensions",
+    "description": "Identify and track gaps between current reality and potential futures.",
+    "createTension": "Create Tension",
+    "editTension": "Edit Tension",
+    "deleteTension": "Delete Tension",
+    "createDescription": "Fill in the details to create a new tension.",
+    "editDescription": "Update tension details below.",
+    "agent": "Agent",
+    "selectAgent": "Select agent",
+    "allAgents": "All agents",
+    "lead": "Lead",
+    "selectLead": "Select lead",
+    "allUsers": "All users",
+    "score": "Score",
+    "currentContext": "Current Context",
+    "potentialFuture": "Potential Future",
+    "linkedExchanges": "Linked Exchanges",
+    "created": "Tension created",
+    "updated": "Tension updated",
+    "deleted": "Tension deleted",
+    "failedToLoad": "Failed to load tensions",
+    "failedToCreate": "Failed to create tension",
+    "failedToUpdate": "Failed to update tension",
+    "failedToDelete": "Failed to delete tension",
+    "updatedAt": "Updated",
+    "details": "Details",
+    "notFound": "Tension not found",
+    "notFoundDescription": "The tension you are looking for does not exist.",
+    "backToTensions": "Back to tensions"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '../lib/auth';
 import { Button } from '../components/ui/button';
@@ -65,6 +65,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/value-instances', label: t('valueInstances'), icon: Layers },
     ]},
     { label: t('groupExchange'), items: [
+      { href: '/admin/tensions', label: t('tensions'), icon: Flame },
       { href: '/admin/agents', label: t('agents'), icon: Bot },
       { href: '/admin/agreements', label: t('agreements'), icon: Handshake },
       { href: '/admin/offerings', label: t('offerings'), icon: Package },

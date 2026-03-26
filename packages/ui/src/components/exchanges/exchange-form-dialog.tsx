@@ -26,6 +26,7 @@ import {
 import { useAgents } from '../../hooks/use-agents';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { useUsers } from '../../hooks/use-users';
+import { useTensions } from '../../hooks/use-tensions';
 
 interface PartyRow {
   agentId: string;
@@ -67,6 +68,7 @@ export function ExchangeFormDialog({
   channels = [],
   pipelines = [],
 }: ExchangeFormDialogProps) {
+  const { tensions } = useTensions(open);
   const isEditing = !!exchange;
   const t = useTranslations('exchanges');
   const tc = useTranslations('common');
@@ -81,6 +83,7 @@ export function ExchangeFormDialog({
   const [valueStreamId, setValueStreamId] = useState<string>('none');
   const [channelId, setChannelId] = useState<string>('none');
   const [pipelineId, setPipelineId] = useState<string>('none');
+  const [tensionId, setTensionId] = useState<string>('none');
   const [leadUserId, setLeadUserId] = useState<string>('none');
   const [parties, setParties] = useState<PartyRow[]>([
     { agentId: '', role: '' },
@@ -96,6 +99,7 @@ export function ExchangeFormDialog({
       setValueStreamId(exchange.valueStream?.id ?? 'none');
       setChannelId(exchange.channel?.id ?? 'none');
       setPipelineId(exchange.pipeline?.id ?? 'none');
+      setTensionId((exchange as any).tension?.id ?? 'none');
       setLeadUserId(exchange.lead?.id ?? 'none');
       setParties(
         exchange.parties.map((p) => ({
@@ -111,6 +115,7 @@ export function ExchangeFormDialog({
       setValueStreamId('none');
       setChannelId('none');
       setPipelineId('none');
+      setTensionId('none');
       setLeadUserId('none');
       setParties([
         { agentId: '', role: '' },
@@ -134,6 +139,7 @@ export function ExchangeFormDialog({
     body.valueStreamId = valueStreamId !== 'none' ? valueStreamId : null;
     body.channelId = channelId !== 'none' ? channelId : null;
     body.pipelineId = pipelineId !== 'none' ? pipelineId : null;
+    body.tensionId = tensionId !== 'none' ? tensionId : null;
     body.leadUserId = leadUserId !== 'none' ? leadUserId : null;
     await onSubmit(body as CreateExchangeInput);
   };
@@ -222,6 +228,23 @@ export function ExchangeFormDialog({
                       <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: pl.color }} />
                       {pl.name}
                     </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <Label>{t('tension')}</Label>
+            <Select value={tensionId} onValueChange={setTensionId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('selectTension')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">&mdash;</SelectItem>
+                {tensions.map((tension) => (
+                  <SelectItem key={tension.id} value={tension.id}>
+                    {tension.name}
                   </SelectItem>
                 ))}
               </SelectContent>

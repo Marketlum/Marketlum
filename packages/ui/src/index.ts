@@ -162,6 +162,11 @@ export { getPipelineColumns } from './components/pipelines/columns';
 // search
 export { GlobalSearchInput } from './components/search/global-search-input';
 
+// tensions
+export { TensionFormDialog } from './components/tensions/tension-form-dialog';
+export { TensionsDataTable } from './components/tensions/tensions-data-table';
+export { getTensionColumns } from './components/tensions/columns';
+
 // taxonomies
 export { getTaxonomySearchColumns } from './components/taxonomies/taxonomy-search-columns';
 export { TaxonomyTreeNodeComponent } from './components/taxonomies/taxonomy-tree-node';
@@ -200,6 +205,7 @@ export { getValueColumns } from './components/values/columns';
 // 4. Hooks
 // =============================================================================
 
+export { useTensions } from './hooks/use-tensions';
 export { useAccounts } from './hooks/use-accounts';
 export { useAgents } from './hooks/use-agents';
 export { useAgreementTemplates } from './hooks/use-agreement-templates';
@@ -244,6 +250,8 @@ export { ArchetypeDetailPage } from './pages/admin/archetype-detail-page';
 export { ArchetypesPage } from './pages/admin/archetypes-page';
 export { ChannelsPage } from './pages/admin/channels-page';
 export { DashboardPage } from './pages/admin/dashboard-page';
+export { TensionsPage } from './pages/admin/tensions-page';
+export { TensionDetailPage } from './pages/admin/tension-detail-page';
 export { ExchangeDetailPage } from './pages/admin/exchange-detail-page';
 export { ExchangesGraphPage } from './pages/admin/exchanges-graph-page';
 export { ExchangesPage } from './pages/admin/exchanges-page';

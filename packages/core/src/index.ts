@@ -36,6 +36,7 @@ export { Archetype } from './archetypes/entities/archetype.entity';
 export { Locale } from './locales/locale.entity';
 export { AgreementTemplate } from './agreement-templates/entities/agreement-template.entity';
 export { Pipeline } from './pipelines/entities/pipeline.entity';
+export { Tension } from './tensions/entities/tension.entity';
 
 // Services
 export { UsersService } from './users/users.service';
@@ -62,6 +63,7 @@ export { GeographiesService } from './geographies/geographies.service';
 export { LocalesService } from './locales/locales.service';
 export { ArchetypesService } from './archetypes/archetypes.service';
 export { AgreementTemplatesService } from './agreement-templates/agreement-templates.service';
+export { TensionsService } from './tensions/tensions.service';
 export { AuthService } from './auth/auth.service';
 
 // Auth
