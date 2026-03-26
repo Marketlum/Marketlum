@@ -2,7 +2,7 @@
   "name": "marketlum",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @marketlum/shared run build && pnpm --filter @marketlum/core run build && pnpm --parallel --filter=!@marketlum/shared --filter=!@marketlum/core -r run dev",
+    "dev": "pnpm --filter @marketlum/shared run build && pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/ui run build && pnpm --parallel --filter=!@marketlum/shared --filter=!@marketlum/core --filter=!@marketlum/ui -r run dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "db:up": "docker compose up -d",

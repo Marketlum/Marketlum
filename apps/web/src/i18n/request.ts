@@ -1,6 +1,6 @@
 import { getRequestConfig } from 'next-intl/server';
 import { cookies } from 'next/headers';
-import { locales, defaultLocale, type Locale } from './config';
+import { locales, defaultLocale, type Locale } from '@marketlum/ui';
 
 export default getRequestConfig(async () => {
   const cookieStore = await cookies();

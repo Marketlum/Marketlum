@@ -4,7 +4,10 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@marketlum/shared'],
+  transpilePackages: ['@marketlum/shared', '@marketlum/ui'],
+  experimental: {
+    optimizePackageImports: ['@marketlum/ui'],
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

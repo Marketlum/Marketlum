@@ -3,8 +3,8 @@ import { Inter } from 'next/font/google';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import { Toaster } from 'sonner';
-import { ThemeProvider } from '@/components/shared/theme-provider';
-import './globals.css';
+import { ThemeProvider } from '@marketlum/ui';
+import '@marketlum/ui/styles';
 
 const inter = Inter({ subsets: ['latin'] });
 
