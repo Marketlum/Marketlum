@@ -44,7 +44,7 @@ export function TensionsDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
-  const { agents } = useAgents();
+  const { agents, refresh: refreshAgents } = useAgents();
   const { users } = useUsers();
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [leadFilter, setLeadFilter] = useState<string>('all');
@@ -371,6 +371,7 @@ export function TensionsDataTable() {
         isSubmitting={isSubmitting}
         agents={agents}
         users={users}
+        onAgentsRefresh={refreshAgents}
       />
 
       <TensionFormDialog
@@ -381,6 +382,7 @@ export function TensionsDataTable() {
         isSubmitting={isSubmitting}
         agents={agents}
         users={users}
+        onAgentsRefresh={refreshAgents}
       />
 
       <ConfirmDeleteDialog

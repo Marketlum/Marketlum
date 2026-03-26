@@ -48,7 +48,7 @@ export class TensionsService {
   async findOne(id: string): Promise<Tension> {
     const tension = await this.tensionRepository.findOne({
       where: { id },
-      relations: ['agent', 'lead', 'exchanges'],
+      relations: ['agent', 'agent.image', 'lead', 'exchanges'],
     });
     if (!tension) {
       throw new NotFoundException('Tension not found');
@@ -67,6 +67,7 @@ export class TensionsService {
 
     const qb = this.tensionRepository.createQueryBuilder('tension');
     qb.leftJoinAndSelect('tension.agent', 'agent');
+    qb.leftJoinAndSelect('agent.image', 'agentImage');
     qb.leftJoinAndSelect('tension.lead', 'lead');
 
     if (agentId) {

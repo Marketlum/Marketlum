@@ -1,10 +1,11 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Bot } from 'lucide-react';
 import type { TensionResponse } from '@marketlum/shared';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { FileImagePreview } from '../shared/file-image-preview';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,7 +53,25 @@ export function getTensionColumns({
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
         const agent = row.original.agent;
-        return agent ? agent.name : '\u2014';
+        if (!agent) return '\u2014';
+        return (
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 shrink-0 rounded overflow-hidden bg-muted/30 flex items-center justify-center">
+              {agent.image ? (
+                <FileImagePreview
+                  fileId={agent.image.id}
+                  mimeType={agent.image.mimeType}
+                  alt={agent.image.originalName}
+                  iconClassName="h-3 w-3 text-muted-foreground/50"
+                  imgClassName="h-full w-full object-cover"
+                />
+              ) : (
+                <Bot className="h-3 w-3 text-muted-foreground/50" />
+              )}
+            </div>
+            <span>{agent.name}</span>
+          </div>
+        );
       },
     },
     {

@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import type { TensionResponse, CreateTensionInput, AgentResponse, UserResponse } from '@marketlum/shared';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import type { TensionResponse, CreateTensionInput, AgentResponse, UserResponse, CreateAgentInput } from '@marketlum/shared';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +18,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { MarkdownEditor } from '../shared/markdown-editor';
+import { AgentFormDialog } from '../agents/agent-form-dialog';
+import { api } from '../../lib/api-client';
 
 interface TensionFormDialogProps {
   open: boolean;
@@ -25,6 +29,7 @@ interface TensionFormDialogProps {
   isSubmitting: boolean;
   agents: AgentResponse[];
   users: UserResponse[];
+  onAgentsRefresh?: () => void;
 }
 
 export function TensionFormDialog({
@@ -35,11 +40,15 @@ export function TensionFormDialog({
   isSubmitting,
   agents,
   users,
+  onAgentsRefresh,
 }: TensionFormDialogProps) {
   const t = useTranslations('tensions');
   const tc = useTranslations('common');
+  const ta = useTranslations('agents');
 
   const [name, setName] = useState('');
+  const [createAgentOpen, setCreateAgentOpen] = useState(false);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [currentContext, setCurrentContext] = useState('');
   const [potentialFuture, setPotentialFuture] = useState('');
   const [agentId, setAgentId] = useState('');
@@ -65,6 +74,21 @@ export function TensionFormDialog({
       }
     }
   }, [open, tension]);
+
+  const handleCreateAgent = async (data: CreateAgentInput) => {
+    setIsCreatingAgent(true);
+    try {
+      const created = await api.post<AgentResponse>('/agents', data);
+      toast.success(ta('created'));
+      setCreateAgentOpen(false);
+      setAgentId(created.id);
+      onAgentsRefresh?.();
+    } catch {
+      toast.error(ta('failedToCreate'));
+    } finally {
+      setIsCreatingAgent(false);
+    }
+  };
 
   const handleSubmit = () => {
     const input: CreateTensionInput = {
@@ -98,18 +122,23 @@ export function TensionFormDialog({
 
           <div className="space-y-1">
             <Label>{t('agent')}</Label>
-            <Select value={agentId} onValueChange={setAgentId}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('selectAgent')} />
-              </SelectTrigger>
-              <SelectContent>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={agentId} onValueChange={setAgentId}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder={t('selectAgent')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button type="button" variant="outline" size="icon" onClick={() => setCreateAgentOpen(true)}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -165,6 +194,13 @@ export function TensionFormDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <AgentFormDialog
+        open={createAgentOpen}
+        onOpenChange={setCreateAgentOpen}
+        onSubmit={handleCreateAgent}
+        isSubmitting={isCreatingAgent}
+      />
     </Dialog>
   );
 }

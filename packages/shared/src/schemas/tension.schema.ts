@@ -1,10 +1,19 @@
 import { z } from 'zod';
 import { AgentType } from '../enums/agent-type.enum';
 
+const fileSummarySchema = z.object({
+  id: z.string().uuid(),
+  originalName: z.string(),
+  storedName: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+});
+
 const agentSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   type: z.nativeEnum(AgentType),
+  image: fileSummarySchema.nullable(),
 });
 
 const userSummarySchema = z.object({
