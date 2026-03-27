@@ -8,9 +8,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@marketlum/ui'],
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 };
 
 export default withNextIntl(nextConfig);
