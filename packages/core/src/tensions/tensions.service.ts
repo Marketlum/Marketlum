@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Tension } from './entities/tension.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { User } from '../users/entities/user.entity';
@@ -48,10 +48,20 @@ export class TensionsService {
   async findOne(id: string): Promise<Tension> {
     const tension = await this.tensionRepository.findOne({
       where: { id },
-      relations: ['agent', 'agent.image', 'lead', 'exchanges'],
+      relations: ['agent', 'lead', 'exchanges'],
     });
     if (!tension) {
       throw new NotFoundException('Tension not found');
+    }
+    // Load agent image separately (nested relation loading is unreliable)
+    if (tension.agent) {
+      const agentWithImage = await this.agentRepository.findOne({
+        where: { id: tension.agentId },
+        relations: ['image'],
+      });
+      if (agentWithImage) {
+        tension.agent.image = agentWithImage.image;
+      }
     }
     return tension;
   }
@@ -67,7 +77,6 @@ export class TensionsService {
 
     const qb = this.tensionRepository.createQueryBuilder('tension');
     qb.leftJoinAndSelect('tension.agent', 'agent');
-    qb.leftJoinAndSelect('agent.image', 'agentImage');
     qb.leftJoinAndSelect('tension.lead', 'lead');
 
     if (agentId) {
@@ -94,6 +103,22 @@ export class TensionsService {
     qb.skip(skip).take(limit);
 
     const entities = await qb.getMany();
+
+    // Batch-load agent images (nested join not hydrated by getMany)
+    const agentIds = [...new Set(entities.map((t) => t.agentId))];
+    if (agentIds.length > 0) {
+      const agentsWithImages = await this.agentRepository.find({
+        where: { id: In(agentIds) },
+        relations: ['image'],
+      });
+      const agentMap = new Map(agentsWithImages.map((a) => [a.id, a]));
+      for (const tension of entities) {
+        const agentWithImage = agentMap.get(tension.agentId);
+        if (tension.agent && agentWithImage) {
+          tension.agent.image = agentWithImage.image;
+        }
+      }
+    }
 
     const countQb = this.tensionRepository.createQueryBuilder('tension');
 
