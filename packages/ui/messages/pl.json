@@ -394,7 +394,16 @@
     "notFoundDescription": "Strumień wartości, którego szukasz, nie istnieje.",
     "backToValueStreams": "Powrót do strumieni wartości",
     "updatedAt": "Zaktualizowano",
-    "noResults": "Nie znaleziono pasujących strumieni wartości."
+    "noResults": "Nie znaleziono pasujących strumieni wartości.",
+    "createValue": "Utwórz wartość",
+    "createExchange": "Utwórz wymianę",
+    "revenueExpenses": "Przychody i wydatki",
+    "recentValues": "Ostatnie wartości",
+    "recentExchanges": "Ostatnie wymiany",
+    "viewAllValues": "Zobacz wszystkie wartości",
+    "viewAllExchanges": "Zobacz wszystkie wymiany",
+    "noValues": "Brak wartości w tym strumieniu.",
+    "noExchanges": "Brak wymian w tym strumieniu."
   },
   "search": {
     "title": "Wyszukiwanie",

@@ -395,7 +395,16 @@
     "notFoundDescription": "The value stream you are looking for does not exist.",
     "backToValueStreams": "Back to value streams",
     "updatedAt": "Updated",
-    "noResults": "No matching value streams found."
+    "noResults": "No matching value streams found.",
+    "createValue": "Create Value",
+    "createExchange": "Create Exchange",
+    "revenueExpenses": "Revenue & Expenses",
+    "recentValues": "Recent Values",
+    "recentExchanges": "Recent Exchanges",
+    "viewAllValues": "View all values",
+    "viewAllExchanges": "View all exchanges",
+    "noValues": "No values in this stream.",
+    "noExchanges": "No exchanges in this stream."
   },
   "search": {
     "title": "Search",

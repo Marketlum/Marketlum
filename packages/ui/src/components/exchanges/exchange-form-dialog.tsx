@@ -57,6 +57,7 @@ interface ExchangeFormDialogProps {
   isSubmitting?: boolean;
   channels?: { id: string; name: string }[];
   pipelines?: { id: string; name: string; color: string }[];
+  initialValueStreamId?: string;
 }
 
 export function ExchangeFormDialog({
@@ -67,6 +68,7 @@ export function ExchangeFormDialog({
   isSubmitting,
   channels = [],
   pipelines = [],
+  initialValueStreamId,
 }: ExchangeFormDialogProps) {
   const { tensions } = useTensions(open);
   const isEditing = !!exchange;
@@ -112,7 +114,7 @@ export function ExchangeFormDialog({
       setPurpose('');
       setDescription('');
       setLink('');
-      setValueStreamId('none');
+      setValueStreamId(initialValueStreamId ?? 'none');
       setChannelId('none');
       setPipelineId('none');
       setTensionId('none');
@@ -122,7 +124,7 @@ export function ExchangeFormDialog({
         { agentId: '', role: '' },
       ]);
     }
-  }, [open, exchange]);
+  }, [open, exchange, initialValueStreamId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
