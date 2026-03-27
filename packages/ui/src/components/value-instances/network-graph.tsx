@@ -22,9 +22,9 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
 }
 
 const NODE_COLORS: Record<string, { fill: string; stroke: string }> = {
-  organization: { fill: '#3b82f6', stroke: '#1d4ed8' },
-  individual: { fill: '#22c55e', stroke: '#15803d' },
-  virtual: { fill: '#a855f7', stroke: '#7c3aed' },
+  organization: { fill: '#93c5fd', stroke: '#60a5fa' },
+  individual: { fill: '#86efac', stroke: '#4ade80' },
+  virtual: { fill: '#d8b4fe', stroke: '#c084fc' },
 };
 
 function clamp(min: number, val: number, max: number) {
@@ -315,15 +315,15 @@ export function NetworkGraph() {
         {/* Legend */}
         <div className="absolute bottom-3 left-3 rounded-md border bg-background/90 p-2 text-xs backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#3b82f6' }} />
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#93c5fd' }} />
             <span>{ta('typeOrganization')}</span>
           </div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#22c55e' }} />
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#86efac' }} />
             <span>{ta('typeIndividual')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#a855f7' }} />
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#d8b4fe' }} />
             <span>{ta('typeVirtual')}</span>
           </div>
         </div>
