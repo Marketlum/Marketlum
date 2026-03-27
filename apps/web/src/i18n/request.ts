@@ -2,6 +2,11 @@ import { getRequestConfig } from 'next-intl/server';
 import { cookies } from 'next/headers';
 import { locales, defaultLocale, type Locale } from '@marketlum/ui';
 
+const messagesByLocale = {
+  en: () => import('@marketlum/ui/messages/en'),
+  pl: () => import('@marketlum/ui/messages/pl'),
+} satisfies Record<Locale, () => Promise<{ default: Record<string, unknown> }>>;
+
 export default getRequestConfig(async () => {
   const cookieStore = await cookies();
   const raw = cookieStore.get('locale')?.value;
@@ -9,6 +14,6 @@ export default getRequestConfig(async () => {
 
   return {
     locale,
-    messages: (await import(`../../messages/${locale}.json`)).default,
+    messages: (await messagesByLocale[locale]()).default,
   };
 });

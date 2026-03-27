@@ -10,7 +10,9 @@
       "default": "./dist/index.js"
     },
     "./styles": "./src/styles/globals.css",
-    "./tailwind-preset": "./tailwind.preset.ts"
+    "./tailwind-preset": "./tailwind.preset.ts",
+    "./messages/en": "./messages/en.json",
+    "./messages/pl": "./messages/pl.json"
   },
   "scripts": {
     "build": "tsc",
