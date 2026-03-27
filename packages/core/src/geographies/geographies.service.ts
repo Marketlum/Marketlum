@@ -47,10 +47,9 @@ export class GeographiesService {
     const parentIndex = TYPE_HIERARCHY.indexOf(parent.type);
     const childIndex = TYPE_HIERARCHY.indexOf(childType);
 
-    if (childIndex !== parentIndex + 1) {
-      const expectedType = TYPE_HIERARCHY[parentIndex + 1];
+    if (childIndex <= parentIndex) {
       throw new BadRequestException(
-        `Child of ${parent.type} must be ${expectedType}, got ${childType}`,
+        `Child type ${childType} must be below ${parent.type} in the hierarchy`,
       );
     }
   }

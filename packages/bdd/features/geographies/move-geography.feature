@@ -12,6 +12,17 @@ Feature: Move Geography
     Then the response status should be 200
     And the children of "Asia" should include "Western Europe"
 
+  Scenario: Move a geography by skipping levels
+    Given I am authenticated as "admin@marketlum.com"
+    And the following geography tree exists:
+      | name           | code           | type                 | parent         |
+      | Earth          | EARTH          | planet               |                |
+      | Europe         | EUROPE         | continent            | Earth          |
+      | Poland         | POLAND         | country              | Europe         |
+    When I move "Poland" to parent "Earth"
+    Then the response status should be 200
+    And the children of "Earth" should include "Poland"
+
   Scenario: Moving a non-planet geography to root fails
     Given I am authenticated as "admin@marketlum.com"
     And the following geography tree exists:
@@ -21,15 +32,15 @@ Feature: Move Geography
     When I move "Europe" to root
     Then the response status should be 400
 
-  Scenario: Moving to a parent with wrong type fails
+  Scenario: Moving to a parent with equal or higher type fails
     Given I am authenticated as "admin@marketlum.com"
     And the following geography tree exists:
       | name           | code           | type                 | parent         |
       | Earth          | EARTH          | planet               |                |
       | Europe         | EUROPE         | continent            | Earth          |
-      | Western Europe | WESTERN_EUROPE | continental_section  | Europe         |
-      | Poland         | POLAND         | country              | Western Europe |
-    When I move "Poland" to parent "Earth"
+      | Poland         | POLAND         | country              | Europe         |
+      | Warsaw         | WARSAW         | city                 | Poland         |
+    When I move "Europe" to parent "Poland"
     Then the response status should be 400
 
   Scenario: Move a non-existent geography returns 404

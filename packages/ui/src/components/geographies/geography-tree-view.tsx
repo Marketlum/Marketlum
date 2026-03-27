@@ -4,13 +4,28 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDroppable, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core';
 import type { GeographyTreeNode } from '@marketlum/shared';
 import { GeographyType } from '@marketlum/shared';
-import { api } from '../../lib/api-client';
+import { api, ApiError } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
 import { GeographyTreeNodeComponent } from './geography-tree-node';
+
+function RootDropZone({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('geographies');
+  const { setNodeRef, isOver } = useDroppable({ id: 'drop-root', data: { parentId: null } });
+
+  return (
+    <div ref={setNodeRef}>
+      {children}
+      <div className={`mt-2 rounded-md border-2 border-dashed p-3 text-center text-sm transition-colors ${isOver ? 'border-primary bg-primary/10 text-primary' : 'border-transparent text-transparent'}`}>
+        {t('dropHere')}
+      </div>
+    </div>
+  );
+}
 
 export function GeographyTreeView() {
   const t = useTranslations('geographies');
@@ -22,6 +37,11 @@ export function GeographyTreeView() {
   const [newRootCode, setNewRootCode] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [draggedName, setDraggedName] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   const fetchTree = useCallback(async () => {
     try {
@@ -82,6 +102,36 @@ export function GeographyTreeView() {
       fetchTree();
     } catch {
       toast.error(t('failedToUpdate'));
+    }
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setDraggedName(event.active.data.current?.name ?? null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setDraggedName(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggedId = active.id as string;
+    const targetParentId = over.data.current?.parentId as string | null;
+
+    // Don't move onto self
+    if (targetParentId === draggedId) return;
+    const dropTargetId = (over.id as string).replace('drop-', '');
+    if (dropTargetId === draggedId) return;
+
+    try {
+      await api.patch(`/geographies/${draggedId}/move`, { parentId: targetParentId });
+      toast.success(t('moved'));
+      fetchTree();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 400) {
+        toast.error(t('invalidMove'));
+      } else {
+        toast.error(t('failedToMove'));
+      }
     }
   };
 
@@ -156,18 +206,29 @@ export function GeographyTreeView() {
           {t('emptyState')}
         </div>
       ) : (
-        <div className="rounded-md border p-2">
-          {tree.map((node) => (
-            <GeographyTreeNodeComponent
-              key={node.id}
-              node={node}
-              depth={0}
-              onCreateChild={handleCreateChild}
-              onUpdate={handleUpdate}
-              onDelete={(id, name) => setDeleteTarget({ id, name })}
-            />
-          ))}
-        </div>
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <RootDropZone>
+            <div className="rounded-md border p-2">
+              {tree.map((node) => (
+                <GeographyTreeNodeComponent
+                  key={node.id}
+                  node={node}
+                  depth={0}
+                  onCreateChild={handleCreateChild}
+                  onUpdate={handleUpdate}
+                  onDelete={(id, name) => setDeleteTarget({ id, name })}
+                />
+              ))}
+            </div>
+          </RootDropZone>
+          <DragOverlay>
+            {draggedName ? (
+              <div className="rounded-md border bg-background px-3 py-1.5 text-sm shadow-md">
+                {draggedName}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       <ConfirmDeleteDialog

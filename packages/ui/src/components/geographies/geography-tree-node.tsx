@@ -1,13 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, Globe, MoreHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, Globe, MoreHorizontal, Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { GeographyTreeNode } from '@marketlum/shared';
 import { GeographyType } from '@marketlum/shared';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,10 +34,16 @@ const TYPE_HIERARCHY: GeographyType[] = [
   GeographyType.DISTRICT,
 ];
 
-function getChildType(parentType: GeographyType): GeographyType | null {
-  const index = TYPE_HIERARCHY.indexOf(parentType);
-  if (index < 0 || index >= TYPE_HIERARCHY.length - 1) return null;
-  return TYPE_HIERARCHY[index + 1];
+function getAllowedChildTypes(parentType: GeographyType): GeographyType[] {
+  const parentIndex = TYPE_HIERARCHY.indexOf(parentType);
+  if (parentIndex < 0 || parentIndex >= TYPE_HIERARCHY.length - 1) return [];
+  return TYPE_HIERARCHY.slice(parentIndex + 1);
+}
+
+function getDefaultChildType(parentType: GeographyType): GeographyType | null {
+  const parentIndex = TYPE_HIERARCHY.indexOf(parentType);
+  if (parentIndex < 0 || parentIndex >= TYPE_HIERARCHY.length - 1) return null;
+  return TYPE_HIERARCHY[parentIndex + 1];
 }
 
 const TYPE_LABEL_KEYS: Record<GeographyType, string> = {
@@ -72,7 +86,19 @@ export function GeographyTreeNodeComponent({
   const [newChildCode, setNewChildCode] = useState('');
 
   const hasChildren = node.children && node.children.length > 0;
-  const childType = getChildType(node.type as GeographyType);
+  const allowedChildTypes = getAllowedChildTypes(node.type as GeographyType);
+  const defaultChildType = getDefaultChildType(node.type as GeographyType);
+  const [newChildType, setNewChildType] = useState<GeographyType>(defaultChildType ?? GeographyType.CONTINENT);
+
+  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
+    id: node.id,
+    data: { name: node.name },
+  });
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `drop-${node.id}`,
+    data: { parentId: node.id },
+  });
 
   const handleSaveEdit = async () => {
     const trimmedName = editName.trim();
@@ -99,14 +125,15 @@ export function GeographyTreeNodeComponent({
   };
 
   const handleCreateChild = async () => {
-    if (!newChildName.trim() || !newChildCode.trim() || !childType) return;
+    if (!newChildName.trim() || !newChildCode.trim() || allowedChildTypes.length === 0) return;
     await onCreateChild(node.id, {
       name: newChildName.trim(),
       code: newChildCode.trim(),
-      type: childType,
+      type: newChildType,
     });
     setNewChildName('');
     setNewChildCode('');
+    setNewChildType(defaultChildType ?? GeographyType.CONTINENT);
     setAddingChild(false);
     setExpanded(true);
   };
@@ -115,14 +142,24 @@ export function GeographyTreeNodeComponent({
     setAddingChild(false);
     setNewChildName('');
     setNewChildCode('');
+    setNewChildType(defaultChildType ?? GeographyType.CONTINENT);
   };
 
   return (
-    <div>
+    <div ref={setDropRef} className={isOver ? 'rounded-md bg-primary/10' : ''}>
       <div
-        className="group flex items-start gap-1 rounded-md px-1 py-1 hover:bg-secondary/50"
+        ref={setDragRef}
+        className={`group flex items-start gap-1 rounded-md px-1 py-1 hover:bg-secondary/50 ${isDragging ? 'opacity-50' : ''}`}
         style={{ paddingLeft: depth * (isMobile ? 16 : 24) + 4 }}
       >
+        <button
+          className="mt-0.5 flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+
         <button
           className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
           onClick={() => setExpanded(!expanded)}
@@ -195,7 +232,7 @@ export function GeographyTreeNodeComponent({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {childType && (
+                {allowedChildTypes.length > 0 && (
                   <DropdownMenuItem
                     onClick={() => {
                       setAddingChild(true);
@@ -244,7 +281,7 @@ export function GeographyTreeNodeComponent({
         </div>
       )}
 
-      {addingChild && childType && (
+      {addingChild && allowedChildTypes.length > 0 && (
         <div
           className="flex flex-col gap-1 py-1"
           style={{ paddingLeft: (depth + 1) * (isMobile ? 16 : 24) + 4 }}
@@ -275,11 +312,18 @@ export function GeographyTreeNodeComponent({
               placeholder={t('childCodePlaceholder')}
               className="h-7 w-full text-sm md:max-w-xs"
             />
-            <div className="flex items-center gap-1">
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                {t(TYPE_LABEL_KEYS[childType])}
-              </Badge>
-            </div>
+            <Select value={newChildType} onValueChange={(v) => setNewChildType(v as GeographyType)}>
+              <SelectTrigger className="h-7 w-full text-sm md:max-w-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {allowedChildTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {t(TYPE_LABEL_KEYS[type])}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="flex gap-1">
               <Button size="sm" variant="ghost" className="h-7" onClick={handleCreateChild}>
                 {tc('save')}

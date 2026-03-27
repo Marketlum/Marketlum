@@ -27,12 +27,25 @@ Feature: Create Geography
       | Europe    | EUROPE    | continent |
     Then the response status should be 400
 
-  Scenario: Creating a child with wrong type fails
+  Scenario: Successfully create a child by skipping levels
     Given I am authenticated as "admin@marketlum.com"
     And a root planet exists with name "Earth" and code "EARTH"
-    When I create a child geography under "Earth" with:
+    And a child geography "Europe" with code "EUROPE" and type "continent" exists under "Earth"
+    When I create a child geography under "Europe" with:
       | name   | code   | type    |
       | Poland | POLAND | country |
+    Then the response status should be 201
+    And the response should contain a geography with name "Poland"
+    And the response should contain a geography with type "country"
+
+  Scenario: Creating a child with a higher-level type fails
+    Given I am authenticated as "admin@marketlum.com"
+    And a root planet exists with name "Earth" and code "EARTH"
+    And a child geography "Europe" with code "EUROPE" and type "continent" exists under "Earth"
+    And a child geography "Poland" with code "POLAND" and type "country" exists under "Europe"
+    When I create a child geography under "Poland" with:
+      | name   | code   | type      |
+      | Europe2 | EUROPE2 | continent |
     Then the response status should be 400
 
   Scenario: Creating a geography with duplicate code fails

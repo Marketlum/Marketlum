@@ -156,7 +156,7 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Creating a child with wrong type fails', ({ given, when, then, and }) => {
+  test('Successfully create a child by skipping levels', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -165,6 +165,68 @@ defineFeature(createFeature, (test) => {
       /^a root planet exists with name "(.*)" and code "(.*)"$/,
       async (name: string, code: string) => {
         const res = await createGeography(authCookie, name, code, 'planet');
+        geographyIds.set(name, res.body.id);
+      },
+    );
+
+    and(
+      /^a child geography "(.*)" with code "(.*)" and type "(.*)" exists under "(.*)"$/,
+      async (name: string, code: string, type: string, parentName: string) => {
+        const parentId = geographyIds.get(parentName);
+        const res = await createGeography(authCookie, name, code, type, parentId);
+        geographyIds.set(name, res.body.id);
+      },
+    );
+
+    when(
+      /^I create a child geography under "(.*)" with:$/,
+      async (parentName: string, table: { name: string; code: string; type: string }[]) => {
+        const row = table[0];
+        const parentId = geographyIds.get(parentName);
+        response = await createGeography(authCookie, row.name, row.code, row.type, parentId);
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a geography with name "(.*)"$/, (name: string) => {
+      expect(response.body.name).toBe(name);
+    });
+
+    and(/^the response should contain a geography with type "(.*)"$/, (type: string) => {
+      expect(response.body.type).toBe(type);
+    });
+  });
+
+  test('Creating a child with a higher-level type fails', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a root planet exists with name "(.*)" and code "(.*)"$/,
+      async (name: string, code: string) => {
+        const res = await createGeography(authCookie, name, code, 'planet');
+        geographyIds.set(name, res.body.id);
+      },
+    );
+
+    and(
+      /^a child geography "(.*)" with code "(.*)" and type "(.*)" exists under "(.*)"$/,
+      async (name: string, code: string, type: string, parentName: string) => {
+        const parentId = geographyIds.get(parentName);
+        const res = await createGeography(authCookie, name, code, type, parentId);
+        geographyIds.set(name, res.body.id);
+      },
+    );
+
+    and(
+      /^a child geography "(.*)" with code "(.*)" and type "(.*)" exists under "(.*)"$/,
+      async (name: string, code: string, type: string, parentName: string) => {
+        const parentId = geographyIds.get(parentName);
+        const res = await createGeography(authCookie, name, code, type, parentId);
         geographyIds.set(name, res.body.id);
       },
     );
@@ -680,6 +742,48 @@ defineFeature(moveFeature, (test) => {
     );
   });
 
+  test('Move a geography by skipping levels', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      'the following geography tree exists:',
+      async (table: { name: string; code: string; type: string; parent: string }[]) => {
+        await buildTree(authCookie, table);
+      },
+    );
+
+    when(
+      /^I move "(.*)" to parent "(.*)"$/,
+      async (nodeName: string, parentName: string) => {
+        const id = geographyIds.get(nodeName);
+        const parentId = geographyIds.get(parentName);
+        response = await request(getApp().getHttpServer())
+          .patch(`/geographies/${id}/move`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ parentId });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(
+      /^the children of "(.*)" should include "(.*)"$/,
+      async (parentName: string, childName: string) => {
+        const parentId = geographyIds.get(parentName);
+        const childrenRes = await request(getApp().getHttpServer())
+          .get(`/geographies/${parentId}/children`)
+          .set('Cookie', [authCookie]);
+        const names = childrenRes.body.map((c: { name: string }) => c.name);
+        expect(names).toContain(childName);
+      },
+    );
+  });
+
   test('Moving a non-planet geography to root fails', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
@@ -706,7 +810,7 @@ defineFeature(moveFeature, (test) => {
     });
   });
 
-  test('Moving to a parent with wrong type fails', ({ given, when, then, and }) => {
+  test('Moving to a parent with equal or higher type fails', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
