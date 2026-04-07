@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { DataSource } from 'typeorm';
-import { User, Agent } from '@marketlum/core';
+import { User, Agent, File, Folder, Taxonomy } from '@marketlum/core';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -14,7 +14,7 @@ async function seed() {
     username: process.env.DATABASE_USERNAME || 'marketlum',
     password: process.env.DATABASE_PASSWORD || 'marketlum',
     database: process.env.DATABASE_NAME || 'marketlum',
-    entities: [User, Agent],
+    entities: [User, Agent, File, Folder, Taxonomy],
     synchronize: false,
   });
 
