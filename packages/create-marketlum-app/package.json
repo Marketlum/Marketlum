@@ -1,7 +1,7 @@
 {
   "name": "create-marketlum-app",
-  "version": "0.0.1",
-  "description": "Create a new Marketlum market application",
+  "version": "0.1.0",
+  "description": "Create a new Marketlum application",
   "type": "module",
   "bin": {
     "create-marketlum-app": "./bin/create-marketlum-app.mjs"
