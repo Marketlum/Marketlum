@@ -31,11 +31,15 @@ export class AuthController {
   async login(@Req() req: { user: User }, @Res({ passthrough: true }) res: Response) {
     const token = this.authService.generateToken(req.user);
 
+    const cookieDomain = process.env.COOKIE_DOMAIN;
+
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'lax',
+      secure: !!cookieDomain,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000, // 1 day
+      ...(cookieDomain && { domain: cookieDomain }),
     });
 
     return this.usersService.stripPassword(req.user);
@@ -45,10 +49,14 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Res({ passthrough: true }) res: Response) {
+    const cookieDomain = process.env.COOKIE_DOMAIN;
+
     res.clearCookie('token', {
       httpOnly: true,
       sameSite: 'lax',
+      secure: !!cookieDomain,
       path: '/',
+      ...(cookieDomain && { domain: cookieDomain }),
     });
   }
 
