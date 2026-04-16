@@ -8,7 +8,8 @@
     "start": "node dist/main",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
-    "seed": "ts-node src/seeds/admin.seed.ts"
+    "seed": "ts-node src/seeds/admin.seed.ts",
+    "seed:sample": "ts-node src/cli.ts seed:sample"
   },
   "dependencies": {
     "@marketlum/core": "{{MARKETLUM_VERSION}}",
@@ -25,6 +26,7 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "cookie-parser": "^1.4.6",
+    "nest-commander": "^3.20.0",
     "dotenv": "^16.4.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

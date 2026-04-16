@@ -11,5 +11,6 @@ import { AgreementsController } from './agreements.controller';
   imports: [TypeOrmModule.forFeature([Agreement, Agent, File, AgreementTemplate])],
   controllers: [AgreementsController],
   providers: [AgreementsService],
+  exports: [AgreementsService],
 })
 export class AgreementsModule {}

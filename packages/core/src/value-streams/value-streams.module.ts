@@ -10,5 +10,6 @@ import { ValueStreamsController } from './value-streams.controller';
   imports: [TypeOrmModule.forFeature([ValueStream, User, File])],
   controllers: [ValueStreamsController],
   providers: [ValueStreamsService],
+  exports: [ValueStreamsService],
 })
 export class ValueStreamsModule {}

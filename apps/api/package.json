@@ -11,7 +11,7 @@
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
-    "seed": "ts-node src/seeds/admin.seed.ts"
+    "seed:sample": "ts-node src/cli.ts seed:sample"
   },
   "dependencies": {
     "@marketlum/core": "workspace:*",
@@ -29,6 +29,7 @@
     "class-transformer": "^0.5.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
+    "nest-commander": "^3.20.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

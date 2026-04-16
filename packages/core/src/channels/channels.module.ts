@@ -9,5 +9,6 @@ import { ChannelsController } from './channels.controller';
   imports: [TypeOrmModule.forFeature([Channel, Agent])],
   controllers: [ChannelsController],
   providers: [ChannelsService],
+  exports: [ChannelsService],
 })
 export class ChannelsModule {}

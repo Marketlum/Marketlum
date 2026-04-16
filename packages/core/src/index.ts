@@ -1,6 +1,9 @@
 // Core module
 export { MarketlumCoreModule } from './marketlum-core.module';
 
+// Commands
+export { SeedSampleCommand } from './commands/seed-sample.command';
+
 // Config
 export { databaseConfig } from './config/database.config';
 export { jwtConfig } from './config/jwt.config';

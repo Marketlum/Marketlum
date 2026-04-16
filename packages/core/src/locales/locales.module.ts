@@ -8,5 +8,6 @@ import { LocalesController } from './locales.controller';
   imports: [TypeOrmModule.forFeature([Locale])],
   controllers: [LocalesController],
   providers: [LocalesService],
+  exports: [LocalesService],
 })
 export class LocalesModule {}

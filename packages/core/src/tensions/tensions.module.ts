@@ -10,5 +10,6 @@ import { TensionsController } from './tensions.controller';
   imports: [TypeOrmModule.forFeature([Tension, Agent, User])],
   controllers: [TensionsController],
   providers: [TensionsService],
+  exports: [TensionsService],
 })
 export class TensionsModule {}

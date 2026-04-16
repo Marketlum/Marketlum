@@ -14,5 +14,6 @@ import { OfferingsController } from './offerings.controller';
   ],
   controllers: [OfferingsController],
   providers: [OfferingsService],
+  exports: [OfferingsService],
 })
 export class OfferingsModule {}

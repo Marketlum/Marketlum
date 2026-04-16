@@ -34,5 +34,6 @@ import { ExchangeFlowsController } from './exchange-flows.controller';
   ],
   controllers: [ExchangesController, ExchangeFlowsController],
   providers: [ExchangesService, ExchangeFlowsService],
+  exports: [ExchangesService, ExchangeFlowsService],
 })
 export class ExchangesModule {}

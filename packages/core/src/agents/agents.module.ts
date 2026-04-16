@@ -10,5 +10,6 @@ import { AgentsController } from './agents.controller';
   imports: [TypeOrmModule.forFeature([Agent, Taxonomy, File])],
   controllers: [AgentsController],
   providers: [AgentsService],
+  exports: [AgentsService],
 })
 export class AgentsModule {}

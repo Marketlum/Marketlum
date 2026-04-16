@@ -8,5 +8,6 @@ import { GeographiesController } from './geographies.controller';
   imports: [TypeOrmModule.forFeature([Geography])],
   controllers: [GeographiesController],
   providers: [GeographiesService],
+  exports: [GeographiesService],
 })
 export class GeographiesModule {}

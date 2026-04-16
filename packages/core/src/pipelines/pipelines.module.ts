@@ -9,5 +9,6 @@ import { PipelinesController } from './pipelines.controller';
   imports: [TypeOrmModule.forFeature([Pipeline, ValueStream])],
   controllers: [PipelinesController],
   providers: [PipelinesService],
+  exports: [PipelinesService],
 })
 export class PipelinesModule {}

@@ -10,5 +10,6 @@ import { ArchetypesController } from './archetypes.controller';
   imports: [TypeOrmModule.forFeature([Archetype, Taxonomy, File])],
   controllers: [ArchetypesController],
   providers: [ArchetypesService],
+  exports: [ArchetypesService],
 })
 export class ArchetypesModule {}

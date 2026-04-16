@@ -13,5 +13,6 @@ import { ValuesController } from './values.controller';
   imports: [TypeOrmModule.forFeature([Value, ValueImage, Taxonomy, File, Agent, ValueStream])],
   controllers: [ValuesController],
   providers: [ValuesService],
+  exports: [ValuesService],
 })
 export class ValuesModule {}

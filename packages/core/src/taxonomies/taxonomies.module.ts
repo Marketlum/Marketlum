@@ -8,5 +8,6 @@ import { TaxonomiesController } from './taxonomies.controller';
   imports: [TypeOrmModule.forFeature([Taxonomy])],
   controllers: [TaxonomiesController],
   providers: [TaxonomiesService],
+  exports: [TaxonomiesService],
 })
 export class TaxonomiesModule {}
