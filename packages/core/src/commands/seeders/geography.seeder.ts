@@ -13,6 +13,7 @@ const COUNTRIES: Record<string, Array<{ name: string; code: string }>> = {
   'Europe': [
     { name: 'Germany', code: 'DE' },
     { name: 'France', code: 'FR' },
+    { name: 'Poland', code: 'PL' },
   ],
   'North America': [
     { name: 'United States', code: 'US' },
