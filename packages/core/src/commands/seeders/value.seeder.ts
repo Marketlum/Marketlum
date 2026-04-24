@@ -61,6 +61,30 @@ const VALUE_TREE: ValueNode[] = [
     purpose: 'Long-term co-development relationship',
     lifecycleStage: ValueLifecycleStage.ALPHA,
   },
+  {
+    name: 'USD',
+    type: ValueType.PRODUCT,
+    purpose: 'Reserve currency for international transactions',
+    lifecycleStage: ValueLifecycleStage.STABLE,
+  },
+  {
+    name: 'EUR',
+    type: ValueType.PRODUCT,
+    purpose: 'Eurozone currency',
+    lifecycleStage: ValueLifecycleStage.STABLE,
+  },
+  {
+    name: 'PLN',
+    type: ValueType.PRODUCT,
+    purpose: 'Polish sovereign currency',
+    lifecycleStage: ValueLifecycleStage.STABLE,
+  },
+  {
+    name: 'BTC',
+    type: ValueType.PRODUCT,
+    purpose: 'Peer-to-peer electronic cash system to enable secure, borderless transactions without intermediaries',
+    lifecycleStage: ValueLifecycleStage.STABLE,
+  },
 ];
 
 export async function seedValues(service: ValuesService, deps: ValueDeps) {
