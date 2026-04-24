@@ -1,8 +1,10 @@
 import { faker } from '@faker-js/faker';
 import { ExchangesService } from '../../exchanges/exchanges.service';
+import { ExchangeFlowsService } from '../../exchanges/exchange-flows.service';
 
 interface ExchangeDeps {
   agents: Array<{ id: string; name: string }>;
+  values: Array<{ id: string; name: string }>;
   valueStreams: { all: Array<{ id: string }> };
   channels: { all: Array<{ id: string }> };
   pipelines: Array<{ id: string }>;
@@ -17,7 +19,11 @@ const EXCHANGES = [
   { name: 'Service renewal', purpose: 'Managed services contract renewal' },
 ];
 
-export async function seedExchanges(service: ExchangesService, deps: ExchangeDeps) {
+export async function seedExchanges(
+  exchangesService: ExchangesService,
+  flowsService: ExchangeFlowsService,
+  deps: ExchangeDeps,
+) {
   const exchanges: Array<{ id: string; name: string }> = [];
 
   for (let i = 0; i < EXCHANGES.length; i++) {
@@ -30,7 +36,7 @@ export async function seedExchanges(service: ExchangesService, deps: ExchangeDep
     const user = deps.users[i % deps.users.length];
     const tension = deps.tensions[i % deps.tensions.length];
 
-    const exchange = await service.create({
+    const exchange = await exchangesService.create({
       name: data.name,
       purpose: data.purpose,
       description: faker.lorem.paragraph(),
@@ -45,6 +51,24 @@ export async function seedExchanges(service: ExchangesService, deps: ExchangeDep
       ],
     });
     exchanges.push({ id: exchange.id, name: exchange.name });
+
+    // Create 2 flows per exchange: one from seller to buyer, one from buyer to seller
+    const valueA = deps.values[i % deps.values.length];
+    const valueB = deps.values[(i + 1) % deps.values.length];
+
+    await flowsService.create(exchange.id, {
+      valueId: valueA.id,
+      fromAgentId: partyA.id,
+      toAgentId: partyB.id,
+      quantity: `${faker.number.int({ min: 1, max: 10 })}.00`,
+    });
+
+    await flowsService.create(exchange.id, {
+      valueId: valueB.id,
+      fromAgentId: partyB.id,
+      toAgentId: partyA.id,
+      quantity: `${faker.number.int({ min: 1, max: 5 })}.00`,
+    });
   }
 
   return exchanges;

@@ -21,6 +21,7 @@ import { InvoicesService } from '../invoices/invoices.service';
 import { TransactionsService } from '../ledger/transactions.service';
 import { ValueInstancesService } from '../value-instances/value-instances.service';
 import { ExchangesService } from '../exchanges/exchanges.service';
+import { ExchangeFlowsService } from '../exchanges/exchange-flows.service';
 
 import { seedLocales } from './seeders/locale.seeder';
 import { seedTaxonomies } from './seeders/taxonomy.seeder';
@@ -70,6 +71,7 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly transactionsService: TransactionsService,
     private readonly valueInstancesService: ValueInstancesService,
     private readonly exchangesService: ExchangesService,
+    private readonly exchangeFlowsService: ExchangeFlowsService,
   ) {
     super();
   }
@@ -183,8 +185,9 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log(`  Created ${valueInstances.length} value instances`);
 
     this.logger.log('Seeding exchanges...');
-    const exchanges = await seedExchanges(this.exchangesService, {
+    const exchanges = await seedExchanges(this.exchangesService, this.exchangeFlowsService, {
       agents,
+      values,
       valueStreams,
       channels,
       pipelines,
