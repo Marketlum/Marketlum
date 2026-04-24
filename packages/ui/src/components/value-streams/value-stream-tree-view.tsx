@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, List, CircleDot } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import type { ValueStreamTreeNode, CreateValueStreamInput, ValueStreamResponse } from '@marketlum/shared';
@@ -11,6 +11,7 @@ import { Input } from '../ui/input';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
 import { ValueStreamTreeNodeComponent } from './value-stream-tree-node';
 import { ValueStreamFormDialog } from './value-stream-form-dialog';
+import { ValueStreamCirclePacking } from './value-stream-circle-packing';
 import { useDebounce } from '../../hooks/use-debounce';
 
 function filterTree(nodes: ValueStreamTreeNode[], term: string): ValueStreamTreeNode[] {
@@ -33,6 +34,7 @@ function filterTree(nodes: ValueStreamTreeNode[], term: string): ValueStreamTree
 export function ValueStreamTreeView() {
   const t = useTranslations('valueStreams');
   const tc = useTranslations('common');
+  const [viewMode, setViewMode] = useState<'tree' | 'circles'>('tree');
   const [tree, setTree] = useState<ValueStreamTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -147,13 +149,33 @@ export function ValueStreamTreeView() {
             className="pl-8"
           />
         </div>
+        <div className="flex rounded-md border">
+          <button
+            type="button"
+            onClick={() => setViewMode('tree')}
+            className={`inline-flex items-center justify-center p-2 rounded-l-md transition-colors ${viewMode === 'tree' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+            title={t('treeView')}
+          >
+            <List className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('circles')}
+            className={`inline-flex items-center justify-center p-2 rounded-r-md transition-colors ${viewMode === 'circles' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+            title={t('circleView')}
+          >
+            <CircleDot className="h-4 w-4" />
+          </button>
+        </div>
         <Button onClick={handleOpenCreate}>
           <Plus className="mr-2 h-4 w-4" />
           {t('addRoot')}
         </Button>
       </div>
 
-      {filteredTree.length === 0 ? (
+      {viewMode === 'circles' ? (
+        <ValueStreamCirclePacking tree={filteredTree} />
+      ) : filteredTree.length === 0 ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">
           {isSearching ? t('noResults') : t('emptyState')}
         </div>

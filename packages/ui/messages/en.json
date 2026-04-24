@@ -404,7 +404,9 @@
     "viewAllValues": "View all values",
     "viewAllExchanges": "View all exchanges",
     "noValues": "No values in this stream.",
-    "noExchanges": "No exchanges in this stream."
+    "noExchanges": "No exchanges in this stream.",
+    "treeView": "Tree view",
+    "circleView": "Circle packing view"
   },
   "search": {
     "title": "Search",

@@ -403,7 +403,9 @@
     "viewAllValues": "Zobacz wszystkie wartości",
     "viewAllExchanges": "Zobacz wszystkie wymiany",
     "noValues": "Brak wartości w tym strumieniu.",
-    "noExchanges": "Brak wymian w tym strumieniu."
+    "noExchanges": "Brak wymian w tym strumieniu.",
+    "treeView": "Widok drzewa",
+    "circleView": "Widok kołowy"
   },
   "search": {
     "title": "Wyszukiwanie",
