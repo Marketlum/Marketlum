@@ -1,0 +1,27 @@
+{
+  "id": "concepts/value-streams",
+  "title": "Value Streams",
+  "description": "Value streams are the backbone of a Marketlum market. They represent the end-to-end flows through which value is created and delivered to market participants.",
+  "source": "@site/docs/concepts/value-streams.md",
+  "sourceDirName": "concepts",
+  "slug": "/concepts/value-streams",
+  "permalink": "/concepts/value-streams",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/pjedrzejewski/marketlum/tree/master/apps/docs/docs/concepts/value-streams.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "docs",
+  "previous": {
+    "title": "Project Structure",
+    "permalink": "/getting-started/project-structure"
+  },
+  "next": {
+    "title": "Agents",
+    "permalink": "/concepts/agents"
+  }
+}

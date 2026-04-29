@@ -1,0 +1,24 @@
+{
+  "id": "intro",
+  "title": "Introduction",
+  "description": "Marketlum is an open-source framework for building markets. It provides the foundational building blocks for modeling value creation, exchange, and governance between market participants.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/",
+  "permalink": "/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/pjedrzejewski/marketlum/tree/master/apps/docs/docs/intro.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "slug": "/",
+    "sidebar_position": 1
+  },
+  "sidebar": "docs",
+  "next": {
+    "title": "Installation",
+    "permalink": "/getting-started/installation"
+  }
+}

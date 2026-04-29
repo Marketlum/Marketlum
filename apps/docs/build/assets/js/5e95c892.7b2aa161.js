@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_marketlum_docs=self.webpackChunk_marketlum_docs||[]).push([[647],{2042:(e,s,r)=>{r.r(s),r.d(s,{default:()=>n});r(2155);var u=r(851),a=r(7613),c=r(1522),t=r(8782),l=r(4676),d=r(5723);function n(e){return(0,d.jsx)(a.e3,{className:(0,u.A)(c.G.wrapper.docsPages),children:(0,d.jsx)(l.A,{children:(0,t.v)(e.route.routes)})})}}}]);

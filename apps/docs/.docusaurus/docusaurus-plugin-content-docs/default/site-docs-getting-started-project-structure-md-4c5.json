@@ -1,0 +1,27 @@
+{
+  "id": "getting-started/project-structure",
+  "title": "Project Structure",
+  "description": "Marketlum is organized as a pnpm monorepo with the following structure:",
+  "source": "@site/docs/getting-started/project-structure.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/project-structure",
+  "permalink": "/getting-started/project-structure",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/pjedrzejewski/marketlum/tree/master/apps/docs/docs/getting-started/project-structure.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "docs",
+  "previous": {
+    "title": "Quickstart",
+    "permalink": "/getting-started/quickstart"
+  },
+  "next": {
+    "title": "Value Streams",
+    "permalink": "/concepts/value-streams"
+  }
+}

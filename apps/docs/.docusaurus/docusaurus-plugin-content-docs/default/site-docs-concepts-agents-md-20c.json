@@ -1,0 +1,27 @@
+{
+  "id": "concepts/agents",
+  "title": "Agents",
+  "description": "Agents are the participants in your market. Every entity that creates, exchanges, or consumes value is modeled as an agent.",
+  "source": "@site/docs/concepts/agents.md",
+  "sourceDirName": "concepts",
+  "slug": "/concepts/agents",
+  "permalink": "/concepts/agents",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/pjedrzejewski/marketlum/tree/master/apps/docs/docs/concepts/agents.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "docs",
+  "previous": {
+    "title": "Value Streams",
+    "permalink": "/concepts/value-streams"
+  },
+  "next": {
+    "title": "Values",
+    "permalink": "/concepts/values"
+  }
+}

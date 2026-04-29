@@ -1,0 +1,88 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "concepts/agents",
+              "path": "/concepts/agents",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/agreements",
+              "path": "/concepts/agreements",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/channels",
+              "path": "/concepts/channels",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/exchanges",
+              "path": "/concepts/exchanges",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/offerings",
+              "path": "/concepts/offerings",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/tensions",
+              "path": "/concepts/tensions",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/value-streams",
+              "path": "/concepts/value-streams",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/values",
+              "path": "/concepts/values",
+              "sidebar": "docs"
+            },
+            {
+              "id": "getting-started/installation",
+              "path": "/getting-started/installation",
+              "sidebar": "docs"
+            },
+            {
+              "id": "getting-started/project-structure",
+              "path": "/getting-started/project-structure",
+              "sidebar": "docs"
+            },
+            {
+              "id": "getting-started/quickstart",
+              "path": "/getting-started/quickstart",
+              "sidebar": "docs"
+            },
+            {
+              "id": "intro",
+              "path": "/",
+              "sidebar": "docs"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "docs": {
+              "link": {
+                "path": "/",
+                "label": "intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}
