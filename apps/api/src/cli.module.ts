@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { MarketlumCoreModule } from '@marketlum/core';
-import { SeedSampleCommand } from '@marketlum/core';
+import { MarketlumCoreModule, SeedAdminCommand, SeedSampleCommand } from '@marketlum/core';
 
 @Module({
   imports: [
@@ -11,6 +10,6 @@ import { SeedSampleCommand } from '@marketlum/core';
     }),
     MarketlumCoreModule,
   ],
-  providers: [SeedSampleCommand],
+  providers: [SeedAdminCommand, SeedSampleCommand],
 })
 export class CliModule {}

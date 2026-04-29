@@ -11,7 +11,7 @@
     "migration:run": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run migration:run",
     "migration:revert": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run migration:revert",
     "test:e2e": "pnpm --filter @marketlum/shared run build && pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run test:e2e",
-    "seed": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run seed",
+    "seed:admin": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run seed:admin",
     "seed:sample": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run seed:sample"
   },
   "pnpm": {

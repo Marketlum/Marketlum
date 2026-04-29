@@ -2,6 +2,7 @@
 export { MarketlumCoreModule } from './marketlum-core.module';
 
 // Commands
+export { SeedAdminCommand } from './commands/seed-admin.command';
 export { SeedSampleCommand } from './commands/seed-sample.command';
 
 // Config
