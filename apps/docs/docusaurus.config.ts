@@ -38,6 +38,10 @@ const config: Config = {
   themeConfig: {
     navbar: {
       title: 'Marketlum',
+      logo: {
+        alt: 'Marketlum',
+        src: 'img/logo.png',
+      },
       items: [
         {
           type: 'docSidebar',
