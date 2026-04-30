@@ -8,7 +8,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000',
     credentials: true,
     allowedHeaders: ['Content-Type', 'X-CSRF-Protection'],
   });

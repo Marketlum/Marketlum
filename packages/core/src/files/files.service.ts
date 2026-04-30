@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import * as crypto from 'crypto';
+import * as path from 'path';
 import { File } from './entities/file.entity';
 import { Folder } from './entities/folder.entity';
 import { UpdateFileInput, FileQuery } from '@marketlum/shared';
+import { STORAGE_PROVIDER, StorageProvider, StorageDownloadResult } from './storage';
 
 @Injectable()
 export class FilesService {
@@ -15,8 +15,8 @@ export class FilesService {
     private readonly fileRepository: Repository<File>,
     @InjectRepository(Folder)
     private readonly folderRepository: Repository<Folder>,
-    @Inject('UPLOADS_DIR')
-    private readonly uploadsDir: string,
+    @Inject(STORAGE_PROVIDER)
+    private readonly storage: StorageProvider,
   ) {}
 
   async upload(
@@ -33,10 +33,7 @@ export class FilesService {
     const ext = path.extname(file.originalname);
     const storedName = crypto.randomUUID() + ext;
 
-    // Ensure uploads directory exists
-    await fs.mkdir(this.uploadsDir, { recursive: true });
-
-    await fs.writeFile(path.join(this.uploadsDir, storedName), file.buffer);
+    await this.storage.upload(storedName, file.buffer);
 
     const entity = this.fileRepository.create({
       originalName: file.originalname,
@@ -94,17 +91,10 @@ export class FilesService {
     return file;
   }
 
-  async getFilePath(id: string): Promise<{ filePath: string; file: File }> {
+  async getFileDownload(id: string): Promise<{ result: StorageDownloadResult; file: File }> {
     const file = await this.findOne(id);
-    const filePath = path.join(this.uploadsDir, file.storedName);
-
-    try {
-      await fs.access(filePath);
-    } catch {
-      throw new NotFoundException('File not found on disk');
-    }
-
-    return { filePath, file };
+    const result = await this.storage.download(file.storedName);
+    return { result, file };
   }
 
   async update(id: string, input: UpdateFileInput): Promise<File> {
@@ -129,14 +119,7 @@ export class FilesService {
 
   async remove(id: string): Promise<void> {
     const file = await this.findOne(id);
-    const filePath = path.join(this.uploadsDir, file.storedName);
-
-    try {
-      await fs.unlink(filePath);
-    } catch {
-      // File may already be deleted
-    }
-
+    await this.storage.delete(file.storedName);
     await this.fileRepository.remove(file);
   }
 }

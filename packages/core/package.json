@@ -8,6 +8,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1039.0",
     "@faker-js/faker": "8",
     "@marketlum/shared": "workspace:*",
     "@nestjs/common": "^10.4.0",

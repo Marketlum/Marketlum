@@ -60,10 +60,14 @@ export class FilesController {
 
   @Get(':id/download')
   async download(@Param('id') id: string, @Res() res: Response) {
-    const { filePath, file } = await this.filesService.getFilePath(id);
+    const { result, file } = await this.filesService.getFileDownload(id);
     res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
     res.setHeader('Content-Type', file.mimeType);
-    res.sendFile(filePath);
+    if (result.filePath) {
+      res.sendFile(result.filePath);
+    } else {
+      result.stream.pipe(res);
+    }
   }
 
   @Patch(':id')

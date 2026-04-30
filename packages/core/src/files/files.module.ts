@@ -8,6 +8,9 @@ import { FoldersService } from './folders.service';
 import { FilesService } from './files.service';
 import { FoldersController } from './folders.controller';
 import { FilesController } from './files.controller';
+import { STORAGE_PROVIDER } from './storage';
+import { LocalStorageProvider } from './storage';
+import { S3StorageProvider } from './storage';
 
 @Module({
   imports: [
@@ -21,9 +24,15 @@ import { FilesController } from './files.controller';
     FoldersService,
     FilesService,
     {
-      provide: 'UPLOADS_DIR',
-      useValue: path.resolve(process.cwd(), 'uploads'),
+      provide: STORAGE_PROVIDER,
+      useFactory: () => {
+        if (process.env.STORAGE_DRIVER === 's3') {
+          return new S3StorageProvider();
+        }
+        return new LocalStorageProvider(path.resolve(process.cwd(), 'uploads'));
+      },
     },
   ],
+  exports: [STORAGE_PROVIDER],
 })
 export class FilesModule {}

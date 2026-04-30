@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import {
   createValueSchema,
   updateValueSchema,
@@ -97,6 +97,27 @@ export function ValueFormDialog({
   const [selectedFiles, setSelectedFiles] = useState<{ id: string; originalName: string }[]>([]);
   const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<{ id: string; originalName: string; mimeType: string }[]>([]);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploaded = await api.upload<FileResponse>('/files/upload', formData);
+      const updated = [...selectedImages, { id: uploaded.id, originalName: uploaded.originalName, mimeType: uploaded.mimeType }];
+      setSelectedImages(updated);
+      setFormValue('imageIds' as any, updated.map((f) => f.id));
+    } catch {
+      toast.error(t('failedToUploadImage'));
+    }
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+  };
 
   const handleCreateTaxonomy = useCallback(
     async (name: string, parentId?: string): Promise<string | null> => {
@@ -425,9 +446,22 @@ export function ValueFormDialog({
                   ))}
                 </div>
               )}
-              <Button type="button" variant="outline" size="sm" onClick={() => setImageLibraryOpen(true)}>
-                {t('selectImages')}
-              </Button>
+              <div className="flex gap-2">
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleUploadImage}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => imageInputRef.current?.click()}>
+                  <Upload className="mr-1.5 h-3.5 w-3.5" />
+                  {t('uploadImage')}
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => setImageLibraryOpen(true)}>
+                  {t('selectImages')}
+                </Button>
+              </div>
             </div>
           </div>
 

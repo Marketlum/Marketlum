@@ -1,6 +1,11 @@
 // Core module
 export { MarketlumCoreModule } from './marketlum-core.module';
 
+// Storage
+export { StorageProvider, StorageDownloadResult, STORAGE_PROVIDER } from './files/storage';
+export { LocalStorageProvider } from './files/storage';
+export { S3StorageProvider } from './files/storage';
+
 // Commands
 export { SeedAdminCommand } from './commands/seed-admin.command';
 export { SeedSampleCommand } from './commands/seed-sample.command';

@@ -4,9 +4,8 @@ import { TreeRepository, Repository } from 'typeorm';
 import { Folder } from './entities/folder.entity';
 import { File } from './entities/file.entity';
 import { CreateFolderInput, UpdateFolderInput, MoveFolderInput } from '@marketlum/shared';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { Inject } from '@nestjs/common';
+import { STORAGE_PROVIDER, StorageProvider } from './storage';
 
 @Injectable()
 export class FoldersService {
@@ -15,8 +14,8 @@ export class FoldersService {
     private readonly folderRepository: TreeRepository<Folder>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
-    @Inject('UPLOADS_DIR')
-    private readonly uploadsDir: string,
+    @Inject(STORAGE_PROVIDER)
+    private readonly storage: StorageProvider,
   ) {}
 
   async create(input: CreateFolderInput): Promise<Folder> {
@@ -86,12 +85,7 @@ export class FoldersService {
 
     // Delete physical files
     for (const file of files) {
-      const filePath = path.join(this.uploadsDir, file.storedName);
-      try {
-        await fs.unlink(filePath);
-      } catch {
-        // File may already be deleted
-      }
+      await this.storage.delete(file.storedName);
     }
 
     // Sort by level descending so leaves are removed first

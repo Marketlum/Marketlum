@@ -15,7 +15,7 @@ sidebar_position: 1
 The fastest way to get started is with `create-marketlum-app`:
 
 ```bash
-pnpm create marketlum-app my-market
+npx create-marketlum-app my-market
 cd my-market
 ```
 
