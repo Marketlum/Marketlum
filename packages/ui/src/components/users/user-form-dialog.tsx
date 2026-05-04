@@ -61,7 +61,6 @@ export function UserFormDialog({
         reset({
           name: user.name,
           email: user.email,
-          password: '',
           avatarId: user.avatar?.id ?? null,
         });
         setImagePreview(
@@ -125,15 +124,15 @@ export function UserFormDialog({
             <Input id="email" type="email" {...register('email')} />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">
-              {t('passwordLabel')}{isEditing && t('passwordEditHint')}
-            </Label>
-            <Input id="password" type="password" {...register('password')} />
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
-            )}
-          </div>
+          {!isEditing && (
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('passwordLabel')}</Label>
+              <Input id="password" type="password" {...register('password')} />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
+            </div>
+          )}
 
           {/* Avatar picker */}
           <div className="space-y-2">

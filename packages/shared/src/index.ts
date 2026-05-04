@@ -14,9 +14,11 @@ export { loginSchema, type LoginInput } from './schemas/auth.schema';
 export {
   createUserSchema,
   updateUserSchema,
+  changeUserPasswordSchema,
   userResponseSchema,
   type CreateUserInput,
   type UpdateUserInput,
+  type ChangeUserPasswordInput,
   type UserResponse,
 } from './schemas/user.schema';
 

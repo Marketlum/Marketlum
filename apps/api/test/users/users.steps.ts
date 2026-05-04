@@ -21,6 +21,9 @@ const deleteFeature = loadFeature(
 const avatarFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/users/assign-user-avatar.feature'),
 );
+const changePasswordFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/users/change-user-password.feature'),
+);
 
 // --- CREATE USER ---
 defineFeature(createFeature, (test) => {
@@ -782,6 +785,175 @@ defineFeature(avatarFeature, (test) => {
         .set('X-CSRF-Protection', '1')
         .send({ name: row.name, email: row.email, password: row.password });
     });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- CHANGE USER PASSWORD ---
+defineFeature(changePasswordFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let createdUserId: string;
+  let loginResponse: request.Response;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test("Successfully change a user's password", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a user exists with email "(.*)" and password "(.*)"$/,
+      async (email: string, password: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ email, password, name: 'Alice' });
+        createdUserId = res.body.id;
+      },
+    );
+
+    when(/^I change the user's password to "(.*)"$/, async (password: string) => {
+      response = await request(getApp().getHttpServer())
+        .post(`/users/${createdUserId}/change-password`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ password });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Login works with the new password after change', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a user exists with email "(.*)" and password "(.*)"$/,
+      async (email: string, password: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ email, password, name: 'Alice' });
+        createdUserId = res.body.id;
+      },
+    );
+
+    when(/^I change the user's password to "(.*)"$/, async (password: string) => {
+      response = await request(getApp().getHttpServer())
+        .post(`/users/${createdUserId}/change-password`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ password });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(
+      /^login with email "(.*)" and password "(.*)" should succeed$/,
+      async (email: string, password: string) => {
+        loginResponse = await request(getApp().getHttpServer())
+          .post('/auth/login')
+          .set('X-CSRF-Protection', '1')
+          .send({ email, password });
+        expect(loginResponse.status).toBe(200);
+      },
+    );
+
+    and(
+      /^login with email "(.*)" and password "(.*)" should fail$/,
+      async (email: string, password: string) => {
+        loginResponse = await request(getApp().getHttpServer())
+          .post('/auth/login')
+          .set('X-CSRF-Protection', '1')
+          .send({ email, password });
+        expect(loginResponse.status).toBe(401);
+      },
+    );
+  });
+
+  test('Change password with too short value returns 400', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^a user exists with email "(.*)" and password "(.*)"$/,
+      async (email: string, password: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/users')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ email, password, name: 'Alice' });
+        createdUserId = res.body.id;
+      },
+    );
+
+    when(/^I change the user's password to "(.*)"$/, async (password: string) => {
+      response = await request(getApp().getHttpServer())
+        .post(`/users/${createdUserId}/change-password`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ password });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Change password for non-existent user returns 404', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I change the password of user with ID "(.*)" to "(.*)"$/,
+      async (id: string, password: string) => {
+        response = await request(getApp().getHttpServer())
+          .post(`/users/${id}/change-password`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ password });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when(
+      /^I change the password of user with ID "(.*)" to "(.*)"$/,
+      async (id: string, password: string) => {
+        response = await request(getApp().getHttpServer())
+          .post(`/users/${id}/change-password`)
+          .set('X-CSRF-Protection', '1')
+          .send({ password });
+      },
+    );
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));

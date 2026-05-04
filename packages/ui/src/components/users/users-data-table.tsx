@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import type { UserResponse, PaginatedResponse, CreateUserInput, PerspectiveConfig } from '@marketlum/shared';
+import type { UserResponse, PaginatedResponse, CreateUserInput, ChangeUserPasswordInput, PerspectiveConfig } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
@@ -17,6 +17,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
 import { UserFormDialog } from './user-form-dialog';
+import { ChangePasswordDialog } from './change-password-dialog';
 import { getUserColumns } from './columns';
 import { ExportDropdown } from '../shared/export-dropdown';
 import type { FieldDef } from '../../lib/export-utils';
@@ -33,6 +34,7 @@ export function UsersDataTable() {
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
+  const [passwordUser, setPasswordUser] = useState<UserResponse | null>(null);
   const [deleteUser, setDeleteUser] = useState<UserResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -113,7 +115,6 @@ export function UsersDataTable() {
       const body: Record<string, unknown> = {};
       if (input.name) body.name = input.name;
       if (input.email) body.email = input.email;
-      if (input.password) body.password = input.password;
       if (input.avatarId !== undefined) body.avatarId = input.avatarId;
       await api.patch(`/users/${editingUser.id}`, body);
       toast.success(t('updated'));
@@ -121,6 +122,20 @@ export function UsersDataTable() {
       fetchData();
     } catch {
       toast.error(t('failedToUpdate'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChangePassword = async (input: ChangeUserPasswordInput) => {
+    if (!passwordUser) return;
+    setIsSubmitting(true);
+    try {
+      await api.post(`/users/${passwordUser.id}/change-password`, input);
+      toast.success(t('passwordChanged'));
+      setPasswordUser(null);
+    } catch {
+      toast.error(t('failedToChangePassword'));
     } finally {
       setIsSubmitting(false);
     }
@@ -143,6 +158,7 @@ export function UsersDataTable() {
 
   const columns = getUserColumns({
     onEdit: (user) => setEditingUser(user),
+    onChangePassword: (user) => setPasswordUser(user),
     onDelete: (user) => setDeleteUser(user),
     onSort: pagination.setSort,
     translations: {
@@ -151,6 +167,7 @@ export function UsersDataTable() {
       email: tc('email'),
       created: tc('created'),
       edit: tc('edit'),
+      changePassword: t('changePassword'),
       delete: tc('delete'),
     },
   });
@@ -260,6 +277,14 @@ export function UsersDataTable() {
         onOpenChange={(open) => !open && setEditingUser(null)}
         onSubmit={handleEdit}
         user={editingUser}
+        isSubmitting={isSubmitting}
+      />
+
+      <ChangePasswordDialog
+        open={!!passwordUser}
+        onOpenChange={(open) => !open && setPasswordUser(null)}
+        onSubmit={handleChangePassword}
+        user={passwordUser}
         isSubmitting={isSubmitting}
       />
 

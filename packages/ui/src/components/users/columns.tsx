@@ -18,17 +18,19 @@ interface UserColumnsTranslations {
   email: string;
   created: string;
   edit: string;
+  changePassword: string;
   delete: string;
 }
 
 interface UserColumnsOptions {
   onEdit: (user: UserResponse) => void;
+  onChangePassword: (user: UserResponse) => void;
   onDelete: (user: UserResponse) => void;
   onSort: (column: string) => void;
   translations: UserColumnsTranslations;
 }
 
-export function getUserColumns({ onEdit, onDelete, onSort, translations }: UserColumnsOptions): ColumnDef<UserResponse>[] {
+export function getUserColumns({ onEdit, onChangePassword, onDelete, onSort, translations }: UserColumnsOptions): ColumnDef<UserResponse>[] {
   return [
     {
       id: 'avatar',
@@ -88,6 +90,9 @@ export function getUserColumns({ onEdit, onDelete, onSort, translations }: UserC
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(user)}>{translations.edit}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onChangePassword(user)}>
+                {translations.changePassword}
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(user)}
                 className="text-destructive focus:text-destructive"

@@ -17,9 +17,11 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createUserSchema,
   updateUserSchema,
+  changeUserPasswordSchema,
   paginationQuerySchema,
   CreateUserInput,
   UpdateUserInput,
+  ChangeUserPasswordInput,
   PaginationQuery,
 } from '@marketlum/shared';
 
@@ -56,6 +58,17 @@ export class UsersController {
     @Body(new ZodValidationPipe(updateUserSchema)) body: UpdateUserInput,
   ) {
     const user = await this.usersService.update(id, body);
+    return this.usersService.stripPassword(user);
+  }
+
+  @Post(':id/change-password')
+  @UseGuards(AdminGuard)
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(changeUserPasswordSchema)) body: ChangeUserPasswordInput,
+  ) {
+    const user = await this.usersService.changePassword(id, body.password);
     return this.usersService.stripPassword(user);
   }
 

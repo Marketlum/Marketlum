@@ -17,9 +17,12 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = z.object({
   email: z.string().email().optional(),
-  password: z.string().min(6).optional(),
   name: z.string().min(1).optional(),
   avatarId: z.string().uuid().nullable().optional(),
+});
+
+export const changeUserPasswordSchema = z.object({
+  password: z.string().min(6),
 });
 
 export const userResponseSchema = z.object({
@@ -33,4 +36,5 @@ export const userResponseSchema = z.object({
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type ChangeUserPasswordInput = z.infer<typeof changeUserPasswordSchema>;
 export type UserResponse = z.infer<typeof userResponseSchema>;

@@ -103,10 +103,6 @@ export class UsersService {
     const user = await this.findOne(id);
     const { avatarId, ...rest } = input;
 
-    if (rest.password) {
-      rest.password = await bcrypt.hash(rest.password, 10);
-    }
-
     Object.assign(user, rest);
 
     if (avatarId !== undefined) {
@@ -123,6 +119,13 @@ export class UsersService {
       }
     }
 
+    await this.usersRepository.save(user);
+    return this.findOne(id);
+  }
+
+  async changePassword(id: string, password: string): Promise<User> {
+    const user = await this.findOne(id);
+    user.password = await bcrypt.hash(password, 10);
     await this.usersRepository.save(user);
     return this.findOne(id);
   }
