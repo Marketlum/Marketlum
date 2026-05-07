@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { Plus, Pencil, Trash2, ArrowRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowRight, ArrowLeftRight } from 'lucide-react';
 import { api } from '../../lib/api-client';
 import { useAgents } from '../../hooks/use-agents';
 import { useValues } from '../../hooks/use-values';
@@ -100,8 +100,8 @@ export function ExchangeFlowsPanel({
   const resetForm = () => {
     setValueId('none');
     setValueInstanceId('none');
-    setFromAgentId('');
-    setToAgentId('');
+    setFromAgentId(partyAgents[0]?.id ?? '');
+    setToAgentId(partyAgents[1]?.id ?? '');
     setQuantity('');
   };
 
@@ -109,6 +109,11 @@ export function ExchangeFlowsPanel({
     setEditingFlow(null);
     resetForm();
     setFormOpen(true);
+  };
+
+  const swapAgents = () => {
+    setFromAgentId(toAgentId);
+    setToAgentId(fromAgentId);
   };
 
   const openEditForm = (flow: FlowRow) => {
@@ -285,8 +290,8 @@ export function ExchangeFlowsPanel({
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
+            <div className="flex items-end gap-2">
+              <div className="flex-1 space-y-1">
                 <Label>{t('fromAgent')}</Label>
                 <Select value={fromAgentId} onValueChange={setFromAgentId}>
                   <SelectTrigger>
@@ -299,7 +304,18 @@ export function ExchangeFlowsPanel({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={swapAgents}
+                disabled={!fromAgentId && !toAgentId}
+                aria-label={t('swapAgents')}
+                title={t('swapAgents')}
+              >
+                <ArrowLeftRight className="h-4 w-4" />
+              </Button>
+              <div className="flex-1 space-y-1">
                 <Label>{t('toAgent')}</Label>
                 <Select value={toAgentId} onValueChange={setToAgentId}>
                   <SelectTrigger>

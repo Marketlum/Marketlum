@@ -698,6 +698,7 @@
     "selectValueInstance": "Select value instance",
     "fromAgent": "From Agent",
     "toAgent": "To Agent",
+    "swapAgents": "Swap agents",
     "quantity": "Quantity",
     "flowCreated": "Flow created",
     "flowUpdated": "Flow updated",
