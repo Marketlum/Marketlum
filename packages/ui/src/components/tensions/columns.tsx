@@ -105,11 +105,14 @@ export function getTensionColumns({
       header: translations.state,
       cell: ({ row }) => {
         const state = row.original.state;
-        const variant = state === 'alive' ? 'default' : state === 'resolved' ? 'outline' : 'secondary';
+        const variant = state === 'alive' ? 'default' : state === 'resolved' ? 'default' : 'secondary';
+        const className = state === 'resolved'
+          ? 'bg-gradient-to-r from-green-400 via-teal-400 to-purple-500 text-white hover:opacity-90'
+          : '';
         const label = state === 'alive' ? translations.stateAlive
           : state === 'resolved' ? translations.stateResolved
           : translations.stateStale;
-        return <Badge variant={variant}>{label}</Badge>;
+        return <Badge variant={variant} className={className}>{label}</Badge>;
       },
     },
     {

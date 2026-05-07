@@ -139,8 +139,12 @@ export function TensionDetailPage() {
 
   const stateBadgeVariant: 'default' | 'secondary' | 'outline' =
     tension.state === 'alive' ? 'default'
-    : tension.state === 'resolved' ? 'outline'
+    : tension.state === 'resolved' ? 'default'
     : 'secondary';
+
+  const stateBadgeClassName = tension.state === 'resolved'
+    ? 'bg-gradient-to-r from-green-400 via-teal-400 to-purple-500 text-white hover:opacity-90'
+    : '';
 
   const stateLabel = tension.state === 'alive' ? t('stateAlive')
     : tension.state === 'resolved' ? t('stateResolved')
@@ -175,7 +179,7 @@ export function TensionDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold truncate">{tension.name}</h1>
-            <Badge variant={stateBadgeVariant}>{stateLabel}</Badge>
+            <Badge variant={stateBadgeVariant} className={stateBadgeClassName}>{stateLabel}</Badge>
             <Badge variant={scoreBadgeVariant}>{t('score')}: {tension.score}</Badge>
           </div>
           <div className="flex gap-2 mt-2 flex-wrap">
