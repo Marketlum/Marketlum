@@ -8,6 +8,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
+import { TensionState } from '@marketlum/shared';
 import { Agent } from '../../agents/entities/agent.entity';
 import { User } from '../../users/entities/user.entity';
 import { Exchange } from '../../exchanges/entities/exchange.entity';
@@ -28,6 +29,9 @@ export class Tension {
 
   @Column({ type: 'int', default: 5 })
   score: number;
+
+  @Column({ type: 'enum', enum: TensionState, default: TensionState.ALIVE })
+  state: TensionState;
 
   @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'agentId' })

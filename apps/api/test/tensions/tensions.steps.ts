@@ -28,6 +28,9 @@ const deleteFeature = loadFeature(
 const searchFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/tensions/search-tensions.feature'),
 );
+const transitionFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/tensions/transition-tension.feature'),
+);
 
 const tensionIds = new Map<string, string>();
 const agentIds = new Map<string, string>();
@@ -62,6 +65,7 @@ async function createTension(
     leadName?: string;
     score?: number;
     currentContext?: string;
+    state?: string;
   } = {},
 ): Promise<request.Response> {
   const agentId = opts.agentName
@@ -77,6 +81,17 @@ async function createTension(
     .set('X-CSRF-Protection', '1')
     .send(body);
   if (res.body.id) tensionIds.set(name, res.body.id);
+
+  if (opts.state && opts.state !== 'alive' && res.body.id) {
+    const action = opts.state === 'resolved' ? 'resolve' : opts.state === 'stale' ? 'drop' : null;
+    if (action) {
+      await request(getApp().getHttpServer())
+        .post(`/tensions/${res.body.id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    }
+  }
   return res;
 }
 
@@ -1008,6 +1023,339 @@ defineFeature(searchFeature, (test) => {
     and(/^the search results should contain a tension with name "(.*)"$/, (name: string) => {
       const tensionResults = response.body.data.filter((r: any) => r.type === 'tension');
       expect(tensionResults.some((r: any) => r.name === name)).toBe(true);
+    });
+  });
+});
+
+// --- TRANSITION TENSION ---
+defineFeature(transitionFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    tensionIds.clear();
+    agentIds.clear();
+    userIds.clear();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Newly created tension is alive', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    when(/^I create a tension with name "(.*)" and agent "(.*)"$/, async (name: string, agentName: string) => {
+      response = await createTension(authCookie, name, { agentName });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a tension with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+  });
+
+  test('Resolve an alive tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)"$/, async (name: string) => {
+      await createTension(authCookie, name);
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a tension with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+  });
+
+  test('Drop an alive tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)"$/, async (name: string) => {
+      await createTension(authCookie, name);
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a tension with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+  });
+
+  test('Reopen a resolved tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
+      await createTension(authCookie, name, { state });
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a tension with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+  });
+
+  test('Revive a stale tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
+      await createTension(authCookie, name, { state });
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a tension with state "(.*)"$/, (state: string) => {
+      expect(response.body.state).toBe(state);
+    });
+  });
+
+  test('Reject resolving a resolved tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
+      await createTension(authCookie, name, { state });
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Reject dropping a stale tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
+      await createTension(authCookie, name, { state });
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Reject revive on a resolved tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
+      await createTension(authCookie, name, { state });
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Reject reopen on a stale tension', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
+      await createTension(authCookie, name, { state });
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Reject resolve directly to stale via drop while resolved', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
+      await createTension(authCookie, name, { state });
+    });
+
+    when(/^I transition the tension with action "(.*)"$/, async (action: string) => {
+      const id = tensionIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Non-existent tension returns 404', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I transition the tension with ID "(.*)" with action "(.*)"$/, async (id: string, action: string) => {
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when(/^I transition the tension with ID "(.*)" with action "(.*)"$/, async (id: string, action: string) => {
+      response = await request(getApp().getHttpServer())
+        .post(`/tensions/${id}/transitions`)
+        .set('X-CSRF-Protection', '1')
+        .send({ action });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
     });
   });
 });

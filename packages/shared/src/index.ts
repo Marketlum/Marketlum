@@ -5,6 +5,8 @@ export { TableName } from './enums/table-name.enum';
 export { OfferingState } from './enums/offering-state.enum';
 export { ExchangeState } from './enums/exchange-state.enum';
 export { ExchangeTransitionAction } from './enums/exchange-transition-action.enum';
+export { TensionState } from './enums/tension-state.enum';
+export { TensionTransitionAction } from './enums/tension-transition-action.enum';
 export { GeographyType } from './enums/geography-type.enum';
 export { AgreementTemplateType } from './enums/agreement-template-type.enum';
 export { ValueLifecycleStage } from './enums/value-lifecycle-stage.enum';
@@ -248,11 +250,15 @@ export {
 export {
   createTensionSchema,
   updateTensionSchema,
+  transitionTensionSchema,
   tensionResponseSchema,
   type CreateTensionInput,
   type UpdateTensionInput,
+  type TransitionTensionInput,
   type TensionResponse,
 } from './schemas/tension.schema';
+
+export { tensionMachine } from './machines/tension.machine';
 
 export {
   SUPPORTED_LOCALE_CODES,

@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { getNextSnapshot } from 'xstate';
 import { Tension } from './entities/tension.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { User } from '../users/entities/user.entity';
@@ -8,6 +9,9 @@ import {
   CreateTensionInput,
   UpdateTensionInput,
   PaginationQuery,
+  TensionState,
+  TensionTransitionAction,
+  tensionMachine,
 } from '@marketlum/shared';
 
 @Injectable()
@@ -70,9 +74,10 @@ export class TensionsService {
     query: PaginationQuery & {
       agentId?: string;
       leadUserId?: string;
+      state?: string;
     },
   ) {
-    const { page, limit, search, sortBy, sortOrder, agentId, leadUserId } = query;
+    const { page, limit, search, sortBy, sortOrder, agentId, leadUserId, state } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.tensionRepository.createQueryBuilder('tension');
@@ -85,6 +90,10 @@ export class TensionsService {
 
     if (leadUserId) {
       qb.andWhere('tension.leadUserId = :leadUserId', { leadUserId });
+    }
+
+    if (state) {
+      qb.andWhere('tension.state = :state', { state });
     }
 
     if (search) {
@@ -127,6 +136,9 @@ export class TensionsService {
     }
     if (leadUserId) {
       countQb.andWhere('tension.leadUserId = :leadUserId', { leadUserId });
+    }
+    if (state) {
+      countQb.andWhere('tension.state = :state', { state });
     }
     if (search) {
       countQb.andWhere(
@@ -173,6 +185,31 @@ export class TensionsService {
         tension.leadUserId = leadUserId;
       }
     }
+
+    delete (tension as any).agent;
+    delete (tension as any).lead;
+    delete (tension as any).exchanges;
+    await this.tensionRepository.save(tension);
+
+    return this.findOne(id);
+  }
+
+  async transition(id: string, action: TensionTransitionAction): Promise<Tension> {
+    const tension = await this.findOne(id);
+
+    const nextSnapshot = getNextSnapshot(
+      tensionMachine,
+      tensionMachine.resolveState({ value: tension.state, context: {} }),
+      { type: action },
+    );
+
+    if (nextSnapshot.value === tension.state) {
+      throw new BadRequestException(
+        `Cannot transition from ${tension.state} using action "${action}"`,
+      );
+    }
+
+    tension.state = nextSnapshot.value as TensionState;
 
     delete (tension as any).agent;
     delete (tension as any).lead;

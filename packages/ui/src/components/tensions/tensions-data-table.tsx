@@ -48,6 +48,7 @@ export function TensionsDataTable() {
   const { users } = useUsers();
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [leadFilter, setLeadFilter] = useState<string>('all');
+  const [stateFilter, setStateFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<TensionResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +62,7 @@ export function TensionsDataTable() {
     setColumnVisibility(config.columnVisibility ?? {});
     setAgentFilter(config.filters?.agentId ?? 'all');
     setLeadFilter(config.filters?.leadUserId ?? 'all');
+    setStateFilter(config.filters?.state ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -97,9 +99,10 @@ export function TensionsDataTable() {
     filters: {
       ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
       ...(leadFilter !== 'all' ? { leadUserId: leadFilter } : {}),
+      ...(stateFilter !== 'all' ? { state: stateFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, agentFilter, leadFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, agentFilter, leadFilter, stateFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -107,6 +110,7 @@ export function TensionsDataTable() {
       let qs = pagination.toQueryString();
       if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
       if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
+      if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
       const result = await api.get<PaginatedResponse<TensionResponse>>(`/tensions/search?${qs}`);
       setData(result);
     } catch {
@@ -114,11 +118,11 @@ export function TensionsDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, agentFilter, leadFilter]);
+  }, [pagination.toQueryString, agentFilter, leadFilter, stateFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, agentFilter, leadFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, agentFilter, leadFilter, stateFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingTension(null);
@@ -179,6 +183,10 @@ export function TensionsDataTable() {
       agent: t('agent'),
       lead: t('lead'),
       score: t('score'),
+      state: t('state'),
+      stateAlive: t('stateAlive'),
+      stateResolved: t('stateResolved'),
+      stateStale: t('stateStale'),
       created: tc('created'),
       updatedAt: t('updatedAt'),
       edit: tc('edit'),
@@ -191,6 +199,7 @@ export function TensionsDataTable() {
     { id: 'agent', label: t('agent') },
     { id: 'lead', label: t('lead') },
     { id: 'score', label: t('score') },
+    { id: 'state', label: t('state') },
     { id: 'createdAt', label: tc('created') },
     { id: 'updatedAt', label: t('updatedAt') },
   ];
@@ -206,6 +215,7 @@ export function TensionsDataTable() {
       return lead?.name ?? '';
     }},
     { key: 'score', label: t('score'), extract: (r) => String(r.score ?? '') },
+    { key: 'state', label: t('state'), extract: (r) => String(r.state ?? '') },
     { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
     { key: 'updatedAt', label: t('updatedAt'), extract: (r) => String(r.updatedAt ?? '') },
   ];
@@ -220,9 +230,10 @@ export function TensionsDataTable() {
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
     if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
+    if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
     const result = await api.get<PaginatedResponse<TensionResponse>>(`/tensions/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, agentFilter, leadFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, agentFilter, leadFilter, stateFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -247,8 +258,19 @@ export function TensionsDataTable() {
         onClear: () => setLeadFilter('all'),
       });
     }
+    if (stateFilter !== 'all') {
+      const stateLabel = stateFilter === 'alive' ? t('stateAlive')
+        : stateFilter === 'resolved' ? t('stateResolved')
+        : t('stateStale');
+      filters.push({
+        key: 'state',
+        label: t('state'),
+        displayValue: stateLabel,
+        onClear: () => setStateFilter('all'),
+      });
+    }
     return filters;
-  }, [agentFilter, leadFilter, agents, users, t]);
+  }, [agentFilter, leadFilter, stateFilter, agents, users, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -341,6 +363,20 @@ export function TensionsDataTable() {
                   {user.name}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('state')}</label>
+          <Select value={stateFilter} onValueChange={setStateFilter}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allStates')}</SelectItem>
+              <SelectItem value="alive">{t('stateAlive')}</SelectItem>
+              <SelectItem value="resolved">{t('stateResolved')}</SelectItem>
+              <SelectItem value="stale">{t('stateStale')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

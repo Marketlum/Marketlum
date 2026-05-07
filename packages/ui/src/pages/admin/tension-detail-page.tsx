@@ -72,6 +72,17 @@ export function TensionDetailPage() {
     fetchTension();
   }, [fetchTension]);
 
+  const handleTransition = async (action: string) => {
+    if (!tension) return;
+    try {
+      await api.post(`/tensions/${tension.id}/transitions`, { action });
+      toast.success(t('stateChanged'));
+      fetchTension();
+    } catch {
+      toast.error(t('failedToTransition'));
+    }
+  };
+
   const handleEdit = async (input: CreateTensionInput) => {
     if (!tension) return;
     setIsSubmitting(true);
@@ -126,6 +137,15 @@ export function TensionDetailPage() {
 
   const scoreBadgeVariant = tension.score >= 8 ? 'default' : tension.score >= 4 ? 'secondary' : 'outline';
 
+  const stateBadgeVariant: 'default' | 'secondary' | 'outline' =
+    tension.state === 'alive' ? 'default'
+    : tension.state === 'resolved' ? 'outline'
+    : 'secondary';
+
+  const stateLabel = tension.state === 'alive' ? t('stateAlive')
+    : tension.state === 'resolved' ? t('stateResolved')
+    : t('stateStale');
+
   return (
     <div>
       <Breadcrumb className="mb-4">
@@ -153,11 +173,32 @@ export function TensionDetailPage() {
           <Flame className="h-12 w-12 text-muted-foreground/50" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-1">
+          <div className="flex items-center gap-3 mb-1 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold truncate">{tension.name}</h1>
+            <Badge variant={stateBadgeVariant}>{stateLabel}</Badge>
             <Badge variant={scoreBadgeVariant}>{t('score')}: {tension.score}</Badge>
           </div>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {tension.state === 'alive' && (
+              <>
+                <Button size="sm" onClick={() => handleTransition('resolve')}>
+                  {t('resolve')}
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => handleTransition('drop')}>
+                  {t('drop')}
+                </Button>
+              </>
+            )}
+            {tension.state === 'resolved' && (
+              <Button variant="outline" size="sm" onClick={() => handleTransition('reopen')}>
+                {t('reopen')}
+              </Button>
+            )}
+            {tension.state === 'stale' && (
+              <Button variant="outline" size="sm" onClick={() => handleTransition('revive')}>
+                {t('revive')}
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <Pencil className="mr-1.5 h-3.5 w-3.5" />
               {tc('edit')}

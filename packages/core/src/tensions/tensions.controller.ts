@@ -17,9 +17,11 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   createTensionSchema,
   updateTensionSchema,
+  transitionTensionSchema,
   paginationQuerySchema,
   CreateTensionInput,
   UpdateTensionInput,
+  TransitionTensionInput,
   PaginationQuery,
 } from '@marketlum/shared';
 
@@ -41,17 +43,28 @@ export class TensionsController {
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('agentId') agentId?: string,
     @Query('leadUserId') leadUserId?: string,
+    @Query('state') state?: string,
   ) {
     return this.tensionsService.search({
       ...query,
       agentId,
       leadUserId,
+      state,
     });
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.tensionsService.findOne(id);
+  }
+
+  @Post(':id/transitions')
+  @HttpCode(HttpStatus.OK)
+  async transition(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(transitionTensionSchema)) body: TransitionTensionInput,
+  ) {
+    return this.tensionsService.transition(id, body.action);
   }
 
   @Patch(':id')

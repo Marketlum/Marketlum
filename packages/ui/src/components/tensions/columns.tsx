@@ -18,6 +18,10 @@ interface TensionColumnsTranslations {
   agent: string;
   lead: string;
   score: string;
+  state: string;
+  stateAlive: string;
+  stateResolved: string;
+  stateStale: string;
   created: string;
   updatedAt: string;
   edit: string;
@@ -94,6 +98,18 @@ export function getTensionColumns({
         const score = row.original.score;
         const variant = score >= 8 ? 'default' : score >= 4 ? 'secondary' : 'outline';
         return <Badge variant={variant}>{score}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'state',
+      header: translations.state,
+      cell: ({ row }) => {
+        const state = row.original.state;
+        const variant = state === 'alive' ? 'default' : state === 'resolved' ? 'outline' : 'secondary';
+        const label = state === 'alive' ? translations.stateAlive
+          : state === 'resolved' ? translations.stateResolved
+          : translations.stateStale;
+        return <Badge variant={variant}>{label}</Badge>;
       },
     },
     {
