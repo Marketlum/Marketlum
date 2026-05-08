@@ -11,6 +11,7 @@ import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { ExchangeFormDialog } from '../../components/exchanges/exchange-form-dialog';
 import { ExchangeFlowsPanel } from '../../components/exchanges/exchange-flows-panel';
+import { ValueTypeBadge } from '../../components/values/value-type-badge';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -43,6 +44,14 @@ export function ExchangeDetailPage() {
   const router = useRouter();
   const t = useTranslations('exchanges');
   const tc = useTranslations('common');
+  const tv = useTranslations('values');
+
+  const valueTypeLabels: Record<string, string> = {
+    product: tv('typeProduct'),
+    service: tv('typeService'),
+    relationship: tv('typeRelationship'),
+    right: tv('typeRight'),
+  };
 
   const [exchange, setExchange] = useState<ExchangeResponse | null>(null);
   const [channels, setChannels] = useState<{ id: string; name: string }[]>([]);
@@ -349,7 +358,15 @@ export function ExchangeDetailPage() {
                   {flows.map((flow) => (
                     <tr key={flow.id} className="border-b last:border-0">
                       <td className="p-2">
-                        {flow.value?.name ?? flow.valueInstance?.name ?? '\u2014'}
+                        <div className="flex items-center gap-2">
+                          <span>{flow.value?.name ?? flow.valueInstance?.name ?? '\u2014'}</span>
+                          {flow.value?.type && (
+                            <ValueTypeBadge
+                              type={flow.value.type}
+                              label={valueTypeLabels[flow.value.type] ?? flow.value.type}
+                            />
+                          )}
+                        </div>
                       </td>
                       <td className="p-2">{flow.fromAgent.name}</td>
                       <td className="p-2 text-center text-muted-foreground">
