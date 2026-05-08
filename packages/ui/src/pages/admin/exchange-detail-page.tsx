@@ -360,12 +360,15 @@ export function ExchangeDetailPage() {
                       <td className="p-2">
                         <div className="flex items-center gap-2">
                           <span>{flow.value?.name ?? flow.valueInstance?.name ?? '\u2014'}</span>
-                          {flow.value?.type && (
-                            <ValueTypeBadge
-                              type={flow.value.type}
-                              label={valueTypeLabels[flow.value.type] ?? flow.value.type}
-                            />
-                          )}
+                          {(() => {
+                            const valueType = flow.value?.type ?? flow.valueInstance?.type;
+                            return valueType ? (
+                              <ValueTypeBadge
+                                type={valueType}
+                                label={valueTypeLabels[valueType] ?? valueType}
+                              />
+                            ) : null;
+                          })()}
                         </div>
                       </td>
                       <td className="p-2">{flow.fromAgent.name}</td>

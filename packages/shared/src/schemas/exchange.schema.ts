@@ -19,6 +19,7 @@ const valueSummarySchema = z.object({
 const valueInstanceSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  type: z.nativeEnum(ValueType).nullable().optional(),
 });
 
 const valueStreamSummarySchema = z.object({

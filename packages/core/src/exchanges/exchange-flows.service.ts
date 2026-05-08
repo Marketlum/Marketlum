@@ -74,26 +74,36 @@ export class ExchangeFlowsService {
     return this.findOne(exchangeId, saved.id);
   }
 
+  private flattenValueInstanceType(flow: ExchangeFlow): ExchangeFlow {
+    if (flow.valueInstance) {
+      const parentValue = (flow.valueInstance as any).value;
+      (flow.valueInstance as any).type = parentValue?.type ?? null;
+      delete (flow.valueInstance as any).value;
+    }
+    return flow;
+  }
+
   async findAll(exchangeId: string): Promise<ExchangeFlow[]> {
     // Verify exchange exists
     const exchange = await this.exchangeRepository.findOne({ where: { id: exchangeId } });
     if (!exchange) throw new NotFoundException('Exchange not found');
 
-    return this.flowRepository.find({
+    const flows = await this.flowRepository.find({
       where: { exchangeId },
-      relations: ['value', 'valueInstance', 'fromAgent', 'toAgent'],
+      relations: ['value', 'valueInstance', 'valueInstance.value', 'fromAgent', 'toAgent'],
     });
+    return flows.map((f) => this.flattenValueInstanceType(f));
   }
 
   async findOne(exchangeId: string, flowId: string): Promise<ExchangeFlow> {
     const flow = await this.flowRepository.findOne({
       where: { id: flowId, exchangeId },
-      relations: ['value', 'valueInstance', 'fromAgent', 'toAgent'],
+      relations: ['value', 'valueInstance', 'valueInstance.value', 'fromAgent', 'toAgent'],
     });
     if (!flow) {
       throw new NotFoundException('Exchange flow not found');
     }
-    return flow;
+    return this.flattenValueInstanceType(flow);
   }
 
   async update(
