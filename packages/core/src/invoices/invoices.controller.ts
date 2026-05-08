@@ -11,9 +11,25 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiCookieAuth,
+  ApiBody,
+  ApiParam,
+  ApiQuery,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+  ApiUnauthorizedResponse,
+  ApiExtraModels,
+} from '@nestjs/swagger';
 import { InvoicesService } from './invoices.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { ApiPaginatedResponse } from '../common/swagger/api-paginated-response.decorator';
 import {
   createInvoiceSchema,
   updateInvoiceSchema,
@@ -22,7 +38,16 @@ import {
   UpdateInvoiceInput,
   PaginationQuery,
 } from '@marketlum/shared';
+import {
+  CreateInvoiceDto,
+  UpdateInvoiceDto,
+  InvoiceResponseDto,
+} from './invoice.dto';
 
+@ApiTags('invoices')
+@ApiCookieAuth('access_token')
+@ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
+@ApiExtraModels(InvoiceResponseDto)
 @Controller('invoices')
 @UseGuards(AdminGuard)
 export class InvoicesController {
@@ -30,6 +55,10 @@ export class InvoicesController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create an invoice' })
+  @ApiBody({ type: CreateInvoiceDto })
+  @ApiCreatedResponse({ type: InvoiceResponseDto })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
   async create(
     @Body(new ZodValidationPipe(createInvoiceSchema)) body: CreateInvoiceInput,
   ) {
@@ -37,6 +66,18 @@ export class InvoicesController {
   }
 
   @Get('search')
+  @ApiOperation({ summary: 'Search and paginate invoices' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
+  @ApiQuery({ name: 'fromAgentId', required: false, type: String })
+  @ApiQuery({ name: 'toAgentId', required: false, type: String })
+  @ApiQuery({ name: 'paid', required: false, enum: ['true', 'false'] })
+  @ApiQuery({ name: 'currencyId', required: false, type: String })
+  @ApiQuery({ name: 'channelId', required: false, type: String })
+  @ApiPaginatedResponse(InvoiceResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('fromAgentId') fromAgentId?: string,
@@ -56,11 +97,20 @@ export class InvoicesController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get an invoice by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Invoice UUID' })
+  @ApiOkResponse({ type: InvoiceResponseDto })
+  @ApiNotFoundResponse({ description: 'Invoice not found' })
   async findOne(@Param('id') id: string) {
     return this.invoicesService.findOne(id);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update an invoice' })
+  @ApiParam({ name: 'id', type: String, description: 'Invoice UUID' })
+  @ApiBody({ type: UpdateInvoiceDto })
+  @ApiOkResponse({ type: InvoiceResponseDto })
+  @ApiNotFoundResponse({ description: 'Invoice not found' })
   async update(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateInvoiceSchema)) body: UpdateInvoiceInput,
@@ -70,6 +120,10 @@ export class InvoicesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete an invoice' })
+  @ApiParam({ name: 'id', type: String, description: 'Invoice UUID' })
+  @ApiNoContentResponse({ description: 'Invoice deleted' })
+  @ApiNotFoundResponse({ description: 'Invoice not found' })
   async remove(@Param('id') id: string) {
     await this.invoicesService.remove(id);
   }

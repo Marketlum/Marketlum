@@ -8,6 +8,16 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiCookieAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiNoContentResponse,
+  ApiUnauthorizedResponse,
+  ApiTooManyRequestsResponse,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -16,7 +26,9 @@ import { AdminGuard } from './guards/admin.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
+import { LoginDto, UserResponseDto } from './auth.dto';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -28,6 +40,11 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Authenticate and set session cookie' })
+  @ApiBody({ type: LoginDto })
+  @ApiOkResponse({ description: 'Authenticated user', type: UserResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
+  @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded (5 attempts per minute)' })
   async login(@Req() req: { user: User }, @Res({ passthrough: true }) res: Response) {
     const token = this.authService.generateToken(req.user);
 
@@ -48,6 +65,10 @@ export class AuthController {
   @UseGuards(AdminGuard)
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Clear session cookie' })
+  @ApiNoContentResponse({ description: 'Logged out' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
   async logout(@Res({ passthrough: true }) res: Response) {
     const cookieDomain = process.env.COOKIE_DOMAIN;
 
@@ -62,6 +83,10 @@ export class AuthController {
 
   @UseGuards(AdminGuard)
   @Get('me')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Get current authenticated user' })
+  @ApiOkResponse({ type: UserResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
   async me(@CurrentUser() user: User) {
     return this.usersService.stripPassword(user);
   }

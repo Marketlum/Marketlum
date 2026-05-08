@@ -24,7 +24,9 @@ import {
   ApiBody,
   ApiQuery,
   ApiParam,
+  ApiExtraModels,
 } from '@nestjs/swagger';
+import { ApiPaginatedResponse } from '../common/swagger/api-paginated-response.decorator';
 import { TensionsService } from './tensions.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
@@ -48,6 +50,7 @@ import {
 @ApiTags('tensions')
 @ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
+@ApiExtraModels(TensionResponseDto)
 @Controller('tensions')
 @UseGuards(AdminGuard)
 export class TensionsController {
@@ -76,24 +79,7 @@ export class TensionsController {
   @ApiQuery({ name: 'agentId', required: false, type: String, description: 'UUID of the agent to filter by' })
   @ApiQuery({ name: 'leadUserId', required: false, type: String, description: 'UUID of the lead user to filter by' })
   @ApiQuery({ name: 'state', required: false, enum: ['alive', 'resolved', 'stale'] })
-  @ApiOkResponse({
-    description: 'Paginated list of tensions',
-    schema: {
-      type: 'object',
-      properties: {
-        data: { type: 'array', items: { $ref: '#/components/schemas/TensionResponseDto' } },
-        meta: {
-          type: 'object',
-          properties: {
-            page: { type: 'integer' },
-            limit: { type: 'integer' },
-            total: { type: 'integer' },
-            totalPages: { type: 'integer' },
-          },
-        },
-      },
-    },
-  })
+  @ApiPaginatedResponse(TensionResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('agentId') agentId?: string,
