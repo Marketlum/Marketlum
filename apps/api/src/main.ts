@@ -1,7 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { patchNestJsSwagger } from 'nestjs-zod';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+
+patchNestJsSwagger();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
