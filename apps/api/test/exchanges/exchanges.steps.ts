@@ -46,6 +46,9 @@ const transitionFeature = loadFeature(
 const flowGraphFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/exchange-flow-graph.feature'),
 );
+const downloadPdfFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/download-exchange-pdf.feature'),
+);
 
 const exchangeIds = new Map<string, string>();
 const agentIds = new Map<string, string>();
@@ -2817,5 +2820,107 @@ defineFeature(flowGraphFeature, (test) => {
         expect(flow.value.type).toBe(type);
       },
     );
+  });
+});
+
+// --- DOWNLOAD EXCHANGE PDF ---
+defineFeature(downloadPdfFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    clearMaps();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Download PDF for an exchange', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
+      await createExchange(authCookie, name);
+    });
+
+    when('I download the exchange PDF', async () => {
+      const id = exchangeIds.values().next().value;
+      response = await request(getApp().getHttpServer())
+        .get(`/exchanges/${id}/pdf`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .buffer(true)
+        .parse((res, callback) => {
+          const chunks: Buffer[] = [];
+          res.on('data', (chunk: Buffer) => chunks.push(chunk));
+          res.on('end', () => callback(null, Buffer.concat(chunks)));
+        });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response Content-Type should be "(.*)"$/, (contentType: string) => {
+      expect(response.headers['content-type']).toContain(contentType);
+    });
+
+    and(/^the response Content-Disposition should contain "(.*)"$/, (fragment: string) => {
+      expect(response.headers['content-disposition']).toContain(fragment);
+    });
+
+    and(/^the response Content-Disposition should contain "(.*)"$/, (fragment: string) => {
+      expect(response.headers['content-disposition']).toContain(fragment);
+    });
+
+    and('the response body should be a non-empty PDF', () => {
+      const body = response.body as Buffer;
+      expect(body.length).toBeGreaterThan(100);
+      expect(body.subarray(0, 4).toString('ascii')).toBe('%PDF');
+    });
+  });
+
+  test('Non-existent exchange returns 404', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I download the exchange PDF for ID "(.*)"$/, async (id: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/exchanges/${id}/pdf`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Unauthenticated request is rejected', ({ when, then }) => {
+    when(/^I download the exchange PDF for ID "(.*)"$/, async (id: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/exchanges/${id}/pdf`)
+        .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
   });
 });

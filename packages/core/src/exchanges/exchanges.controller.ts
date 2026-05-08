@@ -7,11 +7,14 @@ import {
   Body,
   Param,
   Query,
+  Res,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ExchangesService } from './exchanges.service';
+import { ExchangePdfService } from './pdf/exchange-pdf.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
@@ -28,7 +31,10 @@ import {
 @Controller('exchanges')
 @UseGuards(AdminGuard)
 export class ExchangesController {
-  constructor(private readonly exchangesService: ExchangesService) {}
+  constructor(
+    private readonly exchangesService: ExchangesService,
+    private readonly exchangePdfService: ExchangePdfService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -62,6 +68,15 @@ export class ExchangesController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.exchangesService.findOne(id);
+  }
+
+  @Get(':id/pdf')
+  async downloadPdf(@Param('id') id: string, @Res() res: Response) {
+    const { buffer, filename } = await this.exchangePdfService.generate(id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', buffer.length.toString());
+    res.end(buffer);
   }
 
   @Post(':id/transitions')

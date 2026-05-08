@@ -714,6 +714,8 @@
     "backToExchanges": "Powrót do wymian",
     "stateChanged": "Status wymiany zmieniony",
     "failedToTransition": "Nie udało się zmienić statusu wymiany",
+    "downloadPdf": "Pobierz PDF",
+    "failedToDownloadPdf": "Nie udało się pobrać PDF",
     "close": "Zamknij",
     "complete": "Zakończ",
     "reopen": "Otwórz ponownie",

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Pencil, Trash2, ArrowLeft, ArrowRightLeft, ExternalLink, ArrowRight } from 'lucide-react';
+import { Pencil, Trash2, ArrowLeft, ArrowRightLeft, ExternalLink, ArrowRight, Download } from 'lucide-react';
 import type { ExchangeResponse, ExchangeFlowResponse, CreateExchangeInput } from '@marketlum/shared';
 import type { PaginatedResponse } from '@marketlum/shared';
 import { api, ApiError } from '../../lib/api-client';
@@ -89,6 +89,15 @@ export function ExchangeDetailPage() {
       fetchExchange();
     } catch {
       toast.error(t('failedToTransition'));
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!exchange) return;
+    try {
+      await api.download(`/exchanges/${exchange.id}/pdf`, `exchange-${exchange.id}.pdf`);
+    } catch {
+      toast.error(t('failedToDownloadPdf'));
     }
   };
 
@@ -200,6 +209,10 @@ export function ExchangeDetailPage() {
             )}
             <Button variant="outline" size="sm" onClick={() => setFlowsOpen(true)}>
               {t('flows')}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              {t('downloadPdf')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <Pencil className="mr-1.5 h-3.5 w-3.5" />

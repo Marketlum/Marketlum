@@ -715,6 +715,8 @@
     "backToExchanges": "Back to exchanges",
     "stateChanged": "Exchange state changed",
     "failedToTransition": "Failed to transition exchange",
+    "downloadPdf": "Download PDF",
+    "failedToDownloadPdf": "Failed to download PDF",
     "close": "Close",
     "complete": "Complete",
     "reopen": "Reopen",

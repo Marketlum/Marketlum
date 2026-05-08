@@ -37,6 +37,25 @@ export const api = {
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  download: async (path: string, fallbackFilename: string): Promise<void> => {
+    const res = await fetch(`${API_URL}${path}`, { credentials: 'include' });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: res.statusText }));
+      throw new ApiError(res.status, body.message || res.statusText);
+    }
+    const disposition = res.headers.get('Content-Disposition') ?? '';
+    const match = /filename="?([^"]+)"?/.exec(disposition);
+    const filename = match?.[1] ?? fallbackFilename;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
   upload: async <T>(path: string, formData: FormData): Promise<T> => {
     const res = await fetch(`${API_URL}${path}`, {
       method: 'POST',

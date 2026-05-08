@@ -13,6 +13,7 @@ import { User } from '../users/entities/user.entity';
 import { Tension } from '../tensions/entities/tension.entity';
 import { ExchangesService } from './exchanges.service';
 import { ExchangeFlowsService } from './exchange-flows.service';
+import { ExchangePdfService } from './pdf/exchange-pdf.service';
 import { ExchangesController } from './exchanges.controller';
 import { ExchangeFlowsController } from './exchange-flows.controller';
 
@@ -33,7 +34,7 @@ import { ExchangeFlowsController } from './exchange-flows.controller';
     ]),
   ],
   controllers: [ExchangesController, ExchangeFlowsController],
-  providers: [ExchangesService, ExchangeFlowsService],
+  providers: [ExchangesService, ExchangeFlowsService, ExchangePdfService],
   exports: [ExchangesService, ExchangeFlowsService],
 })
 export class ExchangesModule {}
