@@ -116,6 +116,7 @@ export const createExchangeFlowSchema = z.object({
   fromAgentId: z.string().uuid(),
   toAgentId: z.string().uuid(),
   quantity: z.string().regex(decimalStringRegex, 'Must be a decimal string'),
+  description: z.string().nullable().optional(),
 }).refine(
   (data) => {
     const hasValue = data.valueId != null;
@@ -131,6 +132,7 @@ export const updateExchangeFlowSchema = z.object({
   fromAgentId: z.string().uuid().optional(),
   toAgentId: z.string().uuid().optional(),
   quantity: z.string().regex(decimalStringRegex, 'Must be a decimal string').optional(),
+  description: z.string().nullable().optional(),
 });
 
 export const exchangeFlowResponseSchema = z.object({
@@ -140,6 +142,7 @@ export const exchangeFlowResponseSchema = z.object({
   fromAgent: agentSummarySchema,
   toAgent: agentSummarySchema,
   quantity: z.string(),
+  description: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

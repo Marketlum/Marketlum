@@ -34,6 +34,7 @@ export class ExchangeFlowsService {
       fromAgentId: string;
       toAgentId: string;
       quantity: string;
+      description?: string | null;
     },
   ): Promise<ExchangeFlow> {
     // Verify exchange exists
@@ -68,6 +69,7 @@ export class ExchangeFlowsService {
       fromAgentId: input.fromAgentId,
       toAgentId: input.toAgentId,
       quantity: input.quantity,
+      description: input.description ?? null,
     });
 
     const saved = await this.flowRepository.save(flow);
@@ -142,6 +144,7 @@ export class ExchangeFlowsService {
     if (input.fromAgentId !== undefined) flow.fromAgentId = input.fromAgentId;
     if (input.toAgentId !== undefined) flow.toAgentId = input.toAgentId;
     if (input.quantity !== undefined) flow.quantity = input.quantity;
+    if (input.description !== undefined) flow.description = input.description ?? null;
 
     // Delete relations before save
     delete (flow as any).value;

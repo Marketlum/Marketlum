@@ -2,6 +2,7 @@
   "common": {
     "loading": "Wczytywanie...",
     "search": "Szukaj...",
+    "or": "lub",
     "save": "Zapisz",
     "cancel": "Anuluj",
     "create": "Utwórz",
@@ -699,6 +700,8 @@
     "toAgent": "Do agenta",
     "swapAgents": "Zamień agentów",
     "quantity": "Ilość",
+    "flowDescriptionLabel": "Opis (opcjonalnie)",
+    "flowDescriptionPlaceholder": "Notatki o tym przepływie",
     "flowCreated": "Przepływ utworzony",
     "flowUpdated": "Przepływ zaktualizowany",
     "flowDeleted": "Przepływ usunięty",

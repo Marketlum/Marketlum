@@ -55,6 +55,9 @@ export class ExchangeFlow {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   quantity: string;
 
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

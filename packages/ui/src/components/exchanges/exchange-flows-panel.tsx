@@ -36,6 +36,7 @@ interface FlowRow {
   fromAgent: { id: string; name: string };
   toAgent: { id: string; name: string };
   quantity: string;
+  description: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,6 +79,7 @@ export function ExchangeFlowsPanel({
   const [fromAgentId, setFromAgentId] = useState<string>('');
   const [toAgentId, setToAgentId] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
 
   const fetchFlows = useCallback(async () => {
     setLoading(true);
@@ -103,6 +105,7 @@ export function ExchangeFlowsPanel({
     setFromAgentId(partyAgents[0]?.id ?? '');
     setToAgentId(partyAgents[1]?.id ?? '');
     setQuantity('');
+    setDescription('');
   };
 
   const openCreateForm = () => {
@@ -123,6 +126,7 @@ export function ExchangeFlowsPanel({
     setFromAgentId(flow.fromAgent.id);
     setToAgentId(flow.toAgent.id);
     setQuantity(flow.quantity);
+    setDescription(flow.description ?? '');
     setFormOpen(true);
   };
 
@@ -134,6 +138,7 @@ export function ExchangeFlowsPanel({
         fromAgentId,
         toAgentId,
         quantity,
+        description: description.trim() ? description : null,
       };
       if (valueId !== 'none') {
         body.valueId = valueId;
@@ -218,7 +223,10 @@ export function ExchangeFlowsPanel({
                   {flows.map((flow) => (
                     <tr key={flow.id} className="border-b last:border-0">
                       <td className="p-2">
-                        {flow.value?.name ?? flow.valueInstance?.name ?? '\u2014'}
+                        <div>{flow.value?.name ?? flow.valueInstance?.name ?? '\u2014'}</div>
+                        {flow.description && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{flow.description}</div>
+                        )}
                       </td>
                       <td className="p-2">{flow.fromAgent.name}</td>
                       <td className="p-2 text-center text-muted-foreground">
@@ -255,39 +263,41 @@ export function ExchangeFlowsPanel({
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmitFlow} className="space-y-4">
-            <div className="space-y-1">
-              <Label>{t('flowValue')}</Label>
-              <ValueCombobox
-                values={values}
-                value={valueId === 'none' ? null : valueId}
-                onSelect={(id) => {
-                  setValueId(id ?? 'none');
-                  if (id) setValueInstanceId('none');
-                }}
-                placeholder={t('selectValue')}
-                noneLabel={'\u2014'}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>{t('flowValueInstance')}</Label>
-              <Select
-                value={valueInstanceId}
-                onValueChange={(v) => {
-                  setValueInstanceId(v);
-                  if (v !== 'none') setValueId('none');
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('selectValueInstance')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">&mdash;</SelectItem>
-                  {valueInstances.map((vi) => (
-                    <SelectItem key={vi.id} value={vi.id}>{vi.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-end gap-2">
+              <div className="flex-1 space-y-1">
+                <Label>{t('flowValue')}</Label>
+                <ValueCombobox
+                  values={values}
+                  value={valueId === 'none' ? null : valueId}
+                  onSelect={(id) => {
+                    setValueId(id ?? 'none');
+                    if (id) setValueInstanceId('none');
+                  }}
+                  placeholder={t('selectValue')}
+                  noneLabel={'\u2014'}
+                />
+              </div>
+              <span className="pb-2 text-sm text-muted-foreground">{tc('or')}</span>
+              <div className="flex-1 space-y-1">
+                <Label>{t('flowValueInstance')}</Label>
+                <Select
+                  value={valueInstanceId}
+                  onValueChange={(v) => {
+                    setValueInstanceId(v);
+                    if (v !== 'none') setValueId('none');
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('selectValueInstance')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">&mdash;</SelectItem>
+                    {valueInstances.map((vi) => (
+                      <SelectItem key={vi.id} value={vi.id}>{vi.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="flex items-end gap-2">
@@ -337,6 +347,15 @@ export function ExchangeFlowsPanel({
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0.00"
                 required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label>{t('flowDescriptionLabel')}</Label>
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t('flowDescriptionPlaceholder')}
               />
             </div>
 

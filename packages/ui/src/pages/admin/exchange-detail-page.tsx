@@ -370,6 +370,9 @@ export function ExchangeDetailPage() {
                             ) : null;
                           })()}
                         </div>
+                        {flow.description && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{flow.description}</div>
+                        )}
                       </td>
                       <td className="p-2">{flow.fromAgent.name}</td>
                       <td className="p-2 text-center text-muted-foreground">

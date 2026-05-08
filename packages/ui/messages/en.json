@@ -2,6 +2,7 @@
   "common": {
     "loading": "Loading...",
     "search": "Search...",
+    "or": "or",
     "save": "Save",
     "cancel": "Cancel",
     "create": "Create",
@@ -700,6 +701,8 @@
     "toAgent": "To Agent",
     "swapAgents": "Swap agents",
     "quantity": "Quantity",
+    "flowDescriptionLabel": "Description (optional)",
+    "flowDescriptionPlaceholder": "Notes about this flow",
     "flowCreated": "Flow created",
     "flowUpdated": "Flow updated",
     "flowDeleted": "Flow deleted",
