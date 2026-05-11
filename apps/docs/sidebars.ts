@@ -26,6 +26,20 @@ const sidebars: SidebarsConfig = {
         'concepts/tensions',
       ],
     },
+    {
+      type: 'category',
+      label: 'Customization Guide',
+      items: [
+        'customization/overview',
+        'customization/branding',
+        'customization/translations',
+        'customization/environment',
+        'customization/seed-data',
+        'customization/extending-api',
+        'customization/extending-web',
+        'customization/taxonomies-archetypes',
+      ],
+    },
   ],
 };
 
