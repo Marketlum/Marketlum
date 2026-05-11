@@ -1,6 +1,7 @@
 {
   "name": "marketlum",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "pnpm --filter @marketlum/shared run build && pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/ui run build && pnpm --parallel --filter=!@marketlum/shared --filter=!@marketlum/core --filter=!@marketlum/ui -r run dev",
     "build": "pnpm -r run build",

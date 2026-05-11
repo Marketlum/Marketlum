@@ -2,6 +2,7 @@
   "name": "create-marketlum-app",
   "version": "0.1.5",
   "description": "Create a new Marketlum application",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "create-marketlum-app": "./bin/create-marketlum-app.mjs"

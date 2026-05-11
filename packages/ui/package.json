@@ -1,6 +1,7 @@
 {
   "name": "@marketlum/ui",
   "version": "0.1.5",
+  "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

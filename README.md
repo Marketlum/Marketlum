@@ -64,4 +64,4 @@ API docs (Swagger) are available at `http://localhost:3001/api/docs`.
 
 ## License
 
-Proprietary. All rights reserved.
+Released under the [MIT License](./LICENSE).
