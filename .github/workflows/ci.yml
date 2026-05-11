@@ -60,8 +60,11 @@ jobs:
             'WEB_PORT=3000' \
             > .env.test
 
-      - name: Build shared package
-        run: pnpm --filter @marketlum/shared build
+      - name: Build framework packages
+        run: |
+          pnpm --filter @marketlum/shared build
+          pnpm --filter @marketlum/core build
+          pnpm --filter @marketlum/ui build
 
       - name: Lint
         run: |
