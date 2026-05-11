@@ -40,6 +40,20 @@ const sidebars: SidebarsConfig = {
         'customization/taxonomies-archetypes',
       ],
     },
+    {
+      type: 'category',
+      label: 'Contributing Guide',
+      items: [
+        'contributing/overview',
+        'contributing/dev-setup',
+        'contributing/repo-layout',
+        'contributing/bdd-workflow',
+        'contributing/testing',
+        'contributing/coding-conventions',
+        'contributing/migrations',
+        'contributing/submitting-a-pr',
+      ],
+    },
   ],
 };
 
