@@ -25,7 +25,7 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/pjedrzejewski/marketlum/tree/master/apps/docs/',
+          editUrl: 'https://github.com/Marketlum/Marketlum/tree/master/apps/docs/',
         },
         blog: false,
         theme: {
@@ -50,7 +50,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: 'https://github.com/pjedrzejewski/marketlum',
+          href: 'https://github.com/Marketlum/Marketlum',
           label: 'GitHub',
           position: 'right',
         },
@@ -69,7 +69,7 @@ const config: Config = {
         {
           title: 'Links',
           items: [
-            { label: 'GitHub', href: 'https://github.com/pjedrzejewski/marketlum' },
+            { label: 'GitHub', href: 'https://github.com/Marketlum/Marketlum' },
             { label: 'Demo', href: 'https://demo.marketlum.com' },
             { label: 'API Docs', href: 'https://api.demo.marketlum.com/api/docs' },
           ],
