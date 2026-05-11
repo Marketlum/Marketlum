@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="apps/web/public/logo.png" alt="Marketlum" width="160" height="160" />
+</p>
+
 # Marketlum
 
 A framework for building markets.
