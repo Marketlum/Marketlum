@@ -61,15 +61,36 @@ export function renderExchangePdfHtml(data: ExchangePdfData): string {
     )
     .join('');
 
+  const valueTypeLabels: Record<string, string> = {
+    product: 'Product',
+    service: 'Service',
+    relationship: 'Relationship',
+    right: 'Right',
+  };
+
+  const renderValueTypeBadge = (type: string | null | undefined): string => {
+    if (!type) return '';
+    const label = valueTypeLabels[type] ?? type;
+    return `<span class="value-badge value-badge-${escape(type)}">${escape(label)}</span>`;
+  };
+
   const flowsRows = flows
     .map((f) => {
       const valueName = f.value?.name ?? f.valueInstance?.name ?? '—';
+      const valueType = f.value?.type ?? (f.valueInstance as any)?.type ?? null;
+      const description = (f as any).description as string | null | undefined;
       return `
         <tr>
           <td>${escape(f.fromAgent?.name ?? '')}</td>
           <td class="arrow">→</td>
           <td>${escape(f.toAgent?.name ?? '')}</td>
-          <td>${escape(valueName)}</td>
+          <td>
+            <div class="value-cell">
+              <span>${escape(valueName)}</span>
+              ${renderValueTypeBadge(valueType)}
+            </div>
+            ${description ? `<div class="flow-desc">${escape(description)}</div>` : ''}
+          </td>
           <td class="num">${escape(f.quantity)}</td>
         </tr>
       `;
@@ -178,6 +199,21 @@ export function renderExchangePdfHtml(data: ExchangePdfData): string {
     background: #e2e8f0;
     color: #0f172a;
   }
+  .value-cell { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .flow-desc { color: #64748b; font-size: 9pt; margin-top: 2px; }
+  .value-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: 8.5pt;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .value-badge-product { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+  .value-badge-service { border-color: #fde68a; background: #fefce8; color: #a16207; }
+  .value-badge-relationship { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+  .value-badge-right { border-color: #e9d5ff; background: #faf5ff; color: #7e22ce; }
   .markdown p { margin: 6px 0; }
   .markdown ul, .markdown ol { margin: 6px 0; padding-left: 22px; }
   .markdown h1 { font-size: 14pt; margin: 12px 0 6px; }
