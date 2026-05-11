@@ -4,33 +4,32 @@
 
 # Marketlum
 
-A framework for building markets.
+🚀 A revolutionary framework for building markets.
 
-## Tech Stack
+## 🧰 Tech Stack
 
-- **API** — NestJS, TypeORM, PostgreSQL
-- **Web** — Next.js 14 (App Router), shadcn/ui, TanStack Table
-- **Shared** — Zod schemas used by both API and Web
-- **BDD** — Gherkin feature files with jest-cucumber
+- 🛠️ **Backend API** — NestJS, TypeORM, PostgreSQL
+- 🎨 **Frontend Web** — Next.js 14 (App Router), shadcn/ui, TanStack Table
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 apps/
-  api/          NestJS REST API (port 3001)
-  web/          Next.js admin UI (port 3000)
+  api/                        NestJS REST API (port 3001)
+  web/                        Next.js admin UI (port 3000)
 packages/
-  shared/       Zod schemas and shared types
-  bdd/          Gherkin feature files
+  shared/                     Zod schemas and shared types
+  bdd/                        Gherkin feature files
+  create-marketlum-app/       Scaffolding new app 
 ```
 
-## Prerequisites
+## ✅ Prerequisites
 
-- Node.js >= 20
-- pnpm 10.6+
-- Docker (for PostgreSQL)
+- 🟢 Node.js >= 20
+- 📦 pnpm 10.6+
+- 🐳 Docker (for PostgreSQL)
 
-## Getting Started
+## 🏁 Getting Started (to contribute)
 
 ```bash
 # Install dependencies
@@ -43,7 +42,7 @@ pnpm db:up
 pnpm migration:run
 
 # Seed the admin user
-pnpm seed
+pnpm seed:admin
 
 # Start API and Web in development mode
 pnpm dev
@@ -53,19 +52,19 @@ The API runs at `http://localhost:3001` and the web UI at `http://localhost:3000
 
 API docs (Swagger) are available at `http://localhost:3001/api/docs`.
 
-## Scripts
+## ⚙️ Scripts
 
 | Command                | Description                        |
 | ---------------------- | ---------------------------------- |
 | `pnpm dev`             | Start API and Web in watch mode    |
 | `pnpm build`           | Build all packages                 |
 | `pnpm test:e2e`        | Run BDD tests                      |
-| `pnpm seed`            | Seed admin user                    |
+| `pnpm seed:admin`      | Seed admin user                    |
 | `pnpm migration:run`   | Run database migrations            |
 | `pnpm migration:revert`| Revert last migration              |
 | `pnpm db:up`           | Start PostgreSQL via Docker        |
 | `pnpm db:down`         | Stop PostgreSQL                    |
 
-## License
+## 📄 License
 
 Released under the [MIT License](./LICENSE).
