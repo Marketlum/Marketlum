@@ -9,7 +9,7 @@
 ## 🧰 Tech Stack
 
 - 🛠️ **Backend API** — NestJS, TypeORM, PostgreSQL
-- 🎨 **Frontend Web** — Next.js 14 (App Router), shadcn/ui, TanStack Table
+- 🎨 **Frontend Web** — Next.js 16 (App Router), shadcn/ui, TanStack Table
 
 ## 📁 Project Structure
 

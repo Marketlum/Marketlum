@@ -31,7 +31,7 @@ Key files:
 
 ### `apps/web`
 
-The frontend built with Next.js 14 (App Router). It imports `@marketlum/ui` for all pages and components, and `@marketlum/shared` for type definitions.
+The frontend built with Next.js 16 (App Router). It imports `@marketlum/ui` for all pages and components, and `@marketlum/shared` for type definitions.
 
 Key files:
 - `src/app/` &mdash; Next.js pages (login, admin dashboard, entity pages)

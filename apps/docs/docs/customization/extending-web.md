@@ -4,7 +4,7 @@ sidebar_position: 7
 
 # Extending the Web App
 
-`apps/web` is your own Next.js 14 (App Router) project. It re-exports admin pages and components from `@marketlum/ui`, but you can add your own routes, layouts, and middleware on top.
+`apps/web` is your own Next.js 16 (App Router) project. It re-exports admin pages and components from `@marketlum/ui`, but you can add your own routes, layouts, and middleware on top.
 
 ## Add a new page
 

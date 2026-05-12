@@ -25,7 +25,7 @@ Markets are complex systems where agents create, exchange, and consume value. Ma
 Marketlum is a monorepo built with:
 
 - **API** &mdash; NestJS + TypeORM + PostgreSQL
-- **Web** &mdash; Next.js 14 (App Router) + shadcn/ui
+- **Web** &mdash; Next.js 16 (App Router) + shadcn/ui
 - **Core** &mdash; Shared business logic, entities, and services (`@marketlum/core`)
 - **Shared** &mdash; Zod schemas and TypeScript types (`@marketlum/shared`)
 - **UI** &mdash; Reusable React components and pages (`@marketlum/ui`)

@@ -30,7 +30,7 @@ The reference NestJS application that exercises `@marketlum/core`. It is also wh
 
 ### `apps/web`
 
-The reference Next.js 14 (App Router) application. Like `apps/api`, it mirrors what gets scaffolded for new users. The actual admin pages and shared components live in `@marketlum/ui` &mdash; this app is mostly a thin shell.
+The reference Next.js 16 (App Router) application. Like `apps/api`, it mirrors what gets scaffolded for new users. The actual admin pages and shared components live in `@marketlum/ui` &mdash; this app is mostly a thin shell.
 
 ### `apps/docs`
 

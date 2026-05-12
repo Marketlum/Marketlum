@@ -104,10 +104,6 @@ Multer uses memory storage by default (configured in `FilesModule`). The buffer 
 
 ## React / Next.js
 
-### Next.js 14 config
-
-Next.js 14 does **not** support `next.config.ts`. Use `next.config.mjs`. Cleanups that try to migrate it to `.ts` will break the build.
-
 ### shadcn/ui missing components
 
 Not every shadcn component is installed. If you need one that isn&apos;t there (e.g. `Checkbox`), either install it (`npx shadcn-ui@latest add checkbox`) or use the native `<input type="checkbox">`.
