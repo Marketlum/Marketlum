@@ -3,9 +3,11 @@ import fs from 'node:fs';
 import { execSync } from 'node:child_process';
 import { getProjectName } from './prompts.mjs';
 import { scaffold } from './scaffold.mjs';
-import { printSuccess } from './messages.mjs';
+import { printBanner, printScaffolding, printSuccess } from './messages.mjs';
 
 export async function createApp() {
+  printBanner();
+
   const projectName = await getProjectName();
   const databaseName = projectName.replace(/-/g, '_');
   const targetDir = path.resolve(process.cwd(), projectName);
@@ -18,6 +20,8 @@ export async function createApp() {
       );
     }
   }
+
+  printScaffolding(projectName, targetDir);
 
   const replacements = {
     '{{PROJECT_NAME}}': projectName,
