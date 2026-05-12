@@ -25,7 +25,7 @@ A `RecurringFlow` is a **plan**, not a ledger entry:
 ┌─────────────┴──────────────┐
 │       RecurringFlow        │
 │  direction   amount/unit   │
-│  frequency   anchorDate    │
+│  frequency   startDate    │
 │  status      [endDate]     │
 └──┬──────┬─────────┬────────┘
    │      │         │
@@ -53,7 +53,7 @@ A `RecurringFlow` is a **plan**, not a ledger entry:
 | `unit` | varchar(32) | yes | Free-text: `USD`, `EUR`, `hours`, `FTE`, &hellip; |
 | `frequency` | enum | yes | `daily` \| `weekly` \| `monthly` \| `quarterly` \| `yearly` |
 | `interval` | int | yes | Multiplier on frequency, default `1`, must be &ge; 1 |
-| `anchorDate` | date | yes | Date of the first occurrence; subsequent occurrences derived from `frequency` + `interval` |
+| `startDate` | date | yes | Date of the first occurrence; subsequent occurrences derived from `frequency` + `interval` |
 | `endDate` | date | no | Last day on which the flow is still considered live |
 | `status` | enum | yes | `draft` \| `active` \| `paused` \| `ended`, default `draft` |
 | `description` | text | no | Free-form |
@@ -64,7 +64,7 @@ A `RecurringFlow` is a **plan**, not a ledger entry:
 **Notes:**
 - `amount` uses `decimal(14, 4)` for headroom on both money (4 fractional digits handles micro-pricing) and quantities. Per Marketlum convention, all decimal values are returned as strings formatted with `Number(rawValue).toFixed(4)` &mdash; **do not** use raw `parseFloat` (per existing TypeORM gotcha).
 - `unit` is free-form text but normalised on write: trimmed, max 32 chars. Validation does not enforce ISO 4217 &mdash; users may type any token.
-- `anchorDate` is a `date` (no time component). Projection helpers treat occurrences as whole-day events.
+- `startDate` is a `date` (no time component). Projection helpers treat occurrences as whole-day events.
 - The `taxonomies` join table is named `recurring_flow_taxonomies` with columns `recurringFlowId` and `taxonomyId`, mirroring `value_taxonomies`.
 
 ### 2.2 State machine
@@ -107,8 +107,8 @@ Transition rules:
 - `unit` &mdash; trimmed string, 1&ndash;32 chars
 - `frequency` &mdash; one of the five values
 - `interval` &mdash; integer &ge; 1, default 1
-- `anchorDate` &mdash; ISO date string
-- `endDate` &mdash; optional ISO date string, must be &ge; `anchorDate`
+- `startDate` &mdash; ISO date string
+- `endDate` &mdash; optional ISO date string, must be &ge; `startDate`
 - `description` &mdash; optional string
 - `taxonomyIds` &mdash; optional uuid array
 - Cross-field: if `direction === 'inbound'` and `offeringId` is set, no extra check; symmetric for outbound. (No hard cross-direction rule on `offeringId`; the link is informational.)
@@ -148,7 +148,7 @@ Query params (all optional):
 - `taxonomyId` &mdash; repeatable; matches any
 - `q` &mdash; free-text search across `description`
 - `page`, `pageSize` &mdash; standard pagination
-- `sortBy`, `sortDir` &mdash; standard sort (default: `anchorDate` desc)
+- `sortBy`, `sortDir` &mdash; standard sort (default: `startDate` desc)
 
 Default behavior: returns all statuses including `ended` (UI applies `status != ended` by default; see §5).
 
@@ -216,7 +216,7 @@ Annualised is `monthly * 12`. Net is `inbound - outbound` per unit (only units p
 }
 ```
 
-The projection counts occurrences whose date falls in the calendar month, using each flow&apos;s `anchorDate` + `frequency` + `interval`, clipped by `status` (only `active` and `paused` &mdash; though paused flows contribute zero) and `endDate`. **Paused flows** are projected as **zero** for paused months (they don&apos;t generate occurrences) but still appear in metadata; **ended** and `draft` flows are excluded.
+The projection counts occurrences whose date falls in the calendar month, using each flow&apos;s `startDate` + `frequency` + `interval`, clipped by `status` (only `active` and `paused` &mdash; though paused flows contribute zero) and `endDate`. **Paused flows** are projected as **zero** for paused months (they don&apos;t generate occurrences) but still appear in metadata; **ended** and `draft` flows are excluded.
 
 ### 3.4 Transition endpoint
 
@@ -234,7 +234,7 @@ Server validates against the state machine and 400s on illegal transitions with 
 
 Pure-function helpers, no I/O:
 
-- `nextOccurrences(flow, count): Date[]` &mdash; first N occurrence dates from `anchorDate`, respecting `endDate`.
+- `nextOccurrences(flow, count): Date[]` &mdash; first N occurrence dates from `startDate`, respecting `endDate`.
 - `occurrencesInMonth(flow, yearMonth: { year, month }): number` &mdash; count of occurrences in a given month.
 - `monthlyEquivalent(flow): number` &mdash; the per-month contribution as defined in §3.2.
 - `formatFrequency(flow): string` &mdash; e.g. `&ldquo;every 1 month&rdquo;`, `&ldquo;every 2 years&rdquo;`.
@@ -257,7 +257,7 @@ Standard admin shell with a `DataTable` and a toolbar.
 - **\*** Description (truncated)
 - **\*** Amount + Unit (right-aligned, e.g. `5,000.00 USD`)
 - **\*** Frequency (`every 1 month`)
-- Anchor date
+- Start date
 - End date
 - **\*** Status (badge)
 - **\*** Value Stream (link)
@@ -272,7 +272,7 @@ Standard admin shell with a `DataTable` and a toolbar.
 
 **Defaults:**
 - Status filter pre-applied to exclude `ended` (visible chip; user can clear)
-- Sort: `anchorDate` desc
+- Sort: `startDate` desc
 
 ### 5.2 Per-stream tab: `/admin/value-streams/[id]` &rarr; &ldquo;Flows&rdquo; tab
 
@@ -320,7 +320,7 @@ Modal dialog (matches existing entity dialogs), with sections:
 3. **Counterparty** &mdash; Agent combobox (required)
 4. **Value** &mdash; Value combobox (optional)
 5. **Amount + Unit** &mdash; two side-by-side inputs
-6. **Recurrence** &mdash; inline row: `Every [interval] [frequency] starting [anchorDate]`, with optional `ending [endDate]` toggle
+6. **Recurrence** &mdash; inline row: `Every [interval] [frequency] starting [startDate]`, with optional `ending [endDate]` toggle
    - Below the row: dim text `Next 3 occurrences: Feb 15, Mar 15, Apr 15`
 7. **Description** &mdash; textarea
 8. **Categorisation** &mdash; taxonomy multi-combobox
@@ -337,7 +337,7 @@ On both the row and the detail/dialog, an action menu (`…`) shows the legal tr
 - `paused` &rarr; `Resume`, `End`, `Edit`
 - `ended` &rarr; `Clone`, `Edit` (read-mostly)
 
-`End` opens a small dialog prompting for `endDate` (default: today). `Clone` opens the create dialog pre-populated with the source flow&apos;s data and `status = draft`, `anchorDate = today`.
+`End` opens a small dialog prompting for `endDate` (default: today). `Clone` opens the create dialog pre-populated with the source flow&apos;s data and `status = draft`, `startDate = today`.
 
 ### 5.7 Navigation
 
@@ -368,8 +368,8 @@ CREATE TABLE recurring_flows (
   unit varchar(32) NOT NULL,
   frequency recurring_flow_frequency_enum NOT NULL,
   "interval" int NOT NULL DEFAULT 1 CHECK ("interval" >= 1),
-  "anchorDate" date NOT NULL,
-  "endDate" date CHECK ("endDate" IS NULL OR "endDate" >= "anchorDate"),
+  "startDate" date NOT NULL,
+  "endDate" date CHECK ("endDate" IS NULL OR "endDate" >= "startDate"),
   status recurring_flow_status_enum NOT NULL DEFAULT 'draft',
   description text,
   "createdAt" timestamptz NOT NULL DEFAULT now(),
@@ -379,7 +379,7 @@ CREATE TABLE recurring_flows (
 CREATE INDEX idx_recurring_flows_value_stream ON recurring_flows("valueStreamId");
 CREATE INDEX idx_recurring_flows_agent ON recurring_flows("counterpartyAgentId");
 CREATE INDEX idx_recurring_flows_status ON recurring_flows(status);
-CREATE INDEX idx_recurring_flows_anchor_date ON recurring_flows("anchorDate");
+CREATE INDEX idx_recurring_flows_start_date ON recurring_flows("startDate");
 ```
 
 **`recurring_flow_taxonomies`** (join table)
@@ -408,15 +408,14 @@ Single hand-written migration `<timestamp>-AddRecurringFlows.ts` registered in `
 
 ## 7. Permissions
 
-Implemented in `RecurringFlowsService` and `RecurringFlowsController`:
+All recurring-flow endpoints are gated by the existing `AdminGuard` (`packages/core/src/auth/guards/admin.guard.ts`), applied at the controller level via `@UseGuards(AdminGuard)` &mdash; same pattern as `OfferingsController`, `LocalesController`, the ledger controllers, etc.
 
 | Action | Who |
 |---|---|
-| List, read | Any authenticated user |
-| Create, update, delete, transition | Platform admin **OR** the `leadUserId` of the flow&apos;s `ValueStream` |
-| Export CSV | Same as list/read (any authenticated user) |
+| List, read, export CSV | Platform admin |
+| Create, update, delete, transition | Platform admin |
 
-A new guard `ValueStreamLeadOrAdminGuard` (or service-level check) reads the flow&apos;s value stream and verifies `req.user.id === stream.leadUserId || req.user.isAdmin`. Failed checks return `403 Forbidden`.
+Non-admin (or unauthenticated) requests are rejected with `403 Forbidden` (or `401` when no auth cookie is present). No per-flow ownership check; no new guard is introduced.
 
 ---
 
@@ -498,7 +497,7 @@ For each existing value stream produced by the sample seeder, generate **3&ndash
 - Units mixed across `USD`, `EUR`, `hours` (and one `FTE` example)
 - Frequencies mixed across `monthly`, `quarterly`, `yearly`
 - `interval` mostly `1`, occasionally `2` or `3`
-- `anchorDate` randomly in the last 18 months
+- `startDate` randomly in the last 18 months
 - Counterparty agents drawn from the existing seeded agents (filtered to avoid the value stream&apos;s own lead, where applicable)
 - Status mostly `active`, a few `paused`, one or two `ended`
 - Approx half link to an existing offering, a third link to an agreement, none links to a value (Value reference is contextual; let downstream usage drive seeded examples later)
@@ -519,13 +518,13 @@ Feature files (one per area, approx. scenarios shown):
 - `update-recurring-flow.feature` (3)
 - `delete-recurring-flow.feature` (3: only-draft, blocks otherwise, cascade-on-stream-delete-restricted)
 - `status-transitions.feature` (6: each legal transition + illegal-transition rejection + end-date capture)
-- `permissions.feature` (4: admin-can-do-all, lead-can-do-own-stream, non-lead-cannot, anyone-can-read)
+- `permissions.feature` (3: admin-can-do-all, non-admin-rejected, unauthenticated-rejected)
 - `referential-integrity.feature` (3: agent-delete-restricted, value-delete-nullifies, stream-delete-restricted)
 - `rollup.feature` (3: empty stream, single unit, mixed units with net)
 - `projection.feature` (3: empty, monthly only, mixed frequencies and units)
 - `csv-export.feature` (1)
 
-Total ≈ 37 scenarios.
+Total ≈ 36 scenarios.
 
 ---
 
