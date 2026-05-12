@@ -10,7 +10,7 @@
   "dependencies": {
     "@marketlum/shared": "workspace:*",
     "@marketlum/ui": "workspace:*",
-    "next": "^16.2.1",
+    "next": "^16.2.6",
     "next-intl": "^4.8.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
