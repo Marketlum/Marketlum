@@ -646,6 +646,7 @@
     "unit": "Jednostka",
     "inBase": "W bazie",
     "noRate": "Brak kursu — migawka nie zapisana.",
+    "valueRequiredForSnapshot": "Wybierz wartość, aby zapisać migawkę w walucie bazowej. Bez niej przepływ nie pojawi się w agregacji budżetu.",
     "frequency": "Częstotliwość",
     "recurrence": "Powtarzalność",
     "nextOccurrencesLabel": "Następne 3 wystąpienia",

@@ -647,6 +647,7 @@
     "unit": "Unit",
     "inBase": "In base",
     "noRate": "No rate available — snapshot not recorded.",
+    "valueRequiredForSnapshot": "Pick a value to record a base-currency snapshot. Without one, this flow won't appear in budget aggregations.",
     "frequency": "Frequency",
     "recurrence": "Recurrence",
     "nextOccurrencesLabel": "Next 3 occurrences",

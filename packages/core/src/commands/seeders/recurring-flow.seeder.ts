@@ -7,12 +7,22 @@ import {
 } from '@marketlum/shared';
 import { RecurringFlowsService } from '../../recurring-flows/recurring-flows.service';
 
+interface ValueRef {
+  id: string;
+  name: string;
+}
+
 interface RecurringFlowDeps {
   valueStreams: Array<{ id: string; name: string }>;
   agents: Array<{ id: string; name: string }>;
+  values: ValueRef[];
 }
 
-const UNITS = ['USD', 'EUR', 'hours', 'FTE'];
+// Names matching the values that get exchange rates seeded against the system
+// base (USD). Restricting picks to this set guarantees every seeded flow has a
+// resolvable baseAmount snapshot.
+const SNAPSHOT_VALUE_NAMES = ['USD', 'EUR', 'GBP', 'Hour of consulting'];
+
 const FREQUENCIES: RecurringFlowFrequency[] = [
   RecurringFlowFrequency.MONTHLY,
   RecurringFlowFrequency.MONTHLY,
@@ -33,6 +43,10 @@ export async function seedRecurringFlows(
   deps: RecurringFlowDeps,
 ) {
   const flows: Array<{ id: string }> = [];
+  const eligibleValues = deps.values.filter((v) => SNAPSHOT_VALUE_NAMES.includes(v.name));
+  // Fall back to whatever values exist if none of the named ones are present
+  // (lets the seeder still produce flows in oddly-customized setups).
+  const valuePool = eligibleValues.length > 0 ? eligibleValues : deps.values;
 
   for (const stream of deps.valueStreams) {
     const flowsForStream = faker.number.int({ min: 3, max: 5 });
@@ -40,7 +54,7 @@ export async function seedRecurringFlows(
     for (let i = 0; i < flowsForStream; i++) {
       const agent = faker.helpers.arrayElement(deps.agents);
       const direction = i % 2 === 0 ? RecurringFlowDirection.INBOUND : RecurringFlowDirection.OUTBOUND;
-      const unit = faker.helpers.arrayElement(UNITS);
+      const valueRef = faker.helpers.arrayElement(valuePool);
       const frequency = faker.helpers.arrayElement(FREQUENCIES);
       const interval = faker.helpers.weightedArrayElement([
         { weight: 7, value: 1 },
@@ -48,7 +62,7 @@ export async function seedRecurringFlows(
         { weight: 1, value: 3 },
       ]);
 
-      const isMoney = unit === 'USD' || unit === 'EUR';
+      const isMoney = ['USD', 'EUR', 'GBP', 'PLN', 'BTC'].includes(valueRef.name);
       const amount = isMoney
         ? faker.number.int({ min: 100, max: 12000 }).toString()
         : faker.number.int({ min: 1, max: 40 }).toString();
@@ -56,9 +70,10 @@ export async function seedRecurringFlows(
       const input: CreateRecurringFlowInput = {
         valueStreamId: stream.id,
         counterpartyAgentId: agent.id,
+        valueId: valueRef.id,
         direction,
         amount,
-        unit,
+        unit: valueRef.name.length > 32 ? valueRef.name.slice(0, 32) : valueRef.name,
         frequency,
         interval,
         startDate: randomISODateInPast(18),

@@ -180,6 +180,16 @@ export class SeedSampleCommand extends CommandRunner {
     const offerings = await seedOfferings(this.offeringsService, { values, agents, valueStreams });
     this.logger.log(`  Created ${offerings.length} offerings`);
 
+    // Seed exchange rates and base value BEFORE invoices and recurring flows so
+    // those entities can resolve a baseAmount snapshot at write time.
+    this.logger.log('Seeding exchange rates...');
+    const rates = await seedExchangeRates(this.exchangeRatesService, { values });
+    this.logger.log(`  Created ${rates.length} exchange rates`);
+
+    this.logger.log('Setting system base value...');
+    const baseSetting = await seedSystemSettings(this.systemSettingsService, { values });
+    this.logger.log(`  Base value set to ${baseSetting?.baseValueId ?? '(not found)'}`);
+
     this.logger.log('Seeding invoices...');
     const invoices = await seedInvoices(this.invoicesService, { agents, values, valueStreams });
     this.logger.log(`  Created ${invoices.length} invoices`);
@@ -206,16 +216,12 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log(`  Created ${exchanges.length} exchanges`);
 
     this.logger.log('Seeding recurring flows...');
-    const recurringFlows = await seedRecurringFlows(this.recurringFlowsService, { valueStreams: valueStreams.all, agents });
+    const recurringFlows = await seedRecurringFlows(this.recurringFlowsService, {
+      valueStreams: valueStreams.all,
+      agents,
+      values,
+    });
     this.logger.log(`  Created ${recurringFlows.length} recurring flows`);
-
-    this.logger.log('Seeding exchange rates...');
-    const rates = await seedExchangeRates(this.exchangeRatesService, { values });
-    this.logger.log(`  Created ${rates.length} exchange rates`);
-
-    this.logger.log('Setting system base value...');
-    const baseSetting = await seedSystemSettings(this.systemSettingsService, { values });
-    this.logger.log(`  Base value set to ${baseSetting?.baseValueId ?? '(not found)'}`);
 
     this.logger.log('Sample data seeded successfully!');
   }
