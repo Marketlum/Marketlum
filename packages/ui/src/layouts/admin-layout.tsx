@@ -72,7 +72,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
       { href: '/admin/invoices', label: t('invoices'), icon: FileText },
       { href: '/admin/recurring-flows', label: t('recurringFlows'), icon: RefreshCw },
-      { href: '/admin/exchange-rates', label: t('exchangeRates'), icon: ArrowRightLeft },
     ]},
     { label: t('groupLedger'), items: [
       { href: '/admin/accounts', label: t('accounts'), icon: Wallet },
@@ -87,6 +86,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/geographies', label: t('geographies'), icon: Globe },
       { href: '/admin/value-streams', label: t('valueStreams'), icon: Workflow },
       { href: '/admin/agreement-templates', label: t('agreementTemplates'), icon: ClipboardList },
+      { href: '/admin/exchange-rates', label: t('exchangeRates'), icon: ArrowRightLeft },
       { href: '/admin/locales', label: t('locales'), icon: Languages },
       { href: '/admin/files', label: t('files'), icon: FileIcon },
     ]},
