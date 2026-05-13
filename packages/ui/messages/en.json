@@ -24,7 +24,9 @@
     "filtersDescription": "Narrow down results using the filters below.",
     "rowsPerPage": "Rows per page",
     "none": "None",
-    "duplicate": "Duplicate"
+    "duplicate": "Duplicate",
+    "all": "All",
+    "validationFailed": "Validation failed"
   },
   "nav": {
     "users": "Users",
@@ -656,14 +658,24 @@
     "failedToCreate": "Failed to create recurring flow",
     "failedToUpdate": "Failed to update recurring flow",
     "failedToDelete": "Failed to delete recurring flow",
-    "transition.activate.success": "Flow activated",
-    "transition.activate.error": "Failed to activate flow",
-    "transition.pause.success": "Flow paused",
-    "transition.pause.error": "Failed to pause flow",
-    "transition.resume.success": "Flow resumed",
-    "transition.resume.error": "Failed to resume flow",
-    "transition.end.success": "Flow ended",
-    "transition.end.error": "Failed to end flow"
+    "transition": {
+      "activate": {
+        "success": "Flow activated",
+        "error": "Failed to activate flow"
+      },
+      "pause": {
+        "success": "Flow paused",
+        "error": "Failed to pause flow"
+      },
+      "resume": {
+        "success": "Flow resumed",
+        "error": "Failed to resume flow"
+      },
+      "end": {
+        "success": "Flow ended",
+        "error": "Failed to end flow"
+      }
+    }
   },
   "invoices": {
     "title": "Invoices",

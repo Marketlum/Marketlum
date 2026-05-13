@@ -23,7 +23,9 @@
     "filters": "Filtry",
     "filtersDescription": "Zawęź wyniki za pomocą poniższych filtrów.",
     "rowsPerPage": "Wierszy na stronę",
-    "duplicate": "Duplikuj"
+    "duplicate": "Duplikuj",
+    "all": "Wszystkie",
+    "validationFailed": "Walidacja nie powiodła się"
   },
   "nav": {
     "users": "Użytkownicy",
@@ -655,14 +657,24 @@
     "failedToCreate": "Nie udało się utworzyć przepływu",
     "failedToUpdate": "Nie udało się zaktualizować przepływu",
     "failedToDelete": "Nie udało się usunąć przepływu",
-    "transition.activate.success": "Przepływ aktywowany",
-    "transition.activate.error": "Nie udało się aktywować przepływu",
-    "transition.pause.success": "Przepływ wstrzymany",
-    "transition.pause.error": "Nie udało się wstrzymać przepływu",
-    "transition.resume.success": "Przepływ wznowiony",
-    "transition.resume.error": "Nie udało się wznowić przepływu",
-    "transition.end.success": "Przepływ zakończony",
-    "transition.end.error": "Nie udało się zakończyć przepływu"
+    "transition": {
+      "activate": {
+        "success": "Przepływ aktywowany",
+        "error": "Nie udało się aktywować przepływu"
+      },
+      "pause": {
+        "success": "Przepływ wstrzymany",
+        "error": "Nie udało się wstrzymać przepływu"
+      },
+      "resume": {
+        "success": "Przepływ wznowiony",
+        "error": "Nie udało się wznowić przepływu"
+      },
+      "end": {
+        "success": "Przepływ zakończony",
+        "error": "Nie udało się zakończyć przepływu"
+      }
+    }
   },
   "invoices": {
     "title": "Faktury",
