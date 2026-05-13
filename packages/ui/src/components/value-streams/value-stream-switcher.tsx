@@ -80,7 +80,7 @@ export function ValueStreamSwitcher() {
                 type="button"
                 onClick={() => handleSelect(vs.id)}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent',
+                  'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-white',
                 )}
               >
                 <span
@@ -108,7 +108,7 @@ export function ValueStreamSwitcher() {
           <Link
             href="/admin/value-streams"
             onClick={() => setOpen(false)}
-            className="block rounded-sm px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent"
+            className="block rounded-sm px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-white"
           >
             {t('viewAll')}
           </Link>
