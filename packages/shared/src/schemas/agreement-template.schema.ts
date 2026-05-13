@@ -24,6 +24,12 @@ export const moveAgreementTemplateSchema = z.object({
   parentId: z.string().uuid().nullable(),
 });
 
+export const agreementTemplateSearchQuerySchema = z.object({
+  type: z.nativeEnum(AgreementTemplateType).optional(),
+  valueStreamId: z.string().uuid().optional(),
+  valueStreamIdWithGlobals: z.string().uuid().optional(),
+});
+
 export const agreementTemplateResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -44,6 +50,7 @@ export type CreateAgreementTemplateInput = z.infer<typeof createAgreementTemplat
 export type UpdateAgreementTemplateInput = z.infer<typeof updateAgreementTemplateSchema>;
 export type MoveAgreementTemplateInput = z.infer<typeof moveAgreementTemplateSchema>;
 export type AgreementTemplateResponse = z.infer<typeof agreementTemplateResponseSchema>;
+export type AgreementTemplateSearchQuery = z.infer<typeof agreementTemplateSearchQuerySchema>;
 
 export interface AgreementTemplateTreeNode {
   id: string;

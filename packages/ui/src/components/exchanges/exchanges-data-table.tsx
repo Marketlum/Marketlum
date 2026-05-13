@@ -58,7 +58,11 @@ interface ExchangeRow {
   updatedAt: string;
 }
 
-export function ExchangesDataTable() {
+interface ExchangesDataTableProps {
+  valueStreamId?: string;
+}
+
+export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: ExchangesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -153,7 +157,8 @@ export function ExchangesDataTable() {
       if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
       if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
       if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
-      if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+      if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
+      else if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
       if (partyAgentFilter && partyAgentFilter !== 'all') qs += `&partyAgentId=${partyAgentFilter}`;
       if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
       const result = await api.get<PaginatedResponse<ExchangeRow>>(`/exchanges/search?${qs}`);
@@ -313,7 +318,10 @@ export function ExchangesDataTable() {
   }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
-  const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
+  const mergedVisibility = {
+    ...mergeColumnVisibility(columnVisibility, mobileVisibility),
+    ...(scopedValueStreamId ? { valueStream: false } : {}),
+  };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];

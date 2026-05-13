@@ -34,7 +34,13 @@ import {
 } from '../ui/select';
 import type { FieldDef } from '../../lib/export-utils';
 
-export function AgreementTemplatesDataTable() {
+interface AgreementTemplatesDataTableProps {
+  valueStreamId?: string;
+}
+
+export function AgreementTemplatesDataTable({
+  valueStreamId: scopedValueStreamId,
+}: AgreementTemplatesDataTableProps = {}) {
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('agreementTemplates');
@@ -112,7 +118,9 @@ export function AgreementTemplatesDataTable() {
       if (typeFilter && typeFilter !== 'all') {
         qs += `&type=${typeFilter}`;
       }
-      if (valueStreamFilter && valueStreamFilter !== 'all') {
+      if (scopedValueStreamId) {
+        qs += `&valueStreamIdWithGlobals=${scopedValueStreamId}`;
+      } else if (valueStreamFilter && valueStreamFilter !== 'all') {
         qs += `&valueStreamId=${valueStreamFilter}`;
       }
       const result = await api.get<PaginatedResponse<AgreementTemplateResponse>>(`/agreement-templates/search?${qs}`);
@@ -241,7 +249,10 @@ export function AgreementTemplatesDataTable() {
   }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, valueStreamFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
-  const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
+  const mergedVisibility = {
+    ...mergeColumnVisibility(columnVisibility, mobileVisibility),
+    ...(scopedValueStreamId ? { valueStream: false } : {}),
+  };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];

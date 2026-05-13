@@ -40,6 +40,7 @@ import { AddRecurringFlows1700000000038 } from './1700000000038-AddRecurringFlow
 import { AddExchangeRates1700000000039 } from './1700000000039-AddExchangeRates';
 import { AddRateSnapshots1700000000040 } from './1700000000040-AddRateSnapshots';
 import { RenameRecurringFlowUnitToCurrency1700000000041 } from './1700000000041-RenameRecurringFlowUnitToCurrency';
+import { AddAgreementValueStream1700000000042 } from './1700000000042-AddAgreementValueStream';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -84,4 +85,5 @@ export const ALL_MIGRATIONS = [
   AddExchangeRates1700000000039,
   AddRateSnapshots1700000000040,
   RenameRecurringFlowUnitToCurrency1700000000041,
+  AddAgreementValueStream1700000000042,
 ];

@@ -35,7 +35,11 @@ import {
 } from '../ui/select';
 import type { FieldDef } from '../../lib/export-utils';
 
-export function AgreementsDataTable() {
+interface AgreementsDataTableProps {
+  valueStreamId?: string;
+}
+
+export function AgreementsDataTable({ valueStreamId: scopedValueStreamId }: AgreementsDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -104,6 +108,9 @@ export function AgreementsDataTable() {
       if (partyFilter && partyFilter !== 'all') {
         qs += `&partyId=${partyFilter}`;
       }
+      if (scopedValueStreamId) {
+        qs += `&valueStreamId=${scopedValueStreamId}`;
+      }
       const result = await api.get<PaginatedResponse<AgreementResponse>>(`/agreements/search?${qs}`);
       setData(result);
     } catch {
@@ -111,7 +118,7 @@ export function AgreementsDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, partyFilter]);
+  }, [pagination.toQueryString, partyFilter, scopedValueStreamId]);
 
   useEffect(() => {
     fetchData();

@@ -160,7 +160,11 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log(`  Created ${values.length} values`);
 
     this.logger.log('Seeding agreements...');
-    const agreements = await seedAgreements(this.agreementsService, { agents, agreementTemplates });
+    const agreements = await seedAgreements(this.agreementsService, {
+      agents,
+      agreementTemplates,
+      valueStreams: valueStreams.all,
+    });
     this.logger.log(`  Created ${agreements.length} agreements`);
 
     // Level 6: Pipelines, Tensions, Accounts, Offerings, Invoices

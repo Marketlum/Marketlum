@@ -5,6 +5,7 @@ import { Agreement } from './entities/agreement.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { File } from '../files/entities/file.entity';
 import { AgreementTemplate } from '../agreement-templates/entities/agreement-template.entity';
+import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import {
   CreateAgreementInput,
   UpdateAgreementInput,
@@ -23,10 +24,12 @@ export class AgreementsService {
     private readonly fileRepository: Repository<File>,
     @InjectRepository(AgreementTemplate)
     private readonly agreementTemplateRepository: Repository<AgreementTemplate>,
+    @InjectRepository(ValueStream)
+    private readonly valueStreamRepository: Repository<ValueStream>,
   ) {}
 
   async create(input: CreateAgreementInput): Promise<Agreement> {
-    const { parentId, fileId, partyIds, agreementTemplateId, ...rest } = input;
+    const { parentId, fileId, partyIds, agreementTemplateId, valueStreamId, ...rest } = input;
 
     const agreement = this.agreementRepository.create({
       ...rest,
@@ -66,6 +69,17 @@ export class AgreementsService {
       agreement.agreementTemplate = template;
     }
 
+    if (valueStreamId) {
+      const valueStream = await this.valueStreamRepository.findOne({
+        where: { id: valueStreamId },
+      });
+      if (!valueStream) {
+        throw new NotFoundException('Value stream not found');
+      }
+      agreement.valueStreamId = valueStreamId;
+      agreement.valueStream = valueStream;
+    }
+
     const agents = await this.agentRepository.findBy({ id: In(partyIds) });
     if (agents.length < 2) {
       throw new BadRequestException('At least 2 valid parties are required');
@@ -76,8 +90,8 @@ export class AgreementsService {
     return this.findOne(saved.id);
   }
 
-  async search(query: PaginationQuery & { partyId?: string }) {
-    const { page, limit, search, sortBy, sortOrder, partyId } = query;
+  async search(query: PaginationQuery & { partyId?: string; valueStreamId?: string }) {
+    const { page, limit, search, sortBy, sortOrder, partyId, valueStreamId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.agreementRepository.createQueryBuilder('agreement');
@@ -85,12 +99,17 @@ export class AgreementsService {
     qb.leftJoinAndSelect('agreement.file', 'file');
     qb.leftJoinAndSelect('agreement.parties', 'parties');
     qb.leftJoinAndSelect('agreement.agreementTemplate', 'agreementTemplate');
+    qb.leftJoinAndSelect('agreement.valueStream', 'valueStream');
 
     if (partyId) {
       qb.andWhere(
         `agreement.id IN (SELECT "agreementId" FROM "agreement_parties" WHERE "agentId" = :partyId)`,
         { partyId },
       );
+    }
+
+    if (valueStreamId) {
+      qb.andWhere('agreement.valueStreamId = :valueStreamId', { valueStreamId });
     }
 
     if (search) {
@@ -123,7 +142,7 @@ export class AgreementsService {
 
   async findTree(): Promise<Agreement[]> {
     const trees = await this.agreementRepository.findTrees({
-      relations: ['file', 'parties', 'agreementTemplate'],
+      relations: ['file', 'parties', 'agreementTemplate', 'valueStream'],
     });
     return trees;
   }
@@ -135,7 +154,7 @@ export class AgreementsService {
   async findOne(id: string): Promise<Agreement> {
     const agreement = await this.agreementRepository.findOne({
       where: { id },
-      relations: ['file', 'parties', 'agreementTemplate'],
+      relations: ['file', 'parties', 'agreementTemplate', 'valueStream'],
     });
     if (!agreement) {
       throw new NotFoundException('Agreement not found');
@@ -158,7 +177,7 @@ export class AgreementsService {
 
   async update(id: string, input: UpdateAgreementInput): Promise<Agreement> {
     const agreement = await this.findOne(id);
-    const { fileId, partyIds, agreementTemplateId, ...rest } = input;
+    const { fileId, partyIds, agreementTemplateId, valueStreamId, ...rest } = input;
 
     Object.assign(agreement, rest);
 
@@ -191,6 +210,22 @@ export class AgreementsService {
         }
         agreement.agreementTemplateId = agreementTemplateId;
         agreement.agreementTemplate = template;
+      }
+    }
+
+    if (valueStreamId !== undefined) {
+      if (valueStreamId === null) {
+        agreement.valueStream = null;
+        agreement.valueStreamId = null;
+      } else {
+        const valueStream = await this.valueStreamRepository.findOne({
+          where: { id: valueStreamId },
+        });
+        if (!valueStream) {
+          throw new NotFoundException('Value stream not found');
+        }
+        agreement.valueStreamId = valueStreamId;
+        agreement.valueStream = valueStream;
       }
     }
 

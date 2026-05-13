@@ -16,6 +16,7 @@ import {
 import { File } from '../../files/entities/file.entity';
 import { Agent } from '../../agents/entities/agent.entity';
 import { AgreementTemplate } from '../../agreement-templates/entities/agreement-template.entity';
+import { ValueStream } from '../../value-streams/entities/value-stream.entity';
 
 @Entity('agreements')
 @Tree('closure-table')
@@ -54,6 +55,13 @@ export class Agreement {
 
   @Column({ type: 'uuid', nullable: true })
   agreementTemplateId: string | null;
+
+  @ManyToOne(() => ValueStream, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'valueStreamId' })
+  valueStream: ValueStream | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  valueStreamId: string | null;
 
   @ManyToMany(() => Agent)
   @JoinTable({

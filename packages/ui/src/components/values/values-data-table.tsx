@@ -59,7 +59,11 @@ const lifecycleTranslationKeys: Record<string, string> = {
   [ValueLifecycleStage.LEGACY]: 'lifecycleLegacy',
 };
 
-export function ValuesDataTable() {
+interface ValuesDataTableProps {
+  valueStreamId?: string;
+}
+
+export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -70,6 +74,9 @@ export function ValuesDataTable() {
   const { tree } = useTaxonomyTree();
   const { agents } = useAgents();
   const { valueStreams } = useValueStreams();
+  const scopedStream = scopedValueStreamId
+    ? valueStreams.find((vs) => vs.id === scopedValueStreamId) ?? null
+    : null;
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
@@ -148,7 +155,9 @@ export function ValuesDataTable() {
       if (agentFilter && agentFilter !== 'all') {
         qs += `&agentId=${agentFilter}`;
       }
-      if (valueStreamFilter && valueStreamFilter !== 'all') {
+      if (scopedValueStreamId) {
+        qs += `&valueStreamId=${scopedValueStreamId}`;
+      } else if (valueStreamFilter && valueStreamFilter !== 'all') {
         qs += `&valueStreamId=${valueStreamFilter}`;
       }
       if (lifecycleStageFilter && lifecycleStageFilter !== 'all') {
@@ -161,7 +170,7 @@ export function ValuesDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter]);
+  }, [pagination.toQueryString, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter, scopedValueStreamId]);
 
   useEffect(() => {
     fetchData();
@@ -328,7 +337,10 @@ export function ValuesDataTable() {
   }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
-  const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
+  const mergedVisibility = {
+    ...mergeColumnVisibility(columnVisibility, mobileVisibility),
+    ...(scopedValueStreamId ? { valueStream: false } : {}),
+  };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];
@@ -544,6 +556,11 @@ export function ValuesDataTable() {
         open={formOpen}
         onOpenChange={setFormOpen}
         onSubmit={handleCreate}
+        initialData={
+          scopedStream
+            ? ({ valueStream: { id: scopedStream.id, name: scopedStream.name } } as unknown as ValueResponse)
+            : null
+        }
         isSubmitting={isSubmitting}
       />
 

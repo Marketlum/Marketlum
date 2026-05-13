@@ -36,7 +36,11 @@ import {
 } from '../ui/select';
 import type { FieldDef } from '../../lib/export-utils';
 
-export function OfferingsDataTable() {
+interface OfferingsDataTableProps {
+  valueStreamId?: string;
+}
+
+export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: OfferingsDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -238,7 +242,10 @@ export function OfferingsDataTable() {
   }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, agentFilter, valueStreamFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
-  const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
+  const mergedVisibility = {
+    ...mergeColumnVisibility(columnVisibility, mobileVisibility),
+    ...(scopedValueStreamId ? { valueStream: false } : {}),
+  };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];

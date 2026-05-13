@@ -30,6 +30,9 @@ const deleteFeature = loadFeature(
 const searchFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/agreements/search-agreements.feature'),
 );
+const valueStreamFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/agreements/value-stream-scoping.feature'),
+);
 
 const agreementIds = new Map<string, string>();
 const agentIds = new Map<string, string>();
@@ -1272,6 +1275,238 @@ defineFeature(searchFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- VALUE STREAM SCOPING ---
+
+interface ValueStreamScopingCtx {
+  authCookie: string;
+  agentIds: Map<string, string>;
+  valueStreamIds: Map<string, string>;
+  agreementIds: Map<string, string>;
+  response: request.Response;
+}
+
+async function ensureAgent(ctx: ValueStreamScopingCtx, name: string): Promise<string> {
+  if (ctx.agentIds.has(name)) return ctx.agentIds.get(name)!;
+  const res = await request(getApp().getHttpServer())
+    .post('/agents')
+    .set('Cookie', [ctx.authCookie])
+    .set('X-CSRF-Protection', '1')
+    .send({ name, type: 'organization' });
+  ctx.agentIds.set(name, res.body.id);
+  return res.body.id;
+}
+
+async function ensureValueStream(ctx: ValueStreamScopingCtx, name: string): Promise<string> {
+  if (ctx.valueStreamIds.has(name)) return ctx.valueStreamIds.get(name)!;
+  const res = await request(getApp().getHttpServer())
+    .post('/value-streams')
+    .set('Cookie', [ctx.authCookie])
+    .set('X-CSRF-Protection', '1')
+    .send({ name });
+  ctx.valueStreamIds.set(name, res.body.id);
+  return res.body.id;
+}
+
+async function createAgreementWithStream(
+  ctx: ValueStreamScopingCtx,
+  title: string,
+  partyANames: [string, string],
+  valueStreamName?: string,
+): Promise<request.Response> {
+  const body: Record<string, unknown> = {
+    title,
+    partyIds: [ctx.agentIds.get(partyANames[0]), ctx.agentIds.get(partyANames[1])],
+  };
+  if (valueStreamName) {
+    body.valueStreamId = ctx.valueStreamIds.get(valueStreamName);
+  }
+  return request(getApp().getHttpServer())
+    .post('/agreements')
+    .set('Cookie', [ctx.authCookie])
+    .set('X-CSRF-Protection', '1')
+    .send(body);
+}
+
+function makeScopingCtx(): ValueStreamScopingCtx {
+  return {
+    authCookie: '',
+    agentIds: new Map(),
+    valueStreamIds: new Map(),
+    agreementIds: new Map(),
+    response: {} as request.Response,
+  };
+}
+
+defineFeature(valueStreamFeature, (test) => {
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  function registerBackground(
+    ctx: ValueStreamScopingCtx,
+    steps: { given: Function; and: Function },
+  ) {
+    steps.given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      ctx.authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+    steps.and(/^an agent "(.*)" exists$/, async (name: string) => {
+      await ensureAgent(ctx, name);
+    });
+    steps.and(/^an agent "(.*)" exists$/, async (name: string) => {
+      await ensureAgent(ctx, name);
+    });
+    steps.and(/^a value stream "(.*)" exists$/, async (name: string) => {
+      await ensureValueStream(ctx, name);
+    });
+  }
+
+  test('Create an agreement with a value stream reference', ({ given, when, then, and }) => {
+    const ctx = makeScopingCtx();
+    registerBackground(ctx, { given, and });
+
+    when(
+      /^I create an agreement titled "(.*)" between "(.*)" and "(.*)" with value stream "(.*)"$/,
+      async (title: string, a: string, b: string, stream: string) => {
+        ctx.response = await createAgreementWithStream(ctx, title, [a, b], stream);
+        if (ctx.response.body?.id) ctx.agreementIds.set(title, ctx.response.body.id);
+      },
+    );
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(ctx.response.status).toBe(parseInt(status));
+    });
+    and(/^the response should expose the value stream "(.*)" on the agreement$/, (stream: string) => {
+      expect(ctx.response.body.valueStream?.name).toBe(stream);
+    });
+  });
+
+  test('Update an agreement to attach a value stream', ({ given, when, then, and }) => {
+    const ctx = makeScopingCtx();
+    registerBackground(ctx, { given, and });
+
+    and(
+      /^an agreement titled "(.*)" between "(.*)" and "(.*)" exists with no value stream$/,
+      async (title: string, a: string, b: string) => {
+        const res = await createAgreementWithStream(ctx, title, [a, b]);
+        ctx.agreementIds.set(title, res.body.id);
+      },
+    );
+    when(/^I update the agreement to set value stream "(.*)"$/, async (stream: string) => {
+      const id = Array.from(ctx.agreementIds.values())[0];
+      ctx.response = await request(getApp().getHttpServer())
+        .patch(`/agreements/${id}`)
+        .set('Cookie', [ctx.authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ valueStreamId: ctx.valueStreamIds.get(stream) });
+    });
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(ctx.response.status).toBe(parseInt(status));
+    });
+    and(/^the response should expose the value stream "(.*)" on the agreement$/, (stream: string) => {
+      expect(ctx.response.body.valueStream?.name).toBe(stream);
+    });
+  });
+
+  test('Update an agreement to clear its value stream', ({ given, when, then, and }) => {
+    const ctx = makeScopingCtx();
+    registerBackground(ctx, { given, and });
+
+    and(
+      /^an agreement titled "(.*)" between "(.*)" and "(.*)" exists with value stream "(.*)"$/,
+      async (title: string, a: string, b: string, stream: string) => {
+        const res = await createAgreementWithStream(ctx, title, [a, b], stream);
+        ctx.agreementIds.set(title, res.body.id);
+      },
+    );
+    when('I clear the value stream on the agreement', async () => {
+      const id = Array.from(ctx.agreementIds.values())[0];
+      ctx.response = await request(getApp().getHttpServer())
+        .patch(`/agreements/${id}`)
+        .set('Cookie', [ctx.authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ valueStreamId: null });
+    });
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(ctx.response.status).toBe(parseInt(status));
+    });
+    and('the agreement value stream should be null', () => {
+      expect(ctx.response.body.valueStream).toBeNull();
+    });
+  });
+
+  test('Search agreements filtered by value stream', ({ given, when, then, and }) => {
+    const ctx = makeScopingCtx();
+    registerBackground(ctx, { given, and });
+
+    and(/^a value stream "(.*)" exists$/, async (name: string) => {
+      await ensureValueStream(ctx, name);
+    });
+    and(
+      /^an agreement titled "(.*)" between "(.*)" and "(.*)" exists with value stream "(.*)"$/,
+      async (title: string, a: string, b: string, stream: string) => {
+        const res = await createAgreementWithStream(ctx, title, [a, b], stream);
+        ctx.agreementIds.set(title, res.body.id);
+      },
+    );
+    and(
+      /^an agreement titled "(.*)" between "(.*)" and "(.*)" exists with value stream "(.*)"$/,
+      async (title: string, a: string, b: string, stream: string) => {
+        const res = await createAgreementWithStream(ctx, title, [a, b], stream);
+        ctx.agreementIds.set(title, res.body.id);
+      },
+    );
+    when(/^I search agreements filtered by value stream "(.*)"$/, async (stream: string) => {
+      const vsId = ctx.valueStreamIds.get(stream);
+      ctx.response = await request(getApp().getHttpServer())
+        .get(`/agreements/search?valueStreamId=${vsId}`)
+        .set('Cookie', [ctx.authCookie]);
+    });
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(ctx.response.status).toBe(parseInt(status));
+    });
+    and(/^the response should contain (\d+) agreement$/, (count: string) => {
+      expect(ctx.response.body.data).toHaveLength(parseInt(count));
+    });
+  });
+
+  test('Deleting the referenced value stream nulls the FK', ({ given, when, then, and }) => {
+    const ctx = makeScopingCtx();
+    registerBackground(ctx, { given, and });
+
+    and(
+      /^an agreement titled "(.*)" between "(.*)" and "(.*)" exists with value stream "(.*)"$/,
+      async (title: string, a: string, b: string, stream: string) => {
+        const res = await createAgreementWithStream(ctx, title, [a, b], stream);
+        ctx.agreementIds.set(title, res.body.id);
+      },
+    );
+    when(/^I delete the value stream "(.*)"$/, async (stream: string) => {
+      const vsId = ctx.valueStreamIds.get(stream);
+      await request(getApp().getHttpServer())
+        .delete(`/value-streams/${vsId}`)
+        .set('Cookie', [ctx.authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
+    and('I fetch the agreement', async () => {
+      const id = Array.from(ctx.agreementIds.values())[0];
+      ctx.response = await request(getApp().getHttpServer())
+        .get(`/agreements/${id}`)
+        .set('Cookie', [ctx.authCookie]);
+    });
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(ctx.response.status).toBe(parseInt(status));
+    });
+    and('the agreement value stream should be null', () => {
+      expect(ctx.response.body.valueStream).toBeNull();
     });
   });
 });

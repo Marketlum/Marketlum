@@ -76,12 +76,14 @@ export class AgreementsController {
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
   @ApiQuery({ name: 'partyId', required: false, type: String })
+  @ApiQuery({ name: 'valueStreamId', required: false, type: String })
   @ApiPaginatedResponse(AgreementResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('partyId') partyId?: string,
+    @Query('valueStreamId') valueStreamId?: string,
   ) {
-    return this.agreementsService.search({ ...query, partyId });
+    return this.agreementsService.search({ ...query, partyId, valueStreamId });
   }
 
   @Get('tree')

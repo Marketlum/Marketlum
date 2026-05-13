@@ -15,6 +15,11 @@ const partySummarySchema = z.object({
   type: z.nativeEnum(AgentType),
 });
 
+const valueStreamSummarySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+});
+
 export const createAgreementSchema = z.object({
   title: z.string().min(1),
   content: z.string().optional(),
@@ -23,6 +28,7 @@ export const createAgreementSchema = z.object({
   fileId: z.string().uuid().nullable().optional(),
   partyIds: z.array(z.string().uuid()).min(2),
   agreementTemplateId: z.string().uuid().nullable().optional(),
+  valueStreamId: z.string().uuid().nullable().optional(),
 });
 
 export const updateAgreementSchema = z.object({
@@ -32,6 +38,7 @@ export const updateAgreementSchema = z.object({
   fileId: z.string().uuid().nullable().optional(),
   partyIds: z.array(z.string().uuid()).min(2).optional(),
   agreementTemplateId: z.string().uuid().nullable().optional(),
+  valueStreamId: z.string().uuid().nullable().optional(),
 });
 
 export const moveAgreementSchema = z.object({
@@ -50,6 +57,7 @@ export const agreementResponseSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
   }).nullable(),
+  valueStream: valueStreamSummarySchema.nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -67,6 +75,7 @@ export interface AgreementTreeNode {
   level: number;
   file: { id: string; originalName: string; storedName: string; mimeType: string; size: number } | null;
   parties: { id: string; name: string; type: AgentType }[];
+  valueStream: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
   children: AgreementTreeNode[];

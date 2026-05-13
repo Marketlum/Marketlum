@@ -274,10 +274,12 @@ export {
   updateAgreementTemplateSchema,
   moveAgreementTemplateSchema,
   agreementTemplateResponseSchema,
+  agreementTemplateSearchQuerySchema,
   type CreateAgreementTemplateInput,
   type UpdateAgreementTemplateInput,
   type MoveAgreementTemplateInput,
   type AgreementTemplateResponse,
+  type AgreementTemplateSearchQuery,
   type AgreementTemplateTreeNode,
 } from './schemas/agreement-template.schema';
 

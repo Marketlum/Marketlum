@@ -64,8 +64,14 @@ export class AgreementTemplatesService {
     return this.findOne(saved.id);
   }
 
-  async search(query: PaginationQuery & { type?: string; valueStreamId?: string }) {
-    const { page, limit, search, sortBy, sortOrder, type, valueStreamId } = query;
+  async search(
+    query: PaginationQuery & {
+      type?: string;
+      valueStreamId?: string;
+      valueStreamIdWithGlobals?: string;
+    },
+  ) {
+    const { page, limit, search, sortBy, sortOrder, type, valueStreamId, valueStreamIdWithGlobals } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.templateRepository.createQueryBuilder('template');
@@ -78,6 +84,12 @@ export class AgreementTemplatesService {
 
     if (valueStreamId) {
       qb.andWhere('template.valueStreamId = :valueStreamId', { valueStreamId });
+    } else if (valueStreamIdWithGlobals) {
+      // Stream-specific OR globally-available templates
+      qb.andWhere(
+        '(template.valueStreamId = :valueStreamIdWithGlobals OR template.valueStreamId IS NULL)',
+        { valueStreamIdWithGlobals },
+      );
     }
 
     if (search) {
