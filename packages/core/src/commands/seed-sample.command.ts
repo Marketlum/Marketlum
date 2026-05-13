@@ -42,6 +42,8 @@ import { seedInvoices } from './seeders/invoice.seeder';
 import { seedTransactions } from './seeders/transaction.seeder';
 import { seedValueInstances } from './seeders/value-instance.seeder';
 import { seedExchanges } from './seeders/exchange.seeder';
+import { seedRecurringFlows } from './seeders/recurring-flow.seeder';
+import { RecurringFlowsService } from '../recurring-flows/recurring-flows.service';
 
 @Command({
   name: 'seed:sample',
@@ -72,6 +74,7 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly valueInstancesService: ValueInstancesService,
     private readonly exchangesService: ExchangesService,
     private readonly exchangeFlowsService: ExchangeFlowsService,
+    private readonly recurringFlowsService: RecurringFlowsService,
   ) {
     super();
   }
@@ -195,6 +198,10 @@ export class SeedSampleCommand extends CommandRunner {
       tensions,
     });
     this.logger.log(`  Created ${exchanges.length} exchanges`);
+
+    this.logger.log('Seeding recurring flows...');
+    const recurringFlows = await seedRecurringFlows(this.recurringFlowsService, { valueStreams: valueStreams.all, agents });
+    this.logger.log(`  Created ${recurringFlows.length} recurring flows`);
 
     this.logger.log('Sample data seeded successfully!');
   }

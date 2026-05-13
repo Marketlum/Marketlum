@@ -27,6 +27,7 @@ import { GeographiesModule } from './geographies/geographies.module';
 import { ArchetypesModule } from './archetypes/archetypes.module';
 import { LocalesModule } from './locales/locales.module';
 import { AgreementTemplatesModule } from './agreement-templates/agreement-templates.module';
+import { RecurringFlowsModule } from './recurring-flows/recurring-flows.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { AgreementTemplatesModule } from './agreement-templates/agreement-templa
     ArchetypesModule,
     LocalesModule,
     AgreementTemplatesModule,
+    RecurringFlowsModule,
   ],
   exports: [
     AuthModule,
@@ -77,6 +79,7 @@ import { AgreementTemplatesModule } from './agreement-templates/agreement-templa
     ArchetypesModule,
     LocalesModule,
     AgreementTemplatesModule,
+    RecurringFlowsModule,
   ],
   providers: [
     {

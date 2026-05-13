@@ -280,3 +280,32 @@ export {
   type AgreementTemplateResponse,
   type AgreementTemplateTreeNode,
 } from './schemas/agreement-template.schema';
+
+export { RecurringFlowDirection } from './enums/recurring-flow-direction.enum';
+export { RecurringFlowFrequency } from './enums/recurring-flow-frequency.enum';
+export { RecurringFlowStatus } from './enums/recurring-flow-status.enum';
+export { RecurringFlowTransitionAction } from './enums/recurring-flow-transition-action.enum';
+export { recurringFlowMachine } from './machines/recurring-flow.machine';
+export {
+  createRecurringFlowSchema,
+  updateRecurringFlowSchema,
+  transitionRecurringFlowSchema,
+  recurringFlowQuerySchema,
+  recurringFlowResponseSchema,
+  recurringFlowRollupSchema,
+  recurringFlowProjectionSchema,
+  type CreateRecurringFlowInput,
+  type UpdateRecurringFlowInput,
+  type TransitionRecurringFlowInput,
+  type RecurringFlowQuery,
+  type RecurringFlowResponse,
+  type RecurringFlowRollup,
+  type RecurringFlowProjection,
+} from './schemas/recurring-flow.schema';
+export {
+  nextOccurrences,
+  occurrencesInMonth,
+  monthlyEquivalent,
+  formatFrequency,
+  type RecurringFlowScheduleInput,
+} from './helpers/recurring-flow.helpers';

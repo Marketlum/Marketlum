@@ -154,6 +154,13 @@ export { OfferingFormDialog } from './components/offerings/offering-form-dialog'
 export { OfferingsDataTable } from './components/offerings/offerings-data-table';
 export { getOfferingColumns } from './components/offerings/columns';
 
+// recurring-flows
+export { RecurringFlowFormDialog } from './components/recurring-flows/recurring-flow-form-dialog';
+export { RecurringFlowsDataTable } from './components/recurring-flows/recurring-flows-data-table';
+export { RecurringFlowsSummaryCard } from './components/recurring-flows/recurring-flows-summary-card';
+export { RecurringFlowsProjection } from './components/recurring-flows/recurring-flows-projection';
+export { getRecurringFlowColumns } from './components/recurring-flows/columns';
+
 // pipelines
 export { PipelineFormDialog } from './components/pipelines/pipeline-form-dialog';
 export { PipelinesDataTable } from './components/pipelines/pipelines-data-table';
@@ -262,6 +269,7 @@ export { InvoicesPage } from './pages/admin/invoices-page';
 export { LocalesPage } from './pages/admin/locales-page';
 export { OfferingDetailPage } from './pages/admin/offering-detail-page';
 export { OfferingsPage } from './pages/admin/offerings-page';
+export { RecurringFlowsPage } from './pages/admin/recurring-flows-page';
 export { PipelinesPage } from './pages/admin/pipelines-page';
 export { SearchPage } from './pages/admin/search-page';
 export { TaxonomiesPage } from './pages/admin/taxonomies-page';

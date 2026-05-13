@@ -24,6 +24,9 @@ import { ValueFormDialog } from '../../components/values/value-form-dialog';
 import { ExchangeFormDialog } from '../../components/exchanges/exchange-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { RevenueExpensesChart } from '../../components/dashboard/revenue-expenses-chart';
+import { RecurringFlowsSummaryCard } from '../../components/recurring-flows/recurring-flows-summary-card';
+import { RecurringFlowsDataTable } from '../../components/recurring-flows/recurring-flows-data-table';
+import { RecurringFlowsProjection } from '../../components/recurring-flows/recurring-flows-projection';
 import { Button } from '../../components/ui/button';
 import {
   Card,
@@ -415,6 +418,10 @@ export function ValueStreamDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <RecurringFlowsSummaryCard valueStreamId={valueStream.id} />
+      <RecurringFlowsDataTable valueStreamId={valueStream.id} />
+      <RecurringFlowsProjection valueStreamId={valueStream.id} />
 
       {/* Dialogs */}
       <ValueFormDialog

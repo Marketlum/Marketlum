@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '../lib/auth';
 import { Button } from '../components/ui/button';
@@ -71,6 +71,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/offerings', label: t('offerings'), icon: Package },
       { href: '/admin/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
       { href: '/admin/invoices', label: t('invoices'), icon: FileText },
+      { href: '/admin/recurring-flows', label: t('recurringFlows'), icon: RefreshCw },
     ]},
     { label: t('groupLedger'), items: [
       { href: '/admin/accounts', label: t('accounts'), icon: Wallet },
