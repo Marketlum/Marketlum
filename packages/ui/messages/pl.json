@@ -680,6 +680,7 @@
     "months": "miesięcy",
     "revIn": "Przychód",
     "expIn": "Wydatek",
+    "netIn": "Netto",
     "noProjectionData": "Brak aktywnych przepływów w tym okresie.",
     "created": "Przepływ utworzony",
     "updated": "Przepływ zaktualizowany",

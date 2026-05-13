@@ -63,10 +63,17 @@ export function RecurringFlowsProjection({ valueStreamId }: RecurringFlowsProjec
     monthIdx: number,
     direction: RecurringFlowDirection,
     unit: string,
-  ): string {
+  ): number {
     const dir = projection!.months[monthIdx].byDirection.find((d) => d.direction === direction);
     const entry = dir?.totals.find((tot) => tot.unit === unit);
-    return entry ? Number(entry.amount).toFixed(2) : '0.00';
+    return entry ? Number(entry.amount) : 0;
+  }
+
+  function netFor(monthIdx: number, unit: string): number {
+    return (
+      totalFor(monthIdx, RecurringFlowDirection.INBOUND, unit) -
+      totalFor(monthIdx, RecurringFlowDirection.OUTBOUND, unit)
+    );
   }
 
   return (
@@ -103,6 +110,11 @@ export function RecurringFlowsProjection({ valueStreamId }: RecurringFlowsProjec
                       {t('expIn')} {unit}
                     </th>
                   ))}
+                  {units.map((unit) => (
+                    <th key={`net-${unit}`} className="py-2 text-right font-semibold">
+                      {t('netIn')} {unit}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -111,14 +123,31 @@ export function RecurringFlowsProjection({ valueStreamId }: RecurringFlowsProjec
                     <td className="py-1.5">{month.month}</td>
                     {units.map((unit) => (
                       <td key={`m-in-${unit}`} className="py-1.5 text-right">
-                        {totalFor(idx, RecurringFlowDirection.INBOUND, unit)}
+                        {totalFor(idx, RecurringFlowDirection.INBOUND, unit).toFixed(2)}
                       </td>
                     ))}
                     {units.map((unit) => (
                       <td key={`m-out-${unit}`} className="py-1.5 text-right">
-                        {totalFor(idx, RecurringFlowDirection.OUTBOUND, unit)}
+                        {totalFor(idx, RecurringFlowDirection.OUTBOUND, unit).toFixed(2)}
                       </td>
                     ))}
+                    {units.map((unit) => {
+                      const net = netFor(idx, unit);
+                      const cls =
+                        net > 0
+                          ? 'text-emerald-600'
+                          : net < 0
+                            ? 'text-red-600'
+                            : 'text-muted-foreground';
+                      return (
+                        <td
+                          key={`m-net-${unit}`}
+                          className={`py-1.5 text-right font-medium ${cls}`}
+                        >
+                          {net.toFixed(2)}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
