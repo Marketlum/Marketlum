@@ -13,7 +13,7 @@ Marketlum gains a first-class way to model the conversion rate between any two `
 - `ExchangeRate` is a dated, symmetric mapping between two `Value` rows.
 - A single configurable system base `Value` defines the reporting currency.
 - When an `InvoiceItem` or `RecurringFlow` is created or its monetary fields edited, the active rate is resolved and the **converted base amount is snapshotted** onto the row.
-- Snapshots are frozen against the base that was active at write time; the system base cannot be changed while any snapshots exist (admin must run an explicit &ldquo;reset snapshots&rdquo; action first).
+- Snapshots are frozen against the base that was active at write time; the system base cannot be changed while any snapshots exist.
 
 ```
        ┌──────────────────────────────┐
@@ -143,7 +143,7 @@ function getRateAt(a: Value, b: Value, at: Date): { rate: Decimal; row: Exchange
 
 - Stored in `system_settings.base_value_id` (Q4.2). Typed as `string | null` in the API (`null` means &ldquo;no base configured&rdquo;).
 - When `null`, snapshot wiring (§3.5) writes `NULL` to `rateUsed` and `baseAmount`.
-- **Changing the base is blocked while any snapshot row exists** (Q4.1). The admin must call `POST /system-settings/base-value/reset-snapshots` first; that nulls out `rateUsed`/`baseAmount` on all `invoice_items` and `recurring_flows` and only then can the base be changed.
+- **Changing the base is blocked while any snapshot row exists** (Q4.1). `PUT /system-settings/base-value` returns `409 Conflict` in that case. Clearing existing snapshots to allow a base change is out of scope for this work (see §14); once snapshots exist, the base is effectively frozen for the lifetime of this feature&apos;s initial release.
 
 ### 3.4 Conversion helper
 
@@ -287,7 +287,6 @@ All endpoints require `AdminGuard` (mirrors `OfferingsController`, `LocalesContr
 |---|---|---|
 | `GET`   | `/system-settings/base-value`               | Returns `{ baseValueId, baseValue, snapshotsExist }`. |
 | `PUT`   | `/system-settings/base-value`               | Body `{ baseValueId }`. **Rejects with 409** if `snapshotsExist`. |
-| `POST`  | `/system-settings/base-value/reset-snapshots` | Nulls `rateUsed` / `baseAmount` on all `invoice_items` and `recurring_flows`. Response: `{ invoiceItems: number, recurringFlows: number }`. |
 
 ### 5.3 No new endpoints on invoices / recurring-flows (PR 2)
 
@@ -352,7 +351,7 @@ Per Q4.3, exchange rates get a top-level admin entry. The brainstorming file hol
 ### 7.1 `/admin/exchange-rates` (list, PR 1)
 
 - TanStack-table list, paginated, default sort `effectiveAt DESC`.
-- Top of page: **system base value** picker (`Select` of `Value` rows). Save is disabled and shows a banner &ldquo;Snapshots exist &mdash; click &lsquo;Reset snapshots&rsquo; to enable changes&rdquo; when `snapshotsExist` is true. A red destructive button next to it triggers `POST /system-settings/base-value/reset-snapshots` (with confirmation dialog).
+- Top of page: **system base value** picker (`Select` of `Value` rows). The picker is **disabled** with a banner &ldquo;Snapshots exist &mdash; system base value is locked&rdquo; when `snapshotsExist` is true. No reset action is exposed in this initial release (see §14).
 - Columns: Pair (with `⇄` glyph), Rate, Inverse rate (`1/rate` to 6 dp), Effective at, Source, Actions.
 - Filters: pair (two `Value` select dropdowns), as-of date.
 
@@ -495,9 +494,9 @@ Strict-BDD per project rule. Feature files in `packages/bdd/features/`, step def
 | `list-exchange-rates.feature` | pagination; filter by `fromValueId`; filter by pair (both directions match); filter by `at` (only rows with `effectiveAt <= at`); sort by `effectiveAt DESC` (default) |
 | `lookup-exchange-rate.feature` | symmetric lookup returns the same rate either way; missing pair returns `null`; multi-row pair picks the latest `effectiveAt <= at`; future-dated row is ignored when `at = now` |
 
-### 13.2 New feature dir `system-settings/` (PR 1) &mdash; ~5 scenarios
+### 13.2 New feature dir `system-settings/` (PR 1) &mdash; ~3 scenarios
 
-`base-value.feature`: get returns `null` when unset; set base value; cannot change base while invoice-item or recurring-flow snapshots exist; reset-snapshots clears both tables; after reset, base can be changed.
+`base-value.feature`: get returns `null` when unset; set base value; cannot change base while invoice-item or recurring-flow snapshots exist (`409 Conflict`).
 
 ### 13.3 Additions to existing feature dirs (PR 2)
 
@@ -536,6 +535,7 @@ Cross-referenced to the brainstorming questions that defined each boundary.
 - **Per-`ValueStream` base value** (Q3.1) &mdash; single system base only.
 - **Automatic backfill** (Q3.6) &mdash; no admin endpoint; resave each row to refresh.
 - **`baseValueId` per snapshot row** (Q3.2) &mdash; not stored; consequence is the &ldquo;block base change while snapshots exist&rdquo; constraint (Q4.1).
+- **&ldquo;Reset snapshots&rdquo; escape hatch** &mdash; the action that would null out all `rateUsed`/`baseAmount` rows to permit a base-value change is **not in this scope**. Once snapshots exist, the system base is locked through the API. A future spec can add the reset endpoint (and a paired admin UI) when the need is concrete.
 - **Audit log of who created/edited rates** (Q2.4) &mdash; `createdBy` was rejected; reverse via git/log if needed.
 - **End-to-end browser tests** (Q4.7) &mdash; not in repo convention; covered by BDD plus `tsc` / `next build`.
 
