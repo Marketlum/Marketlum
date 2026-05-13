@@ -1,7 +1,6 @@
 ---
 description: Run a multi-round brainstorming session for a new feature and produce a complete specification document. Invoked as `/spec <feature description>`.
 arguments: description
-disable-model-invocation: true
 ---
 
 You are running the **/spec** workflow for: **$description**
