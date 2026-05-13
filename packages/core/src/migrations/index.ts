@@ -39,6 +39,7 @@ import { AddExchangeFlowDescription1700000000037 } from './1700000000037-AddExch
 import { AddRecurringFlows1700000000038 } from './1700000000038-AddRecurringFlows';
 import { AddExchangeRates1700000000039 } from './1700000000039-AddExchangeRates';
 import { AddRateSnapshots1700000000040 } from './1700000000040-AddRateSnapshots';
+import { RenameRecurringFlowUnitToCurrency1700000000041 } from './1700000000041-RenameRecurringFlowUnitToCurrency';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -82,4 +83,5 @@ export const ALL_MIGRATIONS = [
   AddRecurringFlows1700000000038,
   AddExchangeRates1700000000039,
   AddRateSnapshots1700000000040,
+  RenameRecurringFlowUnitToCurrency1700000000041,
 ];

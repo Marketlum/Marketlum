@@ -133,7 +133,7 @@ export function getRecurringFlowColumns({
           {translations.amount} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => `${Number(row.original.amount).toFixed(2)} ${row.original.unit}`,
+      cell: ({ row }) => `${Number(row.original.amount).toFixed(2)} ${row.original.currency?.name ?? ''}`.trim(),
     },
     {
       id: 'baseAmount',

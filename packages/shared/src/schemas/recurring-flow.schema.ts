@@ -45,18 +45,16 @@ const amountString = z
   .regex(/^\d+(\.\d{1,4})?$/, 'Must be a positive decimal string with up to 4 fractional digits')
   .refine((v) => Number(v) > 0, { message: 'Amount must be greater than 0' });
 
-const unitString = z.string().trim().min(1).max(32);
-
 export const createRecurringFlowSchema = z
   .object({
     valueStreamId: z.string().uuid(),
     counterpartyAgentId: z.string().uuid(),
     valueId: z.string().uuid().nullable().optional(),
+    currencyId: z.string().uuid(),
     offeringId: z.string().uuid().nullable().optional(),
     agreementId: z.string().uuid().nullable().optional(),
     direction: z.nativeEnum(RecurringFlowDirection),
     amount: amountString,
-    unit: unitString,
     frequency: z.nativeEnum(RecurringFlowFrequency),
     interval: z.coerce.number().int().min(1).default(1),
     startDate: isoDate,
@@ -74,11 +72,11 @@ export const updateRecurringFlowSchema = z
     valueStreamId: z.string().uuid().optional(),
     counterpartyAgentId: z.string().uuid().optional(),
     valueId: z.string().uuid().nullable().optional(),
+    currencyId: z.string().uuid().optional(),
     offeringId: z.string().uuid().nullable().optional(),
     agreementId: z.string().uuid().nullable().optional(),
     direction: z.nativeEnum(RecurringFlowDirection).optional(),
     amount: amountString.optional(),
-    unit: unitString.optional(),
     frequency: z.nativeEnum(RecurringFlowFrequency).optional(),
     interval: z.coerce.number().int().min(1).optional(),
     startDate: isoDate.optional(),
@@ -107,7 +105,7 @@ export const recurringFlowQuerySchema = z.object({
   direction: z.nativeEnum(RecurringFlowDirection).optional(),
   status: z.union([z.nativeEnum(RecurringFlowStatus), z.array(z.nativeEnum(RecurringFlowStatus))]).optional(),
   frequency: z.union([z.nativeEnum(RecurringFlowFrequency), z.array(z.nativeEnum(RecurringFlowFrequency))]).optional(),
-  unit: z.union([z.string(), z.array(z.string())]).optional(),
+  currencyId: z.union([z.string().uuid(), z.array(z.string().uuid())]).optional(),
   taxonomyId: z.union([z.string().uuid(), z.array(z.string().uuid())]).optional(),
 });
 
@@ -116,11 +114,11 @@ export const recurringFlowResponseSchema = z.object({
   valueStream: valueStreamSummarySchema,
   counterpartyAgent: agentSummarySchema,
   value: valueSummarySchema.nullable(),
+  currency: valueSummarySchema.nullable(),
   offering: offeringSummarySchema.nullable(),
   agreement: agreementSummarySchema.nullable(),
   direction: z.nativeEnum(RecurringFlowDirection),
   amount: z.string(),
-  unit: z.string(),
   frequency: z.nativeEnum(RecurringFlowFrequency),
   interval: z.number().int(),
   startDate: z.string(),

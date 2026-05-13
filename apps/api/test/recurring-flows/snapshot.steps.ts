@@ -82,24 +82,26 @@ async function createRate(
 
 async function createFlow(
   ctx: Ctx,
-  valueName: string | null,
+  currencyName: string | null,
   amount: string,
 ): Promise<request.Response> {
+  const body: Record<string, unknown> = {
+    valueStreamId: ctx.valueStreamId,
+    counterpartyAgentId: ctx.counterpartyAgentId,
+    direction: 'inbound',
+    amount,
+    frequency: 'monthly',
+    interval: 1,
+    startDate: new Date().toISOString().slice(0, 10),
+  };
+  if (currencyName !== null) {
+    body.currencyId = ctx.valueIds.get(currencyName);
+  }
   return request(getApp().getHttpServer())
     .post('/recurring-flows')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({
-      valueStreamId: ctx.valueStreamId,
-      counterpartyAgentId: ctx.counterpartyAgentId,
-      valueId: valueName ? ctx.valueIds.get(valueName) : null,
-      direction: 'inbound',
-      amount,
-      unit: 'USD',
-      frequency: 'monthly',
-      interval: 1,
-      startDate: new Date().toISOString().slice(0, 10),
-    });
+    .send(body);
 }
 
 function makeCtx(): Ctx {
@@ -156,17 +158,12 @@ defineFeature(snapshotFeature, (test) => {
     await teardownApp();
   });
 
-  test('Recurring flow with no value has a null snapshot', ({
-    given,
-    when,
-    then,
-    and,
-  }) => {
+  test('Missing currency rejects the create', ({ given, when, then, and }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
 
     when(
-      /^I create a recurring flow with no value and amount "(.*)"$/,
+      /^I create a recurring flow without a currency and amount "(.*)"$/,
       async (amount: string) => {
         ctx.response = await createFlow(ctx, null, amount);
       },
@@ -174,15 +171,9 @@ defineFeature(snapshotFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the flow rateUsed should be null$/, () => {
-      expect(ctx.response.body.rateUsed).toBeNull();
-    });
-    and(/^the flow baseAmount should be null$/, () => {
-      expect(ctx.response.body.baseAmount).toBeNull();
-    });
   });
 
-  test('Recurring flow in the base value snapshots at rate 1', ({
+  test('Recurring flow in the base currency snapshots at rate 1', ({
     given,
     when,
     then,
@@ -192,9 +183,9 @@ defineFeature(snapshotFeature, (test) => {
     registerBackground(ctx, { given, and });
 
     when(
-      /^I create a recurring flow with value "(.*)" and amount "(.*)"$/,
-      async (valueName: string, amount: string) => {
-        ctx.response = await createFlow(ctx, valueName, amount);
+      /^I create a recurring flow with currency "(.*)" and amount "(.*)"$/,
+      async (currencyName: string, amount: string) => {
+        ctx.response = await createFlow(ctx, currencyName, amount);
       },
     );
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -208,7 +199,7 @@ defineFeature(snapshotFeature, (test) => {
     });
   });
 
-  test('Recurring flow in a non-base value snapshots using the inverse rate', ({
+  test('Recurring flow in a non-base currency snapshots using the inverse rate', ({
     given,
     when,
     then,
@@ -218,9 +209,9 @@ defineFeature(snapshotFeature, (test) => {
     registerBackground(ctx, { given, and });
 
     when(
-      /^I create a recurring flow with value "(.*)" and amount "(.*)"$/,
-      async (valueName: string, amount: string) => {
-        ctx.response = await createFlow(ctx, valueName, amount);
+      /^I create a recurring flow with currency "(.*)" and amount "(.*)"$/,
+      async (currencyName: string, amount: string) => {
+        ctx.response = await createFlow(ctx, currencyName, amount);
       },
     );
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -234,7 +225,7 @@ defineFeature(snapshotFeature, (test) => {
     });
   });
 
-  test('Recurring flow in a value with no rate snapshots as NULL', ({
+  test('Recurring flow in a currency with no rate snapshots as NULL', ({
     given,
     when,
     then,
@@ -244,9 +235,9 @@ defineFeature(snapshotFeature, (test) => {
     registerBackground(ctx, { given, and });
 
     when(
-      /^I create a recurring flow with value "(.*)" and amount "(.*)"$/,
-      async (valueName: string, amount: string) => {
-        ctx.response = await createFlow(ctx, valueName, amount);
+      /^I create a recurring flow with currency "(.*)" and amount "(.*)"$/,
+      async (currencyName: string, amount: string) => {
+        ctx.response = await createFlow(ctx, currencyName, amount);
       },
     );
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -270,9 +261,9 @@ defineFeature(snapshotFeature, (test) => {
     registerBackground(ctx, { given, and });
 
     and(
-      /^I created a recurring flow with value "(.*)" and amount "(.*)"$/,
-      async (valueName: string, amount: string) => {
-        ctx.response = await createFlow(ctx, valueName, amount);
+      /^I created a recurring flow with currency "(.*)" and amount "(.*)"$/,
+      async (currencyName: string, amount: string) => {
+        ctx.response = await createFlow(ctx, currencyName, amount);
         ctx.flowId = ctx.response.body.id;
       },
     );
@@ -294,23 +285,23 @@ defineFeature(snapshotFeature, (test) => {
     });
   });
 
-  test('Changing the flow value re-snapshots', ({ given, when, then, and }) => {
+  test('Changing the flow currency re-snapshots', ({ given, when, then, and }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
 
     and(
-      /^I created a recurring flow with value "(.*)" and amount "(.*)"$/,
-      async (valueName: string, amount: string) => {
-        ctx.response = await createFlow(ctx, valueName, amount);
+      /^I created a recurring flow with currency "(.*)" and amount "(.*)"$/,
+      async (currencyName: string, amount: string) => {
+        ctx.response = await createFlow(ctx, currencyName, amount);
         ctx.flowId = ctx.response.body.id;
       },
     );
-    when(/^I update the flow value to "(.*)"$/, async (valueName: string) => {
+    when(/^I update the flow currency to "(.*)"$/, async (currencyName: string) => {
       ctx.response = await request(getApp().getHttpServer())
         .patch(`/recurring-flows/${ctx.flowId}`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ valueId: ctx.valueIds.get(valueName) });
+        .send({ currencyId: ctx.valueIds.get(currencyName) });
     });
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
@@ -333,9 +324,9 @@ defineFeature(snapshotFeature, (test) => {
     registerBackground(ctx, { given, and });
 
     and(
-      /^I created a recurring flow with value "(.*)" and amount "(.*)"$/,
-      async (valueName: string, amount: string) => {
-        ctx.response = await createFlow(ctx, valueName, amount);
+      /^I created a recurring flow with currency "(.*)" and amount "(.*)"$/,
+      async (currencyName: string, amount: string) => {
+        ctx.response = await createFlow(ctx, currencyName, amount);
         ctx.flowId = ctx.response.body.id;
       },
     );

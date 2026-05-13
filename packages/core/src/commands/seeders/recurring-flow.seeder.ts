@@ -18,10 +18,10 @@ interface RecurringFlowDeps {
   values: ValueRef[];
 }
 
-// Names matching the values that get exchange rates seeded against the system
-// base (USD). Restricting picks to this set guarantees every seeded flow has a
-// resolvable baseAmount snapshot.
-const SNAPSHOT_VALUE_NAMES = ['USD', 'EUR', 'GBP', 'Hour of consulting'];
+// Currency-style Values that the spec-002 seeder gives rates against the
+// system base (USD). Picking from this set guarantees every seeded flow
+// snapshots a non-null baseAmount.
+const CURRENCY_VALUE_NAMES = ['USD', 'EUR', 'GBP', 'Hour of consulting'];
 
 const FREQUENCIES: RecurringFlowFrequency[] = [
   RecurringFlowFrequency.MONTHLY,
@@ -43,10 +43,16 @@ export async function seedRecurringFlows(
   deps: RecurringFlowDeps,
 ) {
   const flows: Array<{ id: string }> = [];
-  const eligibleValues = deps.values.filter((v) => SNAPSHOT_VALUE_NAMES.includes(v.name));
-  // Fall back to whatever values exist if none of the named ones are present
-  // (lets the seeder still produce flows in oddly-customized setups).
-  const valuePool = eligibleValues.length > 0 ? eligibleValues : deps.values;
+
+  const currencies = deps.values.filter((v) => CURRENCY_VALUE_NAMES.includes(v.name));
+  // The "what flows" pool — anything that isn't a currency. Optional on each row.
+  const whatPool = deps.values.filter((v) => !CURRENCY_VALUE_NAMES.includes(v.name));
+
+  if (currencies.length === 0) {
+    // No seeded currencies → seeder cannot honour the required currencyId.
+    // Bail gracefully so the rest of seed:sample finishes.
+    return flows;
+  }
 
   for (const stream of deps.valueStreams) {
     const flowsForStream = faker.number.int({ min: 3, max: 5 });
@@ -54,7 +60,7 @@ export async function seedRecurringFlows(
     for (let i = 0; i < flowsForStream; i++) {
       const agent = faker.helpers.arrayElement(deps.agents);
       const direction = i % 2 === 0 ? RecurringFlowDirection.INBOUND : RecurringFlowDirection.OUTBOUND;
-      const valueRef = faker.helpers.arrayElement(valuePool);
+      const currency = faker.helpers.arrayElement(currencies);
       const frequency = faker.helpers.arrayElement(FREQUENCIES);
       const interval = faker.helpers.weightedArrayElement([
         { weight: 7, value: 1 },
@@ -62,21 +68,28 @@ export async function seedRecurringFlows(
         { weight: 1, value: 3 },
       ]);
 
-      const isMoney = ['USD', 'EUR', 'GBP', 'PLN', 'BTC'].includes(valueRef.name);
+      const isMoney = ['USD', 'EUR', 'GBP', 'PLN', 'BTC'].includes(currency.name);
       const amount = isMoney
         ? faker.number.int({ min: 100, max: 12000 }).toString()
         : faker.number.int({ min: 1, max: 40 }).toString();
 
+      // ~70% of flows reference a "what" Value (product/service/...); the rest
+      // leave valueId unset to demonstrate the optional nature.
+      const valueId =
+        whatPool.length > 0 && Math.random() < 0.7
+          ? faker.helpers.arrayElement(whatPool).id
+          : undefined;
+
       const input: CreateRecurringFlowInput = {
         valueStreamId: stream.id,
         counterpartyAgentId: agent.id,
-        valueId: valueRef.id,
+        currencyId: currency.id,
         direction,
         amount,
-        unit: valueRef.name.length > 32 ? valueRef.name.slice(0, 32) : valueRef.name,
         frequency,
         interval,
         startDate: randomISODateInPast(18),
+        ...(valueId ? { valueId } : {}),
       };
 
       const flow = await service.create(input);

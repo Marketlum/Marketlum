@@ -25,6 +25,7 @@ export class RecurringFlowsRollupService {
 
     const flows = await this.flowRepository.find({
       where: { valueStreamId, status: RecurringFlowStatus.ACTIVE },
+      relations: ['currency'],
     });
 
     const totalsByDirection: Record<RecurringFlowDirection, Map<string, number>> = {
@@ -35,7 +36,8 @@ export class RecurringFlowsRollupService {
     for (const flow of flows) {
       const monthly = monthlyEquivalent(Number(flow.amount), flow.frequency, flow.interval);
       const bucket = totalsByDirection[flow.direction];
-      bucket.set(flow.unit, (bucket.get(flow.unit) ?? 0) + monthly);
+      const unit = flow.currency?.name ?? '—';
+      bucket.set(unit, (bucket.get(unit) ?? 0) + monthly);
     }
 
     const byDirection = Object.values(RecurringFlowDirection).map((direction) => ({

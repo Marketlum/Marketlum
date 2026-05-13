@@ -116,10 +116,9 @@ async function createFlow(
     .send({
       valueStreamId,
       counterpartyAgentId,
-      valueId: ctx.valueIds.get(args.valueName),
+      currencyId: ctx.valueIds.get(args.valueName),
       direction: args.direction,
       amount: args.amount,
-      unit: args.valueName,
       frequency: args.frequency,
       interval: 1,
       startDate: args.startDate,

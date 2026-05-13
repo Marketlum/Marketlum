@@ -27,6 +27,7 @@ export class RecurringFlowsProjectionService {
 
     const flows = await this.flowRepository.find({
       where: { valueStreamId, status: RecurringFlowStatus.ACTIVE },
+      relations: ['currency'],
     });
 
     const today = new Date();
@@ -51,7 +52,8 @@ export class RecurringFlowsProjectionService {
         if (count === 0) continue;
         const amount = Number(flow.amount) * count;
         const bucket = totalsByDirection[flow.direction];
-        bucket.set(flow.unit, (bucket.get(flow.unit) ?? 0) + amount);
+        const unit = flow.currency?.name ?? '—';
+        bucket.set(unit, (bucket.get(unit) ?? 0) + amount);
       }
 
       months.push({

@@ -46,9 +46,9 @@ interface FormState {
   valueStreamId: string;
   counterpartyAgentId: string;
   valueId: string;
+  currencyId: string;
   direction: RecurringFlowDirection;
   amount: string;
-  unit: string;
   frequency: RecurringFlowFrequency;
   interval: string;
   startDate: string;
@@ -62,9 +62,9 @@ function initialState(flow?: RecurringFlowResponse | null, defaultValueStreamId?
       valueStreamId: flow.valueStream.id,
       counterpartyAgentId: flow.counterpartyAgent.id,
       valueId: flow.value?.id ?? '',
+      currencyId: flow.currency?.id ?? '',
       direction: flow.direction,
       amount: flow.amount,
-      unit: flow.unit,
       frequency: flow.frequency,
       interval: String(flow.interval),
       startDate: flow.startDate,
@@ -77,9 +77,9 @@ function initialState(flow?: RecurringFlowResponse | null, defaultValueStreamId?
     valueStreamId: defaultValueStreamId ?? '',
     counterpartyAgentId: '',
     valueId: '',
+    currencyId: '',
     direction: RecurringFlowDirection.INBOUND,
     amount: '',
-    unit: 'USD',
     frequency: RecurringFlowFrequency.MONTHLY,
     interval: '1',
     startDate: today,
@@ -132,7 +132,7 @@ export function RecurringFlowFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.valueStreamId || !form.counterpartyAgentId || !form.amount || !form.unit) {
+    if (!form.valueStreamId || !form.counterpartyAgentId || !form.amount || !form.currencyId) {
       toast.error(tc('validationFailed'));
       return;
     }
@@ -141,9 +141,9 @@ export function RecurringFlowFormDialog({
       valueStreamId: form.valueStreamId,
       counterpartyAgentId: form.counterpartyAgentId,
       valueId: form.valueId || null,
+      currencyId: form.currencyId,
       direction: form.direction,
       amount: form.amount,
-      unit: form.unit.trim(),
       frequency: form.frequency,
       interval,
       startDate: form.startDate,
@@ -219,12 +219,28 @@ export function RecurringFlowFormDialog({
                 ))}
               </SelectContent>
             </Select>
-            {!form.valueId && (
-              <p className="text-xs text-amber-600">{t('valueRequiredForSnapshot')}</p>
-            )}
+            <p className="text-xs text-muted-foreground">{t('valueHint')}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>
+                {t('currency')} <span className="text-destructive">*</span>
+              </Label>
+              <Select value={form.currencyId} onValueChange={(v) => update('currencyId', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('selectCurrency')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {values.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!form.currencyId && (
+                <p className="text-xs text-amber-600">{t('currencyRequiredForSnapshot')}</p>
+              )}
+            </div>
             <div className="space-y-1">
               <Label>{t('amount')}</Label>
               <Input
@@ -234,19 +250,9 @@ export function RecurringFlowFormDialog({
                 placeholder="0.00"
               />
             </div>
-            <div className="space-y-1">
-              <Label>{t('unit')}</Label>
-              <Input
-                type="text"
-                value={form.unit}
-                onChange={(e) => update('unit', e.target.value)}
-                placeholder="USD"
-                maxLength={32}
-              />
-            </div>
           </div>
 
-          <ConversionPreview valueId={form.valueId || null} amount={form.amount} />
+          <ConversionPreview valueId={form.currencyId || null} amount={form.amount} />
 
           <div className="space-y-1">
             <Label>{t('recurrence')}</Label>

@@ -76,9 +76,10 @@ interface FlowPayload {
   valueStreamId: string;
   counterpartyAgentId: string;
   valueId?: string;
+  /** Free-text currency name; resolved to currencyId via ensureCurrency() before POST. */
+  unit?: string;
   direction?: string;
   amount?: string;
-  unit?: string;
   frequency?: string;
   interval?: number;
   startDate?: string;
@@ -99,12 +100,48 @@ function defaultFlow(overrides: Partial<FlowPayload> & Pick<FlowPayload, 'valueS
   };
 }
 
+// Cache currency Values per (authCookie, name). The test DB is truncated
+// per scenario so we keep the cache scoped accordingly.
+const currencyCache = new Map<string, string>();
+
+async function ensureCurrency(authCookie: string, name: string): Promise<string> {
+  const key = `${authCookie}::${name}`;
+  if (currencyCache.has(key)) return currencyCache.get(key)!;
+  const res = await http()
+    .post('/values')
+    .set('Cookie', [authCookie])
+    .set('X-CSRF-Protection', '1')
+    .send({ name, type: 'product', purpose: `Test currency ${name}` });
+  const id = res.body.id;
+  currencyCache.set(key, id);
+  return id;
+}
+
+function clearCurrencyCache() {
+  currencyCache.clear();
+}
+
 async function postFlow(authCookie: string, payload: Record<string, unknown>) {
+  // Translate the legacy free-text `unit` into a Value reference (currencyId).
+  // This lets the .feature files keep using "unit \"USD\"" while the API
+  // contract now demands a currencyId FK.
+  let body: Record<string, unknown> = { ...payload };
+  if (body.unit !== undefined && body.currencyId === undefined && authCookie) {
+    const unitName = body.unit as string;
+    if (unitName) {
+      try {
+        body.currencyId = await ensureCurrency(authCookie, unitName);
+      } catch {
+        // Leave unit in place — server will reject and the test will surface it
+      }
+    }
+    delete body.unit;
+  }
   const req = http()
     .post('/recurring-flows')
     .set('X-CSRF-Protection', '1');
   if (authCookie) req.set('Cookie', [authCookie]);
-  return req.send(payload);
+  return req.send(body);
 }
 
 // ---------- CREATE ----------
@@ -116,7 +153,7 @@ defineFeature(createFeature, (test) => {
 
   beforeAll(async () => { await bootstrapApp(); });
   beforeEach(async () => {
-    await cleanDatabase();
+    await cleanDatabase(); clearCurrencyCache();
     authCookie = '';
     for (const k of Object.keys(ids)) delete ids[k];
   });
@@ -138,7 +175,7 @@ defineFeature(createFeature, (test) => {
     });
     and(/^the response should contain a recurring flow with amount "(.*)" and unit "(.*)"$/, (amount: string, unit: string) => {
       expect(response.body.amount).toBe(amount);
-      expect(response.body.unit).toBe(unit);
+      expect(response.body.currency?.name).toBe(unit);
     });
     and(/^the response should contain a recurring flow with status "(.*)"$/, (status: string) => {
       expect(response.body.status).toBe(status);
@@ -253,7 +290,7 @@ defineFeature(listFeature, (test) => {
   const ids: Record<string, string> = {};
 
   beforeAll(async () => { await bootstrapApp(); });
-  beforeEach(async () => { await cleanDatabase(); authCookie = ''; });
+  beforeEach(async () => { await cleanDatabase(); clearCurrencyCache(); authCookie = ''; });
   afterAll(async () => { await teardownApp(); });
 
   async function seedFlow(overrides: Partial<FlowPayload> = {}) {
@@ -355,7 +392,7 @@ defineFeature(readFeature, (test) => {
   let flowId: string;
 
   beforeAll(async () => { await bootstrapApp(); });
-  beforeEach(async () => { await cleanDatabase(); authCookie = ''; flowId = ''; });
+  beforeEach(async () => { await cleanDatabase(); clearCurrencyCache(); authCookie = ''; flowId = ''; });
   afterAll(async () => { await teardownApp(); });
 
   test('Read an existing recurring flow', ({ given, and, when, then }) => {
@@ -374,7 +411,7 @@ defineFeature(readFeature, (test) => {
     });
     and(/^the response should contain a recurring flow with amount "(.*)" and unit "(.*)"$/, (amount: string, unit: string) => {
       expect(response.body.amount).toBe(amount);
-      expect(response.body.unit).toBe(unit);
+      expect(response.body.currency?.name).toBe(unit);
     });
   });
 
@@ -397,7 +434,7 @@ defineFeature(updateFeature, (test) => {
   let flowId: string;
 
   beforeAll(async () => { await bootstrapApp(); });
-  beforeEach(async () => { await cleanDatabase(); authCookie = ''; flowId = ''; });
+  beforeEach(async () => { await cleanDatabase(); clearCurrencyCache(); authCookie = ''; flowId = ''; });
   afterAll(async () => { await teardownApp(); });
 
   async function seedFlow(amount = '100') {
@@ -422,7 +459,7 @@ defineFeature(updateFeature, (test) => {
     });
     and(/^the response should contain a recurring flow with amount "(.*)" and unit "(.*)"$/, (amount: string, unit: string) => {
       expect(response.body.amount).toBe(amount);
-      expect(response.body.unit).toBe(unit);
+      expect(response.body.currency?.name).toBe(unit);
     });
   });
 
@@ -467,7 +504,7 @@ defineFeature(deleteFeature, (test) => {
   let flowId: string;
 
   beforeAll(async () => { await bootstrapApp(); });
-  beforeEach(async () => { await cleanDatabase(); authCookie = ''; flowId = ''; });
+  beforeEach(async () => { await cleanDatabase(); clearCurrencyCache(); authCookie = ''; flowId = ''; });
   afterAll(async () => { await teardownApp(); });
 
   async function seedFlow() {
@@ -527,7 +564,7 @@ defineFeature(transitionsFeature, (test) => {
   let flowId: string;
 
   beforeAll(async () => { await bootstrapApp(); });
-  beforeEach(async () => { await cleanDatabase(); authCookie = ''; flowId = ''; });
+  beforeEach(async () => { await cleanDatabase(); clearCurrencyCache(); authCookie = ''; flowId = ''; });
   afterAll(async () => { await teardownApp(); });
 
   async function seedFlow() {
@@ -631,7 +668,7 @@ defineFeature(permissionsFeature, (test) => {
 
   beforeAll(async () => { await bootstrapApp(); });
   beforeEach(async () => {
-    await cleanDatabase();
+    await cleanDatabase(); clearCurrencyCache();
     authCookie = '';
     for (const k of Object.keys(ids)) delete ids[k];
   });
@@ -703,7 +740,7 @@ defineFeature(refIntegrityFeature, (test) => {
 
   beforeAll(async () => { await bootstrapApp(); });
   beforeEach(async () => {
-    await cleanDatabase();
+    await cleanDatabase(); clearCurrencyCache();
     authCookie = '';
     flowId = '';
     agentId = '';
@@ -773,7 +810,7 @@ defineFeature(rollupFeature, (test) => {
 
   beforeAll(async () => { await bootstrapApp(); });
   beforeEach(async () => {
-    await cleanDatabase();
+    await cleanDatabase(); clearCurrencyCache();
     authCookie = '';
     for (const k of Object.keys(ids)) delete ids[k];
   });
@@ -861,7 +898,7 @@ defineFeature(projectionFeature, (test) => {
 
   beforeAll(async () => { await bootstrapApp(); });
   beforeEach(async () => {
-    await cleanDatabase();
+    await cleanDatabase(); clearCurrencyCache();
     authCookie = '';
     for (const k of Object.keys(ids)) delete ids[k];
   });
@@ -956,7 +993,7 @@ defineFeature(csvFeature, (test) => {
 
   beforeAll(async () => { await bootstrapApp(); });
   beforeEach(async () => {
-    await cleanDatabase();
+    await cleanDatabase(); clearCurrencyCache();
     authCookie = '';
     for (const k of Object.keys(ids)) delete ids[k];
   });

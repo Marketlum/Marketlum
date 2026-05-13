@@ -54,20 +54,20 @@ export class RecurringFlowsService {
   ) {}
 
   private async snapshot(
-    valueId: string | null,
+    currencyId: string | null,
     amount: string,
     at: Date = new Date(),
   ): Promise<Snapshot> {
-    if (valueId === null) return { rateUsed: null, baseAmount: null };
+    if (currencyId === null) return { rateUsed: null, baseAmount: null };
     const baseValueId = await this.systemSettingsService.getBaseValueId();
     if (!baseValueId) return { rateUsed: null, baseAmount: null };
-    if (valueId === baseValueId) {
+    if (currencyId === baseValueId) {
       return {
         rateUsed: '1.0000000000',
         baseAmount: formatBaseAmount(amount),
       };
     }
-    const lookup = await this.exchangeRatesService.lookup(valueId, baseValueId, at);
+    const lookup = await this.exchangeRatesService.lookup(currencyId, baseValueId, at);
     if (!lookup) return { rateUsed: null, baseAmount: null };
     return {
       rateUsed: lookup.rate,
@@ -80,11 +80,11 @@ export class RecurringFlowsService {
       valueStreamId,
       counterpartyAgentId,
       valueId,
+      currencyId,
       offeringId,
       agreementId,
       taxonomyIds,
       amount,
-      unit,
       interval,
       ...rest
     } = input;
@@ -92,6 +92,7 @@ export class RecurringFlowsService {
     await this.assertValueStreamExists(valueStreamId);
     await this.assertAgentExists(counterpartyAgentId);
     if (valueId) await this.assertValueExists(valueId);
+    await this.assertValueExists(currencyId);
     if (offeringId) await this.assertOfferingExists(offeringId);
     if (agreementId) await this.assertAgreementExists(agreementId);
     const taxonomies = taxonomyIds && taxonomyIds.length > 0
@@ -99,16 +100,16 @@ export class RecurringFlowsService {
       : [];
 
     const normalizedAmount = Number(amount).toFixed(4);
-    const snap = await this.snapshot(valueId ?? null, normalizedAmount);
+    const snap = await this.snapshot(currencyId, normalizedAmount);
 
     const flow = this.flowRepository.create({
       ...rest,
       amount: normalizedAmount,
-      unit: unit.trim(),
       interval: interval ?? 1,
       valueStreamId,
       counterpartyAgentId,
       valueId: valueId ?? null,
+      currencyId,
       offeringId: offeringId ?? null,
       agreementId: agreementId ?? null,
       endDate: rest.endDate ?? null,
@@ -135,7 +136,7 @@ export class RecurringFlowsService {
       direction,
       status,
       frequency,
-      unit,
+      currencyId,
       taxonomyId,
     } = query;
     const skip = (page - 1) * limit;
@@ -144,6 +145,7 @@ export class RecurringFlowsService {
     qb.leftJoinAndSelect('flow.valueStream', 'valueStream');
     qb.leftJoinAndSelect('flow.counterpartyAgent', 'counterpartyAgent');
     qb.leftJoinAndSelect('flow.value', 'value');
+    qb.leftJoinAndSelect('flow.currency', 'currency');
     qb.leftJoinAndSelect('flow.offering', 'offering');
     qb.leftJoinAndSelect('flow.agreement', 'agreement');
     qb.leftJoinAndSelect('flow.taxonomies', 'taxonomies');
@@ -162,9 +164,9 @@ export class RecurringFlowsService {
       qb.andWhere('flow.frequency IN (:...frequencies)', { frequencies: arr });
     }
 
-    if (unit) {
-      const arr = Array.isArray(unit) ? unit : [unit];
-      qb.andWhere('flow.unit IN (:...units)', { units: arr });
+    if (currencyId) {
+      const arr = Array.isArray(currencyId) ? currencyId : [currencyId];
+      qb.andWhere('flow.currencyId IN (:...currencyIds)', { currencyIds: arr });
     }
 
     if (taxonomyId) {
@@ -196,7 +198,7 @@ export class RecurringFlowsService {
   async findOne(id: string): Promise<RecurringFlow> {
     const flow = await this.flowRepository.findOne({
       where: { id },
-      relations: ['valueStream', 'counterpartyAgent', 'value', 'offering', 'agreement', 'taxonomies'],
+      relations: ['valueStream', 'counterpartyAgent', 'value', 'currency', 'offering', 'agreement', 'taxonomies'],
     });
     if (!flow) throw new NotFoundException('Recurring flow not found');
     return flow;
@@ -208,11 +210,11 @@ export class RecurringFlowsService {
       valueStreamId,
       counterpartyAgentId,
       valueId,
+      currencyId,
       offeringId,
       agreementId,
       taxonomyIds,
       amount,
-      unit,
       ...rest
     } = input;
 
@@ -225,12 +227,16 @@ export class RecurringFlowsService {
       flow.counterpartyAgentId = counterpartyAgentId;
     }
     const valueIdChanged = valueId !== undefined;
+    const currencyIdChanged = currencyId !== undefined;
     const amountChanged = amount !== undefined;
-    const unitChanged = unit !== undefined;
 
     if (valueIdChanged) {
       if (valueId !== null) await this.assertValueExists(valueId!);
       flow.valueId = valueId!;
+    }
+    if (currencyIdChanged) {
+      await this.assertValueExists(currencyId!);
+      flow.currencyId = currencyId!;
     }
     if (offeringId !== undefined) {
       if (offeringId !== null) await this.assertOfferingExists(offeringId);
@@ -242,7 +248,6 @@ export class RecurringFlowsService {
     }
     if (rest.direction !== undefined) flow.direction = rest.direction;
     if (amountChanged) flow.amount = Number(amount).toFixed(4);
-    if (unitChanged) flow.unit = unit!.trim();
     if (rest.frequency !== undefined) flow.frequency = rest.frequency;
     if (rest.interval !== undefined) flow.interval = rest.interval;
     if (rest.startDate !== undefined) flow.startDate = rest.startDate;
@@ -253,9 +258,10 @@ export class RecurringFlowsService {
       flow.taxonomies = taxonomyIds.length > 0 ? await this.loadTaxonomies(taxonomyIds) : [];
     }
 
-    // Re-snapshot when monetary fields changed (valueId, amount, or unit per spec §3.5)
-    if (valueIdChanged || amountChanged || unitChanged) {
-      const snap = await this.snapshot(flow.valueId, flow.amount);
+    // Re-snapshot when monetary fields changed: currencyId or amount.
+    // valueId describes "what" flows and does not affect the snapshot.
+    if (currencyIdChanged || amountChanged) {
+      const snap = await this.snapshot(flow.currencyId, flow.amount);
       flow.rateUsed = snap.rateUsed;
       flow.baseAmount = snap.baseAmount;
     }
@@ -264,6 +270,7 @@ export class RecurringFlowsService {
     delete (flow as any).valueStream;
     delete (flow as any).counterpartyAgent;
     delete (flow as any).value;
+    delete (flow as any).currency;
     delete (flow as any).offering;
     delete (flow as any).agreement;
 
@@ -310,6 +317,7 @@ export class RecurringFlowsService {
     delete (flow as any).valueStream;
     delete (flow as any).counterpartyAgent;
     delete (flow as any).value;
+    delete (flow as any).currency;
     delete (flow as any).offering;
     delete (flow as any).agreement;
 

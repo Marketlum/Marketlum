@@ -67,8 +67,12 @@ export class RecurringFlow {
   @Column({ type: 'decimal', precision: 14, scale: 4 })
   amount: string;
 
-  @Column({ type: 'varchar', length: 32 })
-  unit: string;
+  @ManyToOne(() => Value, { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'currencyId' })
+  currency: Value | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  currencyId: string | null;
 
   @Column({ type: 'enum', enum: RecurringFlowFrequency })
   frequency: RecurringFlowFrequency;
