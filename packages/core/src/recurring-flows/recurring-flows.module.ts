@@ -10,6 +10,7 @@ import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { RecurringFlowsService } from './recurring-flows.service';
 import { RecurringFlowsRollupService } from './rollup.service';
 import { RecurringFlowsProjectionService } from './projection.service';
+import { RecurringFlowsBudgetService } from './budget.service';
 import { RecurringFlowsController } from './recurring-flows.controller';
 import { ValueStreamRecurringFlowsController } from './value-stream-recurring-flows.controller';
 import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
@@ -22,7 +23,17 @@ import { SystemSettingsModule } from '../system-settings/system-settings.module'
     SystemSettingsModule,
   ],
   controllers: [RecurringFlowsController, ValueStreamRecurringFlowsController],
-  providers: [RecurringFlowsService, RecurringFlowsRollupService, RecurringFlowsProjectionService],
-  exports: [RecurringFlowsService, RecurringFlowsRollupService, RecurringFlowsProjectionService],
+  providers: [
+    RecurringFlowsService,
+    RecurringFlowsRollupService,
+    RecurringFlowsProjectionService,
+    RecurringFlowsBudgetService,
+  ],
+  exports: [
+    RecurringFlowsService,
+    RecurringFlowsRollupService,
+    RecurringFlowsProjectionService,
+    RecurringFlowsBudgetService,
+  ],
 })
 export class RecurringFlowsModule {}

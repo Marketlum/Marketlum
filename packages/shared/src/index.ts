@@ -339,3 +339,10 @@ export {
   BASE_AMOUNT_PRECISION,
   type CanonicalisedRate,
 } from './helpers/exchange-rate.helpers';
+
+export {
+  valueStreamBudgetQuerySchema,
+  valueStreamBudgetResponseSchema,
+  type ValueStreamBudgetQuery,
+  type ValueStreamBudgetResponse,
+} from './schemas/value-stream-budget.schema';

@@ -12,30 +12,35 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import {
   RecurringFlowQuery,
   recurringFlowQuerySchema,
+  ValueStreamBudgetQuery,
+  valueStreamBudgetQuerySchema,
 } from '@marketlum/shared';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { RecurringFlowsService } from './recurring-flows.service';
 import { RecurringFlowsRollupService } from './rollup.service';
 import { RecurringFlowsProjectionService } from './projection.service';
+import { RecurringFlowsBudgetService } from './budget.service';
 import {
   RecurringFlowResponseDto,
   RecurringFlowRollupDto,
   RecurringFlowProjectionDto,
+  ValueStreamBudgetResponseDto,
 } from './recurring-flow.dto';
 
 @ApiTags('recurring-flows')
 @ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
-@Controller('value-streams/:valueStreamId/recurring-flows')
+@Controller('value-streams/:valueStreamId')
 @UseGuards(AdminGuard)
 export class ValueStreamRecurringFlowsController {
   constructor(
     private readonly flowsService: RecurringFlowsService,
     private readonly rollupService: RecurringFlowsRollupService,
     private readonly projectionService: RecurringFlowsProjectionService,
+    private readonly budgetService: RecurringFlowsBudgetService,
   ) {}
 
-  @Get()
+  @Get('recurring-flows')
   @ApiOperation({ summary: 'List recurring flows for a value stream' })
   @ApiParam({ name: 'valueStreamId', type: String })
   @ApiOkResponse({ type: RecurringFlowResponseDto, isArray: true })
@@ -46,7 +51,7 @@ export class ValueStreamRecurringFlowsController {
     return this.flowsService.search({ ...query, valueStreamId });
   }
 
-  @Get('rollup')
+  @Get('recurring-flows/rollup')
   @ApiOperation({ summary: 'Get the recurring-flow rollup for a value stream' })
   @ApiParam({ name: 'valueStreamId', type: String })
   @ApiOkResponse({ type: RecurringFlowRollupDto })
@@ -54,7 +59,7 @@ export class ValueStreamRecurringFlowsController {
     return this.rollupService.forValueStream(valueStreamId);
   }
 
-  @Get('projection')
+  @Get('recurring-flows/projection')
   @ApiOperation({ summary: 'Get the recurring-flow projection for a value stream' })
   @ApiParam({ name: 'valueStreamId', type: String })
   @ApiQuery({ name: 'monthsAhead', required: false, type: Number })
@@ -65,5 +70,18 @@ export class ValueStreamRecurringFlowsController {
   ) {
     const horizon = monthsAhead ? parseInt(monthsAhead, 10) : 12;
     return this.projectionService.forValueStream(valueStreamId, horizon);
+  }
+
+  @Get('budget')
+  @ApiOperation({ summary: 'Get the value-stream budget for a calendar year' })
+  @ApiParam({ name: 'valueStreamId', type: String })
+  @ApiQuery({ name: 'year', required: false, type: Number })
+  @ApiQuery({ name: 'directOnly', required: false, type: Boolean })
+  @ApiOkResponse({ type: ValueStreamBudgetResponseDto })
+  async budget(
+    @Param('valueStreamId') valueStreamId: string,
+    @Query(new ZodValidationPipe(valueStreamBudgetQuerySchema)) query: ValueStreamBudgetQuery,
+  ) {
+    return this.budgetService.forValueStream(valueStreamId, query);
   }
 }

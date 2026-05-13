@@ -7,6 +7,7 @@ import {
   recurringFlowResponseSchema,
   recurringFlowRollupSchema,
   recurringFlowProjectionSchema,
+  valueStreamBudgetResponseSchema,
 } from '@marketlum/shared';
 
 export class CreateRecurringFlowDto extends createZodDto(createRecurringFlowSchema as never) {}
@@ -16,3 +17,4 @@ export class RecurringFlowQueryDto extends createZodDto(recurringFlowQuerySchema
 export class RecurringFlowResponseDto extends createZodDto(recurringFlowResponseSchema as never) {}
 export class RecurringFlowRollupDto extends createZodDto(recurringFlowRollupSchema as never) {}
 export class RecurringFlowProjectionDto extends createZodDto(recurringFlowProjectionSchema as never) {}
+export class ValueStreamBudgetResponseDto extends createZodDto(valueStreamBudgetResponseSchema as never) {}
