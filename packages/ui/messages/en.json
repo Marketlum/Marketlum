@@ -433,6 +433,8 @@
     "backToValueStreams": "Back to value streams",
     "updatedAt": "Updated",
     "noResults": "No matching value streams found.",
+    "searchPlaceholder": "Search value streams…",
+    "viewAll": "View all value streams",
     "createValue": "Create Value",
     "createExchange": "Create Exchange",
     "revenueExpenses": "Revenue & Expenses",

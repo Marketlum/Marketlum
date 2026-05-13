@@ -432,6 +432,8 @@
     "backToValueStreams": "Powrót do strumieni wartości",
     "updatedAt": "Zaktualizowano",
     "noResults": "Nie znaleziono pasujących strumieni wartości.",
+    "searchPlaceholder": "Szukaj strumieni wartości…",
+    "viewAll": "Zobacz wszystkie strumienie",
     "createValue": "Utwórz wartość",
     "createExchange": "Utwórz wymianę",
     "revenueExpenses": "Przychody i wydatki",

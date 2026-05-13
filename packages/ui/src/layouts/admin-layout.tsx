@@ -14,6 +14,7 @@ import { LocaleSwitcher } from '../components/shared/locale-switcher';
 import { ThemeSwitcher } from '../components/shared/theme-switcher';
 import { FileImagePreview } from '../components/shared/file-image-preview';
 import { GlobalSearchInput } from '../components/search/global-search-input';
+import { ValueStreamSwitcher } from '../components/value-streams/value-stream-switcher';
 import type { UserResponse } from '@marketlum/shared';
 
 const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
@@ -398,7 +399,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
         <div className="flex flex-1 flex-col">
-          <header className="hidden md:flex h-14 items-center border-b px-6">
+          <header className="hidden md:flex h-14 items-center gap-3 border-b px-6">
+            <ValueStreamSwitcher />
             <div className="w-full max-w-md">
               <GlobalSearchInput />
             </div>
