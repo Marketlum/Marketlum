@@ -26,6 +26,8 @@ import { AgreementTemplate } from './agreement-templates/entities/agreement-temp
 import { Pipeline } from './pipelines/entities/pipeline.entity';
 import { Tension } from './tensions/entities/tension.entity';
 import { RecurringFlow } from './recurring-flows/entities/recurring-flow.entity';
+import { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity';
+import { SystemSetting } from './system-settings/entities/system-setting.entity';
 
 export const ALL_ENTITIES = [
   User,
@@ -56,4 +58,6 @@ export const ALL_ENTITIES = [
   Pipeline,
   Tension,
   RecurringFlow,
+  ExchangeRate,
+  SystemSetting,
 ];

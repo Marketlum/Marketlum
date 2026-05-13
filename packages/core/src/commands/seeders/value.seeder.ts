@@ -85,6 +85,18 @@ const VALUE_TREE: ValueNode[] = [
     purpose: 'Peer-to-peer electronic cash system to enable secure, borderless transactions without intermediaries',
     lifecycleStage: ValueLifecycleStage.STABLE,
   },
+  {
+    name: 'GBP',
+    type: ValueType.PRODUCT,
+    purpose: 'Sterling, the currency of the United Kingdom',
+    lifecycleStage: ValueLifecycleStage.STABLE,
+  },
+  {
+    name: 'Hour of consulting',
+    type: ValueType.SERVICE,
+    purpose: 'A single hour of expert consulting time',
+    lifecycleStage: ValueLifecycleStage.STABLE,
+  },
 ];
 
 export async function seedValues(service: ValuesService, deps: ValueDeps) {

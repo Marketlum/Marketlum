@@ -72,6 +72,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
       { href: '/admin/invoices', label: t('invoices'), icon: FileText },
       { href: '/admin/recurring-flows', label: t('recurringFlows'), icon: RefreshCw },
+      { href: '/admin/exchange-rates', label: t('exchangeRates'), icon: ArrowRightLeft },
     ]},
     { label: t('groupLedger'), items: [
       { href: '/admin/accounts', label: t('accounts'), icon: Wallet },

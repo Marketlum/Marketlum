@@ -28,6 +28,8 @@ import { ArchetypesModule } from './archetypes/archetypes.module';
 import { LocalesModule } from './locales/locales.module';
 import { AgreementTemplatesModule } from './agreement-templates/agreement-templates.module';
 import { RecurringFlowsModule } from './recurring-flows/recurring-flows.module';
+import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
+import { SystemSettingsModule } from './system-settings/system-settings.module';
 
 @Module({
   imports: [
@@ -57,6 +59,8 @@ import { RecurringFlowsModule } from './recurring-flows/recurring-flows.module';
     LocalesModule,
     AgreementTemplatesModule,
     RecurringFlowsModule,
+    ExchangeRatesModule,
+    SystemSettingsModule,
   ],
   exports: [
     AuthModule,
@@ -80,6 +84,8 @@ import { RecurringFlowsModule } from './recurring-flows/recurring-flows.module';
     LocalesModule,
     AgreementTemplatesModule,
     RecurringFlowsModule,
+    ExchangeRatesModule,
+    SystemSettingsModule,
   ],
   providers: [
     {

@@ -262,6 +262,7 @@ export { TensionDetailPage } from './pages/admin/tension-detail-page';
 export { ExchangeDetailPage } from './pages/admin/exchange-detail-page';
 export { ExchangesGraphPage } from './pages/admin/exchanges-graph-page';
 export { ExchangesPage } from './pages/admin/exchanges-page';
+export { ExchangeRatesPage } from './pages/admin/exchange-rates-page';
 export { FilesPage } from './pages/admin/files-page';
 export { GeographiesPage } from './pages/admin/geographies-page';
 export { InvoiceDetailPage } from './pages/admin/invoice-detail-page';

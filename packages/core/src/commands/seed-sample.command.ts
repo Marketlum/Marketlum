@@ -44,6 +44,10 @@ import { seedValueInstances } from './seeders/value-instance.seeder';
 import { seedExchanges } from './seeders/exchange.seeder';
 import { seedRecurringFlows } from './seeders/recurring-flow.seeder';
 import { RecurringFlowsService } from '../recurring-flows/recurring-flows.service';
+import { seedExchangeRates } from './seeders/exchange-rate.seeder';
+import { seedSystemSettings } from './seeders/system-settings.seeder';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
+import { SystemSettingsService } from '../system-settings/system-settings.service';
 
 @Command({
   name: 'seed:sample',
@@ -75,6 +79,8 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly exchangesService: ExchangesService,
     private readonly exchangeFlowsService: ExchangeFlowsService,
     private readonly recurringFlowsService: RecurringFlowsService,
+    private readonly exchangeRatesService: ExchangeRatesService,
+    private readonly systemSettingsService: SystemSettingsService,
   ) {
     super();
   }
@@ -202,6 +208,14 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log('Seeding recurring flows...');
     const recurringFlows = await seedRecurringFlows(this.recurringFlowsService, { valueStreams: valueStreams.all, agents });
     this.logger.log(`  Created ${recurringFlows.length} recurring flows`);
+
+    this.logger.log('Seeding exchange rates...');
+    const rates = await seedExchangeRates(this.exchangeRatesService, { values });
+    this.logger.log(`  Created ${rates.length} exchange rates`);
+
+    this.logger.log('Setting system base value...');
+    const baseSetting = await seedSystemSettings(this.systemSettingsService, { values });
+    this.logger.log(`  Base value set to ${baseSetting?.baseValueId ?? '(not found)'}`);
 
     this.logger.log('Sample data seeded successfully!');
   }

@@ -37,6 +37,7 @@ import { AddTensions1700000000035 } from './1700000000035-AddTensions';
 import { AddTensionState1700000000036 } from './1700000000036-AddTensionState';
 import { AddExchangeFlowDescription1700000000037 } from './1700000000037-AddExchangeFlowDescription';
 import { AddRecurringFlows1700000000038 } from './1700000000038-AddRecurringFlows';
+import { AddExchangeRates1700000000039 } from './1700000000039-AddExchangeRates';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -78,4 +79,5 @@ export const ALL_MIGRATIONS = [
   AddTensionState1700000000036,
   AddExchangeFlowDescription1700000000037,
   AddRecurringFlows1700000000038,
+  AddExchangeRates1700000000039,
 ];

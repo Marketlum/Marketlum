@@ -309,3 +309,33 @@ export {
   formatFrequency,
   type RecurringFlowScheduleInput,
 } from './helpers/recurring-flow.helpers';
+
+export {
+  createExchangeRateSchema,
+  updateExchangeRateSchema,
+  exchangeRateQuerySchema,
+  exchangeRateResponseSchema,
+  exchangeRateLookupQuerySchema,
+  exchangeRateLookupResponseSchema,
+  updateBaseValueSchema,
+  systemSettingsBaseValueResponseSchema,
+  type CreateExchangeRateInput,
+  type UpdateExchangeRateInput,
+  type ExchangeRateQuery,
+  type ExchangeRateResponse,
+  type ExchangeRateLookupQuery,
+  type ExchangeRateLookupResponse,
+  type UpdateBaseValueInput,
+  type SystemSettingsBaseValueResponse,
+} from './schemas/exchange-rate.schema';
+
+export {
+  canonicaliseRate,
+  invertRate,
+  convertAmount,
+  formatRate,
+  formatBaseAmount,
+  EXCHANGE_RATE_PRECISION,
+  BASE_AMOUNT_PRECISION,
+  type CanonicalisedRate,
+} from './helpers/exchange-rate.helpers';
