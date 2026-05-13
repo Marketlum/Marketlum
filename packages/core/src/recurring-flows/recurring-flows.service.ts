@@ -14,6 +14,8 @@ import {
   RecurringFlowStatus,
   RecurringFlowTransitionAction,
   recurringFlowMachine,
+  convertAmount,
+  formatBaseAmount,
 } from '@marketlum/shared';
 import { RecurringFlow } from './entities/recurring-flow.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
@@ -22,6 +24,13 @@ import { Value } from '../values/entities/value.entity';
 import { Offering } from '../offerings/entities/offering.entity';
 import { Agreement } from '../agreements/entities/agreement.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
+import { SystemSettingsService } from '../system-settings/system-settings.service';
+
+interface Snapshot {
+  rateUsed: string | null;
+  baseAmount: string | null;
+}
 
 @Injectable()
 export class RecurringFlowsService {
@@ -40,7 +49,31 @@ export class RecurringFlowsService {
     private readonly agreementRepository: Repository<Agreement>,
     @InjectRepository(Taxonomy)
     private readonly taxonomyRepository: Repository<Taxonomy>,
+    private readonly exchangeRatesService: ExchangeRatesService,
+    private readonly systemSettingsService: SystemSettingsService,
   ) {}
+
+  private async snapshot(
+    valueId: string | null,
+    amount: string,
+    at: Date = new Date(),
+  ): Promise<Snapshot> {
+    if (valueId === null) return { rateUsed: null, baseAmount: null };
+    const baseValueId = await this.systemSettingsService.getBaseValueId();
+    if (!baseValueId) return { rateUsed: null, baseAmount: null };
+    if (valueId === baseValueId) {
+      return {
+        rateUsed: '1.0000000000',
+        baseAmount: formatBaseAmount(amount),
+      };
+    }
+    const lookup = await this.exchangeRatesService.lookup(valueId, baseValueId, at);
+    if (!lookup) return { rateUsed: null, baseAmount: null };
+    return {
+      rateUsed: lookup.rate,
+      baseAmount: convertAmount(amount, lookup.rate),
+    };
+  }
 
   async create(input: CreateRecurringFlowInput): Promise<RecurringFlow> {
     const {
@@ -65,9 +98,12 @@ export class RecurringFlowsService {
       ? await this.loadTaxonomies(taxonomyIds)
       : [];
 
+    const normalizedAmount = Number(amount).toFixed(4);
+    const snap = await this.snapshot(valueId ?? null, normalizedAmount);
+
     const flow = this.flowRepository.create({
       ...rest,
-      amount: Number(amount).toFixed(4),
+      amount: normalizedAmount,
       unit: unit.trim(),
       interval: interval ?? 1,
       valueStreamId,
@@ -79,6 +115,8 @@ export class RecurringFlowsService {
       description: rest.description ?? null,
       status: RecurringFlowStatus.DRAFT,
       taxonomies,
+      rateUsed: snap.rateUsed,
+      baseAmount: snap.baseAmount,
     });
 
     const saved = await this.flowRepository.save(flow);
@@ -186,9 +224,13 @@ export class RecurringFlowsService {
       await this.assertAgentExists(counterpartyAgentId);
       flow.counterpartyAgentId = counterpartyAgentId;
     }
-    if (valueId !== undefined) {
-      if (valueId !== null) await this.assertValueExists(valueId);
-      flow.valueId = valueId;
+    const valueIdChanged = valueId !== undefined;
+    const amountChanged = amount !== undefined;
+    const unitChanged = unit !== undefined;
+
+    if (valueIdChanged) {
+      if (valueId !== null) await this.assertValueExists(valueId!);
+      flow.valueId = valueId!;
     }
     if (offeringId !== undefined) {
       if (offeringId !== null) await this.assertOfferingExists(offeringId);
@@ -199,8 +241,8 @@ export class RecurringFlowsService {
       flow.agreementId = agreementId;
     }
     if (rest.direction !== undefined) flow.direction = rest.direction;
-    if (amount !== undefined) flow.amount = Number(amount).toFixed(4);
-    if (unit !== undefined) flow.unit = unit.trim();
+    if (amountChanged) flow.amount = Number(amount).toFixed(4);
+    if (unitChanged) flow.unit = unit!.trim();
     if (rest.frequency !== undefined) flow.frequency = rest.frequency;
     if (rest.interval !== undefined) flow.interval = rest.interval;
     if (rest.startDate !== undefined) flow.startDate = rest.startDate;
@@ -209,6 +251,13 @@ export class RecurringFlowsService {
 
     if (taxonomyIds !== undefined) {
       flow.taxonomies = taxonomyIds.length > 0 ? await this.loadTaxonomies(taxonomyIds) : [];
+    }
+
+    // Re-snapshot when monetary fields changed (valueId, amount, or unit per spec §3.5)
+    if (valueIdChanged || amountChanged || unitChanged) {
+      const snap = await this.snapshot(flow.valueId, flow.amount);
+      flow.rateUsed = snap.rateUsed;
+      flow.baseAmount = snap.baseAmount;
     }
 
     // Clear lazy-loadable relations to avoid TypeORM trying to re-save them

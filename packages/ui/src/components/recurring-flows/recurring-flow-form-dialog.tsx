@@ -31,6 +31,7 @@ import {
 import { useAgents } from '../../hooks/use-agents';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { useValues } from '../../hooks/use-values';
+import { ConversionPreview } from '../shared/conversion-preview';
 
 interface RecurringFlowFormDialogProps {
   open: boolean;
@@ -241,6 +242,8 @@ export function RecurringFlowFormDialog({
               />
             </div>
           </div>
+
+          <ConversionPreview valueId={form.valueId || null} amount={form.amount} />
 
           <div className="space-y-1">
             <Label>{t('recurrence')}</Label>

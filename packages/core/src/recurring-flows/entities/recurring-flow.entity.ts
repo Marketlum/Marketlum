@@ -88,6 +88,12 @@ export class RecurringFlow {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ type: 'decimal', precision: 20, scale: 10, nullable: true })
+  rateUsed: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  baseAmount: string | null;
+
   @ManyToMany(() => Taxonomy)
   @JoinTable({
     name: 'recurring_flow_taxonomies',

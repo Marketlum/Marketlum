@@ -17,7 +17,25 @@ import {
   CreateInvoiceInput,
   UpdateInvoiceInput,
   PaginationQuery,
+  convertAmount,
+  formatBaseAmount,
 } from '@marketlum/shared';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
+import { SystemSettingsService } from '../system-settings/system-settings.service';
+
+interface InvoiceItemWithBase {
+  invoiceItem: InvoiceItem;
+}
+
+interface SnapshotInput {
+  nativeValueId: string | null;
+  nativeAmount: string;
+}
+
+interface Snapshot {
+  rateUsed: string | null;
+  baseAmount: string | null;
+}
 
 @Injectable()
 export class InvoicesService {
@@ -38,7 +56,31 @@ export class InvoicesService {
     private readonly fileRepository: Repository<File>,
     @InjectRepository(Channel)
     private readonly channelRepository: Repository<Channel>,
+    private readonly exchangeRatesService: ExchangeRatesService,
+    private readonly systemSettingsService: SystemSettingsService,
   ) {}
+
+  private async snapshot(input: SnapshotInput, at: Date = new Date()): Promise<Snapshot> {
+    if (input.nativeValueId === null) return { rateUsed: null, baseAmount: null };
+    const baseValueId = await this.systemSettingsService.getBaseValueId();
+    if (!baseValueId) return { rateUsed: null, baseAmount: null };
+    if (input.nativeValueId === baseValueId) {
+      return {
+        rateUsed: '1.0000000000',
+        baseAmount: formatBaseAmount(input.nativeAmount),
+      };
+    }
+    const lookup = await this.exchangeRatesService.lookup(
+      input.nativeValueId,
+      baseValueId,
+      at,
+    );
+    if (!lookup) return { rateUsed: null, baseAmount: null };
+    return {
+      rateUsed: lookup.rate,
+      baseAmount: convertAmount(input.nativeAmount, lookup.rate),
+    };
+  }
 
   async create(input: CreateInvoiceInput): Promise<Invoice> {
     const {
@@ -118,7 +160,7 @@ export class InvoicesService {
     const saved = await this.invoiceRepository.save(invoice);
 
     if (items && items.length > 0) {
-      await this.replaceItems(saved.id, items);
+      await this.replaceItems(saved.id, items, currencyId);
     }
 
     return this.findOne(saved.id);
@@ -267,12 +309,23 @@ export class InvoicesService {
       throw new NotFoundException('Invoice not found');
     }
 
-    // Compute total from items
+    // Compute total + baseTotal from items
     const result = await this.invoiceRepository.query(
-      `SELECT COALESCE(SUM(total), 0) as total FROM invoice_items WHERE "invoiceId" = $1`,
+      `SELECT
+         COALESCE(SUM(total), 0) AS total,
+         COUNT(*) AS item_count,
+         COUNT("baseAmount") AS base_amount_count,
+         COALESCE(SUM("baseAmount"), 0) AS base_total
+       FROM invoice_items WHERE "invoiceId" = $1`,
       [id],
     );
     invoice.total = Number(result[0].total).toFixed(2);
+    const itemCount = Number(result[0].item_count);
+    const baseAmountCount = Number(result[0].base_amount_count);
+    (invoice as Invoice & { baseTotal?: string | null }).baseTotal =
+      itemCount === 0 || baseAmountCount < itemCount
+        ? null
+        : Number(result[0].base_total).toFixed(2);
 
     return invoice;
   }
@@ -384,7 +437,10 @@ export class InvoicesService {
     await this.invoiceRepository.save(invoice);
 
     if (items !== undefined) {
-      await this.replaceItems(id, items);
+      await this.replaceItems(id, items, invoice.currencyId);
+    } else if (currencyId !== undefined) {
+      // Currency changed but items not re-sent — re-snapshot existing items
+      await this.resnapshotItems(id, invoice.currencyId);
     }
 
     return this.findOne(id);
@@ -407,6 +463,7 @@ export class InvoicesService {
       unitPrice: string;
       total: string;
     }[],
+    currencyId: string,
   ): Promise<void> {
     // Delete existing items
     await this.itemRepository.delete({ invoiceId });
@@ -435,17 +492,40 @@ export class InvoicesService {
       }
     }
 
-    // Bulk create new items
-    const entities = items.map((item) =>
-      this.itemRepository.create({
-        invoiceId,
-        valueId: item.valueId ?? null,
-        valueInstanceId: item.valueInstanceId ?? null,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.total,
-      }),
-    );
+    // Bulk create new items, snapshotting each against the invoice currency
+    const entities: InvoiceItem[] = [];
+    for (const item of items) {
+      const snap = await this.snapshot({
+        nativeValueId: currencyId,
+        nativeAmount: item.total,
+      });
+      entities.push(
+        this.itemRepository.create({
+          invoiceId,
+          valueId: item.valueId ?? null,
+          valueInstanceId: item.valueInstanceId ?? null,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.total,
+          rateUsed: snap.rateUsed,
+          baseAmount: snap.baseAmount,
+        }),
+      );
+    }
     await this.itemRepository.save(entities);
+  }
+
+  private async resnapshotItems(invoiceId: string, currencyId: string): Promise<void> {
+    const items = await this.itemRepository.find({ where: { invoiceId } });
+    if (items.length === 0) return;
+    for (const item of items) {
+      const snap = await this.snapshot({
+        nativeValueId: currencyId,
+        nativeAmount: item.total,
+      });
+      item.rateUsed = snap.rateUsed;
+      item.baseAmount = snap.baseAmount;
+    }
+    await this.itemRepository.save(items);
   }
 }

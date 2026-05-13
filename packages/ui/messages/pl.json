@@ -618,6 +618,8 @@
     "valueStream": "Strumień wartości",
     "amount": "Kwota",
     "unit": "Jednostka",
+    "inBase": "W bazie",
+    "noRate": "Brak kursu — migawka nie zapisana.",
     "frequency": "Częstotliwość",
     "recurrence": "Powtarzalność",
     "nextOccurrencesLabel": "Następne 3 wystąpienia",
@@ -694,6 +696,8 @@
     "selectCurrency": "Wybierz walutę",
     "allCurrencies": "Wszystkie waluty",
     "total": "Suma",
+    "inBase": "W bazie",
+    "noRate": "Brak kursu — migawka nie zapisana.",
     "paid": "Opłacona",
     "paidYes": "Tak",
     "paidNo": "Nie",
@@ -979,7 +983,9 @@
     "failedToLoad": "Nie udało się załadować kursów",
     "failedToCreate": "Nie udało się utworzyć kursu",
     "failedToUpdate": "Nie udało się zaktualizować kursu",
-    "failedToDelete": "Nie udało się usunąć kursu"
+    "failedToDelete": "Nie udało się usunąć kursu",
+    "noRateForPair": "Brak kursu dla tej pary wartości.",
+    "previewSuffix": "(kurs {rate} z dnia {date})"
   },
   "locales": {
     "title": "Lokalizacje",

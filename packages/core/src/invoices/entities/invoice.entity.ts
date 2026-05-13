@@ -85,6 +85,8 @@ export class Invoice {
 
   total?: string;
 
+  baseTotal?: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

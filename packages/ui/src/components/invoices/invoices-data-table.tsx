@@ -45,6 +45,8 @@ interface InvoiceItemRow {
   quantity: string;
   unitPrice: string;
   total: string;
+  rateUsed: string | null;
+  baseAmount: string | null;
 }
 
 interface InvoiceRow {
@@ -56,6 +58,7 @@ interface InvoiceRow {
   dueAt: string;
   currency: { id: string; name: string } | null;
   total?: string;
+  baseTotal?: string | null;
   paid: boolean;
   link: string | null;
   file: unknown;
@@ -225,6 +228,8 @@ export function InvoicesDataTable() {
       dueAt: t('dueAt'),
       currency: t('currency'),
       total: t('total'),
+      inBase: t('inBase'),
+      noRate: t('noRate'),
       paid: t('paid'),
       paidYes: t('paidYes'),
       paidNo: t('paidNo'),

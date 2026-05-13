@@ -74,6 +74,8 @@ export const invoiceItemResponseSchema = z.object({
   quantity: z.string(),
   unitPrice: z.string(),
   total: z.string(),
+  rateUsed: z.string().nullable(),
+  baseAmount: z.string().nullable(),
 });
 
 export const invoiceResponseSchema = z.object({
@@ -91,6 +93,7 @@ export const invoiceResponseSchema = z.object({
   channel: channelSummarySchema.nullable(),
   items: z.array(invoiceItemResponseSchema),
   total: z.string(),
+  baseTotal: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

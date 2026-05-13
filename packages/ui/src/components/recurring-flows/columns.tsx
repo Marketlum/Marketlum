@@ -21,6 +21,8 @@ interface RecurringFlowColumnsTranslations {
   value: string;
   description: string;
   amount: string;
+  inBase: string;
+  noRate: string;
   frequency: string;
   startDate: string;
   status: string;
@@ -132,6 +134,18 @@ export function getRecurringFlowColumns({
         </Button>
       ),
       cell: ({ row }) => `${Number(row.original.amount).toFixed(2)} ${row.original.unit}`,
+    },
+    {
+      id: 'baseAmount',
+      header: translations.inBase,
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => {
+        const baseAmount = row.original.baseAmount;
+        if (baseAmount == null) {
+          return <span className="text-muted-foreground italic" title={translations.noRate}>—</span>;
+        }
+        return <span className="text-muted-foreground">≈ {baseAmount}</span>;
+      },
     },
     {
       id: 'frequency',

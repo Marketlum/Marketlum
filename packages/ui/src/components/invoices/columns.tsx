@@ -20,12 +20,13 @@ interface InvoiceRow {
   dueAt: string;
   currency: { id: string; name: string } | null;
   total?: string;
+  baseTotal?: string | null;
   paid: boolean;
   link: string | null;
   file: unknown;
   valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
-  items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string }[];
+  items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string; rateUsed: string | null; baseAmount: string | null }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +39,8 @@ interface InvoiceColumnsTranslations {
   dueAt: string;
   currency: string;
   total: string;
+  inBase: string;
+  noRate: string;
   paid: string;
   paidYes: string;
   paidNo: string;
@@ -115,6 +118,18 @@ export function getInvoiceColumns({
         </Button>
       ),
       cell: ({ row }) => row.original.total ?? '0.00',
+    },
+    {
+      id: 'baseTotal',
+      header: translations.inBase,
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => {
+        const baseTotal = row.original.baseTotal;
+        if (baseTotal == null) {
+          return <span className="text-muted-foreground italic" title={translations.noRate}>—</span>;
+        }
+        return <span className="text-muted-foreground">≈ {baseTotal}</span>;
+      },
     },
     {
       accessorKey: 'paid',

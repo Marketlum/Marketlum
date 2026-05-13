@@ -12,10 +12,14 @@ import { RecurringFlowsRollupService } from './rollup.service';
 import { RecurringFlowsProjectionService } from './projection.service';
 import { RecurringFlowsController } from './recurring-flows.controller';
 import { ValueStreamRecurringFlowsController } from './value-stream-recurring-flows.controller';
+import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
+import { SystemSettingsModule } from '../system-settings/system-settings.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([RecurringFlow, ValueStream, Agent, Value, Offering, Agreement, Taxonomy]),
+    ExchangeRatesModule,
+    SystemSettingsModule,
   ],
   controllers: [RecurringFlowsController, ValueStreamRecurringFlowsController],
   providers: [RecurringFlowsService, RecurringFlowsRollupService, RecurringFlowsProjectionService],

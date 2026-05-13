@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { ValueCombobox } from '../shared/value-combobox';
+import { ConversionPreview } from '../shared/conversion-preview';
 import { useAgents } from '../../hooks/use-agents';
 import { useValues } from '../../hooks/use-values';
 import { useValueStreams } from '../../hooks/use-value-streams';
@@ -245,6 +246,12 @@ export function InvoiceFormDialog({
                 value={watch('currencyId') || null}
                 onSelect={(id) => setFormValue('currencyId', id ?? '')}
                 placeholder={t('selectCurrency')}
+              />
+              <ConversionPreview
+                valueId={watch('currencyId') || null}
+                amount={items
+                  .reduce((sum, it) => sum + (Number(it.total) || 0), 0)
+                  .toFixed(2)}
               />
             </div>
             <div className="space-y-2">

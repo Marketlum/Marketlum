@@ -43,4 +43,10 @@ export class InvoiceItem {
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   total: string;
+
+  @Column({ type: 'decimal', precision: 20, scale: 10, nullable: true })
+  rateUsed: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  baseAmount: string | null;
 }

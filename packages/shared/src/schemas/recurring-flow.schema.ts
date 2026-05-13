@@ -128,6 +128,8 @@ export const recurringFlowResponseSchema = z.object({
   status: z.nativeEnum(RecurringFlowStatus),
   description: z.string().nullable(),
   taxonomies: z.array(taxonomySummarySchema),
+  rateUsed: z.string().nullable(),
+  baseAmount: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

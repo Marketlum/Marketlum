@@ -147,6 +147,8 @@ export function RecurringFlowsDataTable({ valueStreamId }: RecurringFlowsDataTab
       value: t('value'),
       description: t('description'),
       amount: t('amount'),
+      inBase: t('inBase'),
+      noRate: t('noRate'),
       frequency: t('frequency'),
       startDate: t('startDate'),
       status: t('status'),

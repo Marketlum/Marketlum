@@ -10,6 +10,8 @@ import { File } from '../files/entities/file.entity';
 import { Channel } from '../channels/channel.entity';
 import { InvoicesService } from './invoices.service';
 import { InvoicesController } from './invoices.controller';
+import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
+import { SystemSettingsModule } from '../system-settings/system-settings.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { InvoicesController } from './invoices.controller';
       File,
       Channel,
     ]),
+    ExchangeRatesModule,
+    SystemSettingsModule,
   ],
   controllers: [InvoicesController],
   providers: [InvoicesService],
