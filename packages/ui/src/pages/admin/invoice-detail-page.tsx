@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Pencil, Trash2, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
-import type { InvoiceResponse, CreateInvoiceInput } from '@marketlum/shared';
+import type { InvoiceResponse, CreateInvoiceInput, SystemSettingsBaseValueResponse } from '@marketlum/shared';
 import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { InvoiceFormDialog } from '../../components/invoices/invoice-form-dialog';
@@ -42,6 +42,7 @@ export function InvoiceDetailPage() {
   const tc = useTranslations('common');
 
   const [invoice, setInvoice] = useState<InvoiceResponse | null>(null);
+  const [baseSetting, setBaseSetting] = useState<SystemSettingsBaseValueResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -51,8 +52,12 @@ export function InvoiceDetailPage() {
   const fetchInvoice = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await api.get<InvoiceResponse>(`/invoices/${params.id}`);
+      const [result, base] = await Promise.all([
+        api.get<InvoiceResponse>(`/invoices/${params.id}`),
+        api.get<SystemSettingsBaseValueResponse>('/system-settings/base-value').catch(() => null),
+      ]);
       setInvoice(result);
+      setBaseSetting(base);
       setNotFound(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -192,8 +197,22 @@ export function InvoiceDetailPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">{t('total')}</p>
-              <p className="text-lg font-semibold">{invoice.total}</p>
+              <p className="text-lg font-semibold">{invoice.total} {invoice.currency.name}</p>
             </div>
+            {baseSetting?.baseValue && baseSetting.baseValue.id !== invoice.currency.id && (
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t('totalInBase', { currency: baseSetting.baseValue.name })}
+                </p>
+                <p className="text-lg font-semibold text-muted-foreground">
+                  {invoice.baseTotal != null ? (
+                    <>≈ {invoice.baseTotal} {baseSetting.baseValue.name}</>
+                  ) : (
+                    <span className="italic text-sm" title={t('noRate')}>—</span>
+                  )}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-muted-foreground">{t('issuedAt')}</p>
               <p>{new Date(invoice.issuedAt).toLocaleDateString()}</p>
@@ -252,6 +271,14 @@ export function InvoiceDetailPage() {
                     <TableHead className="text-right">{t('quantity')}</TableHead>
                     <TableHead className="text-right">{t('unitPrice')}</TableHead>
                     <TableHead className="text-right">{t('total')}</TableHead>
+                    {baseSetting?.baseValue && baseSetting.baseValue.id !== invoice.currency.id && (
+                      <>
+                        <TableHead className="text-right">{t('rateUsed')}</TableHead>
+                        <TableHead className="text-right">
+                          {t('baseAmount', { currency: baseSetting.baseValue.name })}
+                        </TableHead>
+                      </>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -261,6 +288,20 @@ export function InvoiceDetailPage() {
                       <TableCell className="text-right">{item.quantity}</TableCell>
                       <TableCell className="text-right">{item.unitPrice}</TableCell>
                       <TableCell className="text-right">{item.total}</TableCell>
+                      {baseSetting?.baseValue && baseSetting.baseValue.id !== invoice.currency.id && (
+                        <>
+                          <TableCell className="text-right text-muted-foreground font-mono text-xs">
+                            {item.rateUsed ?? <span className="italic" title={t('noRate')}>—</span>}
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {item.baseAmount != null ? (
+                              <>≈ {item.baseAmount}</>
+                            ) : (
+                              <span className="italic" title={t('noRate')}>—</span>
+                            )}
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
