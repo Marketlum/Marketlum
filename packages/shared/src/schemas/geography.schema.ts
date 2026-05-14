@@ -17,6 +17,13 @@ export const moveGeographySchema = z.object({
   parentId: z.string().uuid().nullable(),
 });
 
+export const listGeographiesQuerySchema = z.object({
+  type: z.nativeEnum(GeographyType).optional(),
+  search: z.string().trim().min(1).optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(500).default(500),
+});
+
 export const geographyResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -30,6 +37,7 @@ export const geographyResponseSchema = z.object({
 export type CreateGeographyInput = z.infer<typeof createGeographySchema>;
 export type UpdateGeographyInput = z.infer<typeof updateGeographySchema>;
 export type MoveGeographyInput = z.infer<typeof moveGeographySchema>;
+export type ListGeographiesQuery = z.infer<typeof listGeographiesQuerySchema>;
 export type GeographyResponse = z.infer<typeof geographyResponseSchema>;
 
 export interface GeographyTreeNode {

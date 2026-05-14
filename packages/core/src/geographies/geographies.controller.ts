@@ -16,6 +16,7 @@ import {
   ApiCookieAuth,
   ApiBody,
   ApiParam,
+  ApiQuery,
   ApiOkResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -23,16 +24,21 @@ import {
   ApiNotFoundResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Query } from '@nestjs/common';
 import { GeographiesService } from './geographies.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { ApiPaginatedResponse } from '../common/swagger/api-paginated-response.decorator';
 import {
   createGeographySchema,
   updateGeographySchema,
   moveGeographySchema,
+  listGeographiesQuerySchema,
   CreateGeographyInput,
   UpdateGeographyInput,
   MoveGeographyInput,
+  ListGeographiesQuery,
+  GeographyType,
 } from '@marketlum/shared';
 import {
   CreateGeographyDto,
@@ -60,6 +66,20 @@ export class GeographiesController {
     body: CreateGeographyInput,
   ) {
     return this.geographiesService.create(body);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'List and paginate geographies' })
+  @ApiQuery({ name: 'type', required: false, enum: GeographyType })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiPaginatedResponse(GeographyResponseDto)
+  async findAll(
+    @Query(new ZodValidationPipe(listGeographiesQuerySchema))
+    query: ListGeographiesQuery,
+  ) {
+    return this.geographiesService.findAll(query);
   }
 
   @Get('tree')

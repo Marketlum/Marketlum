@@ -237,13 +237,24 @@ export {
   createGeographySchema,
   updateGeographySchema,
   moveGeographySchema,
+  listGeographiesQuerySchema,
   geographyResponseSchema,
   type CreateGeographyInput,
   type UpdateGeographyInput,
   type MoveGeographyInput,
+  type ListGeographiesQuery,
   type GeographyResponse,
   type GeographyTreeNode,
 } from './schemas/geography.schema';
+
+export {
+  createAddressSchema,
+  updateAddressSchema,
+  addressResponseSchema,
+  type CreateAddressInput,
+  type UpdateAddressInput,
+  type AddressResponse,
+} from './schemas/address.schema';
 
 export {
   createArchetypeSchema,

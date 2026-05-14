@@ -11,6 +11,7 @@ import {
   CreateGeographyInput,
   UpdateGeographyInput,
   MoveGeographyInput,
+  ListGeographiesQuery,
   GeographyType,
 } from '@marketlum/shared';
 
@@ -91,6 +92,33 @@ export class GeographiesService {
     return this.geographyRepository.findTrees();
   }
 
+  async findAll(query: ListGeographiesQuery) {
+    const { type, search, page, limit } = query;
+    const skip = (page - 1) * limit;
+
+    const qb = this.geographyRepository.createQueryBuilder('geography');
+    if (type) {
+      qb.andWhere('geography.type = :type', { type });
+    }
+    if (search) {
+      qb.andWhere('geography.name ILIKE :search', { search: `%${search}%` });
+    }
+    qb.orderBy('geography.name', 'ASC');
+    qb.skip(skip).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   async findOne(id: string): Promise<Geography> {
     const geography = await this.geographyRepository.findOne({
       where: { id },
@@ -157,6 +185,19 @@ export class GeographiesService {
     const descendants =
       await this.geographyRepository.findDescendants(geography);
     descendants.sort((a, b) => b.level - a.level);
-    await this.geographyRepository.remove(descendants);
+    try {
+      await this.geographyRepository.remove(descendants);
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        'code' in error &&
+        (error as { code: string }).code === '23503'
+      ) {
+        throw new ConflictException(
+          'Geography is referenced by an address and cannot be deleted',
+        );
+      }
+      throw error;
+    }
   }
 }

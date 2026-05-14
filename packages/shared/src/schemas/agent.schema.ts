@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AgentType } from '../enums/agent-type.enum';
+import { addressResponseSchema } from './address.schema';
 
 const taxonomySummarySchema = z.object({
   id: z.string().uuid(),
@@ -40,6 +41,7 @@ export const agentResponseSchema = z.object({
   mainTaxonomy: taxonomySummarySchema.nullable(),
   taxonomies: z.array(taxonomySummarySchema),
   image: fileSummarySchema.nullable(),
+  addresses: z.array(addressResponseSchema).default([]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

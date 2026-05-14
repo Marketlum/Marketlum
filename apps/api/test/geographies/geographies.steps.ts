@@ -24,6 +24,12 @@ const deleteFeature = loadFeature(
 const moveFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/geographies/move-geography.feature'),
 );
+const listFilterFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/geographies/list-geographies-filter.feature'),
+);
+const deleteCountryWithAddressFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/geographies/delete-country-with-address.feature'),
+);
 
 const geographyIds = new Map<string, string>();
 
@@ -856,6 +862,127 @@ defineFeature(moveFeature, (test) => {
       },
     );
 
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- LIST GEOGRAPHIES (filter + search) ---
+defineFeature(listFilterFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+
+  beforeAll(async () => { await bootstrapApp(); });
+  beforeEach(async () => {
+    await cleanDatabase();
+    geographyIds.clear();
+  });
+  afterAll(async () => { await teardownApp(); });
+
+  test('Filter geographies by type', ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+    and('the following geographies exist:', async (table: { name: string; code: string; type: string; parent: string }[]) => {
+      await buildTree(authCookie, table);
+    });
+    when(/^I list geographies with type "(.*)"$/, async (type: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/geographies?type=${type}`)
+        .set('Cookie', [authCookie]);
+    });
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+    and(/^the response should contain (\d+) geographies$/, (count: string) => {
+      expect(response.body.data.length).toBe(parseInt(count));
+    });
+    and(/^every geography should have type "(.*)"$/, (type: string) => {
+      for (const g of response.body.data) {
+        expect(g.type).toBe(type);
+      }
+    });
+  });
+
+  test('Search geographies by name', ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+    and('the following geographies exist:', async (table: { name: string; code: string; type: string; parent: string }[]) => {
+      await buildTree(authCookie, table);
+    });
+    when(/^I list geographies with type "(.*)" and search "(.*)"$/, async (type: string, q: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/geographies?type=${type}&search=${encodeURIComponent(q)}`)
+        .set('Cookie', [authCookie]);
+    });
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+    and(/^the response should contain (\d+) geography$/, (count: string) => {
+      expect(response.body.data.length).toBe(parseInt(count));
+    });
+    and(/^the first geography should have code "(.*)"$/, (code: string) => {
+      expect(response.body.data[0].code).toBe(code);
+    });
+  });
+});
+
+// --- DELETE COUNTRY WITH ADDRESS ---
+defineFeature(deleteCountryWithAddressFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  const agentIds = new Map<string, string>();
+
+  beforeAll(async () => { await bootstrapApp(); });
+  beforeEach(async () => {
+    await cleanDatabase();
+    geographyIds.clear();
+    agentIds.clear();
+  });
+  afterAll(async () => { await teardownApp(); });
+
+  test("Cannot delete a country referenced by an agent's address", ({ given, and, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+    and('the following geographies exist:', async (table: { name: string; code: string; type: string; parent: string }[]) => {
+      await buildTree(authCookie, table);
+    });
+    and(/^an agent "(.*)" of type "(.*)" exists$/, async (name: string, type: string) => {
+      const res = await request(getApp().getHttpServer())
+        .post('/agents')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name, type, purpose: 'sample' });
+      agentIds.set(name, res.body.id);
+    });
+    and(
+      /^"(.*)" has an address "(.*)" in "(.*)" with line1 "(.*)"$/,
+      async (agent: string, label: string, country: string, line1: string) => {
+        const agentId = agentIds.get(agent)!;
+        const countryId = geographyIds.get(country)!;
+        await request(getApp().getHttpServer())
+          .post(`/agents/${agentId}/addresses`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({
+            label,
+            line1,
+            city: 'City',
+            postalCode: '00-001',
+            countryId,
+          });
+      },
+    );
+    when(/^I delete the geography "(.*)"$/, async (name: string) => {
+      const id = geographyIds.get(name)!;
+      response = await request(getApp().getHttpServer())
+        .delete(`/geographies/${id}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });

@@ -6,12 +6,14 @@ import {
   UpdateDateColumn,
   ManyToOne,
   ManyToMany,
+  OneToMany,
   JoinTable,
   JoinColumn,
 } from 'typeorm';
 import { AgentType } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 import { File } from '../../files/entities/file.entity';
+import { Address } from '../addresses/entities/address.entity';
 
 @Entity('agents')
 export class Agent {
@@ -48,6 +50,9 @@ export class Agent {
 
   @Column({ type: 'uuid', nullable: true })
   imageId: string | null;
+
+  @OneToMany(() => Address, (address) => address.agent)
+  addresses: Address[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -7,6 +7,7 @@ import { TaxonomiesService } from '../taxonomies/taxonomies.service';
 import { GeographiesService } from '../geographies/geographies.service';
 import { UsersService } from '../users/users.service';
 import { AgentsService } from '../agents/agents.service';
+import { AddressesService } from '../agents/addresses/addresses.service';
 import { ChannelsService } from '../channels/channels.service';
 import { ArchetypesService } from '../archetypes/archetypes.service';
 import { ValueStreamsService } from '../value-streams/value-streams.service';
@@ -63,6 +64,7 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly geographiesService: GeographiesService,
     private readonly usersService: UsersService,
     private readonly agentsService: AgentsService,
+    private readonly addressesService: AddressesService,
     private readonly channelsService: ChannelsService,
     private readonly archetypesService: ArchetypesService,
     private readonly valueStreamsService: ValueStreamsService,
@@ -134,7 +136,10 @@ export class SeedSampleCommand extends CommandRunner {
 
     // Level 3: Agents, Channels
     this.logger.log('Seeding agents...');
-    const agents = await seedAgents(this.agentsService, { taxonomies });
+    const agents = await seedAgents(this.agentsService, this.addressesService, {
+      taxonomies,
+      countries: geographies.countries,
+    });
     this.logger.log(`  Created ${agents.length} agents`);
 
     this.logger.log('Seeding channels...');

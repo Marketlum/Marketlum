@@ -28,6 +28,7 @@ import { Tension } from './tensions/entities/tension.entity';
 import { RecurringFlow } from './recurring-flows/entities/recurring-flow.entity';
 import { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity';
 import { SystemSetting } from './system-settings/entities/system-setting.entity';
+import { Address } from './agents/addresses/entities/address.entity';
 
 export const ALL_ENTITIES = [
   User,
@@ -60,4 +61,5 @@ export const ALL_ENTITIES = [
   RecurringFlow,
   ExchangeRate,
   SystemSetting,
+  Address,
 ];

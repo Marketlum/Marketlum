@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Agent } from './entities/agent.entity';
+import { Address } from './addresses/entities/address.entity';
+import { AddressesService } from './addresses/addresses.service';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
 import {
@@ -20,6 +22,9 @@ export class AgentsService {
     private readonly taxonomyRepository: Repository<Taxonomy>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
+    @InjectRepository(Address)
+    private readonly addressesRepository: Repository<Address>,
+    private readonly addressesService: AddressesService,
   ) {}
 
   async create(input: CreateAgentInput): Promise<Agent> {
@@ -72,6 +77,8 @@ export class AgentsService {
     qb.leftJoinAndSelect('agent.mainTaxonomy', 'mainTaxonomy');
     qb.leftJoinAndSelect('agent.taxonomies', 'taxonomies');
     qb.leftJoinAndSelect('agent.image', 'image');
+    qb.leftJoinAndSelect('agent.addresses', 'addresses');
+    qb.leftJoinAndSelect('addresses.country', 'addressCountry');
 
     if (type) {
       qb.andWhere('agent.type = :type', { type });
@@ -101,6 +108,10 @@ export class AgentsService {
 
     const [data, total] = await qb.getManyAndCount();
 
+    for (const agent of data) {
+      agent.addresses = this.addressesService.sortAddresses(agent.addresses ?? []);
+    }
+
     return {
       data,
       meta: {
@@ -115,11 +126,12 @@ export class AgentsService {
   async findOne(id: string): Promise<Agent> {
     const agent = await this.agentsRepository.findOne({
       where: { id },
-      relations: ['mainTaxonomy', 'taxonomies', 'image'],
+      relations: ['mainTaxonomy', 'taxonomies', 'image', 'addresses', 'addresses.country'],
     });
     if (!agent) {
       throw new NotFoundException('Agent not found');
     }
+    agent.addresses = this.addressesService.sortAddresses(agent.addresses ?? []);
     return agent;
   }
 
