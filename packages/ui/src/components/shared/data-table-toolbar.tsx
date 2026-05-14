@@ -12,6 +12,8 @@ interface DataTableToolbarProps {
   createLabel: string;
   filterButton?: React.ReactNode;
   children?: React.ReactNode;
+  /** Rendered immediately before the Create button on the right side. */
+  primaryActions?: React.ReactNode;
 }
 
 export function DataTableToolbar({
@@ -21,6 +23,7 @@ export function DataTableToolbar({
   createLabel,
   filterButton,
   children,
+  primaryActions,
 }: DataTableToolbarProps) {
   const t = useTranslations('common');
 
@@ -36,10 +39,13 @@ export function DataTableToolbar({
         {filterButton}
         {children}
       </div>
-      <Button onClick={onCreateClick} className="w-full sm:w-auto">
-        <Plus className="mr-2 h-4 w-4" />
-        {createLabel}
-      </Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        {primaryActions}
+        <Button onClick={onCreateClick} className="w-full sm:w-auto">
+          <Plus className="mr-2 h-4 w-4" />
+          {createLabel}
+        </Button>
+      </div>
     </div>
   );
 }

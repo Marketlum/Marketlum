@@ -436,11 +436,13 @@ export function InvoicesDataTable() {
             )}
           </Button>
         }
+        primaryActions={
+          <Button variant="outline" onClick={handleImportClick} className="w-full sm:w-auto">
+            <FileUp className="mr-2 h-4 w-4" />
+            {t('importFromPdf')}
+          </Button>
+        }
       >
-        <Button variant="outline" size="sm" onClick={handleImportClick}>
-          <FileUp className="mr-2 h-4 w-4" />
-          {t('importFromPdf')}
-        </Button>
         <ColumnVisibilityDropdown
           columns={columnMeta}
           visibility={columnVisibility}
