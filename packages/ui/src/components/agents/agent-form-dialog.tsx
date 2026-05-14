@@ -50,6 +50,8 @@ interface AgentFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateAgentInput) => Promise<void>;
   agent?: AgentResponse | null;
+  /** When set (create mode only), pre-fills the name field. */
+  defaultName?: string;
   isSubmitting?: boolean;
 }
 
@@ -58,6 +60,7 @@ export function AgentFormDialog({
   onOpenChange,
   onSubmit,
   agent,
+  defaultName,
   isSubmitting,
 }: AgentFormDialogProps) {
   const isEditing = !!agent;
@@ -119,7 +122,7 @@ export function AgentFormDialog({
         );
       } else {
         reset({
-          name: '',
+          name: defaultName ?? '',
           type: AgentType.ORGANIZATION,
           purpose: '',
           mainTaxonomyId: null,
@@ -129,7 +132,7 @@ export function AgentFormDialog({
         setImagePreview(null);
       }
     }
-  }, [open, agent, reset]);
+  }, [open, agent, defaultName, reset]);
 
   const toggleTaxonomyId = (id: string) => {
     const current = taxonomyIdsValue;

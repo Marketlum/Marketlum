@@ -4,20 +4,22 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Plus, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { Plus, UserPlus, X } from 'lucide-react';
 import {
   createInvoiceSchema,
   updateInvoiceSchema,
   type CreateInvoiceInput,
+  type CreateAgentInput,
+  type AgentResponse,
 } from '@marketlum/shared';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '../ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -30,6 +32,8 @@ import {
 } from '../ui/select';
 import { ValueCombobox } from '../shared/value-combobox';
 import { ConversionPreview } from '../shared/conversion-preview';
+import { AgentFormDialog } from '../agents/agent-form-dialog';
+import { api } from '../../lib/api-client';
 import { useAgents } from '../../hooks/use-agents';
 import { useValues } from '../../hooks/use-values';
 import { useValueStreams } from '../../hooks/use-value-streams';
@@ -85,11 +89,41 @@ export function InvoiceFormDialog({
   const schema = isEditing ? updateInvoiceSchema : createInvoiceSchema;
   const t = useTranslations('invoices');
   const tc = useTranslations('common');
-  const { agents } = useAgents(open);
+  const ta = useTranslations('agents');
+  const { agents, refresh: refreshAgents } = useAgents(open);
   const { values } = useValues(open);
   const { valueStreams } = useValueStreams(open);
   const { channels } = useChannels(open);
   const [items, setItems] = useState<ItemRow[]>([]);
+  const [agentFormFor, setAgentFormFor] = useState<
+    'fromAgentId' | 'toAgentId' | null
+  >(null);
+  const [agentFormDefaultName, setAgentFormDefaultName] = useState('');
+  const [agentSubmitting, setAgentSubmitting] = useState(false);
+
+  const openAgentForm = (
+    field: 'fromAgentId' | 'toAgentId',
+    defaultName = '',
+  ) => {
+    setAgentFormDefaultName(defaultName);
+    setAgentFormFor(field);
+  };
+
+  const handleCreateAgent = async (input: CreateAgentInput) => {
+    if (!agentFormFor) return;
+    setAgentSubmitting(true);
+    try {
+      const created = await api.post<AgentResponse>('/agents', input);
+      toast.success(ta('created'));
+      await refreshAgents();
+      setFormValue(agentFormFor, created.id);
+      setAgentFormFor(null);
+    } catch {
+      toast.error(ta('failedToCreate'));
+    } finally {
+      setAgentSubmitting(false);
+    }
+  };
 
   const {
     register,
@@ -205,15 +239,19 @@ export function InvoiceFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? t('editInvoice') : t('createInvoice')}</DialogTitle>
-          <DialogDescription>
+    <>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full overflow-y-auto sm:max-w-2xl"
+      >
+        <SheetHeader className="text-left">
+          <SheetTitle>{isEditing ? t('editInvoice') : t('createInvoice')}</SheetTitle>
+          <SheetDescription>
             {isEditing ? t('editDescription') : t('createDescription')}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+          </SheetDescription>
+        </SheetHeader>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-4 space-y-4">
           {prefill && prefill.warnings.length > 0 && (
             <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700 dark:bg-amber-950">
               <p className="font-medium mb-1">{t('importWarningsTitle')}</p>
@@ -234,62 +272,96 @@ export function InvoiceFormDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t('from')}</Label>
-              <Select
-                value={watch('fromAgentId') || '__none__'}
-                onValueChange={(v) => setFormValue('fromAgentId', v === '__none__' ? '' : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      prefill && !prefill.extracted.fromAgent.id
-                        ? prefill.extracted.fromAgent.name
-                        : t('selectAgent')
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select
+                  value={watch('fromAgentId') || '__none__'}
+                  onValueChange={(v) => setFormValue('fromAgentId', v === '__none__' ? '' : v)}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue
+                      placeholder={
+                        prefill && !prefill.extracted.fromAgent.id
+                          ? prefill.extracted.fromAgent.name
+                          : t('selectAgent')
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  title={ta('createAgent')}
+                  onClick={() => openAgentForm('fromAgentId')}
+                >
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+              </div>
               {prefill && !prefill.extracted.fromAgent.id && !watch('fromAgentId') && (
-                <p className="text-xs text-amber-600">
-                  {t('importUnmatchedHint', { name: prefill.extracted.fromAgent.name })}
-                </p>
+                <button
+                  type="button"
+                  className="text-xs text-amber-600 hover:underline text-left"
+                  onClick={() =>
+                    openAgentForm('fromAgentId', prefill.extracted.fromAgent.name)
+                  }
+                >
+                  {t('importCreateAgentHint', { name: prefill.extracted.fromAgent.name })}
+                </button>
               )}
             </div>
             <div className="space-y-2">
               <Label>{t('to')}</Label>
-              <Select
-                value={watch('toAgentId') || '__none__'}
-                onValueChange={(v) => setFormValue('toAgentId', v === '__none__' ? '' : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      prefill && !prefill.extracted.toAgent.id
-                        ? prefill.extracted.toAgent.name
-                        : t('selectAgent')
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select
+                  value={watch('toAgentId') || '__none__'}
+                  onValueChange={(v) => setFormValue('toAgentId', v === '__none__' ? '' : v)}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue
+                      placeholder={
+                        prefill && !prefill.extracted.toAgent.id
+                          ? prefill.extracted.toAgent.name
+                          : t('selectAgent')
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  title={ta('createAgent')}
+                  onClick={() => openAgentForm('toAgentId')}
+                >
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+              </div>
               {prefill && !prefill.extracted.toAgent.id && !watch('toAgentId') && (
-                <p className="text-xs text-amber-600">
-                  {t('importUnmatchedHint', { name: prefill.extracted.toAgent.name })}
-                </p>
+                <button
+                  type="button"
+                  className="text-xs text-amber-600 hover:underline text-left"
+                  onClick={() =>
+                    openAgentForm('toAgentId', prefill.extracted.toAgent.name)
+                  }
+                >
+                  {t('importCreateAgentHint', { name: prefill.extracted.toAgent.name })}
+                </button>
               )}
             </div>
           </div>
@@ -462,16 +534,26 @@ export function InvoiceFormDialog({
             )}
           </div>
 
-          <DialogFooter>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {tc('cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? tc('saving') : isEditing ? tc('update') : tc('create')}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
+    <AgentFormDialog
+      open={agentFormFor !== null}
+      onOpenChange={(o) => {
+        if (!o) setAgentFormFor(null);
+      }}
+      onSubmit={handleCreateAgent}
+      defaultName={agentFormDefaultName}
+      isSubmitting={agentSubmitting}
+    />
+    </>
   );
 }

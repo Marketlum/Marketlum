@@ -752,6 +752,7 @@
     "importUnconfigured": "Import PDF nie jest skonfigurowany (brak ANTHROPIC_API_KEY).",
     "importWarningsTitle": "Niektóre pola wymagają uwagi",
     "importUnmatchedHint": "Nie znaleziono '{name}' — wybierz lub utwórz.",
+    "importCreateAgentHint": "Nie znaleziono '{name}' — kliknij, aby utworzyć.",
     "deleteInvoice": "Usuń fakturę",
     "createDescription": "Wypełnij dane, aby utworzyć nową fakturę.",
     "editDescription": "Zaktualizuj dane faktury poniżej.",

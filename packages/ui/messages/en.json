@@ -752,6 +752,7 @@
     "importUnconfigured": "PDF import is not configured (missing ANTHROPIC_API_KEY).",
     "importWarningsTitle": "Some fields need your attention",
     "importUnmatchedHint": "Couldn't find '{name}' — pick one or create it.",
+    "importCreateAgentHint": "Couldn't find '{name}' — click to create.",
     "deleteInvoice": "Delete Invoice",
     "createDescription": "Fill in the details to create a new invoice.",
     "editDescription": "Update invoice details below.",
