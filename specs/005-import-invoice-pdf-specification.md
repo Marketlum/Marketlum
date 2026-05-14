@@ -150,38 +150,75 @@ Re-exported from `packages/shared/src/index.ts`.
 ## 4. Backend Module Layout
 
 ```
+packages/core/src/ai/                  ← NEW shared module
+├── ai.module.ts                       ← exports ANTHROPIC_CLIENT provider
+├── anthropic.client.ts                ← AnthropicClient interface + symbol + Real impl
+└── index.ts                           ← public surface (interface + symbol; impl stays internal)
+
 packages/core/src/invoices/
 ├── invoices.controller.ts            ← + @Post('import') route
-├── invoices.module.ts                ← + InvoiceImportService, AnthropicClient provider
+├── invoices.module.ts                ← + imports AiModule, registers InvoiceImportService
 ├── invoices.service.ts               ← unchanged
-├── invoice-import.service.ts         ← NEW
-└── anthropic.client.ts               ← NEW: AnthropicClient interface + Anthropic SDK impl
+└── invoice-import.service.ts         ← NEW: injects ANTHROPIC_CLIENT from ai module
 ```
 
-### 4.1 `AnthropicClient` interface
+### 4.1 `ai/` module rationale
+
+The Anthropic client is **not** invoice-specific. Putting it in its own module keeps the seam clean for future consumers (agreement extraction, receipt OCR, summarization, NL search). Marginal extra cost: one module file. Intentionally **not** abstracted across providers — a future OpenAI/local-model swap can rename the symbol and adjust the factory; spec 005 doesn&apos;t pretend to design for that.
+
+The module exposes a single provider keyed by a `Symbol` so consumers depend on the interface, not the concrete class.
+
+### 4.2 `AnthropicClient` interface
+
+In `packages/core/src/ai/anthropic.client.ts`:
 
 ```ts
 export interface AnthropicClient {
-  extractInvoice(pdfBuffer: Buffer): Promise<ClaudeInvoiceExtraction>;
+  /**
+   * Sends a PDF to Claude with a strict-JSON system prompt and returns
+   * the parsed (but un-validated) assistant reply. Validation is the
+   * caller&apos;s responsibility — keeps this client a thin SDK wrapper.
+   */
+  extractInvoice(pdfBuffer: Buffer): Promise<unknown>;
 }
 
 export const ANTHROPIC_CLIENT = Symbol('ANTHROPIC_CLIENT');
 ```
 
-Production binding (provided in `InvoicesModule`):
+The interface starts narrow (just `extractInvoice`). When a second consumer arrives, we'll either:
+- add a sibling method (`extractAgreement`, `summarizeStream`, etc.) and keep one client, or
+- introduce a generic `complete(messages): unknown` if the per-feature methods become noise.
+
+The decision is deferred until there&apos;s a real second caller.
+
+### 4.3 `RealAnthropicClient`
+
+Concrete impl in the same file (or a sibling `anthropic.real-client.ts` if it grows). Reads `ANTHROPIC_API_KEY` (throws at first use if missing), reads `ANTHROPIC_MODEL` (defaults to `'claude-opus-4-7'`), encodes the PDF as a base64 `document` content block, prompts with the §7 system message, calls `messages.create`, and `JSON.parse`s the assistant&apos;s reply. Surface errors as plain `Error`s; HTTP mapping happens in the consumer service.
+
+### 4.4 `AiModule`
 
 ```ts
-{
-  provide: ANTHROPIC_CLIENT,
-  useFactory: () => new RealAnthropicClient(),
-}
+// packages/core/src/ai/ai.module.ts
+import { Module } from '@nestjs/common';
+import { ANTHROPIC_CLIENT, RealAnthropicClient } from './anthropic.client';
+
+@Module({
+  providers: [
+    {
+      provide: ANTHROPIC_CLIENT,
+      useFactory: () => new RealAnthropicClient(),
+    },
+  ],
+  exports: [ANTHROPIC_CLIENT],
+})
+export class AiModule {}
 ```
 
-`RealAnthropicClient` wraps the `@anthropic-ai/sdk` v0.x client. It reads `ANTHROPIC_API_KEY` (throws at first use if missing), reads `ANTHROPIC_MODEL` (defaults to `'claude-opus-4-7'`), encodes the PDF as a base64 `document` content block, prompts with a system message instructing strict JSON output, calls `messages.create`, and `JSON.parse`s the assistant&apos;s reply. Validation happens *outside* this client (in `InvoiceImportService`) so the client stays a thin SDK wrapper.
+Registered once at the application level (no need to register from `MarketlumCoreModule` if every consumer imports `AiModule` directly &mdash; either pattern works; pick whichever matches existing module wiring for symbol-providers).
 
-### 4.2 `InvoiceImportService`
+### 4.5 `InvoiceImportService`
 
-Constructor injects: `ANTHROPIC_CLIENT`, `FilesService`, `AgentRepository`, `ValueRepository` (currency lookup uses the existing `Value` repo).
+Constructor injects: `ANTHROPIC_CLIENT` (from `AiModule`), `FilesService`, `AgentRepository`, `ValueRepository` (currency lookup uses the existing `Value` repo).
 
 Public method:
 
@@ -193,8 +230,8 @@ async import(pdfBuffer: Buffer, mimetype: string, filename: string, sizeBytes: n
 Steps:
 
 1. **Gate**: throw `UnsupportedMediaTypeException` if `mimetype !== 'application/pdf'`; `PayloadTooLargeException` if `size > 10 MB`. Page count check (Q2.6 / Q2.7): use `pdf-lib` (light dep) to read page count; `UnprocessableEntityException` if `> 50`.
-2. **Extract**: `extraction = await anthropic.extractInvoice(buffer)`; on SDK error throw `BadGatewayException`. On `JSON.parse` failure throw `UnprocessableEntityException` with `rawText` of the assistant&apos;s reply.
-3. **Validate**: `claudeInvoiceExtractionSchema.parse(extraction)` — on failure throw `UnprocessableEntityException` with `rawText`.
+2. **Extract**: `raw = await anthropic.extractInvoice(buffer)`; on SDK error throw `BadGatewayException`. On `JSON.parse` failure inside the client, surface as `UnprocessableEntityException` with `rawText` of the assistant&apos;s reply.
+3. **Validate**: `claudeInvoiceExtractionSchema.parse(raw)` — on failure throw `UnprocessableEntityException` with `rawText`.
 4. **Persist PDF**: `fileId = await filesService.uploadBuffer(buffer, filename, mimetype)`. Done only after successful extraction so failed imports don&apos;t leave orphan files.
 5. **Resolve names**: case-insensitive trimmed exact-name lookups:
    - `fromAgent.id` ← `Agent.findOne({ where: ILike(name) })`
@@ -205,7 +242,7 @@ Steps:
 7. **Log usage**: log `{ inputTokens, outputTokens, model, costCents }` to the API logger. Cost is computed from the published per-Mtok rates for the configured model.
 8. **Return** the assembled `InvoiceImportResponse`.
 
-### 4.3 Controller route
+### 4.6 Controller route
 
 ```ts
 @Post('import')
@@ -383,10 +420,10 @@ The `.env.example.tmpl` mirror gains the two new env-var documentation lines (`A
 
 ## 11. Dependencies
 
-New deps:
+New deps (both in `packages/core/package.json`, `dependencies`):
 
-- `@anthropic-ai/sdk` &mdash; latest 0.x; added to `packages/core/package.json` as `dependencies`.
-- `pdf-lib` &mdash; for page-count check; added to `packages/core/package.json` as `dependencies` (lightweight, no native binaries).
+- `@anthropic-ai/sdk` &mdash; latest 0.x; consumed by the new `ai/` module only.
+- `pdf-lib` &mdash; for page-count check inside `InvoiceImportService`; lightweight, no native binaries.
 
 No new dev deps.
 
@@ -434,10 +471,10 @@ Single PR. Order of work within the diff:
 
 1. **Shared** &mdash; `invoice-import.schema.ts` + index re-exports. `pnpm --filter @marketlum/shared build`.
 2. **Deps** &mdash; add `@anthropic-ai/sdk` and `pdf-lib` to `packages/core/package.json`; `pnpm install`.
-3. **Anthropic client** &mdash; `anthropic.client.ts` with the interface, symbol, and `RealAnthropicClient` (handles env reads, base64 encoding, Messages API call, returns parsed JSON).
-4. **Service** &mdash; `invoice-import.service.ts` implementing the 8-step flow in §4.2.
+3. **AI module** &mdash; create `packages/core/src/ai/` with `anthropic.client.ts` (interface + symbol + `RealAnthropicClient`) and `ai.module.ts` exporting the `ANTHROPIC_CLIENT` provider.
+4. **Invoice import service** &mdash; `invoice-import.service.ts` implementing the 8-step flow in §4.5, injecting `ANTHROPIC_CLIENT` from `AiModule`.
 5. **Controller + DTO** &mdash; `Post('import')` on `InvoicesController` with multer + `ParseFilePipe`; new DTO from the shared response schema.
-6. **Module wiring** &mdash; register service, `ANTHROPIC_CLIENT` factory, import `FilesModule` if not already present.
+6. **Module wiring** &mdash; `InvoicesModule` imports `AiModule` and registers `InvoiceImportService`; ensure `FilesModule` is in scope.
 7. **UI** &mdash; new `import-invoice-dialog.tsx` (spinner modal); extend `invoices-data-table.tsx` with Import button + file picker + abort logic; extend `invoice-form-dialog.tsx` with the `prefill` prop + warnings banner + ghost-text rendering.
 8. **i18n** &mdash; new keys in en/pl.
 9. **Env docs** &mdash; README section + `.env.example.tmpl` lines (root + template).
