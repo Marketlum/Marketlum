@@ -187,6 +187,13 @@ export {
 } from './schemas/invoice.schema';
 
 export {
+  claudeInvoiceExtractionSchema,
+  invoiceImportResponseSchema,
+  type ClaudeInvoiceExtraction,
+  type InvoiceImportResponse,
+} from './schemas/invoice-import.schema';
+
+export {
   createPipelineSchema,
   updatePipelineSchema,
   pipelineResponseSchema,

@@ -9,9 +9,12 @@ import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { File } from '../files/entities/file.entity';
 import { Channel } from '../channels/channel.entity';
 import { InvoicesService } from './invoices.service';
+import { InvoiceImportService } from './invoice-import.service';
 import { InvoicesController } from './invoices.controller';
 import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from '../system-settings/system-settings.module';
+import { AiModule } from '../ai/ai.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   imports: [
@@ -27,9 +30,11 @@ import { SystemSettingsModule } from '../system-settings/system-settings.module'
     ]),
     ExchangeRatesModule,
     SystemSettingsModule,
+    AiModule,
+    FilesModule,
   ],
   controllers: [InvoicesController],
-  providers: [InvoicesService],
+  providers: [InvoicesService, InvoiceImportService],
   exports: [InvoicesService],
 })
 export class InvoicesModule {}

@@ -10,7 +10,10 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -27,6 +30,7 @@ import {
   ApiExtraModels,
 } from '@nestjs/swagger';
 import { InvoicesService } from './invoices.service';
+import { InvoiceImportService } from './invoice-import.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ApiPaginatedResponse } from '../common/swagger/api-paginated-response.decorator';
@@ -42,6 +46,7 @@ import {
   CreateInvoiceDto,
   UpdateInvoiceDto,
   InvoiceResponseDto,
+  InvoiceImportResponseDto,
 } from './invoice.dto';
 
 @ApiTags('invoices')
@@ -51,7 +56,28 @@ import {
 @Controller('invoices')
 @UseGuards(AdminGuard)
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) {}
+  constructor(
+    private readonly invoicesService: InvoicesService,
+    private readonly invoiceImportService: InvoiceImportService,
+  ) {}
+
+  @Post('import')
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Extract invoice fields from a PDF and stage them for create' })
+  @ApiCreatedResponse({ type: InvoiceImportResponseDto })
+  @ApiBadRequestResponse({ description: 'No file uploaded' })
+  async import(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new (await import('@nestjs/common')).BadRequestException('No file uploaded');
+    }
+    return this.invoiceImportService.import(
+      file.buffer,
+      file.mimetype,
+      file.originalname,
+      file.size,
+    );
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

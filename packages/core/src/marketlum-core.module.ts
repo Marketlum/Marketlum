@@ -30,6 +30,7 @@ import { AgreementTemplatesModule } from './agreement-templates/agreement-templa
 import { RecurringFlowsModule } from './recurring-flows/recurring-flows.module';
 import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { SystemSettingsModule } from './system-settings/system-settings.module';
     RecurringFlowsModule,
     ExchangeRatesModule,
     SystemSettingsModule,
+    AiModule,
   ],
   exports: [
     AuthModule,
@@ -86,6 +88,7 @@ import { SystemSettingsModule } from './system-settings/system-settings.module';
     RecurringFlowsModule,
     ExchangeRatesModule,
     SystemSettingsModule,
+    AiModule,
   ],
   providers: [
     {

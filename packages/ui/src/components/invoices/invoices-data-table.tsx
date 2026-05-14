@@ -25,6 +25,11 @@ import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
 import { InvoiceFormDialog } from './invoice-form-dialog';
+import { ImportInvoiceDialog } from './import-invoice-dialog';
+import type { InvoiceImportResponse } from '@marketlum/shared';
+import { useRef } from 'react';
+import { FileUp } from 'lucide-react';
+import { ApiError } from '../../lib/api-client';
 import { getInvoiceColumns } from './columns';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -93,6 +98,10 @@ export function InvoicesDataTable() {
   const [deleteTarget, setDeleteTarget] = useState<InvoiceRow | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importPrefill, setImportPrefill] = useState<InvoiceImportResponse | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
@@ -168,7 +177,60 @@ export function InvoicesDataTable() {
 
   const handleOpenCreate = () => {
     setEditingInvoice(null);
+    setImportPrefill(null);
     setFormOpen(true);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // reset so picking the same file twice still fires onChange
+    if (!file) return;
+    setImporting(true);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${apiUrl}/invoices/import`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-CSRF-Protection': '1' },
+        body: form,
+        signal: ctrl.signal,
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ message: res.statusText }));
+        if (res.status === 415) toast.error(t('importWrongType'));
+        else if (res.status === 413) toast.error(t('importOversize'));
+        else if (res.status === 422) toast.error(body.message || t('importFailedBody'));
+        else if (res.status === 500 && /ANTHROPIC_API_KEY/i.test(body.message ?? '')) {
+          toast.error(t('importUnconfigured'));
+        } else {
+          toast.error(t('importFailedBody'));
+        }
+        return;
+      }
+      const prefill = (await res.json()) as InvoiceImportResponse;
+      setImportPrefill(prefill);
+      setEditingInvoice(null);
+      setFormOpen(true);
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+      toast.error(t('importFailedBody'));
+    } finally {
+      setImporting(false);
+      abortRef.current = null;
+    }
+  };
+
+  const handleCancelImport = () => {
+    abortRef.current?.abort();
+    setImporting(false);
   };
 
   const handleOpenEdit = async (invoice: InvoiceRow) => {
@@ -351,6 +413,13 @@ export function InvoicesDataTable() {
 
   return (
     <div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
@@ -368,6 +437,10 @@ export function InvoicesDataTable() {
           </Button>
         }
       >
+        <Button variant="outline" size="sm" onClick={handleImportClick}>
+          <FileUp className="mr-2 h-4 w-4" />
+          {t('importFromPdf')}
+        </Button>
         <ColumnVisibilityDropdown
           columns={columnMeta}
           visibility={columnVisibility}
@@ -502,10 +575,16 @@ export function InvoicesDataTable() {
 
       <InvoiceFormDialog
         open={formOpen && !editingInvoice}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open);
+          if (!open) setImportPrefill(null);
+        }}
         onSubmit={handleFormSubmit}
+        prefill={importPrefill ?? undefined}
         isSubmitting={isSubmitting}
       />
+
+      <ImportInvoiceDialog open={importing} onCancel={handleCancelImport} />
 
       <InvoiceFormDialog
         open={!!editingInvoice}

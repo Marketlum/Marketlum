@@ -33,6 +33,6 @@ import { S3StorageProvider } from './storage';
       },
     },
   ],
-  exports: [STORAGE_PROVIDER],
+  exports: [STORAGE_PROVIDER, FilesService],
 })
 export class FilesModule {}

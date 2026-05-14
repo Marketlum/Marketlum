@@ -64,6 +64,12 @@ interface InvoiceFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateInvoiceInput) => Promise<void>;
   invoice?: InvoiceData | null;
+  /**
+   * When set, opens the dialog in create-mode with fields seeded from an
+   * /invoices/import response. Unmatched pickers (id=null) render the
+   * extracted name as ghost text + an amber hint.
+   */
+  prefill?: import('@marketlum/shared').InvoiceImportResponse;
   isSubmitting?: boolean;
 }
 
@@ -72,6 +78,7 @@ export function InvoiceFormDialog({
   onOpenChange,
   onSubmit,
   invoice,
+  prefill,
   isSubmitting,
 }: InvoiceFormDialogProps) {
   const isEditing = !!invoice;
@@ -119,6 +126,33 @@ export function InvoiceFormDialog({
             total: item.total,
           })),
         );
+      } else if (prefill) {
+        reset({
+          number: prefill.extracted.number ?? '',
+          fromAgentId: prefill.extracted.fromAgent.id ?? '',
+          toAgentId: prefill.extracted.toAgent.id ?? '',
+          issuedAt: prefill.extracted.issuedAt
+            ? `${prefill.extracted.issuedAt}T00:00`
+            : '',
+          dueAt: prefill.extracted.dueAt
+            ? `${prefill.extracted.dueAt}T00:00`
+            : '',
+          currencyId: prefill.extracted.currency.id ?? '',
+          paid: false,
+          link: '',
+          fileId: prefill.fileId,
+          valueStreamId: null,
+          channelId: null,
+        });
+        setItems(
+          prefill.extracted.items.map((item) => ({
+            valueId: item.value?.id ?? '',
+            valueInstanceId: '',
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total: item.total,
+          })),
+        );
       } else {
         reset({
           number: '',
@@ -135,7 +169,7 @@ export function InvoiceFormDialog({
         setItems([]);
       }
     }
-  }, [open, invoice, reset]);
+  }, [open, invoice, prefill, reset]);
 
   const addItem = () => {
     setItems((prev) => [...prev, { valueId: '', valueInstanceId: '', quantity: '', unitPrice: '', total: '' }]);
@@ -180,6 +214,17 @@ export function InvoiceFormDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+          {prefill && prefill.warnings.length > 0 && (
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700 dark:bg-amber-950">
+              <p className="font-medium mb-1">{t('importWarningsTitle')}</p>
+              <ul className="list-disc pl-5 space-y-0.5 text-muted-foreground">
+                {prefill.warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="inv-number">{t('number')}</Label>
             <Input id="inv-number" {...register('number')} />
@@ -194,7 +239,13 @@ export function InvoiceFormDialog({
                 onValueChange={(v) => setFormValue('fromAgentId', v === '__none__' ? '' : v)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('selectAgent')} />
+                  <SelectValue
+                    placeholder={
+                      prefill && !prefill.extracted.fromAgent.id
+                        ? prefill.extracted.fromAgent.name
+                        : t('selectAgent')
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
@@ -205,6 +256,11 @@ export function InvoiceFormDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {prefill && !prefill.extracted.fromAgent.id && !watch('fromAgentId') && (
+                <p className="text-xs text-amber-600">
+                  {t('importUnmatchedHint', { name: prefill.extracted.fromAgent.name })}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t('to')}</Label>
@@ -213,7 +269,13 @@ export function InvoiceFormDialog({
                 onValueChange={(v) => setFormValue('toAgentId', v === '__none__' ? '' : v)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('selectAgent')} />
+                  <SelectValue
+                    placeholder={
+                      prefill && !prefill.extracted.toAgent.id
+                        ? prefill.extracted.toAgent.name
+                        : t('selectAgent')
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
@@ -224,6 +286,11 @@ export function InvoiceFormDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {prefill && !prefill.extracted.toAgent.id && !watch('toAgentId') && (
+                <p className="text-xs text-amber-600">
+                  {t('importUnmatchedHint', { name: prefill.extracted.toAgent.name })}
+                </p>
+              )}
             </div>
           </div>
 
@@ -245,8 +312,17 @@ export function InvoiceFormDialog({
                 values={values}
                 value={watch('currencyId') || null}
                 onSelect={(id) => setFormValue('currencyId', id ?? '')}
-                placeholder={t('selectCurrency')}
+                placeholder={
+                  prefill && !prefill.extracted.currency.id
+                    ? prefill.extracted.currency.name
+                    : t('selectCurrency')
+                }
               />
+              {prefill && !prefill.extracted.currency.id && !watch('currencyId') && (
+                <p className="text-xs text-amber-600">
+                  {t('importUnmatchedHint', { name: prefill.extracted.currency.name })}
+                </p>
+              )}
               <ConversionPreview
                 valueId={watch('currencyId') || null}
                 amount={items
