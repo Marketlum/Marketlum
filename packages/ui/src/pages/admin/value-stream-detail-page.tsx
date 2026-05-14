@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Plus, ArrowRightLeft, RefreshCw } from 'lucide-react';
 import type {
@@ -10,7 +9,6 @@ import type {
   CreateExchangeInput,
   CreateRecurringFlowInput,
   DashboardSummaryResponse,
-  PaginatedResponse,
 } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { formatDate, getPresetRange } from '../../lib/date-range-presets';
@@ -27,14 +25,6 @@ import {
   CardTitle,
 } from '../../components/ui/card';
 
-interface Counts {
-  values: number;
-  offerings: number;
-  agreements: number;
-  exchanges: number;
-  recurringFlows: number;
-}
-
 export function ValueStreamDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -46,13 +36,6 @@ export function ValueStreamDetailPage() {
   const td = useTranslations('dashboard');
 
   const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
-  const [counts, setCounts] = useState<Counts>({
-    values: 0,
-    offerings: 0,
-    agreements: 0,
-    exchanges: 0,
-    recurringFlows: 0,
-  });
   const [createValueOpen, setCreateValueOpen] = useState(false);
   const [createExchangeOpen, setCreateExchangeOpen] = useState(false);
   const [createRecurringFlowOpen, setCreateRecurringFlowOpen] = useState(false);
@@ -86,27 +69,6 @@ export function ValueStreamDetailPage() {
     }
   }, []);
 
-  const fetchCounts = useCallback(async () => {
-    try {
-      const [values, offerings, agreements, exchanges, recurringFlows] = await Promise.all([
-        api.get<PaginatedResponse<unknown>>(`/values?valueStreamId=${id}&limit=1`),
-        api.get<PaginatedResponse<unknown>>(`/offerings?valueStreamId=${id}&limit=1`),
-        api.get<PaginatedResponse<unknown>>(`/agreements/search?valueStreamId=${id}&limit=1`),
-        api.get<PaginatedResponse<unknown>>(`/exchanges/search?valueStreamId=${id}&limit=1`),
-        api.get<PaginatedResponse<unknown>>(`/recurring-flows?valueStreamId=${id}&limit=1`),
-      ]);
-      setCounts({
-        values: values.meta.total,
-        offerings: offerings.meta.total,
-        agreements: agreements.meta.total,
-        exchanges: exchanges.meta.total,
-        recurringFlows: recurringFlows.meta.total,
-      });
-    } catch {
-      // silent
-    }
-  }, [id]);
-
   const fetchDashboard = useCallback(async () => {
     try {
       const qp = new URLSearchParams();
@@ -121,10 +83,6 @@ export function ValueStreamDetailPage() {
   }, [id, fromDate, toDate]);
 
   useEffect(() => {
-    fetchCounts();
-  }, [fetchCounts]);
-
-  useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);
 
@@ -134,7 +92,6 @@ export function ValueStreamDetailPage() {
       await api.post('/values', input);
       toast.success(tv('created'));
       setCreateValueOpen(false);
-      fetchCounts();
     } catch {
       toast.error(tv('failedToCreate'));
     } finally {
@@ -148,7 +105,6 @@ export function ValueStreamDetailPage() {
       await api.post('/exchanges', input);
       toast.success(te('created'));
       setCreateExchangeOpen(false);
-      fetchCounts();
     } catch {
       toast.error(te('failedToCreate'));
     } finally {
@@ -162,7 +118,6 @@ export function ValueStreamDetailPage() {
       await api.post('/recurring-flows', input);
       toast.success(trf('created'));
       setCreateRecurringFlowOpen(false);
-      fetchCounts();
     } catch {
       toast.error(trf('failedToCreate'));
     } finally {
@@ -172,34 +127,6 @@ export function ValueStreamDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Counts row */}
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        <Link
-          href={`/admin/value-streams/${id}/values`}
-          className="rounded-md border bg-card px-3 py-2 text-sm hover:bg-accent hover:text-white"
-        >
-          {t('countValues', { count: counts.values })}
-        </Link>
-        <Link
-          href={`/admin/value-streams/${id}/offerings`}
-          className="rounded-md border bg-card px-3 py-2 text-sm hover:bg-accent hover:text-white"
-        >
-          {t('countOfferings', { count: counts.offerings })}
-        </Link>
-        <Link
-          href={`/admin/value-streams/${id}/exchanges`}
-          className="rounded-md border bg-card px-3 py-2 text-sm hover:bg-accent hover:text-white"
-        >
-          {t('countExchanges', { count: counts.exchanges })}
-        </Link>
-        <Link
-          href={`/admin/value-streams/${id}/recurring-flows`}
-          className="rounded-md border bg-card px-3 py-2 text-sm hover:bg-accent hover:text-white"
-        >
-          {t('countRecurringFlows', { count: counts.recurringFlows })}
-        </Link>
-      </div>
-
       {/* Quick actions */}
       <div className="flex flex-wrap gap-2">
         <Button size="sm" onClick={() => setCreateValueOpen(true)}>

@@ -386,11 +386,7 @@
     "createValue": "Utwórz wartość",
     "createExchange": "Utwórz wymianę",
     "createRecurringFlow": "Utwórz przepływ cykliczny",
-    "atAGlance": "W skrócie",
-    "countValues": "{count, plural, one {# wartość} few {# wartości} other {# wartości}}",
-    "countOfferings": "{count, plural, one {# oferta} few {# oferty} other {# ofert}}",
-    "countExchanges": "{count, plural, one {# wymiana} few {# wymiany} other {# wymian}}",
-    "countRecurringFlows": "{count, plural, one {# przepływ} few {# przepływy} other {# przepływów}}"
+    "atAGlance": "W skrócie"
   },
   "valueStreamBudget": {
     "title": "Budżet",

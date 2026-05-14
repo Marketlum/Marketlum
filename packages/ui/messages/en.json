@@ -387,11 +387,7 @@
     "createValue": "Create Value",
     "createExchange": "Create Exchange",
     "createRecurringFlow": "Create Recurring Flow",
-    "atAGlance": "At a glance",
-    "countValues": "{count, plural, one {# value} other {# values}}",
-    "countOfferings": "{count, plural, one {# offering} other {# offerings}}",
-    "countExchanges": "{count, plural, one {# exchange} other {# exchanges}}",
-    "countRecurringFlows": "{count, plural, one {# recurring flow} other {# recurring flows}}"
+    "atAGlance": "At a glance"
   },
   "valueStreamBudget": {
     "title": "Budget",
