@@ -158,6 +158,20 @@
     "failedToUpdateAddress": "Nie udało się zaktualizować adresu",
     "failedToDeleteAddress": "Nie udało się usunąć adresu"
   },
+  "agentsMap": {
+    "title": "Mapa agentów",
+    "viewMap": "Mapa",
+    "backToAgents": "Powrót do agentów",
+    "noMappable": "Brak agentów na mapie",
+    "noMappableHint": "Dodaj adres główny z koordynatami, aby pokazać agenta na mapie.",
+    "viewAgent": "Zobacz agenta",
+    "filterType": "Typ",
+    "filterTaxonomy": "Taksonomia",
+    "filterCountry": "Kraj",
+    "allTypes": "Wszystkie typy",
+    "allTaxonomies": "Wszystkie taksonomie",
+    "allCountries": "Wszystkie kraje"
+  },
   "addresses": {
     "addAddress": "Dodaj adres",
     "editAddress": "Edytuj adres",

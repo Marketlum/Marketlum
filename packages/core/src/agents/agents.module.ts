@@ -8,10 +8,12 @@ import { Geography } from '../geographies/geography.entity';
 import { AgentsService } from './agents.service';
 import { AddressesService } from './addresses/addresses.service';
 import { AgentsController } from './agents.controller';
+import { GeocodingModule } from '../geocoding/geocoding.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Agent, Address, Taxonomy, File, Geography]),
+    GeocodingModule,
   ],
   controllers: [AgentsController],
   providers: [AgentsService, AddressesService],

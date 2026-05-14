@@ -50,6 +50,12 @@ export class Address {
   @Column({ type: 'boolean', default: false })
   isPrimary: boolean;
 
+  @Column({ type: 'numeric', precision: 10, scale: 7, nullable: true })
+  latitude: string | null;
+
+  @Column({ type: 'numeric', precision: 10, scale: 7, nullable: true })
+  longitude: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

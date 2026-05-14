@@ -249,6 +249,7 @@ export { cn } from './lib/utils';
 
 export { AccountsPage } from './pages/admin/accounts-page';
 export { AgentDetailPage } from './pages/admin/agent-detail-page';
+export { AgentsMapPage } from './pages/admin/agents-map-page';
 export { AgentsPage } from './pages/admin/agents-page';
 export { AgreementDetailPage } from './pages/admin/agreement-detail-page';
 export { AgreementTemplatesPage } from './pages/admin/agreement-templates-page';

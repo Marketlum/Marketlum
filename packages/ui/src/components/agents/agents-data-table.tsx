@@ -35,7 +35,8 @@ import { ExportDropdown } from '../shared/export-dropdown';
 import type { FieldDef } from '../../lib/export-utils';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, MapIcon } from 'lucide-react';
+import Link from 'next/link';
 import type { TaxonomyTreeNode } from '@marketlum/shared';
 
 function flattenTree(nodes: TaxonomyTreeNode[]): TaxonomyTreeNode[] {
@@ -55,6 +56,7 @@ export function AgentsDataTable() {
   const t = useTranslations('agents');
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
+  const tam = useTranslations('agentsMap');
   const isMobile = useIsMobile();
   const { tree } = useTaxonomyTree();
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -274,6 +276,14 @@ export function AgentsDataTable() {
         onSearchChange={pagination.setSearch}
         onCreateClick={() => setFormOpen(true)}
         createLabel={t('createAgent')}
+        primaryActions={
+          <Link href="/admin/agents/map">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <MapIcon className="mr-2 h-4 w-4" />
+              {tam('viewMap')}
+            </Button>
+          </Link>
+        }
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

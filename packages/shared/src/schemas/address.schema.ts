@@ -28,6 +28,8 @@ export const addressResponseSchema = z.object({
     code: z.string(),
   }),
   isPrimary: z.boolean(),
+  latitude: z.string().nullable(),
+  longitude: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

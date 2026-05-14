@@ -31,6 +31,7 @@ import { RecurringFlowsModule } from './recurring-flows/recurring-flows.module';
 import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { AiModule } from './ai/ai.module';
+import { GeocodingModule } from './geocoding/geocoding.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { AiModule } from './ai/ai.module';
     ExchangeRatesModule,
     SystemSettingsModule,
     AiModule,
+    GeocodingModule,
   ],
   exports: [
     AuthModule,
@@ -89,6 +91,7 @@ import { AiModule } from './ai/ai.module';
     ExchangeRatesModule,
     SystemSettingsModule,
     AiModule,
+    GeocodingModule,
   ],
   providers: [
     {

@@ -1,0 +1,43 @@
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+.agents-map-container {
+  height: 600px;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.agent-map-marker {
+  border-radius: 9999px;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  width: 18px;
+  height: 18px;
+}
+
+.agent-map-marker.type-organization { background: #4f46e5; }
+.agent-map-marker.type-individual { background: #059669; }
+.agent-map-marker.type-virtual { background: #d97706; }
+
+.agent-map-popup .agent-name { font-weight: 600; font-size: 0.95rem; margin: 0 0 0.25rem 0; }
+.agent-map-popup .agent-type-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  margin-bottom: 0.5rem;
+}
+.agent-map-popup .agent-type-badge.organization { background: #e0e7ff; color: #4338ca; }
+.agent-map-popup .agent-type-badge.individual { background: #d1fae5; color: #047857; }
+.agent-map-popup .agent-type-badge.virtual { background: #fef3c7; color: #b45309; }
+.agent-map-popup .agent-address { font-size: 0.8rem; line-height: 1.4; margin-bottom: 0.5rem; }
+.agent-map-popup .agent-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.agent-map-popup .agent-link:hover { text-decoration: underline; }

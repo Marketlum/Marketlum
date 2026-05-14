@@ -159,6 +159,20 @@
     "failedToUpdateAddress": "Failed to update address",
     "failedToDeleteAddress": "Failed to delete address"
   },
+  "agentsMap": {
+    "title": "Agents map",
+    "viewMap": "Map",
+    "backToAgents": "Back to agents",
+    "noMappable": "No mappable agents yet",
+    "noMappableHint": "Add a primary address with coordinates to plot an agent here.",
+    "viewAgent": "View agent",
+    "filterType": "Type",
+    "filterTaxonomy": "Taxonomy",
+    "filterCountry": "Country",
+    "allTypes": "All types",
+    "allTaxonomies": "All taxonomies",
+    "allCountries": "All countries"
+  },
   "addresses": {
     "addAddress": "Add address",
     "editAddress": "Edit address",

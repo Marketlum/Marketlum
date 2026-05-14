@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,31 @@ import {
 import { Address } from './entities/address.entity';
 import { Agent } from '../entities/agent.entity';
 import { Geography } from '../../geographies/geography.entity';
+import {
+  GEOCODING_CLIENT,
+  GeocodingClient,
+} from '../../geocoding/geocoding.client';
+
+/**
+ * Server-only options for AddressesService.create. Not part of the public
+ * Zod surface — only seeders / internal call sites reach this path.
+ */
+export interface AddressCreateOpts {
+  /** When true, skip the geocoder entirely. */
+  skipGeocode?: boolean;
+  /** Explicit coordinates to write (typically paired with skipGeocode=true). */
+  latitude?: string;
+  longitude?: string;
+}
+
+const POSTAL_FIELDS: ReadonlyArray<keyof UpdateAddressInput> = [
+  'line1',
+  'line2',
+  'city',
+  'region',
+  'postalCode',
+  'countryId',
+];
 
 @Injectable()
 export class AddressesService {
@@ -23,11 +49,17 @@ export class AddressesService {
     private readonly agentsRepository: Repository<Agent>,
     @InjectRepository(Geography)
     private readonly geographiesRepository: Repository<Geography>,
+    @Inject(GEOCODING_CLIENT)
+    private readonly geocoder: GeocodingClient,
   ) {}
 
-  async create(agentId: string, input: CreateAddressInput): Promise<Address> {
+  async create(
+    agentId: string,
+    input: CreateAddressInput,
+    opts?: AddressCreateOpts,
+  ): Promise<Address> {
     await this.assertAgentExists(agentId);
-    await this.assertCountry(input.countryId);
+    const country = await this.assertCountry(input.countryId);
 
     const address = this.addressesRepository.create({
       agentId,
@@ -39,6 +71,8 @@ export class AddressesService {
       region: input.region ?? null,
       postalCode: input.postalCode,
       isPrimary: input.isPrimary === true,
+      latitude: opts?.latitude ?? null,
+      longitude: opts?.longitude ?? null,
     });
 
     if (address.isPrimary) {
@@ -46,6 +80,24 @@ export class AddressesService {
     }
 
     const saved = await this.addressesRepository.save(address);
+
+    if (!opts?.skipGeocode && opts?.latitude === undefined) {
+      const coords = await this.geocoder.geocode({
+        line1: saved.line1,
+        line2: saved.line2,
+        city: saved.city,
+        region: saved.region,
+        postalCode: saved.postalCode,
+        countryName: country.name,
+      });
+      if (coords) {
+        await this.addressesRepository.update(saved.id, {
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        });
+      }
+    }
+
     return this.findOne(agentId, saved.id);
   }
 
@@ -76,6 +128,13 @@ export class AddressesService {
   ): Promise<Address> {
     const address = await this.findOne(agentId, id);
 
+    const postalChanged = POSTAL_FIELDS.some((field) => {
+      if (input[field] === undefined) return false;
+      const incoming = input[field] ?? null;
+      const current = (address as unknown as Record<string, unknown>)[field] ?? null;
+      return incoming !== current;
+    });
+
     if (input.countryId !== undefined) {
       await this.assertCountry(input.countryId);
       address.countryId = input.countryId;
@@ -96,7 +155,35 @@ export class AddressesService {
       }
     }
 
+    if (postalChanged) {
+      address.latitude = null;
+      address.longitude = null;
+    }
+
     await this.addressesRepository.save(address);
+
+    if (postalChanged) {
+      const country = await this.geographiesRepository.findOne({
+        where: { id: address.countryId },
+      });
+      if (country) {
+        const coords = await this.geocoder.geocode({
+          line1: address.line1,
+          line2: address.line2,
+          city: address.city,
+          region: address.region,
+          postalCode: address.postalCode,
+          countryName: country.name,
+        });
+        if (coords) {
+          await this.addressesRepository.update(address.id, {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
+        }
+      }
+    }
+
     return this.findOne(agentId, id);
   }
 
@@ -138,7 +225,7 @@ export class AddressesService {
     }
   }
 
-  private async assertCountry(countryId: string): Promise<void> {
+  private async assertCountry(countryId: string): Promise<Geography> {
     const country = await this.geographiesRepository.findOne({
       where: { id: countryId },
     });
@@ -148,6 +235,7 @@ export class AddressesService {
     if (country.type !== GeographyType.COUNTRY) {
       throw new BadRequestException("Country must be of type 'country'");
     }
+    return country;
   }
 
   private async clearPrimaryForAgent(agentId: string): Promise<void> {
