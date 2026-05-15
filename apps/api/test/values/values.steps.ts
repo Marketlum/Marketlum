@@ -90,6 +90,36 @@ defineFeature(createFeature, (test) => {
     });
   });
 
+  test('Successfully create a currency value', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a value with:',
+      async (table: { name: string; type: string; purpose: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: row.name, type: row.type, purpose: row.purpose });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a value with name "(.*)"$/, (name: string) => {
+      expect(response.body.name).toBe(name);
+    });
+
+    and(/^the response should contain a value with type "(.*)"$/, (type: string) => {
+      expect(response.body.type).toBe(type);
+    });
+  });
+
   test('Creating a value with invalid data fails', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');

@@ -52,6 +52,7 @@ const VALUE_TYPE_COLORS: Record<string, { fill: string; stroke: string }> = {
   service: { fill: '#fef9c3', stroke: '#fde047' },
   relationship: { fill: '#fee2e2', stroke: '#fca5a5' },
   right: { fill: '#f3e8ff', stroke: '#d8b4fe' },
+  currency: { fill: '#dcfce7', stroke: '#86efac' },
 };
 
 const PARTICLE_COLOR: Record<string, string> = {
@@ -59,6 +60,7 @@ const PARTICLE_COLOR: Record<string, string> = {
   service: '#fde68a',
   relationship: '#fca5a5',
   right: '#d8b4fe',
+  currency: '#86efac',
 };
 
 function clamp(min: number, val: number, max: number) {
@@ -555,9 +557,13 @@ export function ExchangeFlowGraph() {
             <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: PARTICLE_COLOR.relationship }} />
             <span>{tv('typeRelationship')}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
             <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: PARTICLE_COLOR.right }} />
             <span>{tv('typeRight')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: PARTICLE_COLOR.currency }} />
+            <span>{tv('typeCurrency')}</span>
           </div>
         </div>
       </Card>

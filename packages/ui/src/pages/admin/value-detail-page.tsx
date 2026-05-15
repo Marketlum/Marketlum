@@ -34,6 +34,7 @@ const typeTranslationKeys: Record<string, string> = {
   service: 'typeService',
   relationship: 'typeRelationship',
   right: 'typeRight',
+  currency: 'typeCurrency',
 };
 
 const parentTypeTranslationKeys: Record<string, string> = {

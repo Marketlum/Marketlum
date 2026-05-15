@@ -20,6 +20,7 @@ const typeTranslationKeys: Record<string, string> = {
   [ValueType.SERVICE]: 'typeService',
   [ValueType.RELATIONSHIP]: 'typeRelationship',
   [ValueType.RIGHT]: 'typeRight',
+  [ValueType.CURRENCY]: 'typeCurrency',
 };
 
 interface AgentValuesTableProps {

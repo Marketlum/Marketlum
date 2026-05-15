@@ -9,6 +9,15 @@ Feature: Create Value
     And the response should contain a value with name "Value One"
     And the response should contain a value with type "product"
 
+  Scenario: Successfully create a currency value
+    Given I am authenticated as "admin@marketlum.com"
+    When I create a value with:
+      | name | type     | purpose                |
+      | USD  | currency | US dollar fiat currency |
+    Then the response status should be 201
+    And the response should contain a value with name "USD"
+    And the response should contain a value with type "currency"
+
   Scenario: Creating a value with invalid data fails
     Given I am authenticated as "admin@marketlum.com"
     When I create a value with:

@@ -51,6 +51,7 @@ export function ExchangeDetailPage() {
     service: tv('typeService'),
     relationship: tv('typeRelationship'),
     right: tv('typeRight'),
+    currency: tv('typeCurrency'),
   };
 
   const [exchange, setExchange] = useState<ExchangeResponse | null>(null);

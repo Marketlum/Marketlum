@@ -37,6 +37,7 @@ const TYPE_COLORS: Record<string, { fill: string; stroke: string }> = {
   service: { fill: '#fef9c3', stroke: '#fde047' },
   relationship: { fill: '#fee2e2', stroke: '#fca5a5' },
   right: { fill: '#f3e8ff', stroke: '#d8b4fe' },
+  currency: { fill: '#dcfce7', stroke: '#86efac' },
 };
 
 const GRID_SIZE = 40;
@@ -558,6 +559,10 @@ export function ValuesNetworkGraph() {
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#f3e8ff', borderColor: '#d8b4fe' }} />
               <span>{t('typeRight')}</span>
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-block h-3 w-3 rounded-full border" style={{ backgroundColor: '#dcfce7', borderColor: '#86efac' }} />
+              <span>{t('typeCurrency')}</span>
             </div>
             <div className="flex items-center gap-2 mt-2 border-t pt-1">
               <span className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-muted-foreground" />

@@ -52,6 +52,7 @@ const typeTranslationKeys: Record<string, string> = {
   [ValueType.SERVICE]: 'typeService',
   [ValueType.RELATIONSHIP]: 'typeRelationship',
   [ValueType.RIGHT]: 'typeRight',
+  [ValueType.CURRENCY]: 'typeCurrency',
 };
 
 const lifecycleTranslationKeys: Record<string, string> = {

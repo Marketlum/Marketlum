@@ -43,6 +43,7 @@ import { RenameRecurringFlowUnitToCurrency1700000000041 } from './1700000000041-
 import { AddAgreementValueStream1700000000042 } from './1700000000042-AddAgreementValueStream';
 import { AddAgentAddresses1700000000043 } from './1700000000043-AddAgentAddresses';
 import { AddAddressLatLng1700000000044 } from './1700000000044-AddAddressLatLng';
+import { AddCurrencyValueType1700000000045 } from './1700000000045-AddCurrencyValueType';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -90,4 +91,5 @@ export const ALL_MIGRATIONS = [
   AddAgreementValueStream1700000000042,
   AddAgentAddresses1700000000043,
   AddAddressLatLng1700000000044,
+  AddCurrencyValueType1700000000045,
 ];

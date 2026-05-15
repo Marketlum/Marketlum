@@ -204,6 +204,7 @@
     "typeService": "Usługa",
     "typeRelationship": "Relacja",
     "typeRight": "Prawo",
+    "typeCurrency": "Waluta",
     "parent": "Rodzic",
     "selectParent": "Wybierz rodzica",
     "parentType": "Typ relacji",

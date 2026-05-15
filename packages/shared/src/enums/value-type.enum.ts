@@ -3,4 +3,5 @@ export enum ValueType {
   SERVICE = 'service',
   RELATIONSHIP = 'relationship',
   RIGHT = 'right',
+  CURRENCY = 'currency',
 }
