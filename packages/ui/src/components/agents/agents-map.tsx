@@ -6,7 +6,6 @@ import L from 'leaflet';
 import 'leaflet.markercluster';
 import type { AgentResponse } from '@marketlum/shared';
 import { AgentType } from '@marketlum/shared';
-import './agents-map.css';
 
 interface AgentsMapProps {
   agents: AgentResponse[];
