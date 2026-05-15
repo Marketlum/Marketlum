@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { AgreementTemplateType } from '../enums/agreement-template-type.enum';
+import { codeSchema } from './code.schema';
 
 export const createAgreementTemplateSchema = z.object({
+  code: codeSchema,
   name: z.string().min(1),
   type: z.nativeEnum(AgreementTemplateType),
   purpose: z.string().optional(),
@@ -32,6 +34,7 @@ export const agreementTemplateSearchQuerySchema = z.object({
 
 export const agreementTemplateResponseSchema = z.object({
   id: z.string().uuid(),
+  code: z.string(),
   name: z.string(),
   type: z.nativeEnum(AgreementTemplateType),
   purpose: z.string().nullable(),
@@ -41,6 +44,7 @@ export const agreementTemplateResponseSchema = z.object({
   valueStream: z.object({
     id: z.string().uuid(),
     name: z.string(),
+    code: z.string(),
   }).nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -54,13 +58,14 @@ export type AgreementTemplateSearchQuery = z.infer<typeof agreementTemplateSearc
 
 export interface AgreementTemplateTreeNode {
   id: string;
+  code: string;
   name: string;
   type: AgreementTemplateType;
   purpose: string | null;
   description: string | null;
   link: string | null;
   level: number;
-  valueStream: { id: string; name: string } | null;
+  valueStream: { id: string; name: string; code: string } | null;
   createdAt: string;
   updatedAt: string;
   children: AgreementTemplateTreeNode[];

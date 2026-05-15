@@ -11,11 +11,13 @@ const agentSummarySchema = z.object({
 const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const valueSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 export const createComponentSchema = z.object({

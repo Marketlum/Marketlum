@@ -17,6 +17,9 @@ export class Archetype {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'varchar', length: 64, unique: true })
+  code: string;
+
   @Column({ unique: true })
   name: string;
 

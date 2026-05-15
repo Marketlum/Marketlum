@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Value } from './entities/value.entity';
@@ -100,7 +100,20 @@ export class ValuesService {
       value.files = [];
     }
 
-    const saved = await this.valuesRepository.save(value);
+    let saved: Value;
+    try {
+      saved = await this.valuesRepository.save(value);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Value with this code already exists');
+      }
+      throw error;
+    }
 
     if (imageIds && imageIds.length > 0) {
       const files = await this.fileRepository.find({ where: { id: In(imageIds) } });
@@ -186,6 +199,18 @@ export class ValuesService {
 
   async findOne(id: string): Promise<Value> {
     const value = await this.findOneRaw(id);
+    return this.transformValue(value);
+  }
+
+  async findByCode(code: string): Promise<Value> {
+    const value = await this.valuesRepository.findOne({
+      where: { code },
+      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'valueStream', 'valueStream.image', 'parent'],
+    });
+    if (!value) {
+      throw new NotFoundException('Value not found');
+    }
+    value.images = (value.images ?? []).sort((a, b) => a.position - b.position);
     return this.transformValue(value);
   }
 

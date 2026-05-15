@@ -61,8 +61,32 @@ export class ArchetypesService {
       archetype.taxonomies = [];
     }
 
-    const saved = await this.archetypeRepository.save(archetype);
+    let saved: Archetype;
+    try {
+      saved = await this.archetypeRepository.save(archetype);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Archetype with this code already exists');
+      }
+      throw error;
+    }
     return this.findOne(saved.id);
+  }
+
+  async findByCode(code: string): Promise<Archetype> {
+    const archetype = await this.archetypeRepository.findOne({
+      where: { code },
+      relations: ['taxonomies', 'image'],
+    });
+    if (!archetype) {
+      throw new NotFoundException('Archetype not found');
+    }
+    return archetype;
   }
 
   async search(query: PaginationQuery & { taxonomyId?: string }) {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { codeSchema } from './code.schema';
 
 const fileSummarySchema = z.object({
   id: z.string().uuid(),
@@ -15,6 +16,7 @@ const leadSummarySchema = z.object({
 });
 
 export const createValueStreamSchema = z.object({
+  code: codeSchema,
   name: z.string().min(1),
   purpose: z.string().optional(),
   parentId: z.string().uuid().optional(),
@@ -35,6 +37,7 @@ export const moveValueStreamSchema = z.object({
 
 export const valueStreamResponseSchema = z.object({
   id: z.string().uuid(),
+  code: z.string(),
   name: z.string(),
   purpose: z.string().nullable(),
   level: z.number(),
@@ -51,6 +54,7 @@ export type ValueStreamResponse = z.infer<typeof valueStreamResponseSchema>;
 
 export interface ValueStreamTreeNode {
   id: string;
+  code: string;
   name: string;
   purpose: string | null;
   level: number;

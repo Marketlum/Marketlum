@@ -58,6 +58,7 @@ export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './comp
 export type { ActiveFilter } from './components/shared/active-filters';
 export { ActiveFilters } from './components/shared/active-filters';
 export { ColumnVisibilityDropdown } from './components/shared/column-visibility-dropdown';
+export { CodeBadge } from './components/shared/code-badge';
 export { ConfirmDeleteDialog } from './components/shared/confirm-delete-dialog';
 export { DataTable } from './components/shared/data-table';
 export { DataTableFilterSheet } from './components/shared/data-table-filter-sheet';
@@ -213,6 +214,7 @@ export { getValueColumns } from './components/values/columns';
 // =============================================================================
 
 export { useTensions } from './hooks/use-tensions';
+export { useCodeFromName } from './hooks/use-code-from-name';
 export { useAccounts } from './hooks/use-accounts';
 export { useAgents } from './hooks/use-agents';
 export { useAgreementTemplates } from './hooks/use-agreement-templates';

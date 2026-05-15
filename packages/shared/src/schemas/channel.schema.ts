@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AgentType } from '../enums/agent-type.enum';
+import { codeSchema } from './code.schema';
 
 const agentSummarySchema = z.object({
   id: z.string().uuid(),
@@ -8,6 +9,7 @@ const agentSummarySchema = z.object({
 });
 
 export const createChannelSchema = z.object({
+  code: codeSchema,
   name: z.string().min(1),
   purpose: z.string().optional(),
   color: z.string().min(1),
@@ -28,6 +30,7 @@ export const moveChannelSchema = z.object({
 
 export const channelResponseSchema = z.object({
   id: z.string().uuid(),
+  code: z.string(),
   name: z.string(),
   purpose: z.string().nullable(),
   color: z.string(),
@@ -44,6 +47,7 @@ export type ChannelResponse = z.infer<typeof channelResponseSchema>;
 
 export interface ChannelTreeNode {
   id: string;
+  code: string;
   name: string;
   purpose: string | null;
   color: string;

@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker';
 import { ValueStreamsService } from '../../value-streams/value-streams.service';
 
 interface ValueStreamDeps {
@@ -6,17 +5,17 @@ interface ValueStreamDeps {
 }
 
 const ROOT_STREAMS = [
-  { name: 'General Company Stream', purpose: 'Make the world a cleaner place' }
+  { code: 'general_company', name: 'General Company Stream', purpose: 'Make the world a cleaner place' },
 ];
 
-const CHILD_STREAMS: Record<string, Array<{ name: string; purpose: string }>> = {
-  'General Company Stream': [
-    { name: 'Batteries Manufacturing', purpose: 'Green batteries for the blue planet' },
-    { name: 'Industrial Implementation', purpose: 'Implementing green industrial processes' },
-    { name: 'People', purpose: 'The right people for our purpose and organization' },
-    { name: 'Market Development', purpose: 'Growing our market share and reach' },
-    { name: 'Licensing Ecosystem', purpose: 'Expanding our licensing ecosystem and opportunities' },
-    { name: 'Backoffice Operations', purpose: 'Support other value streams with accurate and timely back-office framework and services' },
+const CHILD_STREAMS: Record<string, Array<{ code: string; name: string; purpose: string }>> = {
+  general_company: [
+    { code: 'batteries_manufacturing', name: 'Batteries Manufacturing', purpose: 'Green batteries for the blue planet' },
+    { code: 'industrial_implementation', name: 'Industrial Implementation', purpose: 'Implementing green industrial processes' },
+    { code: 'people', name: 'People', purpose: 'The right people for our purpose and organization' },
+    { code: 'market_development', name: 'Market Development', purpose: 'Growing our market share and reach' },
+    { code: 'licensing_ecosystem', name: 'Licensing Ecosystem', purpose: 'Expanding our licensing ecosystem and opportunities' },
+    { code: 'backoffice_operations', name: 'Backoffice Operations', purpose: 'Support other value streams with accurate and timely back-office framework and services' },
   ],
 };
 
@@ -29,14 +28,16 @@ export async function seedValueStreams(service: ValueStreamsService, deps: Value
     const user = deps.users[i % deps.users.length];
 
     const stream = await service.create({
+      code: data.code,
       name: data.name,
       purpose: data.purpose,
       leadUserId: user.id,
     });
     roots.push({ id: stream.id, name: stream.name });
 
-    for (const childData of CHILD_STREAMS[data.name]) {
+    for (const childData of CHILD_STREAMS[data.code]) {
       const child = await service.create({
+        code: childData.code,
         name: childData.name,
         purpose: childData.purpose,
         parentId: stream.id,

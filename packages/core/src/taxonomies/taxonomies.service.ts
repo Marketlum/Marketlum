@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository } from 'typeorm';
 import { Taxonomy } from './entities/taxonomy.entity';
@@ -13,6 +13,7 @@ export class TaxonomiesService {
 
   async create(input: CreateTaxonomyInput): Promise<Taxonomy> {
     const taxonomy = this.taxonomyRepository.create({
+      code: input.code,
       name: input.name,
       description: input.description ?? null,
       link: input.link ?? null,
@@ -28,7 +29,27 @@ export class TaxonomiesService {
       taxonomy.parent = parent;
     }
 
-    return this.taxonomyRepository.save(taxonomy);
+    try {
+      return await this.taxonomyRepository.save(taxonomy);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Taxonomy with this code already exists');
+      }
+      throw error;
+    }
+  }
+
+  async findByCode(code: string): Promise<Taxonomy> {
+    const taxonomy = await this.taxonomyRepository.findOne({ where: { code } });
+    if (!taxonomy) {
+      throw new NotFoundException('Taxonomy not found');
+    }
+    return taxonomy;
   }
 
   async search(query: PaginationQuery) {

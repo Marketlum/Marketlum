@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import { codeSchema } from './code.schema';
 
 export const createTaxonomySchema = z.object({
+  code: codeSchema,
   name: z.string().min(1),
   description: z.string().optional(),
   link: z.string().url().optional(),
@@ -19,6 +21,7 @@ export const moveTaxonomySchema = z.object({
 
 export const taxonomyResponseSchema = z.object({
   id: z.string().uuid(),
+  code: z.string(),
   name: z.string(),
   description: z.string().nullable(),
   link: z.string().nullable(),
@@ -34,6 +37,7 @@ export type TaxonomyResponse = z.infer<typeof taxonomyResponseSchema>;
 
 export interface TaxonomyTreeNode {
   id: string;
+  code: string;
   name: string;
   description: string | null;
   link: string | null;

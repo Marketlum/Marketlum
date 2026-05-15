@@ -10,21 +10,25 @@ const agentSummarySchema = z.object({
 const valueSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const valueInstanceSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const channelSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const decimalStringRegex = /^\d+(\.\d{1,2})?$/;

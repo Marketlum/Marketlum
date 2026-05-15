@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { codeSchema } from './code.schema';
 
 const taxonomySummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const fileSummarySchema = z.object({
@@ -14,6 +16,7 @@ const fileSummarySchema = z.object({
 });
 
 export const createArchetypeSchema = z.object({
+  code: codeSchema,
   name: z.string().min(1),
   purpose: z.string().optional(),
   description: z.string().optional(),
@@ -31,6 +34,7 @@ export const updateArchetypeSchema = z.object({
 
 export const archetypeResponseSchema = z.object({
   id: z.string().uuid(),
+  code: z.string(),
   name: z.string(),
   purpose: z.string().nullable(),
   description: z.string().nullable(),

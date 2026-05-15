@@ -19,6 +19,9 @@ export class Channel {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'varchar', length: 64, unique: true })
+  code: string;
+
   @Column()
   name: string;
 

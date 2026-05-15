@@ -34,6 +34,7 @@ import {
   createValueInstanceSchema,
   updateValueInstanceSchema,
   paginationQuerySchema,
+  codeSchema,
   CreateValueInstanceInput,
   UpdateValueInstanceInput,
   PaginationQuery,
@@ -82,6 +83,17 @@ export class ValueInstancesController {
     @Query('toAgentId') toAgentId?: string,
   ) {
     return this.valueInstancesService.findAll({ ...query, valueId, fromAgentId, toAgentId });
+  }
+
+  @Get('by-code/:code')
+  @ApiOperation({ summary: 'Get a value instance by code' })
+  @ApiParam({ name: 'code', type: String, description: 'Value instance code' })
+  @ApiOkResponse({ type: ValueInstanceResponseDto })
+  @ApiNotFoundResponse({ description: 'Value instance not found' })
+  async findByCode(
+    @Param('code', new ZodValidationPipe(codeSchema)) code: string,
+  ) {
+    return this.valueInstancesService.findByCode(code);
   }
 
   @Get(':id')

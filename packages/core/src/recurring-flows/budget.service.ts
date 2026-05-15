@@ -164,7 +164,7 @@ export class RecurringFlowsBudgetService {
       valueStreamId,
       year: query.year,
       directOnly: query.directOnly,
-      baseValue: { id: baseValue.id, name: baseValue.name },
+      baseValue: { id: baseValue.id, name: baseValue.name, code: baseValue.code },
       summary,
       byMonth,
       byQuarter,

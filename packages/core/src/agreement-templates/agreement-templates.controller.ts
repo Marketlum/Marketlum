@@ -35,6 +35,7 @@ import {
   updateAgreementTemplateSchema,
   moveAgreementTemplateSchema,
   paginationQuerySchema,
+  codeSchema,
   CreateAgreementTemplateInput,
   UpdateAgreementTemplateInput,
   MoveAgreementTemplateInput,
@@ -108,6 +109,17 @@ export class AgreementTemplatesController {
   @ApiOkResponse({ type: AgreementTemplateResponseDto, isArray: true })
   async findRoots() {
     return this.agreementTemplatesService.findRoots();
+  }
+
+  @Get('by-code/:code')
+  @ApiOperation({ summary: 'Get an agreement template by code' })
+  @ApiParam({ name: 'code', type: String, description: 'Agreement template code' })
+  @ApiOkResponse({ type: AgreementTemplateResponseDto })
+  @ApiNotFoundResponse({ description: 'Agreement template not found' })
+  async findByCode(
+    @Param('code', new ZodValidationPipe(codeSchema)) code: string,
+  ) {
+    return this.agreementTemplatesService.findByCode(code);
   }
 
   @Get(':id')

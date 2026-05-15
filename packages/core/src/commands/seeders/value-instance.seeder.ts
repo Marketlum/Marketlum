@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { ValueInstancesService } from '../../value-instances/value-instances.service';
+import { suggestCode } from '@marketlum/shared';
 
 interface ValueInstanceDeps {
   values: Array<{ id: string; name: string }>;
@@ -14,7 +15,11 @@ export async function seedValueInstances(service: ValueInstancesService, deps: V
     const fromAgent = deps.agents[i % deps.agents.length];
     const toAgent = deps.agents[(i + 1) % deps.agents.length];
 
+    const valueSlug = suggestCode(value.name) || `vi_${i + 1}`;
+    const code = `${valueSlug}_instance_${i + 1}`.slice(0, 64);
+
     const instance = await service.create({
+      code,
       name: `${value.name} — Instance ${i + 1}`,
       purpose: faker.lorem.sentence(),
       description: faker.lorem.paragraph(),

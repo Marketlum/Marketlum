@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -36,8 +37,32 @@ export class PipelinesService {
       valueStreamId: valueStreamId ?? null,
     });
 
-    const saved = await this.pipelineRepository.save(pipeline);
+    let saved: Pipeline;
+    try {
+      saved = await this.pipelineRepository.save(pipeline);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Pipeline with this code already exists');
+      }
+      throw error;
+    }
     return this.findOne(saved.id);
+  }
+
+  async findByCode(code: string): Promise<Pipeline> {
+    const pipeline = await this.pipelineRepository.findOne({
+      where: { code },
+      relations: ['valueStream'],
+    });
+    if (!pipeline) {
+      throw new NotFoundException('Pipeline not found');
+    }
+    return pipeline;
   }
 
   async search(query: PaginationQuery & { valueStreamId?: string }) {

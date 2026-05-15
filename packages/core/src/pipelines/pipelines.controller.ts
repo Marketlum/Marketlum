@@ -34,6 +34,7 @@ import {
   createPipelineSchema,
   updatePipelineSchema,
   paginationQuerySchema,
+  codeSchema,
   CreatePipelineInput,
   UpdatePipelineInput,
   PaginationQuery,
@@ -79,6 +80,17 @@ export class PipelinesController {
     @Query('valueStreamId') valueStreamId?: string,
   ) {
     return this.pipelinesService.search({ ...query, valueStreamId });
+  }
+
+  @Get('by-code/:code')
+  @ApiOperation({ summary: 'Get a pipeline by code' })
+  @ApiParam({ name: 'code', type: String, description: 'Pipeline code' })
+  @ApiOkResponse({ type: PipelineResponseDto })
+  @ApiNotFoundResponse({ description: 'Pipeline not found' })
+  async findByCode(
+    @Param('code', new ZodValidationPipe(codeSchema)) code: string,
+  ) {
+    return this.pipelinesService.findByCode(code);
   }
 
   @Get(':id')

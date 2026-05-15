@@ -32,6 +32,7 @@ export class AgreementTemplatesService {
     }
 
     const template = this.templateRepository.create({
+      code: input.code,
       name: input.name,
       type: input.type,
       purpose: input.purpose ?? null,
@@ -60,8 +61,32 @@ export class AgreementTemplatesService {
       template.valueStream = valueStream;
     }
 
-    const saved = await this.templateRepository.save(template);
+    let saved: AgreementTemplate;
+    try {
+      saved = await this.templateRepository.save(template);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Agreement template with this code already exists');
+      }
+      throw error;
+    }
     return this.findOne(saved.id);
+  }
+
+  async findByCode(code: string): Promise<AgreementTemplate> {
+    const template = await this.templateRepository.findOne({
+      where: { code },
+      relations: ['valueStream'],
+    });
+    if (!template) {
+      throw new NotFoundException('Agreement template not found');
+    }
+    return template;
   }
 
   async search(

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ValueInstance } from './entities/value-instance.entity';
@@ -58,8 +58,32 @@ export class ValueInstancesService {
       instance.imageId = imageId;
     }
 
-    const saved = await this.repository.save(instance);
+    let saved: ValueInstance;
+    try {
+      saved = await this.repository.save(instance);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Value instance with this code already exists');
+      }
+      throw error;
+    }
     return this.findOne(saved.id);
+  }
+
+  async findByCode(code: string): Promise<ValueInstance> {
+    const instance = await this.repository.findOne({
+      where: { code },
+      relations: ['value', 'fromAgent', 'toAgent', 'image'],
+    });
+    if (!instance) {
+      throw new NotFoundException('Value instance not found');
+    }
+    return instance;
   }
 
   async findAll(

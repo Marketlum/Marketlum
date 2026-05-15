@@ -34,6 +34,7 @@ import {
   createArchetypeSchema,
   updateArchetypeSchema,
   paginationQuerySchema,
+  codeSchema,
   CreateArchetypeInput,
   UpdateArchetypeInput,
   PaginationQuery,
@@ -79,6 +80,17 @@ export class ArchetypesController {
     @Query('taxonomyId') taxonomyId?: string,
   ) {
     return this.archetypesService.search({ ...query, taxonomyId });
+  }
+
+  @Get('by-code/:code')
+  @ApiOperation({ summary: 'Get an archetype by code' })
+  @ApiParam({ name: 'code', type: String, description: 'Archetype code' })
+  @ApiOkResponse({ type: ArchetypeResponseDto })
+  @ApiNotFoundResponse({ description: 'Archetype not found' })
+  async findByCode(
+    @Param('code', new ZodValidationPipe(codeSchema)) code: string,
+  ) {
+    return this.archetypesService.findByCode(code);
   }
 
   @Get(':id')

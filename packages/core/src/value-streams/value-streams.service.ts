@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository, Repository } from 'typeorm';
 import { ValueStream } from './entities/value-stream.entity';
@@ -62,8 +62,32 @@ export class ValueStreamsService {
       valueStream.image = file;
     }
 
-    const saved = await this.valueStreamRepository.save(valueStream);
+    let saved: ValueStream;
+    try {
+      saved = await this.valueStreamRepository.save(valueStream);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Value stream with this code already exists');
+      }
+      throw error;
+    }
     return this.findOne(saved.id);
+  }
+
+  async findByCode(code: string): Promise<ValueStream> {
+    const valueStream = await this.valueStreamRepository.findOne({
+      where: { code },
+      relations: ['lead', 'image'],
+    });
+    if (!valueStream) {
+      throw new NotFoundException('Value stream not found');
+    }
+    return valueStream;
   }
 
   async search(query: PaginationQuery) {

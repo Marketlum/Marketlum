@@ -41,9 +41,9 @@ export async function cleanDatabase(): Promise<void> {
   if (!dataSource) return;
 
   const entities = dataSource.entityMetadatas;
-  for (const entity of entities) {
-    const repository = dataSource.getRepository(entity.name);
-    await repository.query(`TRUNCATE TABLE "${entity.tableName}" CASCADE`);
+  const tableNames = entities.map((e) => `"${e.tableName}"`).join(', ');
+  if (tableNames) {
+    await dataSource.query(`TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE`);
   }
 
   // Reset throttle storage so rate limits don't carry between test scenarios
@@ -75,6 +75,36 @@ export async function createUserViaService(
   const usersService = app.get(UsersService);
   return usersService.create({ email, password, name });
 }
+
+let codeCounter = 0;
+
+export function randomCode(prefix = 'test'): string {
+  codeCounter += 1;
+  return `${prefix}_${Date.now().toString(36)}_${codeCounter}`.slice(0, 64);
+}
+
+// Auto-inject a snake_case `code` field into POSTs to entity routes that require
+// one (spec 008 made `code` NOT NULL across 8 tables). Tests that explicitly
+// set a code override this default. Scenarios that test invalid bodies (e.g.
+// missing required fields) are unaffected because they keep their own body shape.
+const ENTITY_ROUTES = /\/(values|value-instances|taxonomies|channels|value-streams|agreement-templates|pipelines|archetypes)(\?|$|\/(?!by-code))/;
+
+const TestProto = (request as unknown as { Test: { prototype: { send: (body: unknown) => unknown; method?: string; url?: string } } }).Test.prototype;
+const originalSend = TestProto.send;
+TestProto.send = function (body: unknown) {
+  if (
+    body !== null &&
+    typeof body === 'object' &&
+    !Array.isArray(body) &&
+    (this.method === 'POST' || (this as unknown as { req?: { method?: string } }).req?.method === 'POST') &&
+    typeof this.url === 'string' &&
+    ENTITY_ROUTES.test(this.url) &&
+    !('code' in (body as Record<string, unknown>))
+  ) {
+    body = { ...(body as Record<string, unknown>), code: randomCode('t') };
+  }
+  return originalSend.call(this, body);
+};
 
 export async function createAuthenticatedUser(
   email: string,

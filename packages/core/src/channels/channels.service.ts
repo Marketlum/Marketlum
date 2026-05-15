@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository, Repository } from 'typeorm';
 import { Channel } from './channel.entity';
@@ -48,8 +48,32 @@ export class ChannelsService {
       channel.agent = agent;
     }
 
-    const saved = await this.channelRepository.save(channel);
+    let saved: Channel;
+    try {
+      saved = await this.channelRepository.save(channel);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new ConflictException('Channel with this code already exists');
+      }
+      throw error;
+    }
     return this.findOne(saved.id);
+  }
+
+  async findByCode(code: string): Promise<Channel> {
+    const channel = await this.channelRepository.findOne({
+      where: { code },
+      relations: ['agent'],
+    });
+    if (!channel) {
+      throw new NotFoundException('Channel not found');
+    }
+    return channel;
   }
 
   async search(query: PaginationQuery & { agentId?: string }) {

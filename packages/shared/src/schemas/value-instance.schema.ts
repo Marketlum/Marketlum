@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import { AgentType } from '../enums/agent-type.enum';
+import { codeSchema } from './code.schema';
 
 const valueSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const agentSummarySchema = z.object({
@@ -21,6 +23,7 @@ const fileSummarySchema = z.object({
 });
 
 export const createValueInstanceSchema = z.object({
+  code: codeSchema,
   name: z.string().min(1),
   purpose: z.string().optional(),
   description: z.string().optional(),
@@ -48,6 +51,7 @@ export const updateValueInstanceSchema = z.object({
 
 export const valueInstanceResponseSchema = z.object({
   id: z.string().uuid(),
+  code: z.string(),
   name: z.string(),
   purpose: z.string().nullable(),
   description: z.string().nullable(),

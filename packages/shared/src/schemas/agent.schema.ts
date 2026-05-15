@@ -5,6 +5,7 @@ import { addressResponseSchema } from './address.schema';
 const taxonomySummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const fileSummarySchema = z.object({

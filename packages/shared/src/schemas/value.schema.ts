@@ -3,10 +3,12 @@ import { ValueType } from '../enums/value-type.enum';
 import { ValueParentType } from '../enums/value-parent-type.enum';
 import { ValueLifecycleStage } from '../enums/value-lifecycle-stage.enum';
 import { AgentType } from '../enums/agent-type.enum';
+import { codeSchema } from './code.schema';
 
 const taxonomySummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const fileSummarySchema = z.object({
@@ -29,6 +31,7 @@ const imageSummarySchema = z.object({
 const parentSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const agentSummarySchema = z.object({
@@ -40,10 +43,12 @@ const agentSummarySchema = z.object({
 const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
   image: fileSummarySchema.nullable(),
 });
 
 export const createValueSchema = z.object({
+  code: codeSchema,
   name: z.string().min(1),
   type: z.nativeEnum(ValueType),
   purpose: z.string().optional(),
@@ -81,6 +86,7 @@ export const updateValueSchema = z.object({
 
 export const valueResponseSchema = z.object({
   id: z.string().uuid(),
+  code: z.string(),
   name: z.string(),
   type: z.nativeEnum(ValueType),
   purpose: z.string().nullable(),

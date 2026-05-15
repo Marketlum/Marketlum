@@ -8,6 +8,7 @@ import {
   getApp,
   createAuthenticatedUser,
   createUserViaService,
+  randomCode,
 } from '../setup';
 import { ValuesService, ValueInstancesService, AgentsService } from '@marketlum/core';
 
@@ -39,7 +40,7 @@ defineFeature(feature, (test) => {
 
     and(/^a value named "(.*)" exists$/, async (name: string) => {
       const valuesService = getApp().get(ValuesService);
-      await valuesService.create({ name, type: 'product' as any });
+      await valuesService.create({ code: randomCode('search'), name, type: 'product' as any });
     });
 
     when(/^I search for "(.*)"$/, async (query: string) => {
@@ -187,7 +188,7 @@ defineFeature(feature, (test) => {
 
     and(/^a value named "(.*)" exists$/, async (name: string) => {
       const valuesService = getApp().get(ValuesService);
-      await valuesService.create({ name, type: 'product' as any });
+      await valuesService.create({ code: randomCode('search'), name, type: 'product' as any });
     });
 
     and(/^an agent named "(.*)" exists$/, async (name: string) => {
@@ -264,7 +265,7 @@ defineFeature(feature, (test) => {
 
     and(/^a value named "(.*)" exists$/, async (name: string) => {
       const valuesService = getApp().get(ValuesService);
-      await valuesService.create({ name, type: 'product' as any });
+      await valuesService.create({ code: randomCode('search'), name, type: 'product' as any });
     });
 
     and(
@@ -310,17 +311,17 @@ defineFeature(feature, (test) => {
 
     and(/^a value named "(.*)" exists$/, async (name: string) => {
       const valuesService = getApp().get(ValuesService);
-      await valuesService.create({ name, type: 'product' as any });
+      await valuesService.create({ code: randomCode('search'), name, type: 'product' as any });
     });
 
     and(/^a value named "(.*)" exists$/, async (name: string) => {
       const valuesService = getApp().get(ValuesService);
-      await valuesService.create({ name, type: 'product' as any });
+      await valuesService.create({ code: randomCode('search'), name, type: 'product' as any });
     });
 
     and(/^a value named "(.*)" exists$/, async (name: string) => {
       const valuesService = getApp().get(ValuesService);
-      await valuesService.create({ name, type: 'product' as any });
+      await valuesService.create({ code: randomCode('search'), name, type: 'product' as any });
     });
 
     when(/^I search for "(.*)" with limit (\d+)$/, async (query: string, limit: string) => {
@@ -346,9 +347,9 @@ defineFeature(feature, (test) => {
 
     and(/^a value instance named "(.*)" exists$/, async (name: string) => {
       const valuesService = getApp().get(ValuesService);
-      const value = await valuesService.create({ name: 'Test Value', type: 'product' as any });
+      const value = await valuesService.create({ code: randomCode('search'), name: 'Test Value', type: 'product' as any });
       const viService = getApp().get(ValueInstancesService);
-      await viService.create({ name, valueId: value.id });
+      await viService.create({ code: randomCode('search'), name, valueId: value.id });
     });
 
     when(/^I search for "(.*)"$/, async (query: string) => {

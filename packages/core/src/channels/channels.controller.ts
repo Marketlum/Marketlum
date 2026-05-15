@@ -35,6 +35,7 @@ import {
   updateChannelSchema,
   moveChannelSchema,
   paginationQuerySchema,
+  codeSchema,
   CreateChannelInput,
   UpdateChannelInput,
   MoveChannelInput,
@@ -95,6 +96,17 @@ export class ChannelsController {
   @ApiOkResponse({ type: ChannelResponseDto, isArray: true })
   async findRoots() {
     return this.channelsService.findRoots();
+  }
+
+  @Get('by-code/:code')
+  @ApiOperation({ summary: 'Get a channel by code' })
+  @ApiParam({ name: 'code', type: String, description: 'Channel code' })
+  @ApiOkResponse({ type: ChannelResponseDto })
+  @ApiNotFoundResponse({ description: 'Channel not found' })
+  async findByCode(
+    @Param('code', new ZodValidationPipe(codeSchema)) code: string,
+  ) {
+    return this.channelsService.findByCode(code);
   }
 
   @Get(':id')

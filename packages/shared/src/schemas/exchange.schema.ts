@@ -13,28 +13,33 @@ const agentSummarySchema = z.object({
 const valueSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
   type: z.nativeEnum(ValueType),
 });
 
 const valueInstanceSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
   type: z.nativeEnum(ValueType).nullable().optional(),
 });
 
 const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const channelSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const pipelineSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
   color: z.string(),
 });
 

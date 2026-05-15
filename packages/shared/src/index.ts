@@ -13,6 +13,9 @@ export { ValueLifecycleStage } from './enums/value-lifecycle-stage.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
+export { codeSchema, CODE_PATTERN } from './schemas/code.schema';
+export { suggestCode } from './helpers/code';
+
 export {
   createUserSchema,
   updateUserSchema,

@@ -18,6 +18,7 @@ const partySummarySchema = z.object({
 const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 export const createAgreementSchema = z.object({
@@ -56,6 +57,7 @@ export const agreementResponseSchema = z.object({
   agreementTemplate: z.object({
     id: z.string().uuid(),
     name: z.string(),
+    code: z.string(),
   }).nullable(),
   valueStream: valueStreamSummarySchema.nullable(),
   createdAt: z.string(),
@@ -75,7 +77,7 @@ export interface AgreementTreeNode {
   level: number;
   file: { id: string; originalName: string; storedName: string; mimeType: string; size: number } | null;
   parties: { id: string; name: string; type: AgentType }[];
-  valueStream: { id: string; name: string } | null;
+  valueStream: { id: string; name: string; code: string } | null;
   createdAt: string;
   updatedAt: string;
   children: AgreementTreeNode[];

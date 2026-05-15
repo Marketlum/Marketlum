@@ -20,6 +20,9 @@ export class AgreementTemplate {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'varchar', length: 64, unique: true })
+  code: string;
+
   @Column({ type: 'varchar', unique: true })
   name: string;
 

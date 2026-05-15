@@ -35,6 +35,7 @@ import {
   updateTaxonomySchema,
   moveTaxonomySchema,
   paginationQuerySchema,
+  codeSchema,
   CreateTaxonomyInput,
   UpdateTaxonomyInput,
   MoveTaxonomyInput,
@@ -94,6 +95,17 @@ export class TaxonomiesController {
   @ApiOkResponse({ type: TaxonomyResponseDto, isArray: true })
   async findRoots() {
     return this.taxonomiesService.findRoots();
+  }
+
+  @Get('by-code/:code')
+  @ApiOperation({ summary: 'Get a taxonomy node by code' })
+  @ApiParam({ name: 'code', type: String, description: 'Taxonomy code' })
+  @ApiOkResponse({ type: TaxonomyResponseDto })
+  @ApiNotFoundResponse({ description: 'Taxonomy not found' })
+  async findByCode(
+    @Param('code', new ZodValidationPipe(codeSchema)) code: string,
+  ) {
+    return this.taxonomiesService.findByCode(code);
   }
 
   @Get(':id')

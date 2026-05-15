@@ -4,6 +4,7 @@ import { ValueType } from '../enums/value-type.enum';
 const valueSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
   type: z.nativeEnum(ValueType),
 });
 

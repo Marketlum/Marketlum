@@ -42,6 +42,9 @@ const abstractFeature = loadFeature(
 const lifecycleFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/lifecycle-stage.feature'),
 );
+const byCodeFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/values/get-value-by-code.feature'),
+);
 
 // --- CREATE VALUE ---
 defineFeature(createFeature, (test) => {
@@ -151,6 +154,84 @@ defineFeature(createFeature, (test) => {
           .post('/values')
           .set('X-CSRF-Protection', '1')
           .send({ name: row.name, type: row.type, purpose: row.purpose });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Creating a value with a valid snake_case code succeeds', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create a value with code "(.*)" and:$/,
+      async (code: string, table: { name: string; type: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ code, name: row.name, type: row.type });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a value with code "(.*)"$/, (code: string) => {
+      expect(response.body.code).toBe(code);
+    });
+  });
+
+  test('Creating a value with an invalid code is rejected', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create a value with code "(.*)" and:$/,
+      async (code: string, table: { name: string; type: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ code, name: row.name, type: row.type });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Creating a value with a duplicate code is rejected', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value with code "(.*)" exists$/, async (code: string) => {
+      await request(getApp().getHttpServer())
+        .post('/values')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ code, name: 'Seed value', type: 'product' });
+    });
+
+    when(
+      /^I create a value with code "(.*)" and:$/,
+      async (code: string, table: { name: string; type: string }[]) => {
+        const row = table[0];
+        response = await request(getApp().getHttpServer())
+          .post('/values')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ code, name: row.name, type: row.type });
       },
     );
 
@@ -2846,6 +2927,84 @@ defineFeature(lifecycleFeature, (test) => {
 
     and(/^the response should contain (\d+) values$/, (count: string) => {
       expect(response.body.data.length).toBe(parseInt(count));
+    });
+  });
+});
+
+// --- GET VALUE BY CODE ---
+defineFeature(byCodeFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Looking up an existing value by code returns it', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value with code "(.*)" exists$/, async (code: string) => {
+      await request(getApp().getHttpServer())
+        .post('/values')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ code, name: 'Seed value', type: 'product' });
+    });
+
+    when(/^I GET \/values\/by-code\/(.*)$/, async (code: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/values/by-code/${code}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain a value with code "(.*)"$/, (code: string) => {
+      expect(response.body.code).toBe(code);
+    });
+  });
+
+  test('Looking up an unknown code returns 404', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I GET \/values\/by-code\/(.*)$/, async (code: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/values/by-code/${code}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Looking up with a malformed code returns 400', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I GET \/values\/by-code\/(.*)$/, async (code: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/values/by-code/${code}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
     });
   });
 });

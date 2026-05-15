@@ -34,6 +34,7 @@ import {
   createValueSchema,
   updateValueSchema,
   paginationQuerySchema,
+  codeSchema,
   CreateValueInput,
   UpdateValueInput,
   PaginationQuery,
@@ -84,6 +85,17 @@ export class ValuesController {
     @Query('lifecycleStage') lifecycleStage?: ValueLifecycleStage,
   ) {
     return this.valuesService.findAll({ ...query, type, taxonomyId, agentId, valueStreamId, lifecycleStage });
+  }
+
+  @Get('by-code/:code')
+  @ApiOperation({ summary: 'Get a value by code' })
+  @ApiParam({ name: 'code', type: String, description: 'Value code' })
+  @ApiOkResponse({ type: ValueResponseDto })
+  @ApiNotFoundResponse({ description: 'Value not found' })
+  async findByCode(
+    @Param('code', new ZodValidationPipe(codeSchema)) code: string,
+  ) {
+    return this.valuesService.findByCode(code);
   }
 
   @Get(':id')

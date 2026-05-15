@@ -8,6 +8,7 @@ import { RecurringFlowTransitionAction } from '../enums/recurring-flow-transitio
 const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const agentSummarySchema = z.object({
@@ -19,6 +20,7 @@ const agentSummarySchema = z.object({
 const valueSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const offeringSummarySchema = z.object({
@@ -34,6 +36,7 @@ const agreementSummarySchema = z.object({
 const taxonomySummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  code: z.string(),
 });
 
 const isoDate = z
