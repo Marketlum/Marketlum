@@ -86,6 +86,10 @@ export function ValueStreamDetailPage() {
     fetchDashboard();
   }, [fetchDashboard]);
 
+  const net = dashboardData
+    ? (parseFloat(dashboardData.totalRevenue) - parseFloat(dashboardData.totalExpenses)).toFixed(2)
+    : '0.00';
+
   const handleCreateValue = async (input: CreateValueInput) => {
     setIsSubmitting(true);
     try {
@@ -142,6 +146,26 @@ export function ValueStreamDetailPage() {
           {t('createRecurringFlow')}
         </Button>
       </div>
+
+      {/* P&L summary */}
+      {dashboardData && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-lg border p-4">
+            <div className="text-xs text-muted-foreground">{td('totalRevenue')}</div>
+            <div className="text-2xl font-bold text-emerald-600">{dashboardData.totalRevenue}</div>
+          </div>
+          <div className="rounded-lg border p-4">
+            <div className="text-xs text-muted-foreground">{td('totalExpenses')}</div>
+            <div className="text-2xl font-bold text-rose-600">{dashboardData.totalExpenses}</div>
+          </div>
+          <div className="rounded-lg border p-4">
+            <div className="text-xs text-muted-foreground">{td('net')}</div>
+            <div className={`text-2xl font-bold ${parseFloat(net) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {net}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Revenue & Expenses chart */}
       <Card>
