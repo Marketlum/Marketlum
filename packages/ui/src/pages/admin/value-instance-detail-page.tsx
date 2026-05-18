@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { ValueInstanceFormDialog } from '../../components/value-instances/value-instance-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { Button } from '../../components/ui/button';
+import { CodeBadge } from '../../components/shared/code-badge';
 import {
   Card,
   CardContent,
@@ -148,8 +149,9 @@ export function ValueInstanceDetailPage() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-1">
+          <div className="flex items-center gap-3 mb-1 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold truncate">{item.name}</h1>
+            <CodeBadge code={item.code} />
           </div>
           <div className="flex gap-2 mt-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>

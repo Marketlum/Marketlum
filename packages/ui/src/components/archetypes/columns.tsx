@@ -15,6 +15,7 @@ import {
 
 interface ArchetypeColumnsTranslations {
   name: string;
+  code: string;
   image: string;
   purpose: string;
   taxonomies: string;
@@ -68,6 +69,17 @@ export function getArchetypeColumns({
         </Button>
       ),
       cell: ({ row }) => row.original.name,
+    },
+    {
+      accessorKey: 'code',
+      header: () => (
+        <Button variant="ghost" onClick={() => onSort('code')}>
+          {translations.code} <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">{row.original.code}</span>
+      ),
     },
     {
       accessorKey: 'purpose',

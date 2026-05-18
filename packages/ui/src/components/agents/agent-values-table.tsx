@@ -71,6 +71,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       type: tc('type'),
       taxonomy: tv('taxonomy'),
       agent: tv('agent'),

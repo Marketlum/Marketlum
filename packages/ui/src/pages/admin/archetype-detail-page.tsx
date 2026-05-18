@@ -13,6 +13,7 @@ import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dial
 import { MarkdownContent } from '../../components/shared/markdown-editor';
 import { FileImagePreview } from '../../components/shared/file-image-preview';
 import { Button } from '../../components/ui/button';
+import { CodeBadge } from '../../components/shared/code-badge';
 import {
   Card,
   CardContent,
@@ -150,7 +151,10 @@ export function ArchetypeDetailPage() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl md:text-3xl font-bold truncate mb-1">{archetype.name}</h1>
+          <div className="flex items-center gap-3 mb-1 flex-wrap">
+            <h1 className="text-2xl md:text-3xl font-bold truncate">{archetype.name}</h1>
+            <CodeBadge code={archetype.code} />
+          </div>
           {archetype.purpose && (
             <div className="text-muted-foreground mb-2">
               <MarkdownContent content={archetype.purpose} />

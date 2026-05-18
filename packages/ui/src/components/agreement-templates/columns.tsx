@@ -14,6 +14,7 @@ import {
 
 interface AgreementTemplateColumnsTranslations {
   name: string;
+  code: string;
   type: string;
   purpose: string;
   description: string;
@@ -57,6 +58,17 @@ export function getAgreementTemplateColumns({
           </span>
         );
       },
+    },
+    {
+      accessorKey: 'code',
+      header: () => (
+        <Button variant="ghost" onClick={() => onSort('code')}>
+          {translations.code} <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">{row.original.code}</span>
+      ),
     },
     {
       accessorKey: 'type',

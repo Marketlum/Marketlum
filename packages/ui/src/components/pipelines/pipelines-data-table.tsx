@@ -184,6 +184,7 @@ export function PipelinesDataTable() {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       purpose: t('purpose'),
       color: t('color'),
       valueStream: t('valueStream'),
@@ -197,6 +198,7 @@ export function PipelinesDataTable() {
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
+    { id: 'code', label: tc('code') },
     { id: 'purpose', label: t('purpose') },
     { id: 'valueStream', label: t('valueStream') },
     { id: 'createdAt', label: tc('created') },
@@ -205,6 +207,7 @@ export function PipelinesDataTable() {
 
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'code', label: tc('code'), extract: (r) => String(r.code ?? '') },
     { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
     { key: 'description', label: t('pipelineDescription'), extract: (r) => String(r.description ?? '') },
     { key: 'color', label: t('color'), extract: (r) => String(r.color ?? '') },

@@ -170,6 +170,7 @@ export function ArchetypesDataTable() {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       image: t('image'),
       purpose: t('purpose'),
       taxonomies: t('taxonomies'),
@@ -182,6 +183,7 @@ export function ArchetypesDataTable() {
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
+    { id: 'code', label: tc('code') },
     { id: 'purpose', label: t('purpose') },
     { id: 'taxonomies', label: t('taxonomies') },
     { id: 'createdAt', label: tc('created') },
@@ -190,6 +192,7 @@ export function ArchetypesDataTable() {
 
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'code', label: tc('code'), extract: (r) => String(r.code ?? '') },
     { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
     { key: 'taxonomies', label: t('taxonomies'), extract: (r) => {
       const taxs = r.taxonomies as { name: string }[] | undefined;

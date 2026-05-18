@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import {
   createPipelineSchema,
   updatePipelineSchema,
+  suggestCode,
   type CreatePipelineInput,
   type PipelineResponse,
 } from '@marketlum/shared';
@@ -64,11 +65,16 @@ export function PipelineFormDialog({
   });
 
   const watchedValueStreamId = watch('valueStreamId');
+  const nameValue = watch('name') ?? '';
+  const codeValue = watch('code') ?? '';
+  const codeEditedRef = useRef(false);
 
   useEffect(() => {
     if (open) {
+      codeEditedRef.current = isEditing;
       if (pipeline) {
         reset({
+          code: pipeline.code,
           name: pipeline.name,
           purpose: pipeline.purpose ?? '',
           description: pipeline.description ?? '',
@@ -77,6 +83,7 @@ export function PipelineFormDialog({
         });
       } else {
         reset({
+          code: '',
           name: '',
           purpose: '',
           description: '',
@@ -85,7 +92,14 @@ export function PipelineFormDialog({
         });
       }
     }
-  }, [open, pipeline, reset]);
+  }, [open, pipeline, reset, isEditing]);
+
+  useEffect(() => {
+    if (open && !isEditing && !codeEditedRef.current) {
+      const suggested = suggestCode(nameValue);
+      if (suggested !== codeValue) setFormValue('code', suggested);
+    }
+  }, [open, isEditing, nameValue, codeValue, setFormValue]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,6 +115,28 @@ export function PipelineFormDialog({
             <Label htmlFor="pl-name">{tc('name')}</Label>
             <Input id="pl-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="pl-code">{tc('code')}</Label>
+            <Input
+              id="pl-code"
+              className="font-mono"
+              placeholder={tc('codePlaceholder')}
+              readOnly={isEditing}
+              {...register('code', {
+                onChange: () => {
+                  codeEditedRef.current = true;
+                },
+              })}
+            />
+            {!isEditing && <p className="text-xs text-muted-foreground">{tc('codeHint')}</p>}
+            {isEditing && <p className="text-xs text-muted-foreground">{tc('codeImmutable')}</p>}
+            {(errors as Record<string, { message?: string } | undefined>).code && (
+              <p className="text-sm text-destructive">
+                {(errors as Record<string, { message?: string }>).code.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

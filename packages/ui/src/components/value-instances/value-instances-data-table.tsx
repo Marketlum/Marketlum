@@ -192,6 +192,7 @@ export function ValueInstancesDataTable() {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       value: t('value'),
       fromAgent: t('fromAgent'),
       toAgent: t('toAgent'),
@@ -209,6 +210,7 @@ export function ValueInstancesDataTable() {
   const columnMeta = [
     { id: 'image', label: t('image') },
     { id: 'name', label: tc('name') },
+    { id: 'code', label: tc('code') },
     { id: 'value', label: t('value') },
     { id: 'fromAgent', label: t('fromAgent') },
     { id: 'toAgent', label: t('toAgent') },
@@ -220,6 +222,7 @@ export function ValueInstancesDataTable() {
 
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'code', label: tc('code'), extract: (r) => String(r.code ?? '') },
     { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
     { key: 'description', label: t('valueInstanceDescription'), extract: (r) => String(r.description ?? '') },
     { key: 'link', label: t('link'), extract: (r) => String(r.link ?? '') },

@@ -14,6 +14,7 @@ import { api, ApiError } from '../lib/api-client';
 import { FileImagePreview } from '../components/shared/file-image-preview';
 import { ValueStreamFormDialog } from '../components/value-streams/value-stream-form-dialog';
 import { ConfirmDeleteDialog } from '../components/shared/confirm-delete-dialog';
+import { CodeBadge } from '../components/shared/code-badge';
 import { Button } from '../components/ui/button';
 import {
   Select,
@@ -142,7 +143,10 @@ export function ValueStreamLayout({ children }: { children: ReactNode }) {
               )}
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold truncate">{valueStream.name}</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl md:text-2xl font-bold truncate">{valueStream.name}</h1>
+                <CodeBadge code={valueStream.code} />
+              </div>
               {valueStream.purpose && (
                 <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
                   {valueStream.purpose}

@@ -92,6 +92,7 @@ export function AgreementTemplateTreeNodeComponent({
           <div className="flex-1 overflow-hidden">
             <div className="flex items-center gap-1.5">
               <span className="truncate text-sm">{node.name}</span>
+              <span className="shrink-0 font-mono text-xs text-muted-foreground">{node.code}</span>
               <Badge variant="outline" className="shrink-0 text-xs">
                 {typeLabels[node.type] ?? node.type}
               </Badge>

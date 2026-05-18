@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -8,6 +8,7 @@ import {
   createAgreementTemplateSchema,
   updateAgreementTemplateSchema,
   AgreementTemplateType,
+  suggestCode,
   type CreateAgreementTemplateInput,
   type AgreementTemplateResponse,
 } from '@marketlum/shared';
@@ -68,11 +69,16 @@ export function AgreementTemplateFormDialog({
 
   const watchedType = watch('type');
   const watchedValueStreamId = watch('valueStreamId');
+  const nameValue = watch('name') ?? '';
+  const codeValue = watch('code') ?? '';
+  const codeEditedRef = useRef(false);
 
   useEffect(() => {
     if (open) {
+      codeEditedRef.current = isEditing;
       if (template) {
         reset({
+          code: template.code,
           name: template.name,
           type: template.type,
           purpose: template.purpose ?? '',
@@ -82,6 +88,7 @@ export function AgreementTemplateFormDialog({
         });
       } else {
         reset({
+          code: '',
           name: '',
           type: AgreementTemplateType.MAIN_AGREEMENT,
           purpose: '',
@@ -92,7 +99,14 @@ export function AgreementTemplateFormDialog({
         });
       }
     }
-  }, [open, template, parentId, reset]);
+  }, [open, template, parentId, reset, isEditing]);
+
+  useEffect(() => {
+    if (open && !isEditing && !codeEditedRef.current) {
+      const suggested = suggestCode(nameValue);
+      if (suggested !== codeValue) setFormValue('code', suggested);
+    }
+  }, [open, isEditing, nameValue, codeValue, setFormValue]);
 
   const typeLabels: Record<string, string> = {
     main_agreement: t('typeMainAgreement'),
@@ -115,6 +129,28 @@ export function AgreementTemplateFormDialog({
             <Label htmlFor="at-name">{tc('name')}</Label>
             <Input id="at-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="at-code">{tc('code')}</Label>
+            <Input
+              id="at-code"
+              className="font-mono"
+              placeholder={tc('codePlaceholder')}
+              readOnly={isEditing}
+              {...register('code', {
+                onChange: () => {
+                  codeEditedRef.current = true;
+                },
+              })}
+            />
+            {!isEditing && <p className="text-xs text-muted-foreground">{tc('codeHint')}</p>}
+            {isEditing && <p className="text-xs text-muted-foreground">{tc('codeImmutable')}</p>}
+            {(errors as Record<string, { message?: string } | undefined>).code && (
+              <p className="text-sm text-destructive">
+                {(errors as Record<string, { message?: string }>).code.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

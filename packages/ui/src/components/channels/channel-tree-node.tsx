@@ -89,6 +89,7 @@ export function ChannelTreeNodeComponent({
 
         <div className="mx-1 flex flex-1 items-center gap-1 overflow-hidden">
           <span className="truncate text-sm">{node.name}</span>
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">{node.code}</span>
           {node.agent && (
             <span className="truncate text-xs text-muted-foreground">
               ({node.agent.name})

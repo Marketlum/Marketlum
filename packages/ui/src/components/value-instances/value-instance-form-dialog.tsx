@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import {
   createValueInstanceSchema,
   updateValueInstanceSchema,
+  suggestCode,
   type CreateValueInstanceInput,
   type ValueInstanceResponse,
   type FileResponse,
@@ -76,11 +77,16 @@ export function ValueInstanceFormDialog({
   const valueIdValue = watch('valueId');
   const fromAgentIdValue = watch('fromAgentId');
   const toAgentIdValue = watch('toAgentId');
+  const nameValue = watch('name') ?? '';
+  const codeValue = watch('code') ?? '';
+  const codeEditedRef = useRef(false);
 
   useEffect(() => {
     if (open) {
+      codeEditedRef.current = isEditing;
       if (valueInstance) {
         reset({
+          code: valueInstance.code,
           name: valueInstance.name,
           purpose: valueInstance.purpose ?? '',
           description: valueInstance.description ?? '',
@@ -99,6 +105,7 @@ export function ValueInstanceFormDialog({
         );
       } else {
         reset({
+          code: '',
           name: '',
           purpose: '',
           description: '',
@@ -113,7 +120,14 @@ export function ValueInstanceFormDialog({
         setSelectedImage(null);
       }
     }
-  }, [open, valueInstance, reset]);
+  }, [open, valueInstance, reset, isEditing]);
+
+  useEffect(() => {
+    if (open && !isEditing && !codeEditedRef.current) {
+      const suggested = suggestCode(nameValue);
+      if (suggested !== codeValue) setFormValue('code', suggested);
+    }
+  }, [open, isEditing, nameValue, codeValue, setFormValue]);
 
   const handleSelectImage = (file: FileResponse) => {
     setSelectedImage({ id: file.id, originalName: file.originalName, mimeType: file.mimeType });
@@ -154,6 +168,28 @@ export function ValueInstanceFormDialog({
             <Label htmlFor="vi-name">{tc('name')}</Label>
             <Input id="vi-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="vi-code">{tc('code')}</Label>
+            <Input
+              id="vi-code"
+              className="font-mono"
+              placeholder={tc('codePlaceholder')}
+              readOnly={isEditing}
+              {...register('code', {
+                onChange: () => {
+                  codeEditedRef.current = true;
+                },
+              })}
+            />
+            {!isEditing && <p className="text-xs text-muted-foreground">{tc('codeHint')}</p>}
+            {isEditing && <p className="text-xs text-muted-foreground">{tc('codeImmutable')}</p>}
+            {(errors as Record<string, { message?: string } | undefined>).code && (
+              <p className="text-sm text-destructive">
+                {(errors as Record<string, { message?: string }>).code.message}
+              </p>
+            )}
           </div>
 
           {/* Value (required) */}

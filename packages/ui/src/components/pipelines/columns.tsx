@@ -13,6 +13,7 @@ import {
 
 interface PipelineColumnsTranslations {
   name: string;
+  code: string;
   purpose: string;
   color: string;
   valueStream: string;
@@ -48,6 +49,17 @@ export function getPipelineColumns({ onEdit, onDelete, onDuplicate, onSort, tran
           />
           {row.original.name}
         </div>
+      ),
+    },
+    {
+      accessorKey: 'code',
+      header: () => (
+        <Button variant="ghost" onClick={() => onSort('code')}>
+          {translations.code} <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">{row.original.code}</span>
       ),
     },
     {

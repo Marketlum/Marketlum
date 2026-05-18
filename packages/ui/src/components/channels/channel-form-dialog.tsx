@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import {
   createChannelSchema,
   updateChannelSchema,
+  suggestCode,
   type CreateChannelInput,
   type ChannelResponse,
 } from '@marketlum/shared';
@@ -66,11 +67,16 @@ export function ChannelFormDialog({
   });
 
   const watchedAgentId = watch('agentId');
+  const nameValue = watch('name') ?? '';
+  const codeValue = watch('code') ?? '';
+  const codeEditedRef = useRef(false);
 
   useEffect(() => {
     if (open) {
+      codeEditedRef.current = isEditing;
       if (channel) {
         reset({
+          code: channel.code,
           name: channel.name,
           purpose: channel.purpose ?? '',
           color: channel.color,
@@ -78,6 +84,7 @@ export function ChannelFormDialog({
         });
       } else {
         reset({
+          code: '',
           name: '',
           purpose: '',
           color: '#000000',
@@ -86,7 +93,14 @@ export function ChannelFormDialog({
         });
       }
     }
-  }, [open, channel, parentId, reset]);
+  }, [open, channel, parentId, reset, isEditing]);
+
+  useEffect(() => {
+    if (open && !isEditing && !codeEditedRef.current) {
+      const suggested = suggestCode(nameValue);
+      if (suggested !== codeValue) setFormValue('code', suggested);
+    }
+  }, [open, isEditing, nameValue, codeValue, setFormValue]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,6 +116,28 @@ export function ChannelFormDialog({
             <Label htmlFor="ch-name">{tc('name')}</Label>
             <Input id="ch-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ch-code">{tc('code')}</Label>
+            <Input
+              id="ch-code"
+              className="font-mono"
+              placeholder={tc('codePlaceholder')}
+              readOnly={isEditing}
+              {...register('code', {
+                onChange: () => {
+                  codeEditedRef.current = true;
+                },
+              })}
+            />
+            {!isEditing && <p className="text-xs text-muted-foreground">{tc('codeHint')}</p>}
+            {isEditing && <p className="text-xs text-muted-foreground">{tc('codeImmutable')}</p>}
+            {(errors as Record<string, { message?: string } | undefined>).code && (
+              <p className="text-sm text-destructive">
+                {(errors as Record<string, { message?: string }>).code.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

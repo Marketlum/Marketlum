@@ -261,6 +261,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       type: tc('type'),
       taxonomy: t('taxonomy'),
       agent: t('agent'),
@@ -281,6 +282,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
   const columnMeta = [
     { id: 'image', label: t('image') },
     { id: 'name', label: tc('name') },
+    { id: 'code', label: tc('code') },
     { id: 'type', label: tc('type') },
     { id: 'mainTaxonomy', label: t('taxonomy') },
     { id: 'agent', label: t('agent') },
@@ -291,6 +293,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
 
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'code', label: tc('code'), extract: (r) => String(r.code ?? '') },
     { key: 'type', label: tc('type'), extract: (r) => String(r.type ?? '') },
     { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
     { key: 'description', label: t('valueDescription'), extract: (r) => String(r.description ?? '') },

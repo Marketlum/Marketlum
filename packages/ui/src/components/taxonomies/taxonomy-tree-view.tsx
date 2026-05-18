@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDroppable, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core';
 import type { TaxonomyTreeNode, TaxonomyResponse, PaginatedResponse } from '@marketlum/shared';
+import { suggestCode } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -40,6 +41,8 @@ export function TaxonomyTreeView() {
   const [loading, setLoading] = useState(true);
   const [addingRoot, setAddingRoot] = useState(false);
   const [newRootName, setNewRootName] = useState('');
+  const [newRootCode, setNewRootCode] = useState('');
+  const [newRootCodeEdited, setNewRootCodeEdited] = useState(false);
   const [newRootDescription, setNewRootDescription] = useState('');
   const [newRootLink, setNewRootLink] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -116,6 +119,7 @@ export function TaxonomyTreeView() {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       description: t('description'),
       link: t('link'),
       created: tc('created'),
@@ -124,13 +128,20 @@ export function TaxonomyTreeView() {
 
   const handleCreateRoot = async () => {
     if (!newRootName.trim()) return;
+    const finalCode = (newRootCodeEdited ? newRootCode : suggestCode(newRootName)).trim();
+    if (!finalCode) {
+      toast.error(t('failedToCreate'));
+      return;
+    }
     try {
-      const body: Record<string, string> = { name: newRootName.trim() };
+      const body: Record<string, string> = { name: newRootName.trim(), code: finalCode };
       if (newRootDescription.trim()) body.description = newRootDescription.trim();
       if (newRootLink.trim()) body.link = newRootLink.trim();
       await api.post('/taxonomies', body);
       toast.success(t('rootCreated'));
       setNewRootName('');
+      setNewRootCode('');
+      setNewRootCodeEdited(false);
       setNewRootDescription('');
       setNewRootLink('');
       setAddingRoot(false);
@@ -143,11 +154,13 @@ export function TaxonomyTreeView() {
   const handleCancelAddRoot = () => {
     setAddingRoot(false);
     setNewRootName('');
+    setNewRootCode('');
+    setNewRootCodeEdited(false);
     setNewRootDescription('');
     setNewRootLink('');
   };
 
-  const handleCreateChild = async (parentId: string, data: { name: string; description?: string; link?: string }) => {
+  const handleCreateChild = async (parentId: string, data: { name: string; code: string; description?: string; link?: string }) => {
     try {
       await api.post('/taxonomies', { ...data, parentId });
       toast.success(t('created'));
@@ -264,6 +277,19 @@ export function TaxonomyTreeView() {
                   placeholder={t('taxonomyNamePlaceholder')}
                   className="w-full md:max-w-xs"
                   autoFocus
+                />
+                <Input
+                  value={newRootCodeEdited ? newRootCode : suggestCode(newRootName)}
+                  onChange={(e) => {
+                    setNewRootCodeEdited(true);
+                    setNewRootCode(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateRoot();
+                    if (e.key === 'Escape') handleCancelAddRoot();
+                  }}
+                  placeholder={tc('codePlaceholder')}
+                  className="w-full font-mono text-sm md:max-w-xs"
                 />
                 <Input
                   value={newRootDescription}

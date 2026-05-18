@@ -13,6 +13,7 @@ import {
 
 interface ChannelColumnsTranslations {
   name: string;
+  code: string;
   purpose: string;
   color: string;
   agent: string;
@@ -54,6 +55,17 @@ export function getChannelColumns({
           </span>
         );
       },
+    },
+    {
+      accessorKey: 'code',
+      header: () => (
+        <Button variant="ghost" onClick={() => onSort('code')}>
+          {translations.code} <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">{row.original.code}</span>
+      ),
     },
     {
       accessorKey: 'purpose',

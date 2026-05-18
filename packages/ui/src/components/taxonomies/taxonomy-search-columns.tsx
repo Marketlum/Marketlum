@@ -7,6 +7,7 @@ import { Button } from '../ui/button';
 
 interface TaxonomySearchColumnsTranslations {
   name: string;
+  code: string;
   description: string;
   link: string;
   created: string;
@@ -25,6 +26,17 @@ export function getTaxonomySearchColumns({ onSort, translations }: TaxonomySearc
         <Button variant="ghost" onClick={() => onSort('name')}>
           {translations.name} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
+      ),
+    },
+    {
+      accessorKey: 'code',
+      header: () => (
+        <Button variant="ghost" onClick={() => onSort('code')}>
+          {translations.code} <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">{row.getValue('code') as string}</span>
       ),
     },
     {

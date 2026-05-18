@@ -12,6 +12,7 @@ import {
   ValueType,
   ValueParentType,
   ValueLifecycleStage,
+  suggestCode,
   type CreateValueInput,
   type ValueResponse,
   type TaxonomyResponse,
@@ -152,11 +153,23 @@ export function ValueFormDialog({
   const mainTaxonomyIdValue = watch('mainTaxonomyId');
   const taxonomyIdsValue = watch('taxonomyIds') ?? [];
   const parentIdValue = watch('parentId');
+  const nameValue = watch('name') ?? '';
+  const codeValue = watch('code') ?? '';
+  const codeEditedRef = useRef(false);
+
+  useEffect(() => {
+    if (open && !isEditing && !codeEditedRef.current) {
+      const suggested = suggestCode(nameValue);
+      if (suggested !== codeValue) setFormValue('code', suggested);
+    }
+  }, [open, isEditing, nameValue, codeValue, setFormValue]);
 
   useEffect(() => {
     if (open) {
+      codeEditedRef.current = isEditing;
       if (prefill) {
         reset({
+          code: prefill.code,
           name: prefill.name,
           type: prefill.type as ValueType,
           purpose: prefill.purpose ?? '',
@@ -181,6 +194,7 @@ export function ValueFormDialog({
         );
       } else {
         reset({
+          code: '',
           name: '',
           type: ValueType.PRODUCT,
           purpose: '',
@@ -259,6 +273,27 @@ export function ValueFormDialog({
             <Label htmlFor="value-name">{tc('name')}</Label>
             <Input id="value-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="value-code">{tc('code')}</Label>
+            <Input
+              id="value-code"
+              className="font-mono"
+              placeholder={tc('codePlaceholder')}
+              readOnly={isEditing}
+              {...register('code', {
+                onChange: () => {
+                  codeEditedRef.current = true;
+                },
+              })}
+            />
+            {!isEditing && <p className="text-xs text-muted-foreground">{tc('codeHint')}</p>}
+            {isEditing && <p className="text-xs text-muted-foreground">{tc('codeImmutable')}</p>}
+            {(errors as Record<string, { message?: string } | undefined>).code && (
+              <p className="text-sm text-destructive">
+                {(errors as Record<string, { message?: string }>).code.message}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>{tc('type')}</Label>

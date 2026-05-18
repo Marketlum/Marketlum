@@ -93,6 +93,7 @@ export function ValueStreamTreeNodeComponent({
               >
                 {node.name}
               </button>
+              <span className="shrink-0 font-mono text-xs text-muted-foreground">{node.code}</span>
               {node.lead && (
                 <span className="inline-flex items-center gap-0.5 shrink-0 text-xs text-muted-foreground">
                   <User className="h-3 w-3" />

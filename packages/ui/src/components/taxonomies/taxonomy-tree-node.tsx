@@ -5,6 +5,7 @@ import { ChevronRight, Folder, FolderOpen, MoreHorizontal, Plus, Pencil, Trash2,
 import { useTranslations } from 'next-intl';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { TaxonomyTreeNode } from '@marketlum/shared';
+import { suggestCode } from '@marketlum/shared';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import {
@@ -18,7 +19,7 @@ import { useIsMobile } from '../../hooks/use-mobile';
 interface TaxonomyTreeNodeProps {
   node: TaxonomyTreeNode;
   depth: number;
-  onCreateChild: (parentId: string, data: { name: string; description?: string; link?: string }) => Promise<void>;
+  onCreateChild: (parentId: string, data: { name: string; code: string; description?: string; link?: string }) => Promise<void>;
   onUpdate: (id: string, data: { name?: string; description?: string; link?: string }) => Promise<void>;
   onDelete: (id: string, name: string) => void;
 }
@@ -40,6 +41,8 @@ export function TaxonomyTreeNodeComponent({
   const [editLink, setEditLink] = useState(node.link ?? '');
   const [addingChild, setAddingChild] = useState(false);
   const [newChildName, setNewChildName] = useState('');
+  const [newChildCode, setNewChildCode] = useState('');
+  const [newChildCodeEdited, setNewChildCodeEdited] = useState(false);
   const [newChildDescription, setNewChildDescription] = useState('');
   const [newChildLink, setNewChildLink] = useState('');
 
@@ -85,11 +88,18 @@ export function TaxonomyTreeNodeComponent({
 
   const handleCreateChild = async () => {
     if (!newChildName.trim()) return;
-    const data: { name: string; description?: string; link?: string } = { name: newChildName.trim() };
+    const finalCode = (newChildCodeEdited ? newChildCode : suggestCode(newChildName)).trim();
+    if (!finalCode) return;
+    const data: { name: string; code: string; description?: string; link?: string } = {
+      name: newChildName.trim(),
+      code: finalCode,
+    };
     if (newChildDescription.trim()) data.description = newChildDescription.trim();
     if (newChildLink.trim()) data.link = newChildLink.trim();
     await onCreateChild(node.id, data);
     setNewChildName('');
+    setNewChildCode('');
+    setNewChildCodeEdited(false);
     setNewChildDescription('');
     setNewChildLink('');
     setAddingChild(false);
@@ -99,6 +109,8 @@ export function TaxonomyTreeNodeComponent({
   const handleCancelAddChild = () => {
     setAddingChild(false);
     setNewChildName('');
+    setNewChildCode('');
+    setNewChildCodeEdited(false);
     setNewChildDescription('');
     setNewChildLink('');
   };
@@ -184,6 +196,7 @@ export function TaxonomyTreeNodeComponent({
             <div className="flex-1 overflow-hidden">
               <div className="flex items-center gap-1">
                 <span className="truncate text-sm">{node.name}</span>
+                <span className="shrink-0 font-mono text-xs text-muted-foreground">{node.code}</span>
                 {node.link && (
                   <a
                     href={node.link}
@@ -293,6 +306,19 @@ export function TaxonomyTreeNodeComponent({
             />
           </div>
           <div className="ml-6 md:ml-12 flex flex-col gap-1">
+            <Input
+              value={newChildCodeEdited ? newChildCode : suggestCode(newChildName)}
+              onChange={(e) => {
+                setNewChildCodeEdited(true);
+                setNewChildCode(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateChild();
+                if (e.key === 'Escape') handleCancelAddChild();
+              }}
+              placeholder={tc('codePlaceholder')}
+              className="h-7 w-full font-mono text-sm md:max-w-xs"
+            />
             <Input
               value={newChildDescription}
               onChange={(e) => setNewChildDescription(e.target.value)}

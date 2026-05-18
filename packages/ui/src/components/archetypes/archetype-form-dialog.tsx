@@ -9,6 +9,7 @@ import { Upload, ImageIcon, Library, X } from 'lucide-react';
 import {
   createArchetypeSchema,
   updateArchetypeSchema,
+  suggestCode,
   type CreateArchetypeInput,
   type ArchetypeResponse,
   type FileResponse,
@@ -67,10 +68,16 @@ export function ArchetypeFormDialog({
     resolver: zodResolver(schema),
   });
 
+  const nameValue = watch('name') ?? '';
+  const codeValue = watch('code') ?? '';
+  const codeEditedRef = useRef(false);
+
   useEffect(() => {
     if (open) {
+      codeEditedRef.current = isEditing;
       if (archetype) {
         reset({
+          code: archetype.code,
           name: archetype.name,
           purpose: archetype.purpose ?? '',
           description: archetype.description ?? '',
@@ -84,6 +91,7 @@ export function ArchetypeFormDialog({
         );
       } else {
         reset({
+          code: '',
           name: '',
           purpose: '',
           description: '',
@@ -93,7 +101,14 @@ export function ArchetypeFormDialog({
         setImagePreview(null);
       }
     }
-  }, [open, archetype, reset]);
+  }, [open, archetype, reset, isEditing]);
+
+  useEffect(() => {
+    if (open && !isEditing && !codeEditedRef.current) {
+      const suggested = suggestCode(nameValue);
+      if (suggested !== codeValue) setValue('code', suggested);
+    }
+  }, [open, isEditing, nameValue, codeValue, setValue]);
 
   const handleFormSubmit = (data: CreateArchetypeInput) => {
     return onSubmit({
@@ -145,6 +160,28 @@ export function ArchetypeFormDialog({
             <Label htmlFor="arch-name">{tc('name')}</Label>
             <Input id="arch-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="arch-code">{tc('code')}</Label>
+            <Input
+              id="arch-code"
+              className="font-mono"
+              placeholder={tc('codePlaceholder')}
+              readOnly={isEditing}
+              {...register('code', {
+                onChange: () => {
+                  codeEditedRef.current = true;
+                },
+              })}
+            />
+            {!isEditing && <p className="text-xs text-muted-foreground">{tc('codeHint')}</p>}
+            {isEditing && <p className="text-xs text-muted-foreground">{tc('codeImmutable')}</p>}
+            {(errors as Record<string, { message?: string } | undefined>).code && (
+              <p className="text-sm text-destructive">
+                {(errors as Record<string, { message?: string }>).code.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

@@ -201,6 +201,7 @@ export function AgreementTemplatesDataTable({
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       type: t('type'),
       purpose: t('purpose'),
       description: t('description'),
@@ -215,6 +216,7 @@ export function AgreementTemplatesDataTable({
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
+    { id: 'code', label: tc('code') },
     { id: 'type', label: t('type') },
     { id: 'purpose', label: t('purpose') },
     { id: 'description', label: t('description') },
@@ -224,6 +226,7 @@ export function AgreementTemplatesDataTable({
 
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'code', label: tc('code'), extract: (r) => String(r.code ?? '') },
     { key: 'type', label: t('type'), extract: (r) => typeLabels[String(r.type)] ?? String(r.type ?? '') },
     { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
     { key: 'description', label: t('description'), extract: (r) => String(r.description ?? '') },

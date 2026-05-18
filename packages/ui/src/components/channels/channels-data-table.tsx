@@ -180,6 +180,7 @@ export function ChannelsDataTable() {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
+      code: tc('code'),
       purpose: t('purpose'),
       color: t('color'),
       agent: t('agent'),
@@ -193,6 +194,7 @@ export function ChannelsDataTable() {
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
+    { id: 'code', label: tc('code') },
     { id: 'purpose', label: t('purpose') },
     { id: 'color', label: t('color') },
     { id: 'agent', label: t('agent') },
@@ -202,6 +204,7 @@ export function ChannelsDataTable() {
 
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
+    { key: 'code', label: tc('code'), extract: (r) => String(r.code ?? '') },
     { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
     { key: 'color', label: t('color'), extract: (r) => String(r.color ?? '') },
     { key: 'agent', label: t('agent'), extract: (r) => {

@@ -14,6 +14,7 @@ import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dial
 import { ValueTypeBadge } from '../../components/values/value-type-badge';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { CodeBadge } from '../../components/shared/code-badge';
 import {
   Card,
   CardContent,
@@ -163,8 +164,9 @@ export function ValueDetailPage() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-1">
+          <div className="flex items-center gap-3 mb-1 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold truncate">{value.name}</h1>
+            <CodeBadge code={value.code} />
             <ValueTypeBadge type={value.type} label={t(typeTranslationKeys[value.type])} />
           </div>
           <div className="flex gap-2 mt-2">
