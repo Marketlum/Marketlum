@@ -32,10 +32,12 @@ import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { AiModule } from './ai/ai.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(databaseConfig()),
+    EventsModule,
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60000, limit: 100 }]),
     AuthModule,
     UsersModule,
@@ -92,6 +94,7 @@ import { GeocodingModule } from './geocoding/geocoding.module';
     SystemSettingsModule,
     AiModule,
     GeocodingModule,
+    EventsModule,
   ],
   providers: [
     {

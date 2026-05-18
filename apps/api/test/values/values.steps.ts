@@ -2,6 +2,7 @@ import { loadFeature, defineFeature } from 'jest-cucumber';
 import request from 'supertest';
 import * as path from 'path';
 import { bootstrapApp, cleanDatabase, teardownApp, getApp, createAuthenticatedUser } from '../setup';
+import { expectEventWithId, expectEventWithNewIdAndCode } from '../events/event-steps';
 
 const createFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/create-value.feature'),
@@ -44,6 +45,9 @@ const lifecycleFeature = loadFeature(
 );
 const byCodeFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/get-value-by-code.feature'),
+);
+const eventsFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/values/value-events.feature'),
 );
 
 // --- CREATE VALUE ---
@@ -3005,6 +3009,108 @@ defineFeature(byCodeFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- VALUE EVENTS ---
+defineFeature(eventsFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let recordedValueId: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Creating a value publishes marketlum.value.created', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I create a value for the event recorder$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .post('/values')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Event Test Value', type: 'product' });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the new entity's id and code$/, (name: string) => {
+      expectEventWithNewIdAndCode(name);
+    });
+  });
+
+  test('Updating a value publishes marketlum.value.updated', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value exists for the event recorder$/, async () => {
+      const res = await request(getApp().getHttpServer())
+        .post('/values')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Pre-existing Value', type: 'product' });
+      recordedValueId = res.body.id;
+    });
+
+    when(/^I update the recorded value's name$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/values/${recordedValueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Renamed Value' });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
+    });
+  });
+
+  test('Deleting a value publishes marketlum.value.deleted', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^a value exists for the event recorder$/, async () => {
+      const res = await request(getApp().getHttpServer())
+        .post('/values')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'To Be Deleted', type: 'product' });
+      recordedValueId = res.body.id;
+    });
+
+    when(/^I delete the recorded value$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .delete(`/values/${recordedValueId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
     });
   });
 });

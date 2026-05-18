@@ -12,6 +12,7 @@ import { ThrottlerStorage } from '@nestjs/throttler';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import { UsersService } from '@marketlum/core';
+import { EventRecorder } from './event-recorder';
 
 let app: INestApplication;
 let dataSource: DataSource;
@@ -23,6 +24,7 @@ export async function bootstrapApp(): Promise<INestApplication> {
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
+    providers: [EventRecorder],
   }).compile();
 
   app = moduleFixture.createNestApplication();
@@ -53,6 +55,16 @@ export async function cleanDatabase(): Promise<void> {
   } catch {
     // ThrottlerStorage may not be available in some contexts
   }
+
+  try {
+    app.get(EventRecorder).clear();
+  } catch {
+    // EventRecorder may not be registered in some contexts
+  }
+}
+
+export function getEventRecorder(): EventRecorder {
+  return app.get(EventRecorder);
 }
 
 export async function teardownApp(): Promise<void> {

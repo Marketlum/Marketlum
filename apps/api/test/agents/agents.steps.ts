@@ -2,6 +2,7 @@ import { loadFeature, defineFeature } from 'jest-cucumber';
 import request from 'supertest';
 import * as path from 'path';
 import { bootstrapApp, cleanDatabase, teardownApp, getApp, createAuthenticatedUser } from '../setup';
+import { expectEventWithId } from '../events/event-steps';
 
 const createFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/agents/create-agent.feature'),
@@ -26,6 +27,9 @@ const imageFeature = loadFeature(
 );
 const detailsFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/agents/get-agent-details.feature'),
+);
+const eventsFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/agents/agent-events.feature'),
 );
 
 // --- CREATE AGENT ---
@@ -1635,6 +1639,108 @@ defineFeature(imageFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- AGENT EVENTS ---
+defineFeature(eventsFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let recordedAgentId: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  test('Creating an agent publishes marketlum.agent.created', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I create an agent for the event recorder$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .post('/agents')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Event Agent', type: 'organization' });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
+    });
+  });
+
+  test('Updating an agent publishes marketlum.agent.updated', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists for the event recorder$/, async () => {
+      const res = await request(getApp().getHttpServer())
+        .post('/agents')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Pre-existing Agent', type: 'organization' });
+      recordedAgentId = res.body.id;
+    });
+
+    when(/^I update the recorded agent's name$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/agents/${recordedAgentId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Renamed Agent' });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
+    });
+  });
+
+  test('Deleting an agent publishes marketlum.agent.deleted', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists for the event recorder$/, async () => {
+      const res = await request(getApp().getHttpServer())
+        .post('/agents')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'To Be Deleted', type: 'organization' });
+      recordedAgentId = res.body.id;
+    });
+
+    when(/^I delete the recorded agent$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .delete(`/agents/${recordedAgentId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
     });
   });
 });

@@ -87,3 +87,7 @@ export { CurrentUser } from './auth/decorators/current-user.decorator';
 // Common
 export { CsrfProtectionGuard } from './common/guards/csrf-protection.guard';
 export { ZodValidationPipe } from './common/pipes/zod-validation.pipe';
+
+// Events
+export { EventsModule } from './events/events.module';
+export { DomainEventBus, type EmitArgs } from './events/domain-event-bus.service';

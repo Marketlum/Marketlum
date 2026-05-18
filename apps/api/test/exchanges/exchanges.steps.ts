@@ -9,6 +9,7 @@ import {
   createAuthenticatedUser,
   createUserViaService,
 } from '../setup';
+import { expectEventWithId, expectNoEventMatching } from '../events/event-steps';
 
 const createFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/create-exchange.feature'),
@@ -48,6 +49,9 @@ const flowGraphFeature = loadFeature(
 );
 const downloadPdfFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/download-exchange-pdf.feature'),
+);
+const eventsFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/exchanges/exchange-events.feature'),
 );
 
 const exchangeIds = new Map<string, string>();
@@ -2921,6 +2925,149 @@ defineFeature(downloadPdfFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- EXCHANGE EVENTS ---
+defineFeature(eventsFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let recordedExchangeId: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    clearMaps();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function seedExchangeFixtures(): Promise<{ sellerId: string; buyerId: string }> {
+    const sellerId = await createAgent(authCookie, 'Seller Corp');
+    const buyerId = await createAgent(authCookie, 'Buyer Inc');
+    return { sellerId, buyerId };
+  }
+
+  function buildExchangeBody(name: string, sellerId: string, buyerId: string) {
+    return {
+      name,
+      purpose: 'Event recorder exchange',
+      parties: [
+        { agentId: sellerId, role: 'seller' },
+        { agentId: buyerId, role: 'buyer' },
+      ],
+    };
+  }
+
+  test('Creating an exchange publishes marketlum.exchange.created', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I create an exchange for the event recorder$/, async () => {
+      const { sellerId, buyerId } = await seedExchangeFixtures();
+      response = await request(getApp().getHttpServer())
+        .post('/exchanges')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send(buildExchangeBody('Event Exchange', sellerId, buyerId));
+      recordedExchangeId = response.body.id;
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
+    });
+
+    and(/^no event matching "([^"]+)" was published$/, (pattern: string) => {
+      expectNoEventMatching(pattern);
+    });
+  });
+
+  test('Updating an exchange publishes marketlum.exchange.updated', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an exchange exists for the event recorder$/, async () => {
+      const { sellerId, buyerId } = await seedExchangeFixtures();
+      const res = await request(getApp().getHttpServer())
+        .post('/exchanges')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send(buildExchangeBody('Pre-existing Exchange', sellerId, buyerId));
+      recordedExchangeId = res.body.id;
+    });
+
+    when(/^I update the recorded exchange's name$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/exchanges/${recordedExchangeId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ name: 'Renamed Exchange' });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
+    });
+  });
+
+  test('Deleting an exchange publishes marketlum.exchange.deleted', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an exchange exists for the event recorder$/, async () => {
+      const { sellerId, buyerId } = await seedExchangeFixtures();
+      const res = await request(getApp().getHttpServer())
+        .post('/exchanges')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send(buildExchangeBody('To Be Deleted', sellerId, buyerId));
+      recordedExchangeId = res.body.id;
+    });
+
+    when(/^I delete the recorded exchange$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .delete(`/exchanges/${recordedExchangeId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
     });
   });
 });

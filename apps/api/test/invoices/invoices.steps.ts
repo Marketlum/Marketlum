@@ -8,6 +8,7 @@ import {
   getApp,
   createAuthenticatedUser,
 } from '../setup';
+import { expectEventWithId, expectNoEventMatching } from '../events/event-steps';
 
 const createFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/invoices/create-invoice.feature'),
@@ -23,6 +24,9 @@ const deleteFeature = loadFeature(
 );
 const searchFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/invoices/search-invoices.feature'),
+);
+const eventsFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/invoices/invoice-events.feature'),
 );
 
 const invoiceIds = new Map<string, string>();
@@ -1662,6 +1666,154 @@ defineFeature(searchFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+});
+
+// --- INVOICE EVENTS ---
+defineFeature(eventsFeature, (test) => {
+  let response: request.Response;
+  let authCookie: string;
+  let recordedInvoiceId: string;
+
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    clearMaps();
+  });
+
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  async function seedInvoiceFixtures(): Promise<{
+    fromAgentId: string;
+    toAgentId: string;
+    currencyId: string;
+  }> {
+    const fromAgentId = await createAgent(authCookie, 'Seller Corp');
+    const toAgentId = await createAgent(authCookie, 'Buyer Inc');
+    const currencyId = await createValue(authCookie, 'USD');
+    return { fromAgentId, toAgentId, currencyId };
+  }
+
+  test('Creating an invoice publishes marketlum.invoice.created and no item-level event', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(/^I create an invoice for the event recorder$/, async () => {
+      const { fromAgentId, toAgentId, currencyId } = await seedInvoiceFixtures();
+      response = await request(getApp().getHttpServer())
+        .post('/invoices')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({
+          number: 'EVT-001',
+          fromAgentId,
+          toAgentId,
+          currencyId,
+          issuedAt: '2025-01-15T00:00:00.000Z',
+          dueAt: '2025-02-15T00:00:00.000Z',
+        });
+      recordedInvoiceId = response.body.id;
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
+    });
+
+    and(/^no event matching "([^"]+)" was published$/, (pattern: string) => {
+      expectNoEventMatching(pattern);
+    });
+  });
+
+  test('Updating an invoice publishes marketlum.invoice.updated', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an invoice exists for the event recorder$/, async () => {
+      const { fromAgentId, toAgentId, currencyId } = await seedInvoiceFixtures();
+      const res = await request(getApp().getHttpServer())
+        .post('/invoices')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({
+          number: 'EVT-002',
+          fromAgentId,
+          toAgentId,
+          currencyId,
+          issuedAt: '2025-01-15T00:00:00.000Z',
+          dueAt: '2025-02-15T00:00:00.000Z',
+        });
+      recordedInvoiceId = res.body.id;
+    });
+
+    when(/^I update the recorded invoice's number$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/invoices/${recordedInvoiceId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ number: 'EVT-002-UPDATED' });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
+    });
+  });
+
+  test('Deleting an invoice publishes marketlum.invoice.deleted', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an invoice exists for the event recorder$/, async () => {
+      const { fromAgentId, toAgentId, currencyId } = await seedInvoiceFixtures();
+      const res = await request(getApp().getHttpServer())
+        .post('/invoices')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({
+          number: 'EVT-003',
+          fromAgentId,
+          toAgentId,
+          currencyId,
+          issuedAt: '2025-01-15T00:00:00.000Z',
+          dueAt: '2025-02-15T00:00:00.000Z',
+        });
+      recordedInvoiceId = res.body.id;
+    });
+
+    when(/^I delete the recorded invoice$/, async () => {
+      response = await request(getApp().getHttpServer())
+        .delete(`/invoices/${recordedInvoiceId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1');
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the event "([^"]+)" was published with the entity's id$/, (name: string) => {
+      expectEventWithId(name);
     });
   });
 });
