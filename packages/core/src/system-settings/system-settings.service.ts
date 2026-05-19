@@ -10,11 +10,11 @@ import { Value } from '../values/entities/value.entity';
 import { InvoiceItem } from '../invoices/entities/invoice-item.entity';
 import { RecurringFlow } from '../recurring-flows/entities/recurring-flow.entity';
 
-export const BASE_VALUE_KEY = 'base_value_id';
+export const PRESENTATION_CURRENCY_KEY = 'presentation_currency_id';
 
-export interface BaseValueResponse {
-  baseValueId: string | null;
-  baseValue: { id: string; name: string; type: string } | null;
+export interface PresentationCurrencyResponse {
+  presentationCurrencyId: string | null;
+  presentationCurrency: { id: string; name: string; type: string } | null;
   snapshotsExist: boolean;
 }
 
@@ -31,62 +31,61 @@ export class SystemSettingsService {
     private readonly recurringFlowRepository: Repository<RecurringFlow>,
   ) {}
 
-  async getBaseValue(): Promise<BaseValueResponse> {
-    const baseValueId = await this.getBaseValueId();
-    const baseValue = baseValueId
-      ? await this.valueRepository.findOne({ where: { id: baseValueId } })
+  async getPresentationCurrency(): Promise<PresentationCurrencyResponse> {
+    const presentationCurrencyId = await this.getPresentationCurrencyId();
+    const presentationCurrency = presentationCurrencyId
+      ? await this.valueRepository.findOne({ where: { id: presentationCurrencyId } })
       : null;
     const snapshotsExist = await this.anySnapshotsExist();
     return {
-      baseValueId,
-      baseValue: baseValue
-        ? { id: baseValue.id, name: baseValue.name, type: baseValue.type }
+      presentationCurrencyId,
+      presentationCurrency: presentationCurrency
+        ? { id: presentationCurrency.id, name: presentationCurrency.name, type: presentationCurrency.type }
         : null,
       snapshotsExist,
     };
   }
 
-  async setBaseValue(baseValueId: string | null): Promise<BaseValueResponse> {
+  async setPresentationCurrency(
+    presentationCurrencyId: string | null,
+  ): Promise<PresentationCurrencyResponse> {
     const snapshotsExist = await this.anySnapshotsExist();
     if (snapshotsExist) {
       throw new ConflictException(
-        'Cannot change system base value while snapshot rows exist',
+        'Cannot change presentation currency while snapshot rows exist',
       );
     }
 
-    if (baseValueId !== null) {
+    if (presentationCurrencyId !== null) {
       const exists = await this.valueRepository.exist({
-        where: { id: baseValueId },
+        where: { id: presentationCurrencyId },
       });
       if (!exists) throw new NotFoundException('Value not found');
     }
 
-    if (baseValueId === null) {
-      await this.settingsRepository.delete({ key: BASE_VALUE_KEY });
+    if (presentationCurrencyId === null) {
+      await this.settingsRepository.delete({ key: PRESENTATION_CURRENCY_KEY });
     } else {
       await this.settingsRepository.upsert(
-        { key: BASE_VALUE_KEY, value: baseValueId },
+        { key: PRESENTATION_CURRENCY_KEY, value: presentationCurrencyId },
         ['key'],
       );
     }
 
-    return this.getBaseValue();
+    return this.getPresentationCurrency();
   }
 
-  async getBaseValueId(): Promise<string | null> {
+  async getPresentationCurrencyId(): Promise<string | null> {
     const row = await this.settingsRepository.findOne({
-      where: { key: BASE_VALUE_KEY },
+      where: { key: PRESENTATION_CURRENCY_KEY },
     });
     return row ? row.value : null;
   }
 
   private async anySnapshotsExist(): Promise<boolean> {
-    const tablesExist = await this.snapshotColumnsExist();
-    if (!tablesExist) return false;
-
     const invoiceCount = await this.invoiceItemRepository
       .createQueryBuilder('item')
-      .where('item.rateUsed IS NOT NULL OR item.baseAmount IS NOT NULL')
+      .where('item.presentationRate IS NOT NULL OR item.presentationAmount IS NOT NULL')
       .getCount()
       .catch(() => 0);
 
@@ -94,27 +93,10 @@ export class SystemSettingsService {
 
     const recurringCount = await this.recurringFlowRepository
       .createQueryBuilder('flow')
-      .where('flow.rateUsed IS NOT NULL OR flow.baseAmount IS NOT NULL')
+      .where('flow.presentationRate IS NOT NULL OR flow.presentationAmount IS NOT NULL')
       .getCount()
       .catch(() => 0);
 
     return recurringCount > 0;
-  }
-
-  private async snapshotColumnsExist(): Promise<boolean> {
-    // PR 2 adds the snapshot columns. Until that migration is applied this
-    // service always returns false for snapshotsExist, which is the
-    // intentional behaviour: there is nothing to lock against yet.
-    try {
-      await this.invoiceItemRepository
-        .createQueryBuilder('item')
-        .select('item.id')
-        .where('item.rateUsed IS NOT NULL')
-        .limit(1)
-        .getRawOne();
-      return true;
-    } catch {
-      return false;
-    }
   }
 }

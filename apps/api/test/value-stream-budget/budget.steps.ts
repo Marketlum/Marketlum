@@ -60,20 +60,20 @@ async function ensureAgent(ctx: Ctx): Promise<string> {
   return res.body.id;
 }
 
-async function setBaseValue(ctx: Ctx, name: string) {
+async function setPresentationCurrency(ctx: Ctx, name: string) {
   await request(getApp().getHttpServer())
-    .put('/system-settings/base-value')
+    .put('/system-settings/presentation-currency')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({ baseValueId: ctx.valueIds.get(name)! });
+    .send({ presentationCurrencyId: ctx.valueIds.get(name)! });
 }
 
 async function clearBaseValue(ctx: Ctx) {
   await request(getApp().getHttpServer())
-    .put('/system-settings/base-value')
+    .put('/system-settings/presentation-currency')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({ baseValueId: null });
+    .send({ presentationCurrencyId: null });
 }
 
 async function createRate(
@@ -175,8 +175,8 @@ function registerBackground(
   steps.and(/^a value exists named "(.*)"$/, async (name: string) => {
     await ensureValue(ctx, name);
   });
-  steps.and(/^the system base value is "(.*)"$/, async (name: string) => {
-    await setBaseValue(ctx, name);
+  steps.and(/^the system presentation currency is "(.*)"$/, async (name: string) => {
+    await setPresentationCurrency(ctx, name);
   });
   steps.and(
     /^an exchange rate exists from "(.*)" to "(.*)" with rate "(.*)"$/,
@@ -411,7 +411,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Missing baseAmount snapshots increment skippedFlows', ({ given, when, then, and }) => {
+  test('Missing presentationAmount snapshots increment skippedFlows', ({ given, when, then, and }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
     and(/^a value exists named "(.*)"$/, async (name: string) => {
@@ -438,7 +438,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Multi-currency flows convert via baseAmount snapshot', ({ given, when, then, and }) => {
+  test('Multi-currency flows convert via presentationAmount snapshot', ({ given, when, then, and }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
     and(/^an active recurring flow exists on "(.*)" with value "(.*)" direction "(.*)" amount "(.*)" frequency "(.*)" starting "(.*)"$/,
@@ -475,7 +475,7 @@ defineFeature(feature, (test) => {
   test('Missing base value returns null totals', ({ given, when, then, and }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    and('the system base value is cleared', async () => {
+    and('the system presentation currency is cleared', async () => {
       await clearBaseValue(ctx);
     });
     when(/^I request the budget for "(.*)" for year (\d+)$/, async (name: string, year: string) => {
@@ -484,8 +484,8 @@ defineFeature(feature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and('the budget baseValue should be null', () => {
-      expect(ctx.response.body.baseValue).toBeNull();
+    and('the budget presentationCurrency should be null', () => {
+      expect(ctx.response.body.presentationCurrency).toBeNull();
     });
     and(/^the budget annual revenue should be null$/, () => {
       expect(ctx.response.body.summary.revenue.annual).toBeNull();

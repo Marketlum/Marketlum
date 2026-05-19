@@ -85,7 +85,11 @@ export class Invoice {
 
   total?: string;
 
-  baseTotal?: string | null;
+  presentationTotal?: string | null;
+
+  fromAgentTotal?: string | null;
+
+  toAgentTotal?: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

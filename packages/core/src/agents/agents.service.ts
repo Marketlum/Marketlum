@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Agent } from './entities/agent.entity';
@@ -6,11 +6,15 @@ import { Address } from './addresses/entities/address.entity';
 import { AddressesService } from './addresses/addresses.service';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
+import { Value } from '../values/entities/value.entity';
+import { InvoiceItem } from '../invoices/entities/invoice-item.entity';
+import { RecurringFlow } from '../recurring-flows/entities/recurring-flow.entity';
 import {
   CreateAgentInput,
   UpdateAgentInput,
   PaginationQuery,
   AgentType,
+  ValueType,
 } from '@marketlum/shared';
 
 @Injectable()
@@ -24,13 +28,26 @@ export class AgentsService {
     private readonly fileRepository: Repository<File>,
     @InjectRepository(Address)
     private readonly addressesRepository: Repository<Address>,
+    @InjectRepository(Value)
+    private readonly valueRepository: Repository<Value>,
+    @InjectRepository(InvoiceItem)
+    private readonly invoiceItemRepository: Repository<InvoiceItem>,
+    @InjectRepository(RecurringFlow)
+    private readonly recurringFlowRepository: Repository<RecurringFlow>,
     private readonly addressesService: AddressesService,
   ) {}
 
   async create(input: CreateAgentInput): Promise<Agent> {
-    const { mainTaxonomyId, taxonomyIds, imageId, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, imageId, functionalCurrencyId, ...rest } = input;
 
     const agent = this.agentsRepository.create(rest);
+
+    if (functionalCurrencyId !== undefined && functionalCurrencyId !== null) {
+      await this.assertCurrencyValue(functionalCurrencyId);
+      agent.functionalCurrencyId = functionalCurrencyId;
+    } else {
+      agent.functionalCurrencyId = null;
+    }
 
     if (imageId) {
       const file = await this.fileRepository.findOne({ where: { id: imageId } });
@@ -79,6 +96,7 @@ export class AgentsService {
     qb.leftJoinAndSelect('agent.image', 'image');
     qb.leftJoinAndSelect('agent.addresses', 'addresses');
     qb.leftJoinAndSelect('addresses.country', 'addressCountry');
+    qb.leftJoinAndSelect('agent.functionalCurrency', 'functionalCurrency');
 
     if (type) {
       qb.andWhere('agent.type = :type', { type });
@@ -126,7 +144,14 @@ export class AgentsService {
   async findOne(id: string): Promise<Agent> {
     const agent = await this.agentsRepository.findOne({
       where: { id },
-      relations: ['mainTaxonomy', 'taxonomies', 'image', 'addresses', 'addresses.country'],
+      relations: [
+        'mainTaxonomy',
+        'taxonomies',
+        'image',
+        'addresses',
+        'addresses.country',
+        'functionalCurrency',
+      ],
     });
     if (!agent) {
       throw new NotFoundException('Agent not found');
@@ -137,9 +162,19 @@ export class AgentsService {
 
   async update(id: string, input: UpdateAgentInput): Promise<Agent> {
     const agent = await this.findOne(id);
-    const { mainTaxonomyId, taxonomyIds, imageId, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, imageId, functionalCurrencyId, ...rest } = input;
 
     Object.assign(agent, rest);
+
+    if (functionalCurrencyId !== undefined) {
+      if (functionalCurrencyId === null) {
+        agent.functionalCurrency = null;
+        agent.functionalCurrencyId = null;
+      } else {
+        await this.assertCurrencyValue(functionalCurrencyId);
+        agent.functionalCurrencyId = functionalCurrencyId;
+      }
+    }
 
     if (imageId !== undefined) {
       if (imageId === null) {
@@ -192,5 +227,55 @@ export class AgentsService {
   async remove(id: string): Promise<void> {
     const agent = await this.findOne(id);
     await this.agentsRepository.remove(agent);
+  }
+
+  async getSnapshotReferences(
+    id: string,
+  ): Promise<{ invoiceItems: number; recurringFlows: number }> {
+    const agent = await this.agentsRepository.findOne({ where: { id } });
+    if (!agent) throw new NotFoundException('Agent not found');
+
+    const [invoiceItems, recurringFlows] = await Promise.all([
+      this.invoiceItemRepository.query(
+        `SELECT COUNT(*) AS count FROM invoice_items ii
+         JOIN invoices i ON i.id = ii."invoiceId"
+         WHERE (i."fromAgentId" = $1 AND ii."fromAgentAmount" IS NOT NULL)
+            OR (i."toAgentId"   = $1 AND ii."toAgentAmount"   IS NOT NULL)`,
+        [id],
+      ),
+      this.recurringFlowRepository.query(
+        `SELECT COUNT(*) AS count FROM recurring_flows rf
+         LEFT JOIN value_streams vs ON vs.id = rf."valueStreamId"
+         WHERE
+           (
+             rf.direction = 'inbound'
+             AND (
+               (rf."counterpartyAgentId" = $1 AND rf."fromAgentAmount" IS NOT NULL)
+               OR (vs."agentId"          = $1 AND rf."toAgentAmount"   IS NOT NULL)
+             )
+           )
+           OR (
+             rf.direction = 'outbound'
+             AND (
+               (vs."agentId"             = $1 AND rf."fromAgentAmount" IS NOT NULL)
+               OR (rf."counterpartyAgentId" = $1 AND rf."toAgentAmount" IS NOT NULL)
+             )
+           )`,
+        [id],
+      ),
+    ]);
+
+    return {
+      invoiceItems: Number(invoiceItems[0]?.count ?? 0),
+      recurringFlows: Number(recurringFlows[0]?.count ?? 0),
+    };
+  }
+
+  private async assertCurrencyValue(valueId: string): Promise<void> {
+    const value = await this.valueRepository.findOne({ where: { id: valueId } });
+    if (!value) throw new NotFoundException('Functional currency value not found');
+    if (value.type !== ValueType.CURRENCY) {
+      throw new BadRequestException('Functional currency must reference a Value with type=currency');
+    }
   }
 }

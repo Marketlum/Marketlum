@@ -15,7 +15,9 @@ import {
   RecurringFlowTransitionAction,
   recurringFlowMachine,
   convertAmount,
-  formatBaseAmount,
+  formatPresentationAmount,
+  IDENTITY_RATE,
+  mapRecurringFlowAgents,
 } from '@marketlum/shared';
 import { RecurringFlow } from './entities/recurring-flow.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
@@ -27,9 +29,18 @@ import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { SystemSettingsService } from '../system-settings/system-settings.service';
 
-interface Snapshot {
-  rateUsed: string | null;
-  baseAmount: string | null;
+interface PerspectiveSnapshot {
+  rate: string | null;
+  amount: string | null;
+}
+
+interface FlowSnapshot {
+  presentationRate: string | null;
+  presentationAmount: string | null;
+  fromAgentRate: string | null;
+  fromAgentAmount: string | null;
+  toAgentRate: string | null;
+  toAgentAmount: string | null;
 }
 
 @Injectable()
@@ -53,26 +64,84 @@ export class RecurringFlowsService {
     private readonly systemSettingsService: SystemSettingsService,
   ) {}
 
+  private async snapshotPerspective(
+    sourceCurrencyId: string | null,
+    targetCurrencyId: string | null,
+    nativeAmount: string,
+    at: Date,
+  ): Promise<PerspectiveSnapshot> {
+    if (!sourceCurrencyId || !targetCurrencyId) return { rate: null, amount: null };
+    if (sourceCurrencyId === targetCurrencyId) {
+      return { rate: IDENTITY_RATE, amount: formatPresentationAmount(nativeAmount) };
+    }
+    const lookup = await this.exchangeRatesService.lookup(
+      sourceCurrencyId,
+      targetCurrencyId,
+      at,
+    );
+    if (!lookup) return { rate: null, amount: null };
+    return { rate: lookup.rate, amount: convertAmount(nativeAmount, lookup.rate) };
+  }
+
   private async snapshot(
+    flow: Pick<RecurringFlow, 'direction' | 'counterpartyAgentId' | 'valueStreamId'>,
     currencyId: string | null,
     amount: string,
-    at: Date = new Date(),
-  ): Promise<Snapshot> {
-    if (currencyId === null) return { rateUsed: null, baseAmount: null };
-    const baseValueId = await this.systemSettingsService.getBaseValueId();
-    if (!baseValueId) return { rateUsed: null, baseAmount: null };
-    if (currencyId === baseValueId) {
+    at: Date,
+  ): Promise<FlowSnapshot> {
+    if (!currencyId) {
       return {
-        rateUsed: '1.0000000000',
-        baseAmount: formatBaseAmount(amount),
+        presentationRate: null,
+        presentationAmount: null,
+        fromAgentRate: null,
+        fromAgentAmount: null,
+        toAgentRate: null,
+        toAgentAmount: null,
       };
     }
-    const lookup = await this.exchangeRatesService.lookup(currencyId, baseValueId, at);
-    if (!lookup) return { rateUsed: null, baseAmount: null };
+    const presentationCurrencyId =
+      await this.systemSettingsService.getPresentationCurrencyId();
+    const valueStream = await this.valueStreamRepository.findOne({
+      where: { id: flow.valueStreamId },
+      select: ['id', 'agentId'],
+    });
+    const mapping = mapRecurringFlowAgents(
+      flow.direction,
+      flow.counterpartyAgentId,
+      valueStream?.agentId ?? null,
+    );
+    const [fromAgentCurrencyId, toAgentCurrencyId] = await Promise.all([
+      this.resolveAgentCurrency(mapping.fromAgentId),
+      this.resolveAgentCurrency(mapping.toAgentId),
+    ]);
+    const [presentation, fromAgent, toAgent] = await Promise.all([
+      this.snapshotPerspective(currencyId, presentationCurrencyId, amount, at),
+      this.snapshotPerspective(currencyId, fromAgentCurrencyId, amount, at),
+      this.snapshotPerspective(currencyId, toAgentCurrencyId, amount, at),
+    ]);
     return {
-      rateUsed: lookup.rate,
-      baseAmount: convertAmount(amount, lookup.rate),
+      presentationRate: presentation.rate,
+      presentationAmount: presentation.amount,
+      fromAgentRate: fromAgent.rate,
+      fromAgentAmount: fromAgent.amount,
+      toAgentRate: toAgent.rate,
+      toAgentAmount: toAgent.amount,
     };
+  }
+
+  private async resolveAgentCurrency(agentId: string | null): Promise<string | null> {
+    if (!agentId) return null;
+    const agent = await this.agentRepository.findOne({
+      where: { id: agentId },
+      select: ['id', 'functionalCurrencyId'],
+    });
+    return agent?.functionalCurrencyId ?? null;
+  }
+
+  private startDateAsDate(startDate: string): Date {
+    // End-of-day so a same-day rate set up earlier the same day still applies.
+    const [y, m, d] = startDate.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d, 23, 59, 59, 999));
   }
 
   async create(input: CreateRecurringFlowInput): Promise<RecurringFlow> {
@@ -100,7 +169,12 @@ export class RecurringFlowsService {
       : [];
 
     const normalizedAmount = Number(amount).toFixed(4);
-    const snap = await this.snapshot(currencyId, normalizedAmount);
+    const snap = await this.snapshot(
+      { direction: rest.direction, counterpartyAgentId, valueStreamId },
+      currencyId,
+      normalizedAmount,
+      this.startDateAsDate(rest.startDate),
+    );
 
     const flow = this.flowRepository.create({
       ...rest,
@@ -116,8 +190,7 @@ export class RecurringFlowsService {
       description: rest.description ?? null,
       status: RecurringFlowStatus.DRAFT,
       taxonomies,
-      rateUsed: snap.rateUsed,
-      baseAmount: snap.baseAmount,
+      ...snap,
     });
 
     const saved = await this.flowRepository.save(flow);
@@ -258,12 +331,22 @@ export class RecurringFlowsService {
       flow.taxonomies = taxonomyIds.length > 0 ? await this.loadTaxonomies(taxonomyIds) : [];
     }
 
-    // Re-snapshot when monetary fields changed: currencyId or amount.
-    // valueId describes "what" flows and does not affect the snapshot.
-    if (currencyIdChanged || amountChanged) {
-      const snap = await this.snapshot(flow.currencyId, flow.amount);
-      flow.rateUsed = snap.rateUsed;
-      flow.baseAmount = snap.baseAmount;
+    // Re-snapshot on any save so direction/agent/currency/amount changes are
+    // reflected in the per-agent snapshot columns. Cost is bounded (one rate
+    // lookup per perspective).
+    {
+      const snap = await this.snapshot(
+        flow,
+        flow.currencyId,
+        flow.amount,
+        this.startDateAsDate(flow.startDate),
+      );
+      flow.presentationRate = snap.presentationRate;
+      flow.presentationAmount = snap.presentationAmount;
+      flow.fromAgentRate = snap.fromAgentRate;
+      flow.fromAgentAmount = snap.fromAgentAmount;
+      flow.toAgentRate = snap.toAgentRate;
+      flow.toAgentAmount = snap.toAgentAmount;
     }
 
     // Clear lazy-loadable relations to avoid TypeORM trying to re-save them

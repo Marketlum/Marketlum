@@ -15,6 +15,11 @@ const leadSummarySchema = z.object({
   email: z.string(),
 });
 
+const agentSummarySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+});
+
 export const createValueStreamSchema = z.object({
   code: codeSchema,
   name: z.string().min(1),
@@ -22,6 +27,7 @@ export const createValueStreamSchema = z.object({
   parentId: z.string().uuid().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
   imageId: z.string().uuid().nullable().optional(),
+  agentId: z.string().uuid().nullable().optional(),
 });
 
 export const updateValueStreamSchema = z.object({
@@ -29,6 +35,7 @@ export const updateValueStreamSchema = z.object({
   purpose: z.string().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
   imageId: z.string().uuid().nullable().optional(),
+  agentId: z.string().uuid().nullable().optional(),
 });
 
 export const moveValueStreamSchema = z.object({
@@ -43,6 +50,8 @@ export const valueStreamResponseSchema = z.object({
   level: z.number(),
   lead: leadSummarySchema.nullable(),
   image: fileSummarySchema.nullable(),
+  agent: agentSummarySchema.nullable(),
+  agentId: z.string().uuid().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -60,6 +69,8 @@ export interface ValueStreamTreeNode {
   level: number;
   lead: { id: string; name: string; email: string } | null;
   image: { id: string; originalName: string; storedName: string; mimeType: string; size: number } | null;
+  agent: { id: string; name: string } | null;
+  agentId: string | null;
   createdAt: string;
   updatedAt: string;
   children: ValueStreamTreeNode[];

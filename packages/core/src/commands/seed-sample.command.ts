@@ -189,15 +189,18 @@ export class SeedSampleCommand extends CommandRunner {
     const offerings = await seedOfferings(this.offeringsService, { values, agents, valueStreams });
     this.logger.log(`  Created ${offerings.length} offerings`);
 
-    // Seed exchange rates and base value BEFORE invoices and recurring flows so
-    // those entities can resolve a baseAmount snapshot at write time.
+    // Seed exchange rates and presentation currency BEFORE invoices and recurring
+    // flows so those entities can resolve presentation-currency and per-agent
+    // snapshots at write time.
     this.logger.log('Seeding exchange rates...');
     const rates = await seedExchangeRates(this.exchangeRatesService, { values });
     this.logger.log(`  Created ${rates.length} exchange rates`);
 
-    this.logger.log('Setting system base value...');
-    const baseSetting = await seedSystemSettings(this.systemSettingsService, { values });
-    this.logger.log(`  Base value set to ${baseSetting?.baseValueId ?? '(not found)'}`);
+    this.logger.log('Setting system presentation currency...');
+    const presentationSetting = await seedSystemSettings(this.systemSettingsService, { values });
+    this.logger.log(
+      `  Presentation currency set to ${presentationSetting?.presentationCurrencyId ?? '(not found)'}`,
+    );
 
     this.logger.log('Seeding invoices...');
     const invoices = await seedInvoices(this.invoicesService, { agents, values, valueStreams });

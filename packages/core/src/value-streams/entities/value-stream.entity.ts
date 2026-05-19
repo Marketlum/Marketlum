@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { File } from '../../files/entities/file.entity';
+import { Agent } from '../../agents/entities/agent.entity';
 
 @Entity('value_streams')
 @Tree('closure-table')
@@ -51,6 +52,13 @@ export class ValueStream {
 
   @Column({ type: 'uuid', nullable: true })
   imageId: string | null;
+
+  @ManyToOne(() => Agent, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'agentId' })
+  agent: Agent | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  agentId: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

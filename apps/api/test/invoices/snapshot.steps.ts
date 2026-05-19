@@ -45,12 +45,12 @@ async function createAgent(ctx: Ctx, name: string): Promise<string> {
   return res.body.id;
 }
 
-async function setBaseValue(ctx: Ctx, name: string) {
+async function setPresentationCurrency(ctx: Ctx, name: string) {
   await request(getApp().getHttpServer())
-    .put('/system-settings/base-value')
+    .put('/system-settings/presentation-currency')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({ baseValueId: ctx.valueIds.get(name)! });
+    .send({ presentationCurrencyId: ctx.valueIds.get(name)! });
 }
 
 async function createRate(
@@ -129,8 +129,8 @@ function registerBackground(
   steps.and(/^a value exists named "(.*)"$/, async (name: string) => {
     await ensureValue(ctx, name);
   });
-  steps.and(/^the system base value is "(.*)"$/, async (name: string) => {
-    await setBaseValue(ctx, name);
+  steps.and(/^the system presentation currency is "(.*)"$/, async (name: string) => {
+    await setPresentationCurrency(ctx, name);
   });
   steps.and(
     /^an exchange rate exists from "(.*)" to "(.*)" with rate "(.*)"$/,
@@ -151,7 +151,7 @@ defineFeature(snapshotFeature, (test) => {
     await teardownApp();
   });
 
-  test('Invoice items in the base currency snapshot at rate 1', ({
+  test('Invoice items in the presentation currency snapshot at rate 1', ({
     given,
     when,
     then,
@@ -169,18 +169,18 @@ defineFeature(snapshotFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item rateUsed should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].rateUsed).toBe(value);
+    and(/^the item presentationRate should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationRate).toBe(value);
     });
-    and(/^the item baseAmount should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].baseAmount).toBe(value);
+    and(/^the item presentationAmount should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationAmount).toBe(value);
     });
-    and(/^the invoice baseTotal should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.baseTotal).toBe(value);
+    and(/^the invoice presentationTotal should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.presentationTotal).toBe(value);
     });
   });
 
-  test('Invoice items in a non-base currency snapshot using the inverse rate', ({
+  test('Invoice items in a non-presentation currency snapshot using the inverse rate', ({
     given,
     when,
     then,
@@ -198,14 +198,14 @@ defineFeature(snapshotFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item rateUsed should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].rateUsed).toBe(value);
+    and(/^the item presentationRate should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationRate).toBe(value);
     });
-    and(/^the item baseAmount should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].baseAmount).toBe(value);
+    and(/^the item presentationAmount should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationAmount).toBe(value);
     });
-    and(/^the invoice baseTotal should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.baseTotal).toBe(value);
+    and(/^the invoice presentationTotal should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.presentationTotal).toBe(value);
     });
   });
 
@@ -227,14 +227,14 @@ defineFeature(snapshotFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item rateUsed should be null$/, () => {
-      expect(ctx.response.body.items[0].rateUsed).toBeNull();
+    and(/^the item presentationRate should be null$/, () => {
+      expect(ctx.response.body.items[0].presentationRate).toBeNull();
     });
-    and(/^the item baseAmount should be null$/, () => {
-      expect(ctx.response.body.items[0].baseAmount).toBeNull();
+    and(/^the item presentationAmount should be null$/, () => {
+      expect(ctx.response.body.items[0].presentationAmount).toBeNull();
     });
-    and(/^the invoice baseTotal should be null$/, () => {
-      expect(ctx.response.body.baseTotal).toBeNull();
+    and(/^the invoice presentationTotal should be null$/, () => {
+      expect(ctx.response.body.presentationTotal).toBeNull();
     });
   });
 
@@ -264,11 +264,11 @@ defineFeature(snapshotFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item rateUsed should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].rateUsed).toBe(value);
+    and(/^the item presentationRate should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationRate).toBe(value);
     });
-    and(/^the item baseAmount should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].baseAmount).toBe(value);
+    and(/^the item presentationAmount should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationAmount).toBe(value);
     });
   });
 
@@ -309,11 +309,11 @@ defineFeature(snapshotFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item rateUsed should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].rateUsed).toBe(value);
+    and(/^the item presentationRate should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationRate).toBe(value);
     });
-    and(/^the item baseAmount should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].baseAmount).toBe(value);
+    and(/^the item presentationAmount should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationAmount).toBe(value);
     });
   });
 
@@ -343,11 +343,11 @@ defineFeature(snapshotFeature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item rateUsed should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].rateUsed).toBe(value);
+    and(/^the item presentationRate should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationRate).toBe(value);
     });
-    and(/^the item baseAmount should be "(.*)"$/, (value: string) => {
-      expect(ctx.response.body.items[0].baseAmount).toBe(value);
+    and(/^the item presentationAmount should be "(.*)"$/, (value: string) => {
+      expect(ctx.response.body.items[0].presentationAmount).toBe(value);
     });
   });
 });

@@ -17,20 +17,20 @@ import {
 } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import {
-  UpdateBaseValueInput,
-  updateBaseValueSchema,
+  UpdatePresentationCurrencyInput,
+  updatePresentationCurrencySchema,
 } from '@marketlum/shared';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { SystemSettingsService } from './system-settings.service';
 import {
-  UpdateBaseValueDto,
-  SystemSettingsBaseValueResponseDto,
+  UpdatePresentationCurrencyDto,
+  SystemSettingsPresentationCurrencyResponseDto,
 } from './system-setting.dto';
 
 @ApiTags('system-settings')
 @ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
-@ApiExtraModels(SystemSettingsBaseValueResponseDto)
+@ApiExtraModels(SystemSettingsPresentationCurrencyResponseDto)
 @Controller('system-settings')
 @UseGuards(AdminGuard)
 export class SystemSettingsController {
@@ -38,22 +38,22 @@ export class SystemSettingsController {
     private readonly systemSettingsService: SystemSettingsService,
   ) {}
 
-  @Get('base-value')
-  @ApiOperation({ summary: 'Get the system base value setting' })
-  @ApiOkResponse({ type: SystemSettingsBaseValueResponseDto })
-  async getBaseValue() {
-    return this.systemSettingsService.getBaseValue();
+  @Get('presentation-currency')
+  @ApiOperation({ summary: 'Get the system presentation currency setting' })
+  @ApiOkResponse({ type: SystemSettingsPresentationCurrencyResponseDto })
+  async getPresentationCurrency() {
+    return this.systemSettingsService.getPresentationCurrency();
   }
 
-  @Put('base-value')
-  @ApiOperation({ summary: 'Set the system base value' })
-  @ApiBody({ type: UpdateBaseValueDto })
-  @ApiOkResponse({ type: SystemSettingsBaseValueResponseDto })
+  @Put('presentation-currency')
+  @ApiOperation({ summary: 'Set the system presentation currency' })
+  @ApiBody({ type: UpdatePresentationCurrencyDto })
+  @ApiOkResponse({ type: SystemSettingsPresentationCurrencyResponseDto })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  async setBaseValue(
-    @Body(new ZodValidationPipe(updateBaseValueSchema))
-    body: UpdateBaseValueInput,
+  async setPresentationCurrency(
+    @Body(new ZodValidationPipe(updatePresentationCurrencySchema))
+    body: UpdatePresentationCurrencyInput,
   ) {
-    return this.systemSettingsService.setBaseValue(body.baseValueId);
+    return this.systemSettingsService.setPresentationCurrency(body.presentationCurrencyId);
   }
 }

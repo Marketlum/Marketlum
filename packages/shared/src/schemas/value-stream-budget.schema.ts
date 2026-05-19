@@ -40,7 +40,7 @@ export const valueStreamBudgetResponseSchema = z.object({
   valueStreamId: z.string().uuid(),
   year: z.number().int(),
   directOnly: z.boolean(),
-  baseValue: valueSummarySchema.nullable(),
+  presentationCurrency: valueSummarySchema.nullable(),
   summary: z.object({
     revenue: figureSchema,
     expense: figureSchema,

@@ -84,13 +84,13 @@ export const exchangeRateLookupResponseSchema = z.object({
 
 // --- System settings ---
 
-export const updateBaseValueSchema = z.object({
-  baseValueId: z.string().uuid().nullable(),
+export const updatePresentationCurrencySchema = z.object({
+  presentationCurrencyId: z.string().uuid().nullable(),
 });
 
-export const systemSettingsBaseValueResponseSchema = z.object({
-  baseValueId: z.string().uuid().nullable(),
-  baseValue: valueSummarySchema.nullable(),
+export const systemSettingsPresentationCurrencyResponseSchema = z.object({
+  presentationCurrencyId: z.string().uuid().nullable(),
+  presentationCurrency: valueSummarySchema.nullable(),
   snapshotsExist: z.boolean(),
 });
 
@@ -100,7 +100,7 @@ export type ExchangeRateQuery = z.infer<typeof exchangeRateQuerySchema>;
 export type ExchangeRateResponse = z.infer<typeof exchangeRateResponseSchema>;
 export type ExchangeRateLookupQuery = z.infer<typeof exchangeRateLookupQuerySchema>;
 export type ExchangeRateLookupResponse = z.infer<typeof exchangeRateLookupResponseSchema>;
-export type UpdateBaseValueInput = z.infer<typeof updateBaseValueSchema>;
-export type SystemSettingsBaseValueResponse = z.infer<
-  typeof systemSettingsBaseValueResponseSchema
+export type UpdatePresentationCurrencyInput = z.infer<typeof updatePresentationCurrencySchema>;
+export type SystemSettingsPresentationCurrencyResponse = z.infer<
+  typeof systemSettingsPresentationCurrencyResponseSchema
 >;

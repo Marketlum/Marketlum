@@ -101,6 +101,25 @@ export class AgentsController {
     return this.agentsService.findOne(id);
   }
 
+  @Get(':id/snapshot-references')
+  @ApiOperation({
+    summary: 'Count snapshot rows that reference this agent in either perspective',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        invoiceItems: { type: 'integer' },
+        recurringFlows: { type: 'integer' },
+      },
+    },
+  })
+  @ApiNotFoundResponse({ description: 'Agent not found' })
+  async snapshotReferences(@Param('id') id: string) {
+    return this.agentsService.getSnapshotReferences(id);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update an agent' })
   @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })

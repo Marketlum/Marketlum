@@ -45,6 +45,7 @@ import { AddAgentAddresses1700000000043 } from './1700000000043-AddAgentAddresse
 import { AddAddressLatLng1700000000044 } from './1700000000044-AddAddressLatLng';
 import { AddCurrencyValueType1700000000045 } from './1700000000045-AddCurrencyValueType';
 import { AddEntityCodes1700000000046 } from './1700000000046-AddEntityCodes';
+import { AddFunctionalCurrency1700000000047 } from './1700000000047-AddFunctionalCurrency';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -94,4 +95,5 @@ export const ALL_MIGRATIONS = [
   AddAddressLatLng1700000000044,
   AddCurrencyValueType1700000000045,
   AddEntityCodes1700000000046,
+  AddFunctionalCurrency1700000000047,
 ];

@@ -4,7 +4,7 @@ Feature: Value stream budget
     Given I am authenticated as "admin@marketlum.com"
     And a value exists named "USD"
     And a value exists named "EUR"
-    And the system base value is "USD"
+    And the system presentation currency is "USD"
     And an exchange rate exists from "USD" to "EUR" with rate "2"
     And a value stream exists named "Platform"
 
@@ -69,7 +69,7 @@ Feature: Value stream budget
     And the budget monthly should equal annual divided by 12
     And the budget quarterly should equal annual divided by 4
 
-  Scenario: Missing baseAmount snapshots increment skippedFlows
+  Scenario: Missing presentationAmount snapshots increment skippedFlows
     Given a value exists named "GBP"
     And an active recurring flow exists on "Platform" with value "GBP" direction "inbound" amount "1000" frequency "monthly" starting "2026-01-01"
     When I request the budget for "Platform" for year 2026
@@ -77,7 +77,7 @@ Feature: Value stream budget
     And the budget skippedFlows should be 1
     And the budget annual revenue should be "0.00"
 
-  Scenario: Multi-currency flows convert via baseAmount snapshot
+  Scenario: Multi-currency flows convert via presentationAmount snapshot
     Given an active recurring flow exists on "Platform" with value "USD" direction "inbound" amount "1000" frequency "monthly" starting "2026-01-01"
     And an active recurring flow exists on "Platform" with value "EUR" direction "outbound" amount "200" frequency "monthly" starting "2026-01-01"
     When I request the budget for "Platform" for year 2026
@@ -87,10 +87,10 @@ Feature: Value stream budget
     And the budget annual net should be "10800.00"
 
   Scenario: Missing base value returns null totals
-    Given the system base value is cleared
+    Given the system presentation currency is cleared
     When I request the budget for "Platform" for year 2026
     Then the response status should be 200
-    And the budget baseValue should be null
+    And the budget presentationCurrency should be null
     And the budget annual revenue should be null
 
   Scenario: Unauthenticated user cannot fetch the budget

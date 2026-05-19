@@ -18,23 +18,29 @@ import {
   UpdateInvoiceInput,
   PaginationQuery,
   convertAmount,
-  formatBaseAmount,
+  formatPresentationAmount,
+  IDENTITY_RATE,
 } from '@marketlum/shared';
 import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { SystemSettingsService } from '../system-settings/system-settings.service';
-
-interface InvoiceItemWithBase {
-  invoiceItem: InvoiceItem;
-}
 
 interface SnapshotInput {
   nativeValueId: string | null;
   nativeAmount: string;
 }
 
-interface Snapshot {
-  rateUsed: string | null;
-  baseAmount: string | null;
+interface PerspectiveSnapshot {
+  rate: string | null;
+  amount: string | null;
+}
+
+interface InvoiceItemSnapshot {
+  presentationRate: string | null;
+  presentationAmount: string | null;
+  fromAgentRate: string | null;
+  fromAgentAmount: string | null;
+  toAgentRate: string | null;
+  toAgentAmount: string | null;
 }
 
 @Injectable()
@@ -60,26 +66,55 @@ export class InvoicesService {
     private readonly systemSettingsService: SystemSettingsService,
   ) {}
 
-  private async snapshot(input: SnapshotInput, at: Date = new Date()): Promise<Snapshot> {
-    if (input.nativeValueId === null) return { rateUsed: null, baseAmount: null };
-    const baseValueId = await this.systemSettingsService.getBaseValueId();
-    if (!baseValueId) return { rateUsed: null, baseAmount: null };
-    if (input.nativeValueId === baseValueId) {
-      return {
-        rateUsed: '1.0000000000',
-        baseAmount: formatBaseAmount(input.nativeAmount),
-      };
+  private async snapshotPerspective(
+    sourceCurrencyId: string | null,
+    targetCurrencyId: string | null,
+    nativeAmount: string,
+    at: Date,
+  ): Promise<PerspectiveSnapshot> {
+    if (!sourceCurrencyId || !targetCurrencyId) return { rate: null, amount: null };
+    if (sourceCurrencyId === targetCurrencyId) {
+      return { rate: IDENTITY_RATE, amount: formatPresentationAmount(nativeAmount) };
     }
     const lookup = await this.exchangeRatesService.lookup(
-      input.nativeValueId,
-      baseValueId,
+      sourceCurrencyId,
+      targetCurrencyId,
       at,
     );
-    if (!lookup) return { rateUsed: null, baseAmount: null };
+    if (!lookup) return { rate: null, amount: null };
+    return { rate: lookup.rate, amount: convertAmount(nativeAmount, lookup.rate) };
+  }
+
+  private async snapshotItem(
+    sourceCurrencyId: string,
+    nativeAmount: string,
+    fromAgentCurrencyId: string | null,
+    toAgentCurrencyId: string | null,
+    at: Date,
+  ): Promise<InvoiceItemSnapshot> {
+    const presentationCurrencyId =
+      await this.systemSettingsService.getPresentationCurrencyId();
+    const [presentation, fromAgent, toAgent] = await Promise.all([
+      this.snapshotPerspective(sourceCurrencyId, presentationCurrencyId, nativeAmount, at),
+      this.snapshotPerspective(sourceCurrencyId, fromAgentCurrencyId, nativeAmount, at),
+      this.snapshotPerspective(sourceCurrencyId, toAgentCurrencyId, nativeAmount, at),
+    ]);
     return {
-      rateUsed: lookup.rate,
-      baseAmount: convertAmount(input.nativeAmount, lookup.rate),
+      presentationRate: presentation.rate,
+      presentationAmount: presentation.amount,
+      fromAgentRate: fromAgent.rate,
+      fromAgentAmount: fromAgent.amount,
+      toAgentRate: toAgent.rate,
+      toAgentAmount: toAgent.amount,
     };
+  }
+
+  private async resolveAgentCurrency(agentId: string): Promise<string | null> {
+    const agent = await this.agentRepository.findOne({
+      where: { id: agentId },
+      select: ['id', 'functionalCurrencyId'],
+    });
+    return agent?.functionalCurrencyId ?? null;
   }
 
   async create(input: CreateInvoiceInput): Promise<Invoice> {
@@ -309,23 +344,37 @@ export class InvoicesService {
       throw new NotFoundException('Invoice not found');
     }
 
-    // Compute total + baseTotal from items
+    // Compute total + per-perspective totals from items
     const result = await this.invoiceRepository.query(
       `SELECT
          COALESCE(SUM(total), 0) AS total,
          COUNT(*) AS item_count,
-         COUNT("baseAmount") AS base_amount_count,
-         COALESCE(SUM("baseAmount"), 0) AS base_total
+         COUNT("presentationAmount") AS presentation_amount_count,
+         COALESCE(SUM("presentationAmount"), 0) AS presentation_total,
+         COUNT("fromAgentAmount") AS from_agent_amount_count,
+         COALESCE(SUM("fromAgentAmount"), 0) AS from_agent_total,
+         COUNT("toAgentAmount") AS to_agent_amount_count,
+         COALESCE(SUM("toAgentAmount"), 0) AS to_agent_total
        FROM invoice_items WHERE "invoiceId" = $1`,
       [id],
     );
     invoice.total = Number(result[0].total).toFixed(2);
     const itemCount = Number(result[0].item_count);
-    const baseAmountCount = Number(result[0].base_amount_count);
-    (invoice as Invoice & { baseTotal?: string | null }).baseTotal =
-      itemCount === 0 || baseAmountCount < itemCount
+    const presentationCount = Number(result[0].presentation_amount_count);
+    const fromAgentCount = Number(result[0].from_agent_amount_count);
+    const toAgentCount = Number(result[0].to_agent_amount_count);
+    invoice.presentationTotal =
+      itemCount === 0 || presentationCount < itemCount
         ? null
-        : Number(result[0].base_total).toFixed(2);
+        : Number(result[0].presentation_total).toFixed(2);
+    invoice.fromAgentTotal =
+      itemCount === 0 || fromAgentCount < itemCount
+        ? null
+        : Number(result[0].from_agent_total).toFixed(2);
+    invoice.toAgentTotal =
+      itemCount === 0 || toAgentCount < itemCount
+        ? null
+        : Number(result[0].to_agent_total).toFixed(2);
 
     return invoice;
   }
@@ -492,13 +541,23 @@ export class InvoicesService {
       }
     }
 
+    const invoice = await this.invoiceRepository.findOne({ where: { id: invoiceId } });
+    if (!invoice) throw new NotFoundException('Invoice not found');
+    const [fromAgentCurrencyId, toAgentCurrencyId] = await Promise.all([
+      this.resolveAgentCurrency(invoice.fromAgentId),
+      this.resolveAgentCurrency(invoice.toAgentId),
+    ]);
+
     // Bulk create new items, snapshotting each against the invoice currency
     const entities: InvoiceItem[] = [];
     for (const item of items) {
-      const snap = await this.snapshot({
-        nativeValueId: currencyId,
-        nativeAmount: item.total,
-      });
+      const snap = await this.snapshotItem(
+        currencyId,
+        item.total,
+        fromAgentCurrencyId,
+        toAgentCurrencyId,
+        invoice.issuedAt,
+      );
       entities.push(
         this.itemRepository.create({
           invoiceId,
@@ -507,8 +566,7 @@ export class InvoicesService {
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.total,
-          rateUsed: snap.rateUsed,
-          baseAmount: snap.baseAmount,
+          ...snap,
         }),
       );
     }
@@ -518,13 +576,26 @@ export class InvoicesService {
   private async resnapshotItems(invoiceId: string, currencyId: string): Promise<void> {
     const items = await this.itemRepository.find({ where: { invoiceId } });
     if (items.length === 0) return;
+    const invoice = await this.invoiceRepository.findOne({ where: { id: invoiceId } });
+    if (!invoice) throw new NotFoundException('Invoice not found');
+    const [fromAgentCurrencyId, toAgentCurrencyId] = await Promise.all([
+      this.resolveAgentCurrency(invoice.fromAgentId),
+      this.resolveAgentCurrency(invoice.toAgentId),
+    ]);
     for (const item of items) {
-      const snap = await this.snapshot({
-        nativeValueId: currencyId,
-        nativeAmount: item.total,
-      });
-      item.rateUsed = snap.rateUsed;
-      item.baseAmount = snap.baseAmount;
+      const snap = await this.snapshotItem(
+        currencyId,
+        item.total,
+        fromAgentCurrencyId,
+        toAgentCurrencyId,
+        invoice.issuedAt,
+      );
+      item.presentationRate = snap.presentationRate;
+      item.presentationAmount = snap.presentationAmount;
+      item.fromAgentRate = snap.fromAgentRate;
+      item.fromAgentAmount = snap.fromAgentAmount;
+      item.toAgentRate = snap.toAgentRate;
+      item.toAgentAmount = snap.toAgentAmount;
     }
     await this.itemRepository.save(items);
   }

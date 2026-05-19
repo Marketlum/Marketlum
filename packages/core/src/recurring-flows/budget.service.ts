@@ -50,21 +50,22 @@ export class RecurringFlowsBudgetService {
       },
     });
 
-    const baseValueId = await this.systemSettingsService.getBaseValueId();
-    const baseValue = baseValueId
-      ? await this.valueRepository.findOne({ where: { id: baseValueId } })
+    const presentationCurrencyId =
+      await this.systemSettingsService.getPresentationCurrencyId();
+    const presentationCurrency = presentationCurrencyId
+      ? await this.valueRepository.findOne({ where: { id: presentationCurrencyId } })
       : null;
 
     const monthKey = (m: number) =>
       `${query.year}-${String(m).padStart(2, '0')}`;
     const quarterKey = (q: number) => `${query.year}-Q${q}`;
 
-    if (!baseValueId || !baseValue) {
+    if (!presentationCurrencyId || !presentationCurrency) {
       return {
         valueStreamId,
         year: query.year,
         directOnly: query.directOnly,
-        baseValue: null,
+        presentationCurrency: null,
         summary: {
           revenue: { monthly: null, quarterly: null, annual: null },
           expense: { monthly: null, quarterly: null, annual: null },
@@ -83,7 +84,7 @@ export class RecurringFlowsBudgetService {
           net: null,
         })),
         activeFlowCount: flows.length,
-        skippedFlows: flows.filter((f) => f.baseAmount === null).length,
+        skippedFlows: flows.filter((f) => f.presentationAmount === null).length,
       };
     }
 
@@ -94,11 +95,11 @@ export class RecurringFlowsBudgetService {
     let skippedFlows = 0;
 
     for (const flow of flows) {
-      if (flow.baseAmount === null) {
+      if (flow.presentationAmount === null) {
         skippedFlows++;
         continue;
       }
-      const baseAmount = Number(flow.baseAmount);
+      const presentationAmount = Number(flow.presentationAmount);
       for (let m = 1; m <= 12; m++) {
         const count = occurrencesInMonth(
           {
@@ -110,7 +111,7 @@ export class RecurringFlowsBudgetService {
           { year: query.year, month: m },
         );
         if (count === 0) continue;
-        const contribution = baseAmount * count;
+        const contribution = presentationAmount * count;
         if (flow.direction === RecurringFlowDirection.INBOUND) {
           months[m - 1].revenue += contribution;
         } else {
@@ -164,7 +165,7 @@ export class RecurringFlowsBudgetService {
       valueStreamId,
       year: query.year,
       directOnly: query.directOnly,
-      baseValue: { id: baseValue.id, name: baseValue.name, code: baseValue.code },
+      presentationCurrency: { id: presentationCurrency.id, name: presentationCurrency.name, code: presentationCurrency.code },
       summary,
       byMonth,
       byQuarter,

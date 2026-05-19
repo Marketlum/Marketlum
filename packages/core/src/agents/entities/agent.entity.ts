@@ -14,6 +14,7 @@ import { AgentType } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 import { File } from '../../files/entities/file.entity';
 import { Address } from '../addresses/entities/address.entity';
+import { Value } from '../../values/entities/value.entity';
 
 @Entity('agents')
 export class Agent {
@@ -53,6 +54,13 @@ export class Agent {
 
   @OneToMany(() => Address, (address) => address.agent)
   addresses: Address[];
+
+  @ManyToOne(() => Value, { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'functionalCurrencyId' })
+  functionalCurrency: Value | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  functionalCurrencyId: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,10 +1,11 @@
 import { AgentsService } from '../../agents/agents.service';
 import { AddressesService } from '../../agents/addresses/addresses.service';
-import { AgentType } from '@marketlum/shared';
+import { AgentType, CreateAgentInput } from '@marketlum/shared';
 
 interface AgentDeps {
   taxonomies: { all: Array<{ id: string }> };
   countries: Array<{ id: string; name: string }>;
+  functionalCurrencyByAgentName?: Record<string, string>;
 }
 
 const AGENTS = [
@@ -66,7 +67,8 @@ export async function seedAgents(
       type: agentData.type,
       purpose: agentData.purpose,
       mainTaxonomyId: taxonomy.id,
-    });
+      functionalCurrencyId: deps.functionalCurrencyByAgentName?.[agentData.name],
+    } as unknown as CreateAgentInput);
     agents.push({ id: agent.id, name: agent.name, type: agentData.type });
 
     const addresses = ADDRESSES[agentData.name] ?? [];

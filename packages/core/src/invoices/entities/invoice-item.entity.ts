@@ -45,8 +45,20 @@ export class InvoiceItem {
   total: string;
 
   @Column({ type: 'decimal', precision: 20, scale: 10, nullable: true })
-  rateUsed: string | null;
+  presentationRate: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  baseAmount: string | null;
+  presentationAmount: string | null;
+
+  @Column({ type: 'decimal', precision: 20, scale: 10, nullable: true })
+  fromAgentRate: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  fromAgentAmount: string | null;
+
+  @Column({ type: 'decimal', precision: 20, scale: 10, nullable: true })
+  toAgentRate: string | null;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  toAgentAmount: string | null;
 }

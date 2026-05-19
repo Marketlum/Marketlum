@@ -7,11 +7,11 @@ interface ValueRef {
 
 export async function seedSystemSettings(
   service: SystemSettingsService,
-  deps: { values: ValueRef[]; baseValueName?: string },
+  deps: { values: ValueRef[]; presentationCurrencyName?: string },
 ) {
-  const baseValueName = deps.baseValueName ?? 'USD';
-  const base = deps.values.find((v) => v.name === baseValueName);
-  if (!base) return null;
-  await service.setBaseValue(base.id);
-  return { baseValueId: base.id };
+  const presentationCurrencyName = deps.presentationCurrencyName ?? 'USD';
+  const presentationCurrency = deps.values.find((v) => v.name === presentationCurrencyName);
+  if (!presentationCurrency) return null;
+  await service.setPresentationCurrency(presentationCurrency.id);
+  return { presentationCurrencyId: presentationCurrency.id };
 }

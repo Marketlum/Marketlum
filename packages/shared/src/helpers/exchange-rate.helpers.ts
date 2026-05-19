@@ -1,5 +1,5 @@
 export const EXCHANGE_RATE_PRECISION = 10;
-export const BASE_AMOUNT_PRECISION = 2;
+export const PRESENTATION_AMOUNT_PRECISION = 2;
 
 export interface CanonicalisedRate {
   fromValueId: string;
@@ -35,13 +35,13 @@ export function convertAmount(amount: string, rate: string): string {
   if (!Number.isFinite(product)) {
     throw new Error(`Conversion produced non-finite result: ${amount} × ${rate}`);
   }
-  return product.toFixed(BASE_AMOUNT_PRECISION);
+  return product.toFixed(PRESENTATION_AMOUNT_PRECISION);
 }
 
 export function formatRate(rate: string): string {
   return Number(rate).toFixed(EXCHANGE_RATE_PRECISION);
 }
 
-export function formatBaseAmount(amount: string): string {
-  return Number(amount).toFixed(BASE_AMOUNT_PRECISION);
+export function formatPresentationAmount(amount: string): string {
+  return Number(amount).toFixed(PRESENTATION_AMOUNT_PRECISION);
 }

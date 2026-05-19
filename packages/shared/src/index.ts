@@ -340,16 +340,16 @@ export {
   exchangeRateResponseSchema,
   exchangeRateLookupQuerySchema,
   exchangeRateLookupResponseSchema,
-  updateBaseValueSchema,
-  systemSettingsBaseValueResponseSchema,
+  updatePresentationCurrencySchema,
+  systemSettingsPresentationCurrencyResponseSchema,
   type CreateExchangeRateInput,
   type UpdateExchangeRateInput,
   type ExchangeRateQuery,
   type ExchangeRateResponse,
   type ExchangeRateLookupQuery,
   type ExchangeRateLookupResponse,
-  type UpdateBaseValueInput,
-  type SystemSettingsBaseValueResponse,
+  type UpdatePresentationCurrencyInput,
+  type SystemSettingsPresentationCurrencyResponse,
 } from './schemas/exchange-rate.schema';
 
 export {
@@ -357,11 +357,23 @@ export {
   invertRate,
   convertAmount,
   formatRate,
-  formatBaseAmount,
+  formatPresentationAmount,
   EXCHANGE_RATE_PRECISION,
-  BASE_AMOUNT_PRECISION,
+  PRESENTATION_AMOUNT_PRECISION,
   type CanonicalisedRate,
 } from './helpers/exchange-rate.helpers';
+
+export {
+  mapRecurringFlowAgents,
+  isIdentityConversion,
+  IDENTITY_RATE,
+  type AgentSnapshotMapping,
+} from './helpers/snapshot.helpers';
+
+export {
+  agentSnapshotReferencesResponseSchema,
+  type AgentSnapshotReferencesResponse,
+} from './schemas/agent.schema';
 
 export {
   valueStreamBudgetQuerySchema,
