@@ -21,4 +21,5 @@ export interface DashboardSummaryResponse {
   totalExpenses: string;
   invoiceCount: number;
   timeSeries: DashboardTimeSeriesPoint[];
+  notConvertedCount: number;
 }

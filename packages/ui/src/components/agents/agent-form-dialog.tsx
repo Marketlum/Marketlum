@@ -10,8 +10,10 @@ import {
   createAgentSchema,
   updateAgentSchema,
   AgentType,
+  ValueType,
   type CreateAgentInput,
   type AgentResponse,
+  type AgentSnapshotReferencesResponse,
   type TaxonomyResponse,
   type FileResponse,
 } from '@marketlum/shared';
@@ -36,6 +38,7 @@ import {
 import { TaxonomyTreeSelect } from '../shared/taxonomy-tree-select';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { useTaxonomyTree } from '../../hooks/use-taxonomy-tree';
+import { useValues } from '../../hooks/use-values';
 import { api } from '../../lib/api-client';
 import { ImageLibraryDialog } from './image-library-dialog';
 
@@ -103,6 +106,29 @@ export function AgentFormDialog({
   const typeValue = watch('type');
   const mainTaxonomyIdValue = watch('mainTaxonomyId');
   const taxonomyIdsValue = watch('taxonomyIds') ?? [];
+  const functionalCurrencyIdValue = watch('functionalCurrencyId');
+  const { values: allValues } = useValues(open);
+  const currencyOptions = allValues.filter((v) => v.type === ValueType.CURRENCY);
+  const originalFunctionalCurrencyId = agent?.functionalCurrency?.id ?? null;
+  const [snapshotRefs, setSnapshotRefs] = useState<AgentSnapshotReferencesResponse | null>(null);
+
+  useEffect(() => {
+    if (open && agent) {
+      api
+        .get<AgentSnapshotReferencesResponse>(`/agents/${agent.id}/snapshot-references`)
+        .then(setSnapshotRefs)
+        .catch(() => setSnapshotRefs(null));
+    } else {
+      setSnapshotRefs(null);
+    }
+  }, [open, agent]);
+
+  const showCurrencyChangeWarning =
+    isEditing &&
+    functionalCurrencyIdValue !== undefined &&
+    functionalCurrencyIdValue !== originalFunctionalCurrencyId &&
+    snapshotRefs !== null &&
+    snapshotRefs.invoiceItems + snapshotRefs.recurringFlows > 0;
 
   useEffect(() => {
     if (open) {
@@ -114,6 +140,7 @@ export function AgentFormDialog({
           mainTaxonomyId: agent.mainTaxonomy?.id ?? null,
           taxonomyIds: agent.taxonomies?.map((t) => t.id) ?? [],
           imageId: agent.image?.id ?? null,
+          functionalCurrencyId: agent.functionalCurrency?.id ?? null,
         });
         setImagePreview(
           agent.image
@@ -128,6 +155,7 @@ export function AgentFormDialog({
           mainTaxonomyId: null,
           taxonomyIds: [],
           imageId: null,
+          functionalCurrencyId: null,
         });
         setImagePreview(null);
       }
@@ -214,6 +242,35 @@ export function AgentFormDialog({
             <Input id="purpose" {...register('purpose')} />
             {errors.purpose && (
               <p className="text-sm text-destructive">{errors.purpose.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>{t('functionalCurrency')}</Label>
+            <Select
+              value={functionalCurrencyIdValue ?? '__none__'}
+              onValueChange={(v) =>
+                setValue('functionalCurrencyId', v === '__none__' ? null : v)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('selectFunctionalCurrency')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">—</SelectItem>
+                {currencyOptions.map((v) => (
+                  <SelectItem key={v.id} value={v.id}>
+                    {v.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {showCurrencyChangeWarning && snapshotRefs && (
+              <div className="rounded-md border border-yellow-400 bg-yellow-50 px-3 py-2 text-sm text-yellow-900">
+                {t('functionalCurrencyChangeWarning', {
+                  invoiceItems: snapshotRefs.invoiceItems,
+                  recurringFlows: snapshotRefs.recurringFlows,
+                })}
+              </div>
             )}
           </div>
 

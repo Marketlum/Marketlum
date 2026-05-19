@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type {
   ExchangeRateLookupResponse,
-  SystemSettingsBaseValueResponse,
+  SystemSettingsPresentationCurrencyResponse,
 } from '@marketlum/shared';
 import { convertAmount } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
@@ -17,7 +17,7 @@ interface ConversionPreviewProps {
 
 interface PreviewState {
   loading: boolean;
-  base: SystemSettingsBaseValueResponse | null;
+  base: SystemSettingsPresentationCurrencyResponse | null;
   rate: ExchangeRateLookupResponse | null;
   rateMissing: boolean;
 }
@@ -42,15 +42,15 @@ export function ConversionPreview({ valueId, amount }: ConversionPreviewProps) {
     setState((s) => ({ ...s, loading: true }));
     (async () => {
       try {
-        const base = await api.get<SystemSettingsBaseValueResponse>(
-          '/system-settings/base-value',
+        const base = await api.get<SystemSettingsPresentationCurrencyResponse>(
+          '/system-settings/presentation-currency',
         );
         if (cancelled) return;
-        if (!base.baseValueId) {
+        if (!base.presentationCurrencyId) {
           setState({ loading: false, base, rate: null, rateMissing: false });
           return;
         }
-        if (base.baseValueId === debouncedValueId) {
+        if (base.presentationCurrencyId === debouncedValueId) {
           // Native value is the base — show identity conversion
           setState({
             loading: false,
@@ -60,14 +60,14 @@ export function ConversionPreview({ valueId, amount }: ConversionPreviewProps) {
               sourceRowId: '',
               effectiveAt: new Date().toISOString(),
               fromValueId: debouncedValueId,
-              toValueId: base.baseValueId,
+              toValueId: base.presentationCurrencyId,
             },
             rateMissing: false,
           });
           return;
         }
         const rate = await api.get<ExchangeRateLookupResponse | null>(
-          `/exchange-rates/lookup?fromValueId=${debouncedValueId}&toValueId=${base.baseValueId}&at=${encodeURIComponent(new Date().toISOString())}`,
+          `/exchange-rates/lookup?fromValueId=${debouncedValueId}&toValueId=${base.presentationCurrencyId}&at=${encodeURIComponent(new Date().toISOString())}`,
         );
         if (cancelled) return;
         setState({
@@ -89,7 +89,7 @@ export function ConversionPreview({ valueId, amount }: ConversionPreviewProps) {
 
   if (!valueId) return null;
   if (state.loading) return null;
-  if (!state.base || !state.base.baseValueId) return null;
+  if (!state.base || !state.base.presentationCurrencyId) return null;
 
   if (state.rateMissing) {
     return (
@@ -102,7 +102,7 @@ export function ConversionPreview({ valueId, amount }: ConversionPreviewProps) {
   const amountNum = Number(debouncedAmount);
   if (!Number.isFinite(amountNum) || amountNum <= 0) return null;
   const baseAmount = convertAmount(debouncedAmount, state.rate.rate);
-  const baseName = state.base.baseValue?.name ?? '';
+  const baseName = state.base.presentationCurrency?.name ?? '';
   const effectiveAt = state.rate.effectiveAt.slice(0, 10);
 
   return (

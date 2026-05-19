@@ -15,7 +15,7 @@ export function BudgetEmptyStates({ budget, valueStreamId }: Props) {
   const t = useTranslations('valueStreamBudget');
   const banners: React.ReactNode[] = [];
 
-  if (budget.baseValue === null) {
+  if (budget.presentationCurrency === null) {
     banners.push(
       <div
         key="no-base"

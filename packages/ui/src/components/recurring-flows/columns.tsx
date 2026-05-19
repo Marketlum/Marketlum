@@ -140,7 +140,7 @@ export function getRecurringFlowColumns({
       header: translations.inBase,
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
-        const baseAmount = row.original.baseAmount;
+        const baseAmount = row.original.presentationAmount;
         if (baseAmount == null) {
           return <span className="text-muted-foreground italic" title={translations.noRate}>—</span>;
         }

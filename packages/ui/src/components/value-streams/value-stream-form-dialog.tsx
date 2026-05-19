@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { useUsers } from '../../hooks/use-users';
+import { useAgents } from '../../hooks/use-agents';
 import { ImageLibraryDialog } from '../agents/image-library-dialog';
 import { FileImagePreview } from '../shared/file-image-preview';
 
@@ -58,6 +59,7 @@ export function ValueStreamFormDialog({
   const t = useTranslations('valueStreams');
   const tc = useTranslations('common');
   const { users } = useUsers(open);
+  const { agents } = useAgents(open);
   const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ id: string; originalName: string; mimeType: string } | null>(null);
 
@@ -86,6 +88,7 @@ export function ValueStreamFormDialog({
           purpose: valueStream.purpose ?? '',
           leadUserId: valueStream.lead?.id ?? null,
           imageId: valueStream.image?.id ?? null,
+          agentId: valueStream.agent?.id ?? null,
         });
         setSelectedImage(
           valueStream.image
@@ -100,6 +103,7 @@ export function ValueStreamFormDialog({
           parentId: parentId ?? undefined,
           leadUserId: null,
           imageId: null,
+          agentId: null,
         });
         setSelectedImage(null);
       }
@@ -178,6 +182,26 @@ export function ValueStreamFormDialog({
                 {users.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
                     {u.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('owningAgent')}</Label>
+            <Select
+              value={watch('agentId') ?? 'none'}
+              onValueChange={(v) => setFormValue('agentId', v === 'none' ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('selectOwningAgent')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-</SelectItem>
+                {agents.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
                   </SelectItem>
                 ))}
               </SelectContent>

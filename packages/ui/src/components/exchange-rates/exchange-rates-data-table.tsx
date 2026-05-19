@@ -19,7 +19,7 @@ import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
 import { Button } from '../ui/button';
 import { getExchangeRateColumns } from './columns';
 import { ExchangeRateFormDialog } from './exchange-rate-form-dialog';
-import { BaseValuePicker } from './base-value-picker';
+import { PresentationCurrencyPicker } from './presentation-currency-picker';
 
 export function ExchangeRatesDataTable() {
   const pagination = usePagination({ sortBy: 'effectiveAt', sortOrder: 'DESC' });
@@ -113,7 +113,7 @@ export function ExchangeRatesDataTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <BaseValuePicker onChange={fetchData} />
+      <PresentationCurrencyPicker onChange={fetchData} />
 
       <div className="flex justify-end">
         <Button

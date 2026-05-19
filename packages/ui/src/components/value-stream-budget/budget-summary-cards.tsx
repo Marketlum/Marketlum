@@ -26,7 +26,7 @@ function netClass(value: string | null): string {
 
 export function BudgetSummaryCards({ budget }: Props) {
   const t = useTranslations('valueStreamBudget');
-  const currency = budget.baseValue?.name ?? '';
+  const currency = budget.presentationCurrency?.name ?? '';
 
   const periods: Period[] = ['monthly', 'quarterly', 'annual'];
 

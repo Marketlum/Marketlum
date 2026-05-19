@@ -18,11 +18,12 @@ export class DashboardService {
   async getSummary(query: DashboardQuery): Promise<DashboardSummaryResponse> {
     const { agentId, valueStreamId, channelId, fromDate, toDate } = query;
 
-    if (agentId) {
-      return this.getSummaryByAgent(agentId, valueStreamId, channelId, fromDate, toDate);
-    }
+    const summary = agentId
+      ? await this.getSummaryByAgent(agentId, valueStreamId, channelId, fromDate, toDate)
+      : await this.getSummaryAll(valueStreamId, channelId, fromDate, toDate);
 
-    return this.getSummaryAll(valueStreamId, channelId, fromDate, toDate);
+    const notConvertedCount = await this.getNotConvertedCount(query);
+    return { ...summary, notConvertedCount };
   }
 
   private async getSummaryByAgent(
@@ -86,7 +87,7 @@ export class DashboardService {
     const invoiceCount = revenueRows.reduce((s, r) => s + parseInt(r.count), 0) +
       expenseRows.reduce((s, r) => s + parseInt(r.count), 0);
 
-    return { totalRevenue, totalExpenses, invoiceCount, timeSeries };
+    return { totalRevenue, totalExpenses, invoiceCount, timeSeries, notConvertedCount: 0 };
   }
 
   private async getSummaryAll(
@@ -113,6 +114,7 @@ export class DashboardService {
       totalExpenses: '0.00',
       invoiceCount,
       timeSeries,
+      notConvertedCount: 0,
     };
   }
 
@@ -157,8 +159,9 @@ export class DashboardService {
     const sql = `
       SELECT
         TO_CHAR(i."issuedAt", 'YYYY-MM') AS period,
-        COALESCE(SUM(ii.total), 0) AS amount,
-        COUNT(DISTINCT i.id) AS count
+        COALESCE(SUM(ii."presentationAmount"), 0) AS amount,
+        COUNT(DISTINCT i.id) AS count,
+        COUNT(*) FILTER (WHERE ii."presentationAmount" IS NULL) AS not_converted
       FROM invoices i
       LEFT JOIN invoice_items ii ON ii."invoiceId" = i.id
       WHERE ${where}
@@ -167,5 +170,47 @@ export class DashboardService {
     `;
 
     return this.invoiceRepository.query(sql, params);
+  }
+
+  async getNotConvertedCount(query: DashboardQuery): Promise<number> {
+    const { agentId, valueStreamId, channelId, fromDate, toDate } = query;
+    const conditions: string[] = [`ii."presentationAmount" IS NULL`];
+    const params: string[] = [];
+    let paramIndex = 1;
+
+    if (agentId) {
+      conditions.push(`(i."fromAgentId" = $${paramIndex} OR i."toAgentId" = $${paramIndex})`);
+      params.push(agentId);
+      paramIndex++;
+    }
+    if (valueStreamId) {
+      conditions.push(`i."valueStreamId" = $${paramIndex}`);
+      params.push(valueStreamId);
+      paramIndex++;
+    }
+    if (channelId) {
+      conditions.push(`i."channelId" = $${paramIndex}`);
+      params.push(channelId);
+      paramIndex++;
+    }
+    if (fromDate) {
+      conditions.push(`i."issuedAt" >= $${paramIndex}`);
+      params.push(fromDate);
+      paramIndex++;
+    }
+    if (toDate) {
+      conditions.push(`i."issuedAt" < ($${paramIndex}::date + interval '1 day')`);
+      params.push(toDate);
+      paramIndex++;
+    }
+
+    const sql = `
+      SELECT COUNT(*) AS count
+      FROM invoices i
+      JOIN invoice_items ii ON ii."invoiceId" = i.id
+      WHERE ${conditions.join(' AND ')}
+    `;
+    const rows = await this.invoiceRepository.query(sql, params);
+    return Number(rows[0]?.count ?? 0);
   }
 }

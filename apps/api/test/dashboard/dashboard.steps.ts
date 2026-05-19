@@ -32,8 +32,16 @@ async function createValue(authCookie: string, name: string): Promise<string> {
     .post('/values')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({ name, type: 'product' });
+    .send({ name, type: 'currency' });
   valueIds.set(name, res.body.id);
+  // Configure this value as the system presentation currency so invoice items
+  // denominated in it snapshot at the identity rate and contribute to dashboard
+  // aggregations (which now sum presentationAmount, not total).
+  await request(getApp().getHttpServer())
+    .put('/system-settings/presentation-currency')
+    .set('Cookie', [authCookie])
+    .set('X-CSRF-Protection', '1')
+    .send({ presentationCurrencyId: res.body.id });
   return res.body.id;
 }
 

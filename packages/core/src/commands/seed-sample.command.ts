@@ -164,6 +164,25 @@ export class SeedSampleCommand extends CommandRunner {
     const values = await seedValues(this.valuesService, { taxonomies, agents, valueStreams });
     this.logger.log(`  Created ${values.length} values`);
 
+    // Assign distinct functional currencies to the seeded agents so the
+    // sample dataset exercises the per-agent snapshot path end-to-end.
+    const usd = values.find((v) => v.name === 'USD');
+    const eur = values.find((v) => v.name === 'EUR');
+    if (usd && eur) {
+      const functionalCurrencyByAgentName: Record<string, string> = {
+        'Acme Corp': eur.id,
+        'TechNova Solutions': usd.id,
+        'GreenLeaf Partners': eur.id,
+      };
+      for (const agent of agents) {
+        const currencyId = functionalCurrencyByAgentName[agent.name];
+        if (currencyId) {
+          await this.agentsService.update(agent.id, { functionalCurrencyId: currencyId });
+        }
+      }
+      this.logger.log('  Assigned functional currencies to seeded agents');
+    }
+
     this.logger.log('Seeding agreements...');
     const agreements = await seedAgreements(this.agreementsService, {
       agents,

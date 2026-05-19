@@ -20,13 +20,13 @@ interface InvoiceRow {
   dueAt: string;
   currency: { id: string; name: string } | null;
   total?: string;
-  baseTotal?: string | null;
+  presentationTotal?: string | null;
   paid: boolean;
   link: string | null;
   file: unknown;
   valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
-  items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string; rateUsed: string | null; baseAmount: string | null }[];
+  items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string; presentationRate: string | null; presentationAmount: string | null }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -39,7 +39,7 @@ interface InvoiceColumnsTranslations {
   dueAt: string;
   currency: string;
   total: string;
-  inBase: string;
+  inPresentation: string;
   noRate: string;
   paid: string;
   paidYes: string;
@@ -120,15 +120,22 @@ export function getInvoiceColumns({
       cell: ({ row }) => row.original.total ?? '0.00',
     },
     {
-      id: 'baseTotal',
-      header: translations.inBase,
+      id: 'presentationTotal',
+      header: translations.inPresentation,
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
-        const baseTotal = row.original.baseTotal;
-        if (baseTotal == null) {
-          return <span className="text-muted-foreground italic" title={translations.noRate}>—</span>;
+        const presentationTotal = row.original.presentationTotal;
+        if (presentationTotal == null) {
+          return (
+            <span
+              className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-900"
+              title={translations.noRate}
+            >
+              {translations.noRate}
+            </span>
+          );
         }
-        return <span className="text-muted-foreground">≈ {baseTotal}</span>;
+        return <span className="text-muted-foreground">≈ {presentationTotal}</span>;
       },
     },
     {

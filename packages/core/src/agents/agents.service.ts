@@ -172,6 +172,7 @@ export class AgentsService {
         agent.functionalCurrencyId = null;
       } else {
         await this.assertCurrencyValue(functionalCurrencyId);
+        agent.functionalCurrency = null;
         agent.functionalCurrencyId = functionalCurrencyId;
       }
     }

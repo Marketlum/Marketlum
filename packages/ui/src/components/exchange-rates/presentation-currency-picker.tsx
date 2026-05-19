@@ -4,19 +4,19 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
-import type { SystemSettingsBaseValueResponse } from '@marketlum/shared';
+import type { SystemSettingsPresentationCurrencyResponse } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { ValueCombobox } from '../shared/value-combobox';
 import { useValues } from '../../hooks/use-values';
 
-interface BaseValuePickerProps {
+interface PresentationCurrencyPickerProps {
   onChange?: () => void;
 }
 
-export function BaseValuePicker({ onChange }: BaseValuePickerProps) {
+export function PresentationCurrencyPicker({ onChange }: PresentationCurrencyPickerProps) {
   const t = useTranslations('exchangeRates');
   const { values } = useValues();
-  const [setting, setSetting] = useState<SystemSettingsBaseValueResponse | null>(
+  const [setting, setSetting] = useState<SystemSettingsPresentationCurrencyResponse | null>(
     null,
   );
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export function BaseValuePicker({ onChange }: BaseValuePickerProps) {
   const refresh = async () => {
     try {
       const result =
-        await api.get<SystemSettingsBaseValueResponse>('/system-settings/base-value');
+        await api.get<SystemSettingsPresentationCurrencyResponse>('/system-settings/presentation-currency');
       setSetting(result);
     } catch {
       // Silent — caller may still see no base
@@ -37,12 +37,12 @@ export function BaseValuePicker({ onChange }: BaseValuePickerProps) {
 
   const handleSelect = async (id: string | null) => {
     if (!setting) return;
-    if (id === setting.baseValueId) return;
+    if (id === setting.presentationCurrencyId) return;
     setLoading(true);
     try {
-      const result = await api.put<SystemSettingsBaseValueResponse>(
-        '/system-settings/base-value',
-        { baseValueId: id },
+      const result = await api.put<SystemSettingsPresentationCurrencyResponse>(
+        '/system-settings/presentation-currency',
+        { presentationCurrencyId: id },
       );
       setSetting(result);
       toast.success(t('baseValueUpdated'));
@@ -66,7 +66,7 @@ export function BaseValuePicker({ onChange }: BaseValuePickerProps) {
         <div className="min-w-[16rem]">
           <ValueCombobox
             values={values}
-            value={setting.baseValueId}
+            value={setting.presentationCurrencyId}
             onSelect={(id) => {
               if (!locked && !loading) handleSelect(id);
             }}

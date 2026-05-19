@@ -145,6 +145,11 @@ export function Dashboard() {
         <p className="text-sm text-muted-foreground">{t('loading')}</p>
       ) : data ? (
         <>
+          {data.notConvertedCount > 0 && (
+            <div className="rounded-md border border-yellow-400 bg-yellow-50 px-3 py-2 text-sm text-yellow-900">
+              {t('notConvertedWarning', { count: data.notConvertedCount })}
+            </div>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-lg border p-4">
               <div className="text-xs text-muted-foreground">{t('totalRevenue')}</div>
