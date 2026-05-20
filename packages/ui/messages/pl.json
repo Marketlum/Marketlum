@@ -848,7 +848,16 @@
     "updatedAt": "Zaktualizowano",
     "notFound": "Nie znaleziono faktury",
     "notFoundDescription": "Szukana faktura nie istnieje.",
-    "backToInvoices": "Powrót do faktur"
+    "backToInvoices": "Powrót do faktur",
+    "invoiceHeading": "Faktura",
+    "billedBy": "Wystawca",
+    "billTo": "Odbiorca",
+    "print": "Drukuj",
+    "noItems": "Ta faktura nie ma pozycji.",
+    "inAgentBooks": "W księgach {name}",
+    "inPresentationCurrency": "W walucie prezentacji",
+    "inCurrency": "W {currency}",
+    "functionalCurrencyLabel": "Waluta funkcjonalna"
   },
   "exchanges": {
     "title": "Wymiany",

@@ -4,20 +4,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Pencil, Trash2, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
-import type { InvoiceResponse, CreateInvoiceInput, SystemSettingsPresentationCurrencyResponse } from '@marketlum/shared';
+import { Pencil, Trash2, ArrowLeft, Printer, ExternalLink } from 'lucide-react';
+import type {
+  InvoiceResponse,
+  CreateInvoiceInput,
+  SystemSettingsPresentationCurrencyResponse,
+  AgentResponse,
+} from '@marketlum/shared';
 import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { InvoiceFormDialog } from '../../components/invoices/invoice-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '../../components/ui/card';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -35,6 +34,40 @@ import {
   TableRow,
 } from '../../components/ui/table';
 
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+interface AddressBlockProps {
+  agent: AgentResponse;
+}
+
+function AddressBlock({ agent }: AddressBlockProps) {
+  const primary =
+    agent.addresses.find((a) => a.isPrimary) ?? agent.addresses[0] ?? null;
+  if (!primary) return null;
+  return (
+    <div className="mt-1 text-sm text-muted-foreground leading-relaxed">
+      {primary.line1}
+      {primary.line2 && (
+        <>
+          <br />
+          {primary.line2}
+        </>
+      )}
+      <br />
+      {primary.postalCode} {primary.city}
+      {primary.region && `, ${primary.region}`}
+      <br />
+      {primary.country.name}
+    </div>
+  );
+}
+
 export function InvoiceDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -42,7 +75,10 @@ export function InvoiceDetailPage() {
   const tc = useTranslations('common');
 
   const [invoice, setInvoice] = useState<InvoiceResponse | null>(null);
-  const [baseSetting, setBaseSetting] = useState<SystemSettingsPresentationCurrencyResponse | null>(null);
+  const [baseSetting, setBaseSetting] =
+    useState<SystemSettingsPresentationCurrencyResponse | null>(null);
+  const [fromAgent, setFromAgent] = useState<AgentResponse | null>(null);
+  const [toAgent, setToAgent] = useState<AgentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -52,12 +88,22 @@ export function InvoiceDetailPage() {
   const fetchInvoice = useCallback(async () => {
     setLoading(true);
     try {
-      const [result, base] = await Promise.all([
+      const [invoiceResult, base] = await Promise.all([
         api.get<InvoiceResponse>(`/invoices/${params.id}`),
-        api.get<SystemSettingsPresentationCurrencyResponse>('/system-settings/presentation-currency').catch(() => null),
+        api
+          .get<SystemSettingsPresentationCurrencyResponse>(
+            '/system-settings/presentation-currency',
+          )
+          .catch(() => null),
       ]);
-      setInvoice(result);
+      const [from, to] = await Promise.all([
+        api.get<AgentResponse>(`/agents/${invoiceResult.fromAgent.id}`).catch(() => null),
+        api.get<AgentResponse>(`/agents/${invoiceResult.toAgent.id}`).catch(() => null),
+      ]);
+      setInvoice(invoiceResult);
       setBaseSetting(base);
+      setFromAgent(from);
+      setToAgent(to);
       setNotFound(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -124,43 +170,73 @@ export function InvoiceDetailPage() {
     );
   }
 
-  return (
-    <div>
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin">{tc('home')}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin/invoices">{t('title')}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{invoice.number}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+  const invoiceCurrency = invoice.currency;
+  const fromCurrency = fromAgent?.functionalCurrency ?? null;
+  const toCurrency = toAgent?.functionalCurrency ?? null;
+  const presentationCurrency = baseSetting?.presentationCurrency ?? null;
+  const showCrossCurrencyColumns =
+    presentationCurrency !== null &&
+    presentationCurrency.id !== invoiceCurrency.id;
 
-      <div className="mb-6 flex items-start gap-4">
-        <div className="h-24 w-24 shrink-0 rounded-lg border bg-muted/30 flex items-center justify-center overflow-hidden">
-          <FileText className="h-12 w-12 text-muted-foreground/50" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl md:text-3xl font-bold truncate">{invoice.number}</h1>
-            <Badge variant={invoice.paid ? 'default' : 'secondary'}>
-              {invoice.paid ? t('paidYes') : t('paidNo')}
-            </Badge>
-          </div>
-          <p className="text-muted-foreground mb-2">
-            {invoice.fromAgent.name} → {invoice.toAgent.name}
-          </p>
-          <div className="flex gap-2 mt-2">
+  const subtotals: Array<{ label: string; amount: string | null; currencyName: string }> = [];
+  if (fromCurrency && fromCurrency.id !== invoiceCurrency.id) {
+    subtotals.push({
+      label: t('inAgentBooks', { name: invoice.fromAgent.name }),
+      amount: invoice.fromAgentTotal,
+      currencyName: fromCurrency.name,
+    });
+  }
+  if (toCurrency && toCurrency.id !== invoiceCurrency.id) {
+    subtotals.push({
+      label: t('inAgentBooks', { name: invoice.toAgent.name }),
+      amount: invoice.toAgentTotal,
+      currencyName: toCurrency.name,
+    });
+  }
+  if (presentationCurrency && presentationCurrency.id !== invoiceCurrency.id) {
+    subtotals.push({
+      label: t('inPresentationCurrency'),
+      amount: invoice.presentationTotal,
+      currencyName: presentationCurrency.name,
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Breadcrumb + toolbar — hidden when printing */}
+      <div className="print:hidden">
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/admin">{tc('home')}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/admin/invoices">{t('title')}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{invoice.number}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/admin/invoices">
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+              {t('backToInvoices')}
+            </Link>
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="mr-1.5 h-3.5 w-3.5" />
+              {t('print')}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <Pencil className="mr-1.5 h-3.5 w-3.5" />
               {tc('edit')}
@@ -173,142 +249,209 @@ export function InvoiceDetailPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('details')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+      {/* Invoice paper */}
+      <div className="mx-auto max-w-4xl rounded-lg border bg-card text-card-foreground shadow-sm print:border-0 print:shadow-none print:max-w-none">
+        <div className="space-y-8 p-8 md:p-12">
+          {/* Header */}
+          <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
-              <p className="text-sm text-muted-foreground">{t('from')}</p>
-              <Link href={`/admin/agents/${invoice.fromAgent.id}`} className="text-primary hover:underline">
+              <div className="text-3xl font-bold uppercase tracking-tight">
+                {t('invoiceHeading')}
+              </div>
+              <div className="mt-1 font-mono text-sm text-muted-foreground">
+                {invoice.number}
+              </div>
+              <Badge
+                variant={invoice.paid ? 'default' : 'secondary'}
+                className="mt-3"
+              >
+                {invoice.paid ? t('paidYes') : t('paidNo')}
+              </Badge>
+            </div>
+            <div className="text-sm">
+              <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+                <span className="text-muted-foreground">{t('issuedAt')}</span>
+                <span className="text-right">{formatDate(invoice.issuedAt)}</span>
+                <span className="text-muted-foreground">{t('dueAt')}</span>
+                <span className="text-right">{formatDate(invoice.dueAt)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t" />
+
+          {/* Parties */}
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {t('billedBy')}
+              </div>
+              <Link
+                href={`/admin/agents/${invoice.fromAgent.id}`}
+                className="font-semibold text-foreground hover:underline print:no-underline"
+              >
                 {invoice.fromAgent.name}
               </Link>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('to')}</p>
-              <Link href={`/admin/agents/${invoice.toAgent.id}`} className="text-primary hover:underline">
-                {invoice.toAgent.name}
-              </Link>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('currency')}</p>
-              <p>{invoice.currency.name}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('total')}</p>
-              <p className="text-lg font-semibold">{invoice.total} {invoice.currency.name}</p>
-            </div>
-            {baseSetting?.presentationCurrency && baseSetting.presentationCurrency.id !== invoice.currency.id && (
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t('totalInBase', { currency: baseSetting.presentationCurrency.name })}
-                </p>
-                <p className="text-lg font-semibold text-muted-foreground">
-                  {invoice.presentationTotal != null ? (
-                    <>≈ {invoice.presentationTotal} {baseSetting.presentationCurrency.name}</>
-                  ) : (
-                    <span className="italic text-sm" title={t('noRate')}>—</span>
-                  )}
-                </p>
-              </div>
-            )}
-            <div>
-              <p className="text-sm text-muted-foreground">{t('issuedAt')}</p>
-              <p>{new Date(invoice.issuedAt).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('dueAt')}</p>
-              <p>{new Date(invoice.dueAt).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('valueStream')}</p>
-              <p>{invoice.valueStream?.name ?? '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('channel')}</p>
-              <p>{invoice.channel?.name ?? '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('link')}</p>
-              {invoice.link ? (
-                <a
-                  href={invoice.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  {invoice.link}
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              ) : (
-                <p>-</p>
+              {fromAgent && <AddressBlock agent={fromAgent} />}
+              {fromCurrency && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {t('functionalCurrencyLabel')}: {fromCurrency.name}
+                </div>
               )}
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{tc('created')}</p>
-              <p>{new Date(invoice.createdAt).toLocaleDateString()}</p>
+              <div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {t('billTo')}
+              </div>
+              <Link
+                href={`/admin/agents/${invoice.toAgent.id}`}
+                className="font-semibold text-foreground hover:underline print:no-underline"
+              >
+                {invoice.toAgent.name}
+              </Link>
+              {toAgent && <AddressBlock agent={toAgent} />}
+              {toCurrency && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {t('functionalCurrencyLabel')}: {toCurrency.name}
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('updatedAt')}</p>
-              <p>{new Date(invoice.updatedAt).toLocaleDateString()}</p>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('items')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {invoice.items.length === 0 ? (
-              <p className="text-muted-foreground">-</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('value')}</TableHead>
-                    <TableHead className="text-right">{t('quantity')}</TableHead>
-                    <TableHead className="text-right">{t('unitPrice')}</TableHead>
-                    <TableHead className="text-right">{t('total')}</TableHead>
-                    {baseSetting?.presentationCurrency && baseSetting.presentationCurrency.id !== invoice.currency.id && (
-                      <>
-                        <TableHead className="text-right">{t('rateUsed')}</TableHead>
-                        <TableHead className="text-right">
-                          {t('baseAmount', { currency: baseSetting.presentationCurrency.name })}
-                        </TableHead>
-                      </>
+          <div className="border-t" />
+
+          {/* Line items */}
+          {invoice.items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('noItems')}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('value')}</TableHead>
+                  <TableHead className="text-right">{t('quantity')}</TableHead>
+                  <TableHead className="text-right">{t('unitPrice')}</TableHead>
+                  <TableHead className="text-right">{t('total')}</TableHead>
+                  {showCrossCurrencyColumns && (
+                    <TableHead className="text-right text-muted-foreground">
+                      {t('inCurrency', { currency: presentationCurrency!.name })}
+                    </TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invoice.items.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      {item.value?.name ?? item.valueInstance?.name ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {item.quantity}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {item.unitPrice}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {item.total}
+                    </TableCell>
+                    {showCrossCurrencyColumns && (
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {item.presentationAmount != null ? (
+                          <>≈ {item.presentationAmount}</>
+                        ) : (
+                          <span className="italic" title={t('noRate')}>
+                            —
+                          </span>
+                        )}
+                      </TableCell>
                     )}
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoice.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.value?.name ?? item.valueInstance?.name ?? '-'}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">{item.unitPrice}</TableCell>
-                      <TableCell className="text-right">{item.total}</TableCell>
-                      {baseSetting?.presentationCurrency && baseSetting.presentationCurrency.id !== invoice.currency.id && (
-                        <>
-                          <TableCell className="text-right text-muted-foreground font-mono text-xs">
-                            {item.presentationRate ?? <span className="italic" title={t('noRate')}>—</span>}
-                          </TableCell>
-                          <TableCell className="text-right text-muted-foreground">
-                            {item.presentationAmount != null ? (
-                              <>≈ {item.presentationAmount}</>
-                            ) : (
-                              <span className="italic" title={t('noRate')}>—</span>
-                            )}
-                          </TableCell>
-                        </>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+
+          {/* Totals */}
+          <div className="flex justify-end">
+            <dl className="w-full max-w-xs space-y-1.5 text-sm">
+              <div className="flex items-baseline justify-between border-t pt-3">
+                <dt className="font-semibold uppercase tracking-wider">
+                  {t('total')}
+                </dt>
+                <dd className="text-lg font-semibold tabular-nums">
+                  {invoice.total} {invoiceCurrency.name}
+                </dd>
+              </div>
+              {subtotals.map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-baseline justify-between text-muted-foreground"
+                >
+                  <dt>{row.label}</dt>
+                  <dd className="tabular-nums">
+                    {row.amount != null ? (
+                      <>
+                        ≈ {row.amount} {row.currencyName}
+                      </>
+                    ) : (
+                      <span
+                        className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-900"
+                        title={t('noRate')}
+                      >
+                        {t('noRate')}
+                      </span>
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {/* Footer metadata */}
+          {(invoice.valueStream || invoice.channel || invoice.link) && (
+            <>
+              <div className="border-t" />
+              <div className="grid gap-3 text-sm sm:grid-cols-3">
+                {invoice.valueStream && (
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {t('valueStream')}
+                    </div>
+                    <Link
+                      href={`/admin/value-streams/${invoice.valueStream.id}`}
+                      className="hover:underline print:no-underline"
+                    >
+                      {invoice.valueStream.name}
+                    </Link>
+                  </div>
+                )}
+                {invoice.channel && (
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {t('channel')}
+                    </div>
+                    <div>{invoice.channel.name}</div>
+                  </div>
+                )}
+                {invoice.link && (
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {t('link')}
+                    </div>
+                    <a
+                      href={invoice.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 break-all hover:underline print:no-underline"
+                    >
+                      {invoice.link}
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0 print:hidden" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <InvoiceFormDialog

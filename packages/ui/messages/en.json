@@ -848,7 +848,16 @@
     "updatedAt": "Updated",
     "notFound": "Invoice not found",
     "notFoundDescription": "The invoice you are looking for does not exist.",
-    "backToInvoices": "Back to invoices"
+    "backToInvoices": "Back to invoices",
+    "invoiceHeading": "Invoice",
+    "billedBy": "Billed by",
+    "billTo": "Bill to",
+    "print": "Print",
+    "noItems": "This invoice has no line items.",
+    "inAgentBooks": "In {name}'s books",
+    "inPresentationCurrency": "In presentation currency",
+    "inCurrency": "In {currency}",
+    "functionalCurrencyLabel": "Functional currency"
   },
   "exchanges": {
     "title": "Exchanges",
