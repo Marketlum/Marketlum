@@ -39,8 +39,6 @@ interface InvoiceColumnsTranslations {
   dueAt: string;
   currency: string;
   total: string;
-  inPresentation: string;
-  noRate: string;
   paid: string;
   paidYes: string;
   paidNo: string;
@@ -118,25 +116,6 @@ export function getInvoiceColumns({
         </Button>
       ),
       cell: ({ row }) => row.original.total ?? '0.00',
-    },
-    {
-      id: 'presentationTotal',
-      header: translations.inPresentation,
-      meta: { hideOnMobile: true },
-      cell: ({ row }) => {
-        const presentationTotal = row.original.presentationTotal;
-        if (presentationTotal == null) {
-          return (
-            <span
-              className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-900"
-              title={translations.noRate}
-            >
-              {translations.noRate}
-            </span>
-          );
-        }
-        return <span className="text-muted-foreground">≈ {presentationTotal}</span>;
-      },
     },
     {
       accessorKey: 'paid',

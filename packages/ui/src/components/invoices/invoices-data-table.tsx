@@ -297,8 +297,6 @@ export function InvoicesDataTable({
       dueAt: t('dueAt'),
       currency: t('currency'),
       total: t('total'),
-      inPresentation: t('inPresentation'),
-      noRate: t('noRate'),
       paid: t('paid'),
       paidYes: t('paidYes'),
       paidNo: t('paidNo'),
