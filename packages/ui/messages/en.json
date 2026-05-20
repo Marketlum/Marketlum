@@ -514,10 +514,13 @@
     "revenueExpenses": "Revenue & Expenses",
     "recentValues": "Recent Values",
     "recentExchanges": "Recent Exchanges",
+    "recentInvoices": "Recent Invoices",
     "viewAllValues": "View all values",
     "viewAllExchanges": "View all exchanges",
+    "viewAllInvoices": "View all {count} invoices",
     "noValues": "No values in this stream.",
     "noExchanges": "No exchanges in this stream.",
+    "noInvoices": "No invoices in this stream.",
     "treeView": "Tree view",
     "circleView": "Circle packing view"
   },
