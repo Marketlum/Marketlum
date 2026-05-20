@@ -1,51 +1,73 @@
 import { faker } from '@faker-js/faker';
 import { InvoicesService } from '../../invoices/invoices.service';
 
+interface ValueRef {
+  id: string;
+  name: string;
+}
+
 interface InvoiceDeps {
-  agents: Array<{ id: string }>;
-  values: Array<{ id: string }>;
+  agents: Array<{ id: string; name: string }>;
+  values: ValueRef[];
   valueStreams: { all: Array<{ id: string }> };
 }
 
+const CURRENCY_NAMES = ['USD', 'EUR', 'PLN', 'GBP'] as const;
+const NUM_INVOICES = 45;
+
 export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) {
+  faker.seed(42);
+
+  const currencies = deps.values.filter((v) =>
+    (CURRENCY_NAMES as readonly string[]).includes(v.name),
+  );
+  if (currencies.length === 0) {
+    throw new Error('seedInvoices: no currency values found');
+  }
+  const lineValues = deps.values.filter(
+    (v) => !(CURRENCY_NAMES as readonly string[]).includes(v.name),
+  );
+
   const invoices: Array<{ id: string; number: string }> = [];
 
-  for (let i = 0; i < 4; i++) {
-    const fromAgent = deps.agents[i % deps.agents.length];
-    const toAgent = deps.agents[(i + 1) % deps.agents.length];
-    const currency = deps.values[0]; // Use first value as currency reference
-    const valueStream = deps.valueStreams.all[i % deps.valueStreams.all.length];
+  for (let i = 0; i < NUM_INVOICES; i++) {
+    const fromAgent = faker.helpers.arrayElement(deps.agents);
+    const toAgentChoices = deps.agents.filter((a) => a.id !== fromAgent.id);
+    const toAgent = faker.helpers.arrayElement(toAgentChoices);
+    const currency = faker.helpers.arrayElement(currencies);
+    const valueStream = faker.helpers.arrayElement(deps.valueStreams.all);
 
-    const unitPrice1 = faker.number.int({ min: 100, max: 5000 });
-    const qty1 = faker.number.int({ min: 1, max: 10 });
-    const unitPrice2 = faker.number.int({ min: 50, max: 1000 });
-    const qty2 = faker.number.int({ min: 1, max: 5 });
+    const month = faker.number.int({ min: 0, max: 11 });
+    const day = faker.number.int({ min: 1, max: 28 });
+    const issuedAt = new Date(Date.UTC(2026, month, day));
+    const dueAt = new Date(issuedAt);
+    dueAt.setUTCDate(dueAt.getUTCDate() + 30);
 
+    const itemCount = faker.number.int({ min: 1, max: 3 });
+    const items = Array.from({ length: itemCount }, () => {
+      const qty = faker.number.int({ min: 1, max: 10 });
+      const unitPrice = faker.number.int({ min: 50, max: 5000 });
+      return {
+        valueId: faker.helpers.arrayElement(lineValues).id,
+        quantity: `${qty}.00`,
+        unitPrice: `${unitPrice}.00`,
+        total: `${qty * unitPrice}.00`,
+      };
+    });
+
+    const number = `INV-2026-${String(i + 1).padStart(4, '0')}`;
     const invoice = await service.create({
-      number: `INV-2026-${String(i + 1).padStart(4, '0')}`,
+      number,
       fromAgentId: fromAgent.id,
       toAgentId: toAgent.id,
       currencyId: currency.id,
-      issuedAt: new Date(2026, 0 + i, 15).toISOString(),
-      dueAt: new Date(2026, 1 + i, 15).toISOString(),
-      paid: i < 2, // First two are paid
+      issuedAt: issuedAt.toISOString(),
+      dueAt: dueAt.toISOString(),
+      paid: faker.datatype.boolean(),
       valueStreamId: valueStream.id,
-      items: [
-        {
-          valueId: deps.values[i % deps.values.length].id,
-          quantity: `${qty1}.00`,
-          unitPrice: `${unitPrice1}.00`,
-          total: `${qty1 * unitPrice1}.00`,
-        },
-        {
-          valueId: deps.values[(i + 1) % deps.values.length].id,
-          quantity: `${qty2}.00`,
-          unitPrice: `${unitPrice2}.00`,
-          total: `${qty2 * unitPrice2}.00`,
-        },
-      ],
+      items,
     });
-    invoices.push({ id: invoice.id, number: `INV-2026-${String(i + 1).padStart(4, '0')}` });
+    invoices.push({ id: invoice.id, number });
   }
 
   return invoices;

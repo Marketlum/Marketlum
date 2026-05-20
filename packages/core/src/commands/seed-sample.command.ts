@@ -164,24 +164,30 @@ export class SeedSampleCommand extends CommandRunner {
     const values = await seedValues(this.valuesService, { taxonomies, agents, valueStreams });
     this.logger.log(`  Created ${values.length} values`);
 
-    // Assign distinct functional currencies to the seeded agents so the
-    // sample dataset exercises the per-agent snapshot path end-to-end.
-    const usd = values.find((v) => v.name === 'USD');
-    const eur = values.find((v) => v.name === 'EUR');
-    if (usd && eur) {
-      const functionalCurrencyByAgentName: Record<string, string> = {
-        'Acme Corp': eur.id,
-        'TechNova Solutions': usd.id,
-        'GreenLeaf Partners': eur.id,
-      };
-      for (const agent of agents) {
-        const currencyId = functionalCurrencyByAgentName[agent.name];
-        if (currencyId) {
-          await this.agentsService.update(agent.id, { functionalCurrencyId: currencyId });
-        }
+    // Assign a functional currency to every seeded agent so the sample
+    // dataset exercises the per-agent snapshot path end-to-end across both
+    // matching and cross-currency invoices.
+    const currencyByName: Record<string, string | undefined> = {
+      USD: values.find((v) => v.name === 'USD')?.id,
+      EUR: values.find((v) => v.name === 'EUR')?.id,
+      GBP: values.find((v) => v.name === 'GBP')?.id,
+      PLN: values.find((v) => v.name === 'PLN')?.id,
+    };
+    const functionalCurrencyByAgentName: Record<string, string | undefined> = {
+      'Acme Corp': currencyByName.EUR,
+      'TechNova Solutions': currencyByName.USD,
+      'GreenLeaf Partners': currencyByName.GBP,
+      'Sarah Palmer': currencyByName.PLN,
+      'James Liu': currencyByName.USD,
+      'AutoFlow Bot': currencyByName.USD,
+    };
+    for (const agent of agents) {
+      const currencyId = functionalCurrencyByAgentName[agent.name];
+      if (currencyId) {
+        await this.agentsService.update(agent.id, { functionalCurrencyId: currencyId });
       }
-      this.logger.log('  Assigned functional currencies to seeded agents');
     }
+    this.logger.log('  Assigned functional currencies to all seeded agents');
 
     this.logger.log('Seeding agreements...');
     const agreements = await seedAgreements(this.agreementsService, {
