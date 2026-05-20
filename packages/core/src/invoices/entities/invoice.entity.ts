@@ -83,7 +83,8 @@ export class Invoice {
   @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items: InvoiceItem[];
 
-  total?: string;
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  total: string;
 
   presentationTotal?: string | null;
 

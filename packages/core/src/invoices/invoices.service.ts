@@ -233,14 +233,10 @@ export class InvoicesService {
     qb.leftJoinAndSelect('invoice.valueStream', 'valueStream');
     qb.leftJoinAndSelect('invoice.channel', 'channel');
 
-    // Computed total subquery
-    qb.addSelect(
-      `(SELECT COALESCE(SUM(ii.total), 0) FROM invoice_items ii WHERE ii."invoiceId" = invoice.id)`,
-      'invoice_total',
-    );
-
-    // Per-perspective totals. NULL when any item is missing a snapshot
-    // (mirrors the rule used by findOne so list and detail agree).
+    // Per-perspective totals (presentation / from-agent / to-agent) are
+    // still computed at read time. NULL when any item is missing a snapshot
+    // — mirrors the rule used by findOne so list and detail agree. The base
+    // `total` column is denormalised on the invoice row.
     const perspectiveTotalSelect = (column: string) => `(
       SELECT CASE
         WHEN COUNT(*) = 0 THEN NULL
@@ -281,11 +277,7 @@ export class InvoicesService {
     }
 
     if (sortBy) {
-      if (sortBy === 'total') {
-        qb.orderBy('invoice_total', sortOrder || 'ASC');
-      } else {
-        qb.orderBy(`invoice.${sortBy}`, sortOrder || 'ASC');
-      }
+      qb.orderBy(`invoice.${sortBy}`, sortOrder || 'ASC');
     } else {
       qb.orderBy('invoice.createdAt', 'DESC');
     }
@@ -294,12 +286,14 @@ export class InvoicesService {
 
     const { raw, entities } = await qb.getRawAndEntities();
 
-    // Map computed totals onto entities. Per-perspective totals are NULL
-    // when any item is unsnapshotted; format the rest as fixed(2).
+    // Map per-perspective totals onto entities. NULL when any item is
+    // unsnapshotted; format others as fixed(2). The base `total` is loaded
+    // from the column directly by TypeORM but may come back as a raw
+    // postgres-stringified decimal (e.g. "1234.5"), so normalise it.
     const formatNullable = (v: unknown): string | null =>
       v === null || v === undefined ? null : Number(v).toFixed(2);
     for (let i = 0; i < entities.length; i++) {
-      entities[i].total = Number(raw[i].invoice_total).toFixed(2);
+      entities[i].total = Number(entities[i].total).toFixed(2);
       entities[i].presentationTotal = formatNullable(raw[i].invoice_presentation_total);
       entities[i].fromAgentTotal = formatNullable(raw[i].invoice_from_agent_total);
       entities[i].toAgentTotal = formatNullable(raw[i].invoice_to_agent_total);
@@ -364,10 +358,11 @@ export class InvoicesService {
       throw new NotFoundException('Invoice not found');
     }
 
-    // Compute total + per-perspective totals from items
+    // The base `total` is denormalised on the invoice row. Per-perspective
+    // totals still depend on item snapshots and are computed here.
+    invoice.total = Number(invoice.total).toFixed(2);
     const result = await this.invoiceRepository.query(
       `SELECT
-         COALESCE(SUM(total), 0) AS total,
          COUNT(*) AS item_count,
          COUNT("presentationAmount") AS presentation_amount_count,
          COALESCE(SUM("presentationAmount"), 0) AS presentation_total,
@@ -378,7 +373,6 @@ export class InvoicesService {
        FROM invoice_items WHERE "invoiceId" = $1`,
       [id],
     );
-    invoice.total = Number(result[0].total).toFixed(2);
     const itemCount = Number(result[0].item_count);
     const presentationCount = Number(result[0].presentation_amount_count);
     const fromAgentCount = Number(result[0].from_agent_amount_count);
@@ -591,6 +585,16 @@ export class InvoicesService {
       );
     }
     await this.itemRepository.save(entities);
+    await this.recomputeTotal(invoiceId);
+  }
+
+  private async recomputeTotal(invoiceId: string): Promise<void> {
+    await this.invoiceRepository.query(
+      `UPDATE "invoices" SET "total" = COALESCE((
+        SELECT SUM(ii."total") FROM "invoice_items" ii WHERE ii."invoiceId" = $1
+      ), 0) WHERE "id" = $1`,
+      [invoiceId],
+    );
   }
 
   private async resnapshotItems(invoiceId: string, currencyId: string): Promise<void> {
