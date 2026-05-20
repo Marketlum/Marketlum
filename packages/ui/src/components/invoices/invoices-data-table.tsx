@@ -74,7 +74,13 @@ interface InvoiceRow {
   updatedAt: string;
 }
 
-export function InvoicesDataTable() {
+interface InvoicesDataTableProps {
+  valueStreamId?: string;
+}
+
+export function InvoicesDataTable({
+  valueStreamId: scopedValueStreamId,
+}: InvoicesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -162,6 +168,7 @@ export function InvoicesDataTable() {
       if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
       if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
       if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
+      if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
       const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
       setData(result);
     } catch {
@@ -353,6 +360,7 @@ export function InvoicesDataTable() {
     if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
     if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
+    if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
     const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
   }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter]);

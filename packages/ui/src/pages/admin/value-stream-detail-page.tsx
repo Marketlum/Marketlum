@@ -17,7 +17,6 @@ import { ValueFormDialog } from '../../components/values/value-form-dialog';
 import { ExchangeFormDialog } from '../../components/exchanges/exchange-form-dialog';
 import { RecurringFlowFormDialog } from '../../components/recurring-flows/recurring-flow-form-dialog';
 import { RevenueExpensesChart } from '../../components/dashboard/revenue-expenses-chart';
-import { ValueStreamInvoicesSection } from '../../components/value-streams/value-stream-invoices-section';
 import { Button } from '../../components/ui/button';
 import {
   Card,
@@ -206,9 +205,6 @@ export function ValueStreamDetailPage() {
           <RevenueExpensesChart data={dashboardData?.timeSeries ?? []} />
         </CardContent>
       </Card>
-
-      {/* Invoices */}
-      <ValueStreamInvoicesSection valueStreamId={id} />
 
       {/* Dialogs */}
       <ValueFormDialog

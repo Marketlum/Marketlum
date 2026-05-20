@@ -104,6 +104,7 @@ export function ValueStreamLayout({ children }: { children: ReactNode }) {
     { segment: 'agreement-templates', label: tSec('tabAgreementTemplates') },
     { segment: 'agreements', label: tSec('tabAgreements') },
     { segment: 'exchanges', label: tSec('tabExchanges') },
+    { segment: 'invoices', label: tSec('tabInvoices') },
     { segment: 'recurring-flows', label: tSec('tabRecurringFlows') },
     { segment: 'budget', label: tSec('tabBudget') },
   ];
