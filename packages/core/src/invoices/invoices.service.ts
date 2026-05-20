@@ -239,6 +239,20 @@ export class InvoicesService {
       'invoice_total',
     );
 
+    // Per-perspective totals. NULL when any item is missing a snapshot
+    // (mirrors the rule used by findOne so list and detail agree).
+    const perspectiveTotalSelect = (column: string) => `(
+      SELECT CASE
+        WHEN COUNT(*) = 0 THEN NULL
+        WHEN COUNT(ii."${column}") < COUNT(*) THEN NULL
+        ELSE SUM(ii."${column}")
+      END
+      FROM invoice_items ii WHERE ii."invoiceId" = invoice.id
+    )`;
+    qb.addSelect(perspectiveTotalSelect('presentationAmount'), 'invoice_presentation_total');
+    qb.addSelect(perspectiveTotalSelect('fromAgentAmount'), 'invoice_from_agent_total');
+    qb.addSelect(perspectiveTotalSelect('toAgentAmount'), 'invoice_to_agent_total');
+
     if (fromAgentId) {
       qb.andWhere('invoice.fromAgentId = :fromAgentId', { fromAgentId });
     }
@@ -280,9 +294,15 @@ export class InvoicesService {
 
     const { raw, entities } = await qb.getRawAndEntities();
 
-    // Map computed total onto entities
+    // Map computed totals onto entities. Per-perspective totals are NULL
+    // when any item is unsnapshotted; format the rest as fixed(2).
+    const formatNullable = (v: unknown): string | null =>
+      v === null || v === undefined ? null : Number(v).toFixed(2);
     for (let i = 0; i < entities.length; i++) {
       entities[i].total = Number(raw[i].invoice_total).toFixed(2);
+      entities[i].presentationTotal = formatNullable(raw[i].invoice_presentation_total);
+      entities[i].fromAgentTotal = formatNullable(raw[i].invoice_from_agent_total);
+      entities[i].toAgentTotal = formatNullable(raw[i].invoice_to_agent_total);
     }
 
     // Get total count
