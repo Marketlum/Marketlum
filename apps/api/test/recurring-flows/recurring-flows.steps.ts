@@ -125,7 +125,7 @@ async function postFlow(authCookie: string, payload: Record<string, unknown>) {
   // Translate the legacy free-text `unit` into a Value reference (currencyId).
   // This lets the .feature files keep using "unit \"USD\"" while the API
   // contract now demands a currencyId FK.
-  let body: Record<string, unknown> = { ...payload };
+  const body: Record<string, unknown> = { ...payload };
   if (body.unit !== undefined && body.currencyId === undefined && authCookie) {
     const unitName = body.unit as string;
     if (unitName) {

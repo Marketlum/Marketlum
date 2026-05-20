@@ -1,4 +1,5 @@
 import { loadFeature, defineFeature } from 'jest-cucumber';
+import type { DefineStepFunction } from 'jest-cucumber';
 import request from 'supertest';
 import * as path from 'path';
 import {
@@ -1354,7 +1355,7 @@ defineFeature(valueStreamFeature, (test) => {
 
   function registerBackground(
     ctx: ValueStreamScopingCtx,
-    steps: { given: Function; and: Function },
+    steps: { given: DefineStepFunction; and: DefineStepFunction },
   ) {
     steps.given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
