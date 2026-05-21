@@ -1,4 +1,5 @@
 import { loadFeature, defineFeature } from 'jest-cucumber';
+import type { DefineStepFunction } from 'jest-cucumber';
 import request from 'supertest';
 import * as path from 'path';
 import {
@@ -121,7 +122,7 @@ function clearCurrencyCache() {
   currencyCache.clear();
 }
 
-async function postFlow(authCookie: string, payload: Record<string, unknown>) {
+async function postFlow(authCookie: string, payload: FlowPayload) {
   // Translate the legacy free-text `unit` into a Value reference (currencyId).
   // This lets the .feature files keep using "unit \"USD\"" while the API
   // contract now demands a currencyId FK.
@@ -159,37 +160,49 @@ defineFeature(createFeature, (test) => {
   });
   afterAll(async () => { await teardownApp(); });
 
-  function commonSteps({ given, and, when, then }: any) {
+  // jest-cucumber requires exactly one step definition per feature step.
+  // Each helper registers a single step so scenarios can compose only the
+  // step defs they actually use.
+  const stepAuth = (given: DefineStepFunction) =>
     given(/^I am authenticated$/, async () => { authCookie = await login(); });
+  const stepValueStream = (and: DefineStepFunction) =>
     and(/^a value stream "(.*)" exists$/, async (name: string) => {
       ids[`vs:${name}`] = await createValueStream(authCookie, name);
     });
+  const stepAgent = (and: DefineStepFunction) =>
     and(/^an agent "(.*)" exists$/, async (name: string) => {
       ids[`ag:${name}`] = await createAgent(authCookie, name);
     });
+  const stepTaxonomy = (and: DefineStepFunction) =>
     and(/^a taxonomy "(.*)" exists$/, async (name: string) => {
       ids[`tx:${name}`] = await createTaxonomy(authCookie, name);
     });
+  const stepStatus = (then: DefineStepFunction) =>
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status, 10));
     });
+  const stepAmountUnit = (and: DefineStepFunction) =>
     and(/^the response should contain a recurring flow with amount "(.*)" and unit "(.*)"$/, (amount: string, unit: string) => {
       expect(response.body.amount).toBe(amount);
       expect(response.body.currency?.name).toBe(unit);
     });
+  const stepFlowStatus = (and: DefineStepFunction) =>
     and(/^the response should contain a recurring flow with status "(.*)"$/, (status: string) => {
       expect(response.body.status).toBe(status);
     });
+  const stepFlowDirection = (and: DefineStepFunction) =>
     and(/^the response should contain a recurring flow with direction "(.*)"$/, (direction: string) => {
       expect(response.body.direction).toBe(direction);
     });
+  const stepFlowTaxonomy = (and: DefineStepFunction) =>
     and(/^the response should contain a recurring flow with taxonomy "(.*)"$/, (name: string) => {
       expect((response.body.taxonomies ?? []).some((t: { name: string }) => t.name === name)).toBe(true);
     });
-  }
 
   test('Create a minimal recurring flow', ({ given, and, when, then }) => {
-    commonSteps({ given, and, when, then });
+    stepAuth(given);
+    stepValueStream(and);
+    stepAgent(and);
     when(
       /^I create a recurring flow with stream "(.*)", agent "(.*)", direction "(.*)", amount "(.*)", unit "(.*)", frequency "(.*)", interval (\d+), startDate "(.*)"$/,
       async (vs: string, ag: string, direction: string, amount: string, unit: string, frequency: string, interval: string, startDate: string) => {
@@ -205,10 +218,16 @@ defineFeature(createFeature, (test) => {
         }));
       },
     );
+    stepStatus(then);
+    stepAmountUnit(and);
+    stepFlowStatus(and);
   });
 
   test('Create a recurring flow with optional links and taxonomies', ({ given, and, when, then }) => {
-    commonSteps({ given, and, when, then });
+    stepAuth(given);
+    stepValueStream(and);
+    stepAgent(and);
+    stepTaxonomy(and);
     when(
       /^I create a recurring flow with stream "(.*)", agent "(.*)", direction "(.*)", amount "(.*)", unit "(.*)", frequency "(.*)", interval (\d+), startDate "(.*)" and taxonomy "(.*)"$/,
       async (vs: string, ag: string, direction: string, amount: string, unit: string, frequency: string, interval: string, startDate: string, taxonomy: string) => {
@@ -225,10 +244,15 @@ defineFeature(createFeature, (test) => {
         }));
       },
     );
+    stepStatus(then);
+    stepFlowDirection(and);
+    stepFlowTaxonomy(and);
   });
 
   test('Reject creation with missing required field', ({ given, and, when, then }) => {
-    commonSteps({ given, and, when, then });
+    stepAuth(given);
+    stepValueStream(and);
+    stepAgent(and);
     when(/^I create a recurring flow missing the amount field$/, async () => {
       response = await postFlow(authCookie, {
         valueStreamId: ids['vs:Sales'],
@@ -240,10 +264,12 @@ defineFeature(createFeature, (test) => {
         startDate: '2026-01-15',
       });
     });
+    stepStatus(then);
   });
 
   test('Reject creation referencing a non-existent value stream', ({ given, and, when, then }) => {
-    commonSteps({ given, and, when, then });
+    stepAuth(given);
+    stepAgent(and);
     when(
       /^I create a recurring flow with a random value stream id, agent "(.*)", direction "(.*)", amount "(.*)", unit "(.*)", frequency "(.*)", interval (\d+), startDate "(.*)"$/,
       async (ag: string, direction: string, amount: string, unit: string, frequency: string, interval: string, startDate: string) => {
@@ -259,10 +285,13 @@ defineFeature(createFeature, (test) => {
         }));
       },
     );
+    stepStatus(then);
   });
 
   test('Reject creation with endDate before startDate', ({ given, and, when, then }) => {
-    commonSteps({ given, and, when, then });
+    stepAuth(given);
+    stepValueStream(and);
+    stepAgent(and);
     when(
       /^I create a recurring flow with stream "(.*)", agent "(.*)", direction "(.*)", amount "(.*)", unit "(.*)", frequency "(.*)", interval (\d+), startDate "(.*)" and endDate "(.*)"$/,
       async (vs: string, ag: string, direction: string, amount: string, unit: string, frequency: string, interval: string, startDate: string, endDate: string) => {
@@ -279,6 +308,7 @@ defineFeature(createFeature, (test) => {
         }));
       },
     );
+    stepStatus(then);
   });
 });
 
@@ -290,7 +320,11 @@ defineFeature(listFeature, (test) => {
   const ids: Record<string, string> = {};
 
   beforeAll(async () => { await bootstrapApp(); });
-  beforeEach(async () => { await cleanDatabase(); clearCurrencyCache(); authCookie = ''; });
+  beforeEach(async () => {
+    await cleanDatabase(); clearCurrencyCache();
+    authCookie = '';
+    for (const k of Object.keys(ids)) delete ids[k];
+  });
   afterAll(async () => { await teardownApp(); });
 
   async function seedFlow(overrides: Partial<FlowPayload> = {}) {
@@ -307,28 +341,33 @@ defineFeature(listFeature, (test) => {
       .send({ action: 'activate' });
   }
 
-  function authSteps({ given, then }: any) {
+  // Register one step def per call so each test composes step defs in
+  // feature-file order (jest-cucumber matches by index).
+  const stepAuth = (given: DefineStepFunction) =>
     given(/^I am authenticated$/, async () => { authCookie = await login(); });
+  const stepStatus = (then: DefineStepFunction) =>
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status, 10));
     });
-  }
+  const stepCountFlows = (and: DefineStepFunction) =>
+    and(/^the response should contain (\d+) recurring flows$/, (n: string) => {
+      expect(response.body.data.length).toBe(parseInt(n, 10));
+    });
 
   test('List all recurring flows with default pagination', ({ given, and, when, then }) => {
-    authSteps({ given, then });
+    stepAuth(given);
     and(/^(\d+) recurring flows exist$/, async (n: string) => {
       for (let i = 0; i < parseInt(n, 10); i++) await seedFlow();
     });
     when(/^I list recurring flows$/, async () => {
       response = await http().get('/recurring-flows').set('Cookie', [authCookie]);
     });
-    and(/^the response should contain (\d+) recurring flows$/, (n: string) => {
-      expect(response.body.data.length).toBe(parseInt(n, 10));
-    });
+    stepStatus(then);
+    stepCountFlows(and);
   });
 
   test('Filter recurring flows by direction', ({ given, and, when, then }) => {
-    authSteps({ given, then });
+    stepAuth(given);
     and(/^(\d+) inbound recurring flows exist$/, async (n: string) => {
       for (let i = 0; i < parseInt(n, 10); i++) await seedFlow({ direction: 'inbound' });
     });
@@ -338,13 +377,12 @@ defineFeature(listFeature, (test) => {
     when(/^I list recurring flows filtered by direction "(.*)"$/, async (direction: string) => {
       response = await http().get(`/recurring-flows?direction=${direction}`).set('Cookie', [authCookie]);
     });
-    and(/^the response should contain (\d+) recurring flows$/, (n: string) => {
-      expect(response.body.data.length).toBe(parseInt(n, 10));
-    });
+    stepStatus(then);
+    stepCountFlows(and);
   });
 
   test('Filter recurring flows by status', ({ given, and, when, then }) => {
-    authSteps({ given, then });
+    stepAuth(given);
     and(/^(\d+) active recurring flows exist$/, async (n: string) => {
       for (let i = 0; i < parseInt(n, 10); i++) {
         const vsId = ids['vs'] || (ids['vs'] = await createValueStream(authCookie));
@@ -359,13 +397,12 @@ defineFeature(listFeature, (test) => {
     when(/^I list recurring flows filtered by status "(.*)"$/, async (status: string) => {
       response = await http().get(`/recurring-flows?status=${status}`).set('Cookie', [authCookie]);
     });
-    and(/^the response should contain (\d+) recurring flows$/, (n: string) => {
-      expect(response.body.data.length).toBe(parseInt(n, 10));
-    });
+    stepStatus(then);
+    stepCountFlows(and);
   });
 
   test('Sort recurring flows by amount', ({ given, and, when, then }) => {
-    authSteps({ given, then });
+    stepAuth(given);
     and(/^a recurring flow with amount "(.*)" exists$/, async (amount: string) => {
       await seedFlow({ amount });
     });
@@ -378,6 +415,7 @@ defineFeature(listFeature, (test) => {
     when(/^I list recurring flows sorted by amount ascending$/, async () => {
       response = await http().get('/recurring-flows?sortBy=amount&sortOrder=ASC').set('Cookie', [authCookie]);
     });
+    stepStatus(then);
     and(/^the first recurring flow amount should be "(.*)"$/, (amount: string) => {
       expect(response.body.data[0].amount).toBe(amount);
     });
@@ -584,78 +622,91 @@ defineFeature(transitionsFeature, (test) => {
       .send(body);
   }
 
-  function common({ given, and, then }: any) {
+  // Single-step helpers so each test composes in feature-file order.
+  const stepAuth = (given: DefineStepFunction) =>
     given(/^I am authenticated$/, async () => { authCookie = await login(); });
+  const stepFlowExists = (and: DefineStepFunction) =>
     and(/^a recurring flow with amount "(.*)" exists$/, async () => { await seedFlow(); });
+  const stepStatus = (then: DefineStepFunction) =>
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status, 10));
     });
+  const stepFlowStatus = (and: DefineStepFunction) =>
     and(/^the response should contain a recurring flow with status "(.*)"$/, (status: string) => {
       expect(response.body.status).toBe(status);
     });
+  const stepFlowEndDate = (and: DefineStepFunction) =>
     and(/^the response should contain a recurring flow with endDate "(.*)"$/, (endDate: string) => {
       expect(response.body.endDate).toBe(endDate);
     });
-  }
+  const stepTransitionAnd = (and: DefineStepFunction) =>
+    and(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
+      await transition(action);
+    });
 
   test('Activate a draft recurring flow', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepFlowExists(and);
     when(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
       response = await transition(action);
     });
+    stepStatus(then);
+    stepFlowStatus(and);
   });
 
   test('Pause an active recurring flow', ({ given, and, when, then }) => {
-    common({ given, and, then });
-    and(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
-      await transition(action);
-    });
+    stepAuth(given);
+    stepFlowExists(and);
+    stepTransitionAnd(and);
     when(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
       response = await transition(action);
     });
+    stepStatus(then);
+    stepFlowStatus(and);
   });
 
   test('Resume a paused recurring flow', ({ given, and, when, then }) => {
-    common({ given, and, then });
-    and(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
-      await transition(action);
-    });
-    and(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
-      await transition(action);
-    });
+    stepAuth(given);
+    stepFlowExists(and);
+    stepTransitionAnd(and);
+    stepTransitionAnd(and);
     when(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
       response = await transition(action);
     });
+    stepStatus(then);
+    stepFlowStatus(and);
   });
 
   test('End an active recurring flow with explicit endDate', ({ given, and, when, then }) => {
-    common({ given, and, then });
-    and(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
-      await transition(action);
-    });
+    stepAuth(given);
+    stepFlowExists(and);
+    stepTransitionAnd(and);
     when(/^I transition that recurring flow with action "(.*)" and endDate "(.*)"$/, async (action: string, endDate: string) => {
       response = await transition(action, endDate);
     });
+    stepStatus(then);
+    stepFlowStatus(and);
+    stepFlowEndDate(and);
   });
 
   test('Reject illegal transition (resume a draft flow)', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepFlowExists(and);
     when(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
       response = await transition(action);
     });
+    stepStatus(then);
   });
 
   test('Reject illegal transition (activate an ended flow)', ({ given, and, when, then }) => {
-    common({ given, and, then });
-    and(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
-      await transition(action);
-    });
-    and(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
-      await transition(action);
-    });
+    stepAuth(given);
+    stepFlowExists(and);
+    stepTransitionAnd(and);
+    stepTransitionAnd(and);
     when(/^I transition that recurring flow with action "(.*)"$/, async (action: string) => {
       response = await transition(action);
     });
+    stepStatus(then);
   });
 });
 
@@ -836,37 +887,44 @@ defineFeature(rollupFeature, (test) => {
     await activate(res.body.id);
   }
 
-  function common({ given, and, then }: any) {
+  const stepAuth = (given: DefineStepFunction) =>
     given(/^I am authenticated$/, async () => { authCookie = await login(); });
+  const stepValueStream = (and: DefineStepFunction) =>
     and(/^a value stream "(.*)" exists$/, async (name: string) => {
       ids[`vs:${name}`] = await createValueStream(authCookie, name);
     });
+  const stepActiveFlow = (and: DefineStepFunction) =>
     and(
       /^an active monthly recurring flow with amount "(.*)" and unit "(.*)" and direction "(.*)" exists for stream "(.*)"$/,
       async (amount: string, unit: string, direction: string, vs: string) => {
         await seedActiveFlow(ids[`vs:${vs}`], amount, unit, direction);
       },
     );
+  const stepStatus = (then: DefineStepFunction) =>
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status, 10));
     });
-  }
 
   test('Rollup for an empty value stream', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepValueStream(and);
     when(/^I get the rollup for value stream "(.*)"$/, async (vs: string) => {
       response = await http().get(`/value-streams/${ids[`vs:${vs}`]}/recurring-flows/rollup`).set('Cookie', [authCookie]);
     });
+    stepStatus(then);
     and(/^the rollup activeFlowCount should be (\d+)$/, (n: string) => {
       expect(response.body.activeFlowCount).toBe(parseInt(n, 10));
     });
   });
 
   test('Rollup for a stream with one active inbound monthly flow', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepValueStream(and);
+    stepActiveFlow(and);
     when(/^I get the rollup for value stream "(.*)"$/, async (vs: string) => {
       response = await http().get(`/value-streams/${ids[`vs:${vs}`]}/recurring-flows/rollup`).set('Cookie', [authCookie]);
     });
+    stepStatus(then);
     and(/^the rollup activeFlowCount should be (\d+)$/, (n: string) => {
       expect(response.body.activeFlowCount).toBe(parseInt(n, 10));
     });
@@ -878,10 +936,14 @@ defineFeature(rollupFeature, (test) => {
   });
 
   test('Rollup with mixed inbound and outbound flows of the same unit', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepValueStream(and);
+    stepActiveFlow(and);
+    stepActiveFlow(and);
     when(/^I get the rollup for value stream "(.*)"$/, async (vs: string) => {
       response = await http().get(`/value-streams/${ids[`vs:${vs}`]}/recurring-flows/rollup`).set('Cookie', [authCookie]);
     });
+    stepStatus(then);
     and(/^the rollup net monthly total for "(.*)" should be "(.*)"$/, (unit: string, total: string) => {
       const entry = response.body.net.find((n: { unit: string }) => n.unit === unit);
       expect(entry.monthly).toBe(total);
@@ -917,30 +979,34 @@ defineFeature(projectionFeature, (test) => {
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
   }
 
-  function common({ given, and, then }: any) {
+  const stepAuth = (given: DefineStepFunction) =>
     given(/^I am authenticated$/, async () => { authCookie = await login(); });
+  const stepValueStream = (and: DefineStepFunction) =>
     and(/^a value stream "(.*)" exists$/, async (name: string) => {
       ids[`vs:${name}`] = await createValueStream(authCookie, name);
     });
+  const stepStatus = (then: DefineStepFunction) =>
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status, 10));
     });
-  }
 
   test('Projection for an empty value stream', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepValueStream(and);
     when(/^I get the projection for value stream "(.*)" with horizon (\d+)$/, async (vs: string, horizon: string) => {
       response = await http()
         .get(`/value-streams/${ids[`vs:${vs}`]}/recurring-flows/projection?monthsAhead=${horizon}`)
         .set('Cookie', [authCookie]);
     });
+    stepStatus(then);
     and(/^the projection should have (\d+) months$/, (n: string) => {
       expect(response.body.months.length).toBe(parseInt(n, 10));
     });
   });
 
   test('Projection for a stream with a monthly inbound flow', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepValueStream(and);
     and(
       /^an active monthly recurring flow with amount "(.*)" and unit "(.*)" and direction "(.*)" starting today exists for stream "(.*)"$/,
       async (amount: string, unit: string, direction: string, vs: string) => {
@@ -961,6 +1027,7 @@ defineFeature(projectionFeature, (test) => {
         .get(`/value-streams/${ids[`vs:${vs}`]}/recurring-flows/projection?monthsAhead=${horizon}`)
         .set('Cookie', [authCookie]);
     });
+    stepStatus(then);
     and(/^the projection should have (\d+) months$/, (n: string) => {
       expect(response.body.months.length).toBe(parseInt(n, 10));
     });
@@ -972,12 +1039,14 @@ defineFeature(projectionFeature, (test) => {
   });
 
   test('Projection caps horizon at 36 months', ({ given, and, when, then }) => {
-    common({ given, and, then });
+    stepAuth(given);
+    stepValueStream(and);
     when(/^I get the projection for value stream "(.*)" with horizon (\d+)$/, async (vs: string, horizon: string) => {
       response = await http()
         .get(`/value-streams/${ids[`vs:${vs}`]}/recurring-flows/projection?monthsAhead=${horizon}`)
         .set('Cookie', [authCookie]);
     });
+    stepStatus(then);
     and(/^the projection horizon should be (\d+)$/, (n: string) => {
       expect(response.body.horizonMonths).toBe(parseInt(n, 10));
     });

@@ -9,8 +9,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -77,6 +79,7 @@ export class ExchangeRatesController {
   async lookup(
     @Query(new ZodValidationPipe(exchangeRateLookupQuerySchema))
     query: ExchangeRateLookupQuery,
+    @Res() res: Response,
   ) {
     const at = query.at ? new Date(query.at) : new Date();
     const result = await this.exchangeRatesService.lookup(
@@ -84,14 +87,20 @@ export class ExchangeRatesController {
       query.toValueId,
       at,
     );
-    if (!result) return null;
-    return {
+    // NestJS's Express adapter sends an empty body for `return null` (it
+    // treats null like undefined). Use @Res to emit explicit JSON `null` so
+    // clients can distinguish "no rate" from a transport-level empty body.
+    if (!result) {
+      res.json(null);
+      return;
+    }
+    res.json({
       rate: result.rate,
       sourceRowId: result.sourceRowId,
       effectiveAt: result.effectiveAt.toISOString(),
       fromValueId: result.fromValueId,
       toValueId: result.toValueId,
-    };
+    });
   }
 
   @Get()

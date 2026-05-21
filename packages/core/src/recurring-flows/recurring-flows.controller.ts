@@ -178,6 +178,7 @@ export class RecurringFlowsController {
   }
 
   @Post(':id/transitions')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Apply a lifecycle transition to a recurring flow' })
   @ApiParam({ name: 'id', type: String })
   @ApiBody({ type: TransitionRecurringFlowDto })

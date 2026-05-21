@@ -13,7 +13,9 @@ export const valueStreamBudgetQuerySchema = z.object({
     .min(1900)
     .max(2100)
     .default(() => new Date().getUTCFullYear()),
-  directOnly: z.coerce.boolean().default(false),
+  directOnly: z
+    .union([z.boolean(), z.enum(['true', 'false']).transform((v) => v === 'true')])
+    .default(false),
 });
 
 const figureSchema = z.object({

@@ -90,7 +90,9 @@ async function createRate(
       fromValueId: ctx.valueIds.get(fromName),
       toValueId: ctx.valueIds.get(toName),
       rate,
-      effectiveAt: new Date().toISOString(),
+      // Effective before any test flow's startDate so the snapshot lookup
+      // finds this rate when flows are created.
+      effectiveAt: '2025-01-01T00:00:00.000Z',
     });
 }
 
