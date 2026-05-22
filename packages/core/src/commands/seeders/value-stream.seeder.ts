@@ -20,8 +20,8 @@ const CHILD_STREAMS: Record<string, Array<{ code: string; name: string; purpose:
 };
 
 export async function seedValueStreams(service: ValueStreamsService, deps: ValueStreamDeps) {
-  const roots: Array<{ id: string; name: string }> = [];
-  const children: Array<{ id: string; name: string }> = [];
+  const roots: Array<{ id: string; name: string; code: string }> = [];
+  const children: Array<{ id: string; name: string; code: string }> = [];
 
   for (let i = 0; i < ROOT_STREAMS.length; i++) {
     const data = ROOT_STREAMS[i];
@@ -33,7 +33,7 @@ export async function seedValueStreams(service: ValueStreamsService, deps: Value
       purpose: data.purpose,
       leadUserId: user.id,
     });
-    roots.push({ id: stream.id, name: stream.name });
+    roots.push({ id: stream.id, name: stream.name, code: data.code });
 
     for (const childData of CHILD_STREAMS[data.code]) {
       const child = await service.create({
@@ -43,7 +43,7 @@ export async function seedValueStreams(service: ValueStreamsService, deps: Value
         parentId: stream.id,
         leadUserId: deps.users[(i + 1) % deps.users.length].id,
       });
-      children.push({ id: child.id, name: child.name });
+      children.push({ id: child.id, name: child.name, code: childData.code });
     }
   }
 
