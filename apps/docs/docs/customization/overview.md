@@ -15,6 +15,7 @@ Marketlum is designed to be customized without forking. Your project owns two th
 | Database, JWT, file storage, ports | `.env` | [Environment & Configuration](/customization/environment) |
 | Initial data | `apps/api/src/cli.module.ts` | [Seed Data](/customization/seed-data) |
 | New endpoints, jobs, integrations | `apps/api/src/app.module.ts` | [Extending the API](/customization/extending-api) |
+| React to CRUD on core entities | `apps/api` providers with `@OnEvent` | [Domain Events](/customization/domain-events) |
 | New pages, custom layouts, middleware | `apps/web/src/app` | [Extending the Web App](/customization/extending-web) |
 | Domain model (without code) | Admin UI: Taxonomies, Archetypes | [Taxonomies & Archetypes](/customization/taxonomies-archetypes) |
 

@@ -36,6 +36,7 @@ const sidebars: SidebarsConfig = {
         'customization/environment',
         'customization/seed-data',
         'customization/extending-api',
+        'customization/domain-events',
         'customization/extending-web',
         'customization/taxonomies-archetypes',
       ],
