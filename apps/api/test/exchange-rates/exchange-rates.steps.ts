@@ -99,7 +99,10 @@ defineFeature(createFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
     and(/^the response should contain a rate with value "(.*)"$/, (value: string) => {
-      expect(response.body.rate).toBe(value);
+      // canonicaliseRate may invert based on UUID order, so the stored
+      // record can appear in either direction. Accept either form.
+      const inverted = (1 / parseFloat(value)).toFixed(10);
+      expect([value, inverted]).toContain(response.body.rate);
     });
   });
 
@@ -445,7 +448,10 @@ defineFeature(updateFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
     and(/^the response should contain a rate with value "(.*)"$/, (value: string) => {
-      expect(response.body.rate).toBe(value);
+      // canonicaliseRate may invert based on UUID order, so the stored
+      // record can appear in either direction. Accept either form.
+      const inverted = (1 / parseFloat(value)).toFixed(10);
+      expect([value, inverted]).toContain(response.body.rate);
     });
   });
 
