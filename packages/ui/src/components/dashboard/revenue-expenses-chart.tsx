@@ -172,29 +172,26 @@ export function RevenueExpensesChart({ data }: Props) {
     }
   }, [data, svgWidth, t]);
 
-  if (data.length === 0) {
-    return (
-      <Card className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">{t('noData')}</p>
-      </Card>
-    );
-  }
-
   return (
     <>
       <Card className="relative overflow-hidden">
         <svg ref={svgRef} className="w-full" style={{ height: 350 }} />
-        {/* Legend */}
-        <div className="absolute top-3 right-3 flex items-center gap-4 rounded-md border bg-background/90 px-3 py-1.5 text-xs backdrop-blur-sm">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: '#10b981' }} />
-            <span>{t('revenue')}</span>
+        {data.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-muted-foreground">{t('noData')}</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: '#f43f5e' }} />
-            <span>{t('expenses')}</span>
+        ) : (
+          <div className="absolute top-3 right-3 flex items-center gap-4 rounded-md border bg-background/90 px-3 py-1.5 text-xs backdrop-blur-sm">
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: '#10b981' }} />
+              <span>{t('revenue')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: '#f43f5e' }} />
+              <span>{t('expenses')}</span>
+            </div>
           </div>
-        </div>
+        )}
       </Card>
 
       {/* Tooltip */}
