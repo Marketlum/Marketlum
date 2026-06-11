@@ -10,6 +10,7 @@ export { TensionTransitionAction } from './enums/tension-transition-action.enum'
 export { GeographyType } from './enums/geography-type.enum';
 export { AgreementTemplateType } from './enums/agreement-template-type.enum';
 export { ValueLifecycleStage } from './enums/value-lifecycle-stage.enum';
+export { InvoiceDirection } from './enums/invoice-direction.enum';
 
 export { loginSchema, type LoginInput } from './schemas/auth.schema';
 
@@ -381,6 +382,13 @@ export {
   type ValueStreamBudgetQuery,
   type ValueStreamBudgetResponse,
 } from './schemas/value-stream-budget.schema';
+
+export {
+  valueStreamFinancialsQuerySchema,
+  valueStreamFinancialsResponseSchema,
+  type ValueStreamFinancialsQuery,
+  type ValueStreamFinancialsResponse,
+} from './schemas/value-stream-financials.schema';
 
 export type {
   DomainEvent,

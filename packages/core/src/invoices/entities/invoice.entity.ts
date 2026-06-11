@@ -10,6 +10,7 @@ import {
   Index,
   Unique,
 } from 'typeorm';
+import { InvoiceDirection } from '@marketlum/shared';
 import { Agent } from '../../agents/entities/agent.entity';
 import { Value } from '../../values/entities/value.entity';
 import { ValueStream } from '../../value-streams/entities/value-stream.entity';
@@ -52,6 +53,9 @@ export class Invoice {
 
   @Column({ type: 'uuid' })
   currencyId: string;
+
+  @Column({ type: 'enum', enum: InvoiceDirection })
+  direction: InvoiceDirection;
 
   @Column({ type: 'boolean', default: false })
   paid: boolean;

@@ -267,6 +267,7 @@ export { ExchangesGraphPage } from './pages/admin/exchanges-graph-page';
 export { ExchangesPage } from './pages/admin/exchanges-page';
 export { ExchangeRatesPage } from './pages/admin/exchange-rates-page';
 export { ValueStreamBudgetPage } from './pages/admin/value-stream-budget-page';
+export { ValueStreamFinancialsPage } from './pages/admin/value-stream-financials-page';
 export { ValueStreamLayout } from './layouts/value-stream-layout';
 export { ValueStreamValuesPage } from './pages/admin/value-stream-values-page';
 export { ValueStreamOfferingsPage } from './pages/admin/value-stream-offerings-page';

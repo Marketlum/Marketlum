@@ -100,6 +100,7 @@ export class InvoicesController {
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
   @ApiQuery({ name: 'fromAgentId', required: false, type: String })
   @ApiQuery({ name: 'toAgentId', required: false, type: String })
+  @ApiQuery({ name: 'direction', required: false, enum: ['revenue', 'expense'] })
   @ApiQuery({ name: 'paid', required: false, enum: ['true', 'false'] })
   @ApiQuery({ name: 'currencyId', required: false, type: String })
   @ApiQuery({ name: 'channelId', required: false, type: String })
@@ -108,6 +109,7 @@ export class InvoicesController {
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('fromAgentId') fromAgentId?: string,
     @Query('toAgentId') toAgentId?: string,
+    @Query('direction') direction?: string,
     @Query('paid') paid?: string,
     @Query('currencyId') currencyId?: string,
     @Query('channelId') channelId?: string,
@@ -116,6 +118,7 @@ export class InvoicesController {
       ...query,
       fromAgentId,
       toAgentId,
+      direction,
       paid,
       currencyId,
       channelId,

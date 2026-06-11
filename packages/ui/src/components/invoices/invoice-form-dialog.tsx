@@ -9,6 +9,7 @@ import { Plus, UserPlus, X } from 'lucide-react';
 import {
   createInvoiceSchema,
   updateInvoiceSchema,
+  InvoiceDirection,
   type CreateInvoiceInput,
   type CreateAgentInput,
   type AgentResponse,
@@ -55,6 +56,7 @@ interface InvoiceData {
   issuedAt: string;
   dueAt: string;
   currency: { id: string; name: string } | null;
+  direction: InvoiceDirection;
   paid: boolean;
   link: string | null;
   file: unknown;
@@ -146,6 +148,7 @@ export function InvoiceFormDialog({
           issuedAt: invoice.issuedAt ? invoice.issuedAt.slice(0, 16) : '',
           dueAt: invoice.dueAt ? invoice.dueAt.slice(0, 16) : '',
           currencyId: invoice.currency?.id ?? '',
+          direction: invoice.direction,
           paid: invoice.paid,
           link: invoice.link ?? '',
           valueStreamId: invoice.valueStream?.id ?? null,
@@ -421,8 +424,26 @@ export function InvoiceFormDialog({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="inv-link">{t('link')}</Label>
-              <Input id="inv-link" {...register('link')} placeholder="https://..." />
+              <Label>{t('direction')}</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={watch('direction') === InvoiceDirection.REVENUE ? 'default' : 'outline'}
+                  onClick={() => setFormValue('direction', InvoiceDirection.REVENUE)}
+                >
+                  {t('directionRevenue')}
+                </Button>
+                <Button
+                  type="button"
+                  variant={watch('direction') === InvoiceDirection.EXPENSE ? 'default' : 'outline'}
+                  onClick={() => setFormValue('direction', InvoiceDirection.EXPENSE)}
+                >
+                  {t('directionExpense')}
+                </Button>
+              </div>
+              {errors.direction && (
+                <p className="text-sm text-destructive">{errors.direction.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t('valueStream')}</Label>
@@ -445,24 +466,30 @@ export function InvoiceFormDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>{t('channel')}</Label>
-            <Select
-              value={watch('channelId') ?? '__none__'}
-              onValueChange={(v) => setFormValue('channelId', v === '__none__' ? null : v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('selectChannel')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">&mdash;</SelectItem>
-                {channels.map((ch) => (
-                  <SelectItem key={ch.id} value={ch.id}>
-                    {ch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="inv-link">{t('link')}</Label>
+              <Input id="inv-link" {...register('link')} placeholder="https://..." />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('channel')}</Label>
+              <Select
+                value={watch('channelId') ?? '__none__'}
+                onValueChange={(v) => setFormValue('channelId', v === '__none__' ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('selectChannel')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">&mdash;</SelectItem>
+                  {channels.map((ch) => (
+                    <SelectItem key={ch.id} value={ch.id}>
+                      {ch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">

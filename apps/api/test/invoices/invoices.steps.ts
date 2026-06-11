@@ -113,6 +113,7 @@ async function createInvoice(
     issuedAt: '2025-01-15T00:00:00.000Z',
     dueAt: '2025-02-15T00:00:00.000Z',
     currencyId,
+    direction: 'revenue',
   };
   if (opts.paid !== undefined) body.paid = opts.paid;
   if (opts.items) body.items = opts.items;
@@ -192,6 +193,7 @@ defineFeature(createFeature, (test) => {
             issuedAt: row.issuedAt,
             dueAt: row.dueAt,
             currencyId,
+            direction: 'revenue',
             paid: row.paid === 'true',
             link: row.link,
             valueStreamId,
@@ -452,6 +454,7 @@ defineFeature(createFeature, (test) => {
           issuedAt: '2025-01-01T00:00:00.000Z',
           dueAt: '2025-02-01T00:00:00.000Z',
           currencyId: '00000000-0000-0000-0000-000000000000',
+          direction: 'revenue',
         });
     });
 
@@ -1721,6 +1724,7 @@ defineFeature(eventsFeature, (test) => {
           fromAgentId,
           toAgentId,
           currencyId,
+          direction: 'revenue',
           issuedAt: '2025-01-15T00:00:00.000Z',
           dueAt: '2025-02-15T00:00:00.000Z',
         });
@@ -1756,6 +1760,7 @@ defineFeature(eventsFeature, (test) => {
           fromAgentId,
           toAgentId,
           currencyId,
+          direction: 'revenue',
           issuedAt: '2025-01-15T00:00:00.000Z',
           dueAt: '2025-02-15T00:00:00.000Z',
         });
@@ -1795,6 +1800,7 @@ defineFeature(eventsFeature, (test) => {
           fromAgentId,
           toAgentId,
           currencyId,
+          direction: 'revenue',
           issuedAt: '2025-01-15T00:00:00.000Z',
           dueAt: '2025-02-15T00:00:00.000Z',
         });

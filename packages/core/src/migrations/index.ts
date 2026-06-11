@@ -47,6 +47,7 @@ import { AddCurrencyValueType1700000000045 } from './1700000000045-AddCurrencyVa
 import { AddEntityCodes1700000000046 } from './1700000000046-AddEntityCodes';
 import { AddFunctionalCurrency1700000000047 } from './1700000000047-AddFunctionalCurrency';
 import { DenormalizeInvoiceTotal1700000000048 } from './1700000000048-DenormalizeInvoiceTotal';
+import { AddInvoiceDirection1700000000049 } from './1700000000049-AddInvoiceDirection';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -98,4 +99,5 @@ export const ALL_MIGRATIONS = [
   AddEntityCodes1700000000046,
   AddFunctionalCurrency1700000000047,
   DenormalizeInvoiceTotal1700000000048,
+  AddInvoiceDirection1700000000049,
 ];

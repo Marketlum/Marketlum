@@ -1,20 +1,20 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ValueStreamBudgetResponse } from '@marketlum/shared';
+import type { ValueStreamFinancialsResponse } from '@marketlum/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '../../lib/utils';
 import { formatFigure, netClass } from '../../lib/figures';
 
 interface Props {
-  budget: ValueStreamBudgetResponse;
+  financials: ValueStreamFinancialsResponse;
 }
 
 type Period = 'monthly' | 'quarterly' | 'annual';
 
-export function BudgetSummaryCards({ budget }: Props) {
-  const t = useTranslations('valueStreamBudget');
-  const currency = budget.presentationCurrency?.name ?? '';
+export function FinancialsSummaryCards({ financials }: Props) {
+  const t = useTranslations('valueStreamFinancials');
+  const currency = financials.presentationCurrency?.name ?? '';
 
   const periods: Period[] = ['monthly', 'quarterly', 'annual'];
 
@@ -29,15 +29,15 @@ export function BudgetSummaryCards({ budget }: Props) {
             <div className="flex items-baseline justify-between">
               <span className="text-xs text-muted-foreground">{t('revenue')}</span>
               <span className="text-emerald-600 font-medium tabular-nums">
-                {formatFigure(budget.summary.revenue[period], currency)}
+                {formatFigure(financials.summary.revenue[period], currency)}
               </span>
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-xs text-muted-foreground">{t('expense')}</span>
               <span className="text-red-600 font-medium tabular-nums">
-                {budget.summary.expense[period] === null
+                {financials.summary.expense[period] === null
                   ? '—'
-                  : `−${budget.summary.expense[period]} ${currency}`}
+                  : `−${financials.summary.expense[period]} ${currency}`}
               </span>
             </div>
             <div className="flex items-baseline justify-between border-t pt-1.5">
@@ -45,10 +45,10 @@ export function BudgetSummaryCards({ budget }: Props) {
               <span
                 className={cn(
                   'font-semibold tabular-nums',
-                  netClass(budget.summary.net[period]),
+                  netClass(financials.summary.net[period]),
                 )}
               >
-                {formatFigure(budget.summary.net[period], currency)}
+                {formatFigure(financials.summary.net[period], currency)}
               </span>
             </div>
           </CardContent>

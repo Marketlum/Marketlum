@@ -271,14 +271,13 @@
   },
   "taxonomies": {
     "title": "Taxonomies",
-    "description": "Organize and classify entities with hierarchical categories.",
+    "description": "Distilled wisdom and shared perspective on the market.",
     "addRoot": "Add Root",
     "addChild": "Add child",
     "taxonomyNamePlaceholder": "Taxonomy name...",
     "descriptionPlaceholder": "Description...",
     "linkPlaceholder": "Link (https://...)",
     "link": "Link",
-    "description": "Distilled wisdom and shared perspective on the market.",
     "childNamePlaceholder": "Child name...",
     "deleteTaxonomy": "Delete Taxonomy",
     "deleteWithChildren": "Are you sure you want to delete \"{name}\"? This will also delete all child taxonomies. This action cannot be undone.",
@@ -438,7 +437,8 @@
     "createValue": "Create Value",
     "createExchange": "Create Exchange",
     "createRecurringFlow": "Create Recurring Flow",
-    "atAGlance": "At a glance"
+    "atAGlance": "At a glance",
+    "tabFinancials": "Financials"
   },
   "valueStreamBudget": {
     "title": "Budget",
@@ -706,7 +706,7 @@
   },
   "recurringFlows": {
     "title": "Recurring Flows",
-    "description": "Track recurring revenues and expenses for each value stream.",
+    "description": "Description",
     "createFlow": "Create Recurring Flow",
     "editFlow": "Edit Recurring Flow",
     "deleteFlow": "Delete Recurring Flow",
@@ -737,7 +737,6 @@
     "frequencyYearly": "year(s)",
     "startDate": "Start date",
     "endDate": "End date (optional)",
-    "description": "Description",
     "status": "Status",
     "statusDraft": "Draft",
     "statusActive": "Active",
@@ -857,7 +856,11 @@
     "inAgentBooks": "In {name}'s books",
     "inPresentationCurrency": "In presentation currency",
     "inCurrency": "In {currency}",
-    "functionalCurrencyLabel": "Functional currency"
+    "functionalCurrencyLabel": "Functional currency",
+    "direction": "Direction",
+    "directionRevenue": "Revenue",
+    "directionExpense": "Expense",
+    "allDirections": "All directions"
   },
   "exchanges": {
     "title": "Exchanges",
@@ -1198,5 +1201,29 @@
     "switchLanguage": "Switch language",
     "en": "English",
     "pl": "Polski"
+  },
+  "valueStreamFinancials": {
+    "title": "Financials",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "annual": "Annual",
+    "revenue": "Revenue",
+    "expense": "Expense",
+    "net": "Net",
+    "breakdown": "Breakdown",
+    "viewMonths": "Months",
+    "viewQuarters": "Quarters",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "directOnly": "Direct only",
+    "noBaseValueTitle": "No presentation currency configured",
+    "noBaseValueBody": "Set a presentation currency to total actuals across currencies.",
+    "noBaseValueAction": "Open exchange rates",
+    "noInvoicesTitle": "No invoices in this period",
+    "noInvoicesBody": "Attribute invoices to this value stream to see actual revenue and expenses.",
+    "noInvoicesAction": "Add invoice",
+    "notConvertedTitle": "{count} invoice line(s) could not be converted",
+    "notConvertedBody": "These lines have no presentation-currency snapshot and are excluded from totals.",
+    "failedToLoad": "Failed to load financials"
   }
 }

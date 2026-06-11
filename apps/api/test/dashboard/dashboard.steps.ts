@@ -74,6 +74,7 @@ async function createInvoiceWithItems(
     issuedAt: `${issuedAt}T00:00:00.000Z`,
     dueAt: '2025-12-31T00:00:00.000Z',
     currencyId,
+    direction: 'revenue',
     items: [
       { quantity: '1.00', unitPrice: total, total },
     ],

@@ -270,14 +270,13 @@
   },
   "taxonomies": {
     "title": "Taksonomie",
-    "description": "Organizuj i klasyfikuj encje za pomocą hierarchicznych kategorii.",
+    "description": "Wspólna perspektywa na rynek.",
     "addRoot": "Dodaj korzeń",
     "addChild": "Dodaj potomka",
     "taxonomyNamePlaceholder": "Nazwa taksonomii...",
     "descriptionPlaceholder": "Opis...",
     "linkPlaceholder": "Link (https://...)",
     "link": "Link",
-    "description": "Wspólna perspektywa na rynek.",
     "childNamePlaceholder": "Nazwa potomka...",
     "deleteTaxonomy": "Usuń taksonomię",
     "deleteWithChildren": "Czy na pewno chcesz usunąć \"{name}\"? Spowoduje to również usunięcie wszystkich taksonomii potomnych. Tej operacji nie można cofnąć.",
@@ -437,7 +436,8 @@
     "createValue": "Utwórz wartość",
     "createExchange": "Utwórz wymianę",
     "createRecurringFlow": "Utwórz przepływ cykliczny",
-    "atAGlance": "W skrócie"
+    "atAGlance": "W skrócie",
+    "tabFinancials": "Finanse"
   },
   "valueStreamBudget": {
     "title": "Budżet",
@@ -705,7 +705,7 @@
   },
   "recurringFlows": {
     "title": "Przepływy cykliczne",
-    "description": "Śledź cykliczne przychody i wydatki dla każdego strumienia wartości.",
+    "description": "Opis",
     "createFlow": "Utwórz przepływ cykliczny",
     "editFlow": "Edytuj przepływ cykliczny",
     "deleteFlow": "Usuń przepływ cykliczny",
@@ -736,7 +736,6 @@
     "frequencyYearly": "rok(lata)",
     "startDate": "Data początkowa",
     "endDate": "Data końcowa (opcjonalna)",
-    "description": "Opis",
     "status": "Status",
     "statusDraft": "Wersja robocza",
     "statusActive": "Aktywny",
@@ -857,7 +856,11 @@
     "inAgentBooks": "W księgach {name}",
     "inPresentationCurrency": "W walucie prezentacji",
     "inCurrency": "W {currency}",
-    "functionalCurrencyLabel": "Waluta funkcjonalna"
+    "functionalCurrencyLabel": "Waluta funkcjonalna",
+    "direction": "Kierunek",
+    "directionRevenue": "Przychód",
+    "directionExpense": "Koszt",
+    "allDirections": "Wszystkie kierunki"
   },
   "exchanges": {
     "title": "Wymiany",
@@ -1198,5 +1201,29 @@
     "switchLanguage": "Zmień język",
     "en": "English",
     "pl": "Polski"
+  },
+  "valueStreamFinancials": {
+    "title": "Finanse",
+    "monthly": "Miesięcznie",
+    "quarterly": "Kwartalnie",
+    "annual": "Rocznie",
+    "revenue": "Przychód",
+    "expense": "Koszt",
+    "net": "Netto",
+    "breakdown": "Zestawienie",
+    "viewMonths": "Miesiące",
+    "viewQuarters": "Kwartały",
+    "previousYear": "Poprzedni rok",
+    "nextYear": "Następny rok",
+    "directOnly": "Tylko bezpośrednie",
+    "noBaseValueTitle": "Nie skonfigurowano waluty prezentacji",
+    "noBaseValueBody": "Ustaw walutę prezentacji, aby sumować dane rzeczywiste w różnych walutach.",
+    "noBaseValueAction": "Otwórz kursy wymiany",
+    "noInvoicesTitle": "Brak faktur w tym okresie",
+    "noInvoicesBody": "Przypisz faktury do tego strumienia wartości, aby zobaczyć rzeczywiste przychody i koszty.",
+    "noInvoicesAction": "Dodaj fakturę",
+    "notConvertedTitle": "Nie udało się przeliczyć {count} pozycji faktur",
+    "notConvertedBody": "Te pozycje nie mają migawki w walucie prezentacji i są wyłączone z sum.",
+    "failedToLoad": "Nie udało się załadować finansów"
   }
 }

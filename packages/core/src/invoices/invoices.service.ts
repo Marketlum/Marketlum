@@ -205,6 +205,7 @@ export class InvoicesService {
     query: PaginationQuery & {
       fromAgentId?: string;
       toAgentId?: string;
+      direction?: string;
       paid?: string;
       currencyId?: string;
       channelId?: string;
@@ -218,6 +219,7 @@ export class InvoicesService {
       sortOrder,
       fromAgentId,
       toAgentId,
+      direction,
       paid,
       currencyId,
       channelId,
@@ -255,6 +257,10 @@ export class InvoicesService {
 
     if (toAgentId) {
       qb.andWhere('invoice.toAgentId = :toAgentId', { toAgentId });
+    }
+
+    if (direction) {
+      qb.andWhere('invoice.direction = :direction', { direction });
     }
 
     if (paid !== undefined) {
@@ -309,6 +315,9 @@ export class InvoicesService {
     }
     if (toAgentId) {
       countQb.andWhere('invoice.toAgentId = :toAgentId', { toAgentId });
+    }
+    if (direction) {
+      countQb.andWhere('invoice.direction = :direction', { direction });
     }
     if (paid !== undefined) {
       countQb.andWhere('invoice.paid = :paid', { paid: paid === 'true' });
@@ -410,6 +419,7 @@ export class InvoicesService {
     if (rest.issuedAt !== undefined)
       invoice.issuedAt = new Date(rest.issuedAt);
     if (rest.dueAt !== undefined) invoice.dueAt = new Date(rest.dueAt);
+    if (rest.direction !== undefined) invoice.direction = rest.direction;
     if (rest.paid !== undefined) invoice.paid = rest.paid;
     if (rest.link !== undefined) invoice.link = rest.link ?? null;
 

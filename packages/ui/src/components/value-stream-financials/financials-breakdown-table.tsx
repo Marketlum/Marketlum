@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { ValueStreamBudgetResponse } from '@marketlum/shared';
+import type { ValueStreamFinancialsResponse } from '@marketlum/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import {
@@ -17,7 +17,7 @@ import { cn } from '../../lib/utils';
 import { cellClass, fmt } from '../../lib/figures';
 
 interface Props {
-  budget: ValueStreamBudgetResponse;
+  financials: ValueStreamFinancialsResponse;
 }
 
 const MONTH_LABELS = [
@@ -25,8 +25,8 @@ const MONTH_LABELS = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
-export function BudgetBreakdownTable({ budget }: Props) {
-  const t = useTranslations('valueStreamBudget');
+export function FinancialsBreakdownTable({ financials }: Props) {
+  const t = useTranslations('valueStreamFinancials');
   const [view, setView] = useState<'months' | 'quarters'>('months');
 
   return (
@@ -48,7 +48,7 @@ export function BudgetBreakdownTable({ budget }: Props) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-24"> </TableHead>
-                    {budget.byMonth.map((m, i) => (
+                    {financials.byMonth.map((m, i) => (
                       <TableHead key={m.month} className="text-right">
                         {MONTH_LABELS[i]}
                       </TableHead>
@@ -58,7 +58,7 @@ export function BudgetBreakdownTable({ budget }: Props) {
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium text-emerald-600">{t('revenue')}</TableCell>
-                    {budget.byMonth.map((m) => (
+                    {financials.byMonth.map((m) => (
                       <TableCell key={m.month} className={cn('text-right tabular-nums', cellClass(m.revenue))}>
                         {fmt(m.revenue)}
                       </TableCell>
@@ -66,7 +66,7 @@ export function BudgetBreakdownTable({ budget }: Props) {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium text-red-600">{t('expense')}</TableCell>
-                    {budget.byMonth.map((m) => (
+                    {financials.byMonth.map((m) => (
                       <TableCell key={m.month} className={cn('text-right tabular-nums text-red-600')}>
                         {m.expense === null ? '—' : `−${m.expense}`}
                       </TableCell>
@@ -74,7 +74,7 @@ export function BudgetBreakdownTable({ budget }: Props) {
                   </TableRow>
                   <TableRow className="border-t-2">
                     <TableCell className="font-semibold">{t('net')}</TableCell>
-                    {budget.byMonth.map((m) => (
+                    {financials.byMonth.map((m) => (
                       <TableCell key={m.month} className={cn('text-right tabular-nums font-semibold', cellClass(m.net))}>
                         {fmt(m.net)}
                       </TableCell>
@@ -89,9 +89,9 @@ export function BudgetBreakdownTable({ budget }: Props) {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-32"> </TableHead>
-                  {budget.byQuarter.map((q) => (
+                  {financials.byQuarter.map((q) => (
                     <TableHead key={q.quarter} className="text-right">
-                      {q.quarter.replace(`${budget.year}-`, '')}
+                      {q.quarter.replace(`${financials.year}-`, '')}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -99,7 +99,7 @@ export function BudgetBreakdownTable({ budget }: Props) {
               <TableBody>
                 <TableRow>
                   <TableCell className="font-medium text-emerald-600">{t('revenue')}</TableCell>
-                  {budget.byQuarter.map((q) => (
+                  {financials.byQuarter.map((q) => (
                     <TableCell key={q.quarter} className={cn('text-right tabular-nums', cellClass(q.revenue))}>
                       {fmt(q.revenue)}
                     </TableCell>
@@ -107,7 +107,7 @@ export function BudgetBreakdownTable({ budget }: Props) {
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium text-red-600">{t('expense')}</TableCell>
-                  {budget.byQuarter.map((q) => (
+                  {financials.byQuarter.map((q) => (
                     <TableCell key={q.quarter} className="text-right tabular-nums text-red-600">
                       {q.expense === null ? '—' : `−${q.expense}`}
                     </TableCell>
@@ -115,7 +115,7 @@ export function BudgetBreakdownTable({ budget }: Props) {
                 </TableRow>
                 <TableRow className="border-t-2">
                   <TableCell className="font-semibold">{t('net')}</TableCell>
-                  {budget.byQuarter.map((q) => (
+                  {financials.byQuarter.map((q) => (
                     <TableCell key={q.quarter} className={cn('text-right tabular-nums font-semibold', cellClass(q.net))}>
                       {fmt(q.net)}
                     </TableCell>

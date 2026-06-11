@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { InvoiceDirection } from '@marketlum/shared';
 import { InvoicesService } from '../../invoices/invoices.service';
 
 interface ValueRef {
@@ -55,12 +56,21 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
       };
     });
 
+    // Themed mix: most invoices are sales/output (revenue), the rest are
+    // supplier/material/service costs (expense) — so each value stream's
+    // Financials tab shows a realistic revenue/expense/net split.
+    const direction = faker.helpers.weightedArrayElement([
+      { weight: 6, value: InvoiceDirection.REVENUE },
+      { weight: 4, value: InvoiceDirection.EXPENSE },
+    ]);
+
     const number = `INV-2026-${String(i + 1).padStart(4, '0')}`;
     const invoice = await service.create({
       number,
       fromAgentId: fromAgent.id,
       toAgentId: toAgent.id,
       currencyId: currency.id,
+      direction,
       issuedAt: issuedAt.toISOString(),
       dueAt: dueAt.toISOString(),
       paid: faker.datatype.boolean(),
