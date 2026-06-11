@@ -1555,6 +1555,63 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
+  test('Filter by valueStreamId', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a value exists with name "(.*)"$/, async (name: string) => {
+      await createValue(authCookie, name);
+    });
+
+    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
+      await createValueStream(authCookie, name);
+    });
+
+    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
+      await createValueStream(authCookie, name);
+    });
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)" with value stream "(.*)"$/,
+      async (number: string, from: string, to: string, valueStreamName: string) => {
+        const valueStreamId = valueStreamIds.get(valueStreamName)!;
+        await createInvoice(authCookie, number, from, to, { valueStreamId });
+      },
+    );
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)" with value stream "(.*)"$/,
+      async (number: string, from: string, to: string, valueStreamName: string) => {
+        const valueStreamId = valueStreamIds.get(valueStreamName)!;
+        await createInvoice(authCookie, number, from, to, { valueStreamId });
+      },
+    );
+
+    when(/^I search invoices with valueStreamId for "(.*)"$/, async (valueStreamName: string) => {
+      const valueStreamId = valueStreamIds.get(valueStreamName);
+      response = await request(getApp().getHttpServer())
+        .get(`/invoices/search?valueStreamId=${valueStreamId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the total count should be (\d+)$/, (count: string) => {
+      expect(response.body.meta.total).toBe(parseInt(count));
+    });
+  });
+
   test('Sort by number ascending', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');

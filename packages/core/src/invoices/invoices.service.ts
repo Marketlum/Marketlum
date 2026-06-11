@@ -209,6 +209,7 @@ export class InvoicesService {
       paid?: string;
       currencyId?: string;
       channelId?: string;
+      valueStreamId?: string;
     },
   ) {
     const {
@@ -223,6 +224,7 @@ export class InvoicesService {
       paid,
       currencyId,
       channelId,
+      valueStreamId,
     } = query;
     const skip = (page - 1) * limit;
 
@@ -273,6 +275,10 @@ export class InvoicesService {
 
     if (channelId) {
       qb.andWhere('invoice.channelId = :channelId', { channelId });
+    }
+
+    if (valueStreamId) {
+      qb.andWhere('invoice.valueStreamId = :valueStreamId', { valueStreamId });
     }
 
     if (search) {
@@ -327,6 +333,9 @@ export class InvoicesService {
     }
     if (channelId) {
       countQb.andWhere('invoice.channelId = :channelId', { channelId });
+    }
+    if (valueStreamId) {
+      countQb.andWhere('invoice.valueStreamId = :valueStreamId', { valueStreamId });
     }
     if (search) {
       countQb.andWhere(
