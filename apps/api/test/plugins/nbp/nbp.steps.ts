@@ -25,11 +25,13 @@ interface Ctx {
 const makeCtx = (): Ctx => ({ authCookie: '', currencies: new Map(), response: undefined as never });
 
 async function ensureCurrency(ctx: Ctx, name: string, code: string): Promise<void> {
+  // Core `code` is snake_case/lowercase; store lowercased but key the map by the
+  // ISO code the feature/NBP use.
   const res = await request(getApp().getHttpServer())
     .post('/values')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({ code, name, type: 'currency', purpose: `Currency ${code}` });
+    .send({ code: code.toLowerCase(), name, type: 'currency', purpose: `Currency ${code}` });
   ctx.currencies.set(code, res.body.id);
 }
 
@@ -69,6 +71,8 @@ async function countPairRows(ctx: Ctx, a: string, b: string, source?: string): P
   return rows[0].n;
 }
 
+type StepFn = (regex: RegExp | string, fn: (...args: never[]) => unknown) => void;
+
 defineFeature(feature, (test) => {
   beforeAll(async () => {
     await bootstrapApp();
@@ -80,32 +84,22 @@ defineFeature(feature, (test) => {
     await teardownApp();
   });
 
-  // Shared mutable ctx reference, rebound per test; the helper closures read it
-  // at step-execution time (after each test reassigns it).
-  let ctx: Ctx;
-
-  function registerBackground(
-    ctx: Ctx,
-    steps: {
-      given: (regex: RegExp | string, fn: (...args: never[]) => unknown) => void;
-      and: (regex: RegExp | string, fn: (...args: never[]) => unknown) => void;
-    },
-  ) {
-    steps.given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+  function registerBackground(ctx: Ctx, given: StepFn, and: StepFn) {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    steps.and(/^a currency value exists named "(.*)" with code "(.*)"$/, async (name: string, code: string) => {
+    and(/^a currency value exists named "(.*)" with code "(.*)"$/, async (name: string, code: string) => {
       await ensureCurrency(ctx, name, code);
     });
-    steps.and(/^a currency value exists named "(.*)" with code "(.*)"$/, async (name: string, code: string) => {
+    and(/^a currency value exists named "(.*)" with code "(.*)"$/, async (name: string, code: string) => {
       await ensureCurrency(ctx, name, code);
     });
-    steps.and(/^a currency value exists named "(.*)" with code "(.*)"$/, async (name: string, code: string) => {
+    and(/^a currency value exists named "(.*)" with code "(.*)"$/, async (name: string, code: string) => {
       await ensureCurrency(ctx, name, code);
     });
   }
 
-  const provideRate = (and: any) =>
+  const provideRate = (and: StepFn) =>
     and(
       /^the NBP table A response provides a mid rate of "(.*)" for "(.*)" effective "(.*)"$/,
       (mid: string, code: string, date: string) => {
@@ -113,30 +107,12 @@ defineFeature(feature, (test) => {
       },
     );
 
-  const statusThen = (then: any) =>
+  const statusThen = (then: StepFn, ctx: Ctx) =>
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
 
-  test('A manual refresh ingests a tracked currency as an NBP-sourced rate', ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    ctx = makeCtx();
-    registerBackground(ctx, { given, and });
-    given(/^the NBP plugin is configured to track "(.*)"$/, async (code: string) => {
-      await trackCurrencies([code]);
-    });
-    provideRate(and);
-    when(/^I trigger an NBP refresh$/, async () => {
-      await triggerRefresh(ctx);
-    });
-    statusThen(then);
-    and(/^the refresh summary reports (\d+) currency updated$/, (n: string) => {
-      expect(ctx.response.body.updated).toHaveLength(parseInt(n));
-    });
+  const lookupThen = (and: StepFn, ctx: Ctx) =>
     and(
       /^looking up the exchange rate from "(.*)" to "(.*)" as of "(.*)" returns "(.*)"$/,
       async (from: string, to: string, at: string, expected: string) => {
@@ -145,6 +121,25 @@ defineFeature(feature, (test) => {
         expect(Math.abs(Number(res.body.rate) - Number(expected))).toBeLessThan(1e-6);
       },
     );
+
+  const updatedThen = (and: StepFn, ctx: Ctx) =>
+    and(/^the refresh summary reports (\d+) currenc(?:y|ies) updated$/, (n: string) => {
+      expect(ctx.response.body.updated).toHaveLength(parseInt(n));
+    });
+
+  test('A manual refresh ingests a tracked currency as an NBP-sourced rate', ({ given, and, when, then }) => {
+    const ctx = makeCtx();
+    registerBackground(ctx, given, and);
+    given(/^the NBP plugin is configured to track "(.*)"$/, async (code: string) => {
+      await trackCurrencies([code]);
+    });
+    provideRate(and);
+    when(/^I trigger an NBP refresh$/, async () => {
+      await triggerRefresh(ctx);
+    });
+    statusThen(then, ctx);
+    updatedThen(and, ctx);
+    lookupThen(and, ctx);
     and(/^exactly one exchange rate for the "(.*)"\/"(.*)" pair has source "(.*)"$/,
       async (a: string, b: string, source: string) => {
         expect(await countPairRows(ctx, a, b, source)).toBe(1);
@@ -152,8 +147,8 @@ defineFeature(feature, (test) => {
   });
 
   test('Currencies the admin does not track are not ingested', ({ given, and, when, then }) => {
-    ctx = makeCtx();
-    registerBackground(ctx, { given, and });
+    const ctx = makeCtx();
+    registerBackground(ctx, given, and);
     given(/^the NBP plugin is configured to track "(.*)"$/, async (code: string) => {
       await trackCurrencies([code]);
     });
@@ -162,23 +157,16 @@ defineFeature(feature, (test) => {
     when(/^I trigger an NBP refresh$/, async () => {
       await triggerRefresh(ctx);
     });
-    statusThen(then);
-    and(/^the refresh summary reports (\d+) currency updated$/, (n: string) => {
-      expect(ctx.response.body.updated).toHaveLength(parseInt(n));
-    });
+    statusThen(then, ctx);
+    updatedThen(and, ctx);
     and(/^no exchange rate exists for the "(.*)"\/"(.*)" pair$/, async (a: string, b: string) => {
       expect(await countPairRows(ctx, a, b)).toBe(0);
     });
   });
 
-  test('A tracked currency without a matching value is skipped and reported', ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    ctx = makeCtx();
-    registerBackground(ctx, { given, and });
+  test('A tracked currency without a matching value is skipped and reported', ({ given, and, when, then }) => {
+    const ctx = makeCtx();
+    registerBackground(ctx, given, and);
     given(/^the NBP plugin is configured to track "(.*)" and "(.*)"$/, async (a: string, b: string) => {
       await trackCurrencies([a, b]);
     });
@@ -187,18 +175,16 @@ defineFeature(feature, (test) => {
     when(/^I trigger an NBP refresh$/, async () => {
       await triggerRefresh(ctx);
     });
-    statusThen(then);
-    and(/^the refresh summary reports (\d+) currency updated$/, (n: string) => {
-      expect(ctx.response.body.updated).toHaveLength(parseInt(n));
-    });
+    statusThen(then, ctx);
+    updatedThen(and, ctx);
     and(/^the refresh summary reports "(.*)" as skipped$/, (code: string) => {
       expect(ctx.response.body.skipped).toContain(code);
     });
   });
 
   test('A manually entered rate is never overwritten by NBP', ({ given, and, when, then }) => {
-    ctx = makeCtx();
-    registerBackground(ctx, { given, and });
+    const ctx = makeCtx();
+    registerBackground(ctx, given, and);
     given(/^the NBP plugin is configured to track "(.*)"$/, async (code: string) => {
       await trackCurrencies([code]);
     });
@@ -221,28 +207,14 @@ defineFeature(feature, (test) => {
     when(/^I trigger an NBP refresh$/, async () => {
       await triggerRefresh(ctx);
     });
-    statusThen(then);
-    and(/^the refresh summary reports (\d+) currencies updated$/, (n: string) => {
-      expect(ctx.response.body.updated).toHaveLength(parseInt(n));
-    });
-    and(
-      /^looking up the exchange rate from "(.*)" to "(.*)" as of "(.*)" returns "(.*)"$/,
-      async (from: string, to: string, at: string, expected: string) => {
-        const res = await lookupRate(ctx, from, to, at);
-        expect(res.body).not.toBeNull();
-        expect(Math.abs(Number(res.body.rate) - Number(expected))).toBeLessThan(1e-6);
-      },
-    );
+    statusThen(then, ctx);
+    updatedThen(and, ctx);
+    lookupThen(and, ctx);
   });
 
-  test('Re-running the refresh is idempotent and updates the NBP row in place', ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    ctx = makeCtx();
-    registerBackground(ctx, { given, and });
+  test('Re-running the refresh is idempotent and updates the NBP row in place', ({ given, and, when, then }) => {
+    const ctx = makeCtx();
+    registerBackground(ctx, given, and);
     given(/^the NBP plugin is configured to track "(.*)"$/, async (code: string) => {
       await trackCurrencies([code]);
     });
@@ -259,27 +231,20 @@ defineFeature(feature, (test) => {
     and(/^I trigger an NBP refresh$/, async () => {
       await triggerRefresh(ctx);
     });
-    statusThen(then);
+    statusThen(then, ctx);
     and(/^exactly one exchange rate for the "(.*)"\/"(.*)" pair has source "(.*)"$/,
       async (a: string, b: string, source: string) => {
         expect(await countPairRows(ctx, a, b, source)).toBe(1);
       });
-    and(
-      /^looking up the exchange rate from "(.*)" to "(.*)" as of "(.*)" returns "(.*)"$/,
-      async (from: string, to: string, at: string, expected: string) => {
-        const res = await lookupRate(ctx, from, to, at);
-        expect(res.body).not.toBeNull();
-        expect(Math.abs(Number(res.body.rate) - Number(expected))).toBeLessThan(1e-6);
-      },
-    );
+    lookupThen(and, ctx);
   });
 
   test('An unauthenticated user cannot trigger a refresh', ({ given, and, when, then }) => {
-    ctx = makeCtx();
-    registerBackground(ctx, { given, and });
+    const ctx = makeCtx();
+    registerBackground(ctx, given, and);
     when('I trigger an NBP refresh without authentication', async () => {
       await triggerRefresh(ctx, false);
     });
-    statusThen(then);
+    statusThen(then, ctx);
   });
 });

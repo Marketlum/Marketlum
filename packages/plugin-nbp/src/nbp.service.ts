@@ -54,7 +54,9 @@ export class NbpService {
     }
     summary.effectiveDate = table.effectiveDate;
 
-    const pln = await this.valueRepo.findOne({ where: { code: PLN_CODE } });
+    // Core `code` columns are snake_case/lowercase, while NBP uses uppercase ISO
+    // codes — match case-insensitively against the lowercased Value code.
+    const pln = await this.valueRepo.findOne({ where: { code: PLN_CODE.toLowerCase() } });
     if (!pln) {
       const message = `No currency Value with code "${PLN_CODE}" exists`;
       summary.errors.push(message);
@@ -70,7 +72,7 @@ export class NbpService {
         summary.skipped.push(code);
         continue;
       }
-      const value = await this.valueRepo.findOne({ where: { code } });
+      const value = await this.valueRepo.findOne({ where: { code: code.toLowerCase() } });
       if (!value) {
         summary.skipped.push(code);
         continue;

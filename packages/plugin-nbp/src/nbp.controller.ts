@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { AdminGuard } from '@marketlum/core';
 import { NbpService } from './nbp.service';
 
@@ -9,6 +9,7 @@ export class NbpController {
 
   /** Fetch the latest NBP rates now and return a summary of the run. */
   @Post('refresh')
+  @HttpCode(200)
   async refresh() {
     return this.nbp.sync();
   }
