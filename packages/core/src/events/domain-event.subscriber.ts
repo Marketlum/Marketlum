@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { DomainEventBus } from './domain-event-bus.service';
 import { primaryEntitySnakeName } from './primary-entities';
+import { pluginPrimaryEntityBase } from './plugin-primary-entities';
 
 type Pending = { name: string; id: string; code?: string; entity: unknown };
 
@@ -61,8 +62,11 @@ export class DomainEventSubscriber implements EntitySubscriberInterface {
     queryRunner: QueryRunner | undefined,
     idOverride?: string,
   ): void {
-    const snake = primaryEntitySnakeName(target);
-    if (!snake) return;
+    let base = primaryEntitySnakeName(target);
+    if (!base && typeof target === 'function') {
+      base = pluginPrimaryEntityBase(target);
+    }
+    if (!base) return;
     if (!entity || typeof entity !== 'object') return;
 
     let id = idOverride;
@@ -74,7 +78,7 @@ export class DomainEventSubscriber implements EntitySubscriberInterface {
     if (!id) return;
 
     const code = (entity as { code?: string }).code;
-    const pending: Pending = { name: `marketlum.${snake}.${verb}`, id, code, entity };
+    const pending: Pending = { name: `marketlum.${base}.${verb}`, id, code, entity };
 
     if (queryRunner?.isTransactionActive) {
       this.getBuffer(queryRunner).push(pending);

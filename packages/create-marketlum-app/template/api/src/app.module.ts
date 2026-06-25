@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MarketlumCoreModule } from '@marketlum/core';
+import { plugins } from './plugins';
 
 @Module({
   imports: [
@@ -8,7 +9,7 @@ import { MarketlumCoreModule } from '@marketlum/core';
       isGlobal: true,
       envFilePath: '../.env',
     }),
-    MarketlumCoreModule,
+    MarketlumCoreModule.forRoot({ plugins }),
   ],
 })
 export class AppModule {}

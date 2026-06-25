@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { databaseConfig } from './config/database.config';
+import { buildDataSourceOptions } from './config/build-data-source-options';
 import { CsrfProtectionGuard } from './common/guards/csrf-protection.guard';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -33,78 +33,90 @@ import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { AiModule } from './ai/ai.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
 import { EventsModule } from './events/events.module';
+import { PluginsModule } from './plugins/plugins.module';
+import { validatePlugins } from './plugins/validate-plugins';
+import { MarketlumApiPlugin, MarketlumCoreOptions } from './plugins/marketlum-api-plugin';
 
-@Module({
-  imports: [
-    TypeOrmModule.forRoot(databaseConfig()),
-    EventsModule,
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60000, limit: 100 }]),
-    AuthModule,
-    UsersModule,
-    AgentsModule,
-    TaxonomiesModule,
-    FilesModule,
-    ValuesModule,
-    ValueInstancesModule,
-    PerspectivesModule,
-    ValueStreamsModule,
-    SearchModule,
-    LedgerModule,
-    AgreementsModule,
-    ChannelsModule,
-    OfferingsModule,
-    InvoicesModule,
-    PipelinesModule,
-    TensionsModule,
-    ExchangesModule,
-    DashboardModule,
-    GeographiesModule,
-    ArchetypesModule,
-    LocalesModule,
-    AgreementTemplatesModule,
-    RecurringFlowsModule,
-    ExchangeRatesModule,
-    SystemSettingsModule,
-    AiModule,
-    GeocodingModule,
-  ],
-  exports: [
-    AuthModule,
-    UsersModule,
-    AgentsModule,
-    TaxonomiesModule,
-    FilesModule,
-    ValuesModule,
-    ValueInstancesModule,
-    ValueStreamsModule,
-    LedgerModule,
-    AgreementsModule,
-    ChannelsModule,
-    OfferingsModule,
-    InvoicesModule,
-    PipelinesModule,
-    TensionsModule,
-    ExchangesModule,
-    GeographiesModule,
-    ArchetypesModule,
-    LocalesModule,
-    AgreementTemplatesModule,
-    RecurringFlowsModule,
-    ExchangeRatesModule,
-    SystemSettingsModule,
-    AiModule,
-    GeocodingModule,
-    EventsModule,
-  ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: CsrfProtectionGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-  ],
-})
-export class MarketlumCoreModule {}
+const CORE_FEATURE_MODULES = [
+  AuthModule,
+  UsersModule,
+  AgentsModule,
+  TaxonomiesModule,
+  FilesModule,
+  ValuesModule,
+  ValueInstancesModule,
+  PerspectivesModule,
+  ValueStreamsModule,
+  SearchModule,
+  LedgerModule,
+  AgreementsModule,
+  ChannelsModule,
+  OfferingsModule,
+  InvoicesModule,
+  PipelinesModule,
+  TensionsModule,
+  ExchangesModule,
+  DashboardModule,
+  GeographiesModule,
+  ArchetypesModule,
+  LocalesModule,
+  AgreementTemplatesModule,
+  RecurringFlowsModule,
+  ExchangeRatesModule,
+  SystemSettingsModule,
+  AiModule,
+  GeocodingModule,
+];
+
+const CORE_EXPORTED_MODULES = [
+  AuthModule,
+  UsersModule,
+  AgentsModule,
+  TaxonomiesModule,
+  FilesModule,
+  ValuesModule,
+  ValueInstancesModule,
+  ValueStreamsModule,
+  LedgerModule,
+  AgreementsModule,
+  ChannelsModule,
+  OfferingsModule,
+  InvoicesModule,
+  PipelinesModule,
+  TensionsModule,
+  ExchangesModule,
+  GeographiesModule,
+  ArchetypesModule,
+  LocalesModule,
+  AgreementTemplatesModule,
+  RecurringFlowsModule,
+  ExchangeRatesModule,
+  SystemSettingsModule,
+  AiModule,
+  GeocodingModule,
+];
+
+@Module({})
+export class MarketlumCoreModule {
+  static forRoot(options: MarketlumCoreOptions = {}): DynamicModule {
+    const plugins: MarketlumApiPlugin[] = options.plugins ?? [];
+    validatePlugins(plugins);
+
+    return {
+      module: MarketlumCoreModule,
+      imports: [
+        TypeOrmModule.forRoot(buildDataSourceOptions(plugins)),
+        EventsModule,
+        ThrottlerModule.forRoot([{ name: 'default', ttl: 60000, limit: 100 }]),
+        ...CORE_FEATURE_MODULES,
+        PluginsModule.forRoot(plugins),
+        ...plugins.map((p) => p.module),
+      ],
+      exports: [...CORE_EXPORTED_MODULES, EventsModule, PluginsModule],
+      providers: [
+        { provide: APP_GUARD, useClass: CsrfProtectionGuard },
+        { provide: APP_GUARD, useClass: ThrottlerGuard },
+      ],
+    };
+  }
+}

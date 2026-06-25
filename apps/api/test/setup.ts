@@ -9,7 +9,7 @@ import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { ThrottlerStorage } from '@nestjs/throttler';
-import { AppModule } from '../src/app.module';
+import { TestAppModule } from './test-app.module';
 import { DataSource } from 'typeorm';
 import { UsersService } from '@marketlum/core';
 import { EventRecorder } from './event-recorder';
@@ -23,7 +23,7 @@ export async function bootstrapApp(): Promise<INestApplication> {
   if (app) return app;
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
+    imports: [TestAppModule],
     providers: [EventRecorder],
   }).compile();
 

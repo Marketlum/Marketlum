@@ -418,3 +418,14 @@ export type {
   ExchangeRateCreatedEvent, ExchangeRateUpdatedEvent, ExchangeRateDeletedEvent,
   SystemSettingCreatedEvent, SystemSettingUpdatedEvent, SystemSettingDeletedEvent,
 } from './events';
+
+// Plugins
+export {
+  pluginIdSchema,
+  pluginTablePrefix,
+  pluginSettingsKeyPrefix,
+  pluginSettingsKey,
+  pluginEventName,
+  PLUGIN_EVENT_GLOB,
+} from './plugins';
+export type { PluginManifest, PluginSettingsContract } from './plugins';

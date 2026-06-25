@@ -12,7 +12,29 @@ export { SeedSampleCommand } from './commands/seed-sample.command';
 
 // Config
 export { databaseConfig } from './config/database.config';
+export { buildDataSourceOptions } from './config/build-data-source-options';
 export { jwtConfig } from './config/jwt.config';
+
+// Plugins
+export type {
+  MarketlumApiPlugin,
+  MarketlumCoreOptions,
+  EntityClass,
+  MigrationClass,
+} from './plugins';
+export {
+  PLUGINS,
+  PluginsModule,
+  PluginRegistryService,
+  type PluginListEntry,
+  PluginSettingsService,
+  PluginsController,
+  validatePlugins,
+  RESERVED_PLUGIN_IDS,
+  satisfiesCoreVersion,
+  MARKETLUM_CORE_VERSION,
+  toSnakeCase,
+} from './plugins';
 
 // Entities & migrations
 export { ALL_ENTITIES } from './entities';
