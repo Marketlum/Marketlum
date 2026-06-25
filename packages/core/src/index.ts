@@ -48,6 +48,7 @@ export { Folder } from './files/entities/folder.entity';
 export { File } from './files/entities/file.entity';
 export { Value } from './values/entities/value.entity';
 export { ValueImage } from './values/entities/value-image.entity';
+export { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity';
 export { Perspective } from './perspectives/entities/perspective.entity';
 export { ValueInstance } from './value-instances/entities/value-instance.entity';
 export { ValueStream } from './value-streams/entities/value-stream.entity';

@@ -33,7 +33,7 @@ Feature: NBP exchange rate ingestion
     And no exchange rate exists for the "EUR"/"PLN" pair
 
   Scenario: A tracked currency without a matching value is skipped and reported
-    Given the NBP plugin is configured to track "USD"
+    Given the NBP plugin is configured to track "USD" and "XYZ"
     And the NBP table A response provides a mid rate of "3.9512" for "USD" effective "2026-06-25"
     And the NBP table A response provides a mid rate of "0.5400" for "XYZ" effective "2026-06-25"
     When I trigger an NBP refresh

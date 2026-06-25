@@ -1,0 +1,33 @@
+{
+  "name": "@marketlum/plugin-nbp",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./shared": {
+      "types": "./dist/shared/settings.d.ts",
+      "default": "./dist/shared/settings.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@marketlum/core": "workspace:*",
+    "@marketlum/shared": "workspace:*",
+    "@nestjs/common": "^10.4.0",
+    "@nestjs/typeorm": "^10.0.2",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

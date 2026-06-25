@@ -12,7 +12,15 @@ import { ThrottlerStorage } from '@nestjs/throttler';
 import { TestAppModule } from './test-app.module';
 import { DataSource } from 'typeorm';
 import { UsersService } from '@marketlum/core';
+import { NbpClient } from '@marketlum/plugin-nbp';
 import { EventRecorder } from './event-recorder';
+import { FakeNbpClient } from './plugins/nbp/fake-nbp-client';
+
+const fakeNbpClient = new FakeNbpClient();
+
+export function getFakeNbpClient(): FakeNbpClient {
+  return fakeNbpClient;
+}
 
 let app: INestApplication;
 let dataSource: DataSource;
@@ -25,7 +33,10 @@ export async function bootstrapApp(): Promise<INestApplication> {
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [TestAppModule],
     providers: [EventRecorder],
-  }).compile();
+  })
+    .overrideProvider(NbpClient)
+    .useValue(fakeNbpClient)
+    .compile();
 
   app = moduleFixture.createNestApplication();
   app.use(cookieParser());
@@ -47,6 +58,9 @@ export async function cleanDatabase(): Promise<void> {
   if (tableNames) {
     await dataSource.query(`TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE`);
   }
+
+  // Reset the NBP test double so seeded rates don't carry between scenarios
+  fakeNbpClient.reset();
 
   // Reset throttle storage so rate limits don't carry between test scenarios
   try {

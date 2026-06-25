@@ -306,23 +306,25 @@ Plugin-specific endpoints live in the plugin's own controller, namespaced under 
 
 ```ts
 export const nbpSettingsSchema = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 30 12 * * 1-5'),    // weekdays ~12:30, after NBP publishes
-  trackedCurrencyValueIds: z.array(z.string().uuid()).default([]), // currency Values to ingest
+  enabled: z.boolean(),
+  cron: z.string(),                       // weekdays ~12:30, after NBP publishes
+  trackedCurrencies: z.array(z.string()), // ISO codes to ingest, e.g. ["USD","EUR"]
 });
 export type NbpSettings = z.infer<typeof nbpSettingsSchema>;
 ```
 
+> **Implemented model (deviation from earlier draft):** tracking is by **ISO code**, not by `Value` id. This lets the summary report a *tracked* code that has no matching `Value` as "skipped" (impossible to express when tracking by id, which presupposes the Value exists). The web multiselect (PR with UI) presents currency `Value`s and stores their codes.
+
 ### 7.2 Behavior
 
-- **Source:** `GET https://api.nbp.pl/api/exchangerates/tables/A?format=json` (mid rates, ~33 currencies, one call). HTTP via Nest `HttpModule`/`fetch`.
-- **Mapping:** for each NBP entry `{ code, mid }`, find the currency `Value` whose `code` equals the ISO `code` **and** whose id is in `trackedCurrencyValueIds`. Counter-currency is the PLN `Value` (resolved by `code = 'PLN'`). **Prerequisites (documented):** currency `Value.code` holds the ISO code; a PLN `Value` exists. Unmapped/disabled codes are skipped and logged.
+- **Source:** `GET https://api.nbp.pl/api/exchangerates/tables/A?format=json` (mid rates, ~33 currencies, one call). HTTP via a thin injectable `NbpClient` (uses global `fetch`), substituted by a fake in tests.
+- **Mapping:** for each **tracked ISO code**, find the NBP table-A entry with that `code` (absent ⇒ skip), then the currency `Value` whose `code` equals it (absent ⇒ skip + report). Counter-currency is the PLN `Value` (resolved by `code = 'PLN'`; missing ⇒ run aborts with an error in the summary). **Prerequisites (documented):** currency `Value.code` holds the ISO code; a PLN `Value` exists. Skips are reported in the summary and logged.
 - **Storage:** upsert one `ExchangeRate` per `(USD→PLN, mid, effectiveDate)`, tagged `source: 'NBP'`. **Core stores pairs canonically** — the `ExchangeRatesService.create` path runs `canonicaliseRate()` (from `@marketlum/shared`), ordering the pair lexicographically by value ID and inverting the rate when needed; lookups are symmetric. NBP must therefore canonicalise via the same helper (reuse `canonicaliseRate`/`invertRate` from shared) rather than assume raw `from=foreign,to=PLN` storage. The row is keyed on the unique `(fromValueId, toValueId, effectiveAt)`. On conflict, **update the rate only if the existing row's `source = 'NBP'`** (never clobber manual rates) — note the core `create` throws `ConflictException` on duplicate, so NBP needs its own source-guarded upsert (write through the `ExchangeRate` repository, which the plugin obtains via `TypeOrmModule.forFeature([ExchangeRate])` importing the core entity). Decimal handling per the project gotcha: `Number(mid).toFixed(...)`-safe. Behaviour is asserted in BDD via lookups + the source tag, not raw row direction.
-- **Schedule:** when `enabled`, a `SchedulerRegistry` cron job (expression from settings) runs the **latest-only** ingest. No backfill (Round 3 Q5).
+- **Schedule:** *(deferred — not in this slice.)* Per strict BDD there is no feature exercising a scheduled run yet, and it needs the `@nestjs/schedule` dependency + `ScheduleModule.forRoot()` in core. When added: a `SchedulerRegistry` cron job (expression from settings) runs the **latest-only** ingest. No backfill (Round 3 Q5). The `cron`/`enabled` settings fields already exist for it.
 - **Manual trigger:** `POST /plugins/nbp/refresh` (AdminGuard) runs an immediate latest ingest and returns the summary — the **sole** admin-visible feedback surface (Round 3 Q7):
 
 ```json
-{ "effectiveDate": "2026-06-25", "updated": 7, "skipped": ["X"], "errors": [] }
+{ "effectiveDate": "2026-06-25", "updated": ["USD"], "skipped": ["XYZ"], "errors": [] }
 ```
 
 - **Observability:** silent best-effort otherwise — per-currency skips and API/network errors go to the Nest logger; partial success is allowed (one bad currency never aborts the rest).
