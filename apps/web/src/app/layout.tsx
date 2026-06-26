@@ -4,6 +4,7 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@marketlum/ui';
+import { Providers } from './providers';
 import '@marketlum/ui/styles';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -22,7 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={inter.className}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            {children}
+            <Providers>{children}</Providers>
             <Toaster />
           </ThemeProvider>
         </NextIntlClientProvider>

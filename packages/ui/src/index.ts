@@ -312,3 +312,13 @@ export { AdminLayout } from './layouts/admin-layout';
 export { locales, defaultLocale } from './i18n/config';
 export type { Locale } from './i18n/config';
 export { setLocale } from './i18n/actions';
+
+// =============================================================================
+// 9. Plugins (frontend extension surface)
+// =============================================================================
+export type { MarketlumWebPlugin, PluginNavItem, PluginRoute } from './plugins/types';
+export { PluginRegistryProvider, usePlugins, usePluginRoute, PluginRouteRenderer } from './plugins/plugin-registry';
+export { PluginSettingsForm } from './plugins/plugin-settings-form';
+export { mergePluginNav } from './plugins/plugin-nav';
+export type { ResolvedNavGroup, ResolvedNavItem } from './plugins/plugin-nav';
+export { PluginsPage } from './pages/admin/plugins-page';

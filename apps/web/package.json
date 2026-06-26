@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@marketlum/plugin-nbp": "workspace:*",
     "@marketlum/shared": "workspace:*",
     "@marketlum/ui": "workspace:*",
     "next": "^16.2.6",

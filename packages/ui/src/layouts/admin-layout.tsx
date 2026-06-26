@@ -4,9 +4,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, RefreshCw } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, RefreshCw, Puzzle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '../lib/auth';
+import { usePlugins } from '../plugins/plugin-registry';
+import { mergePluginNav } from '../plugins/plugin-nav';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Sheet, SheetContent, SheetTitle } from '../components/ui/sheet';
@@ -23,6 +25,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const tRoot = useTranslations();
+  const plugins = usePlugins();
   const [user, setUser] = useState<UserResponse | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -57,15 +61,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     router.push('/login');
   };
 
-  const navGroups = [
-    { label: '', items: [
+  const coreGroups = [
+    { key: 'home', label: '', items: [
       { href: '/admin/dashboard', label: t('dashboard'), icon: LayoutDashboard },
     ]},
-    { label: t('groupCreate'), items: [
+    { key: 'create', label: t('groupCreate'), items: [
       { href: '/admin/values', label: t('values'), icon: Gem },
       { href: '/admin/value-instances', label: t('valueInstances'), icon: Layers },
     ]},
-    { label: t('groupExchange'), items: [
+    { key: 'exchange', label: t('groupExchange'), items: [
       { href: '/admin/tensions', label: t('tensions'), icon: Flame },
       { href: '/admin/agents', label: t('agents'), icon: Bot },
       { href: '/admin/agreements', label: t('agreements'), icon: Handshake },
@@ -74,11 +78,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/invoices', label: t('invoices'), icon: FileText },
       { href: '/admin/recurring-flows', label: t('recurringFlows'), icon: RefreshCw },
     ]},
-    { label: t('groupLedger'), items: [
+    { key: 'ledger', label: t('groupLedger'), items: [
       { href: '/admin/accounts', label: t('accounts'), icon: Wallet },
       { href: '/admin/transactions', label: t('transactions'), icon: ArrowLeftRight },
     ]},
-    { label: t('groupSystem'), items: [
+    { key: 'system', label: t('groupSystem'), items: [
       { href: '/admin/users', label: t('users'), icon: Users },
       { href: '/admin/taxonomies', label: t('taxonomies'), icon: FolderTree },
       { href: '/admin/archetypes', label: t('archetypes'), icon: Shapes },
@@ -90,8 +94,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/exchange-rates', label: t('exchangeRates'), icon: ArrowRightLeft },
       { href: '/admin/locales', label: t('locales'), icon: Languages },
       { href: '/admin/files', label: t('files'), icon: FileIcon },
+      { href: '/admin/plugins', label: t('plugins'), icon: Puzzle },
     ]},
   ];
+
+  const navGroups = mergePluginNav(coreGroups, plugins, tRoot);
 
   const filteredGroups = menuFilter
     ? navGroups

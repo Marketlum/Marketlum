@@ -1,6 +1,7 @@
 import { getRequestConfig } from 'next-intl/server';
 import { cookies } from 'next/headers';
 import { locales, defaultLocale, type Locale } from '@marketlum/ui';
+import { pluginMessages } from '../plugin-messages';
 
 const messagesByLocale = {
   en: () => import('@marketlum/ui/messages/en'),
@@ -12,8 +13,16 @@ export default getRequestConfig(async () => {
   const raw = cookieStore.get('locale')?.value;
   const locale: Locale = locales.includes(raw as Locale) ? (raw as Locale) : defaultLocale;
 
+  const base = (await messagesByLocale[locale]()).default;
+
+  // Merge plugin catalogs under the `plugin.<id>` namespace.
+  const plugin: Record<string, unknown> = {};
+  for (const [id, byLocale] of Object.entries(pluginMessages)) {
+    plugin[id] = byLocale[locale] ?? byLocale[defaultLocale] ?? {};
+  }
+
   return {
     locale,
-    messages: (await messagesByLocale[locale]()).default,
+    messages: { ...base, plugin },
   };
 });

@@ -385,6 +385,8 @@ List + detail + form pages for each entity (reusing `@marketlum/ui` table/form p
 - `template/web/src/plugins.ts` → `export const webPlugins = []`, `template/web/src/app/admin/x/[...slug]/page.tsx` → catch-all, plus `PluginRegistryProvider` wiring.
 - Pilot plugins are **not** pre-wired in the template (Round 4 Q6) — generated apps are plugin-ready but lean.
 
+**Implemented (frontend slice):** Contract types + `PluginRegistryProvider`/`usePlugins`/`usePluginRoute`/`PluginRouteRenderer` + `mergePluginNav` + schema-driven `PluginSettingsForm` + `PluginsPage` (Settings → Plugins, nav entry added) in `@marketlum/ui`. `apps/web` gains `src/plugins.ts` (client `webPlugins`), `src/plugin-messages.ts` (server, plain-data catalogs), `src/app/providers.tsx` (client `PluginRegistryProvider` boundary), the `/admin/x/[...slug]` catch-all (server page → client `PluginRouteRenderer`), `/admin/plugins`, and the `i18n/request.ts` merge under `plugin.<id>`. The RSC split is the key constraint: `webPlugins` (React components/icons, non-serializable) is imported only by the client `Providers`, never passed server→client as props; plugin **messages** are a separate React-free module imported server-side. NBP `/web` entry (`@marketlum/plugin-nbp/web`): sidebar item (system group), `/admin/x/nbp` page, and a custom settings panel with a **Refresh now** button (surfaces the run summary inline). **Deviations:** verified via `tsc` + package builds — `next build` is blocked only by this env's Node 20.0.0 (< Next 16's 20.9.0); NBP tracked-currencies use a comma-separated ISO input (live `Value` multiselect deferred); status shown inline (no `sonner` dep added to the plugin). `@nestjs/schedule`/cron remains deferred (no feature yet).
+
 ---
 
 ## 10. Package layout

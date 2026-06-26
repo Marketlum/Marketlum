@@ -67,7 +67,14 @@
     "pipelines": "Pipelines",
     "tensions": "Tensions",
     "recurringFlows": "Recurring Flows",
-    "exchangeRates": "Exchange Rates"
+    "exchangeRates": "Exchange Rates",
+    "plugins": "Plugins"
+  },
+  "plugins": {
+    "title": "Plugins",
+    "description": "Installed plugins and their settings.",
+    "empty": "No plugins are active.",
+    "noUi": "This plugin has no settings UI."
   },
   "auth": {
     "signIn": "Sign in",
