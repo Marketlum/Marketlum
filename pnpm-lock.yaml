@@ -32,6 +32,9 @@ importers:
       '@marketlum/plugin-nbp':
         specifier: workspace:*
         version: link:../../packages/plugin-nbp
+      '@marketlum/plugin-rdhy':
+        specifier: workspace:*
+        version: link:../../packages/plugin-rdhy
       '@marketlum/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -205,6 +208,9 @@ importers:
       '@marketlum/plugin-nbp':
         specifier: workspace:*
         version: link:../../packages/plugin-nbp
+      '@marketlum/plugin-rdhy':
+        specifier: workspace:*
+        version: link:../../packages/plugin-rdhy
       '@marketlum/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -447,6 +453,9 @@ importers:
       lucide-react:
         specifier: ^0.400.0
         version: 0.400.0(react@19.2.4)
+      next:
+        specifier: ^16.2.0
+        version: 16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next-intl:
         specifier: ^4.8.2
         version: 4.8.2(next@16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(typescript@5.9.3)

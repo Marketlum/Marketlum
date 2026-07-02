@@ -1,4 +1,5 @@
 import { nbpMessages } from '@marketlum/plugin-nbp/web/messages';
+import { rdhyMessages } from '@marketlum/plugin-rdhy/web/messages';
 
 /**
  * Plugin i18n catalogs, keyed by plugin id. Plain data only (no React), so it is
@@ -7,4 +8,5 @@ import { nbpMessages } from '@marketlum/plugin-nbp/web/messages';
  */
 export const pluginMessages: Record<string, Record<string, Record<string, unknown>>> = {
   nbp: nbpMessages,
+  rdhy: rdhyMessages,
 };

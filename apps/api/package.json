@@ -17,6 +17,7 @@
   "dependencies": {
     "@marketlum/core": "workspace:*",
     "@marketlum/plugin-nbp": "workspace:*",
+    "@marketlum/plugin-rdhy": "workspace:*",
     "@marketlum/shared": "workspace:*",
     "@nestjs/common": "^10.4.0",
     "@nestjs/config": "^3.2.0",
