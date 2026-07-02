@@ -41,8 +41,33 @@ function getShape(schema: ZodTypeAny): Record<string, ZodTypeAny> {
  * schema but no custom SettingsComponent. Handles boolean/number/string/string[]
  * fields; anything else falls back to a JSON textarea.
  */
+function parseList(text: string): string[] {
+  return text
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Raw display text for every string-array field, from a values object. */
+function buildArrayText(
+  values: Record<string, unknown>,
+  schema: ZodTypeAny,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, def] of Object.entries(getShape(schema))) {
+    if (fieldKind(def) === 'stringArray') {
+      const v = values[key];
+      out[key] = Array.isArray(v) ? (v as string[]).join(', ') : '';
+    }
+  }
+  return out;
+}
+
 export function PluginSettingsForm({ pluginId, schema }: { pluginId: string; schema: ZodTypeAny }) {
   const [values, setValues] = useState<Record<string, unknown>>({});
+  // Raw text for string-array fields, kept separate from the parsed arrays so
+  // in-progress input (e.g. a trailing comma) survives re-renders.
+  const [arrayText, setArrayText] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -51,7 +76,11 @@ export function PluginSettingsForm({ pluginId, schema }: { pluginId: string; sch
     api
       .get<{ value: Record<string, unknown> }>(`/plugins/${pluginId}/settings`)
       .then((r) => {
-        if (active) setValues(r.value ?? {});
+        if (active) {
+          const v = r.value ?? {};
+          setValues(v);
+          setArrayText(buildArrayText(v, schema));
+        }
       })
       .catch(() => undefined)
       .finally(() => {
@@ -60,7 +89,7 @@ export function PluginSettingsForm({ pluginId, schema }: { pluginId: string; sch
     return () => {
       active = false;
     };
-  }, [pluginId]);
+  }, [pluginId, schema]);
 
   const shape = getShape(schema);
 
@@ -69,11 +98,17 @@ export function PluginSettingsForm({ pluginId, schema }: { pluginId: string; sch
   const save = async () => {
     setSaving(true);
     try {
+      const payload: Record<string, unknown> = { ...values };
+      for (const [key, text] of Object.entries(arrayText)) {
+        payload[key] = parseList(text);
+      }
       const r = await api.put<{ value: Record<string, unknown> }>(
         `/plugins/${pluginId}/settings`,
-        values,
+        payload,
       );
-      setValues(r.value ?? values);
+      const v = r.value ?? payload;
+      setValues(v);
+      setArrayText(buildArrayText(v, schema));
       toast.success('Settings saved');
     } catch {
       toast.error('Failed to save settings');
@@ -103,22 +138,13 @@ export function PluginSettingsForm({ pluginId, schema }: { pluginId: string; sch
           );
         }
         if (kind === 'stringArray') {
-          const text = Array.isArray(value) ? (value as string[]).join(', ') : '';
           return (
             <div key={key} className="space-y-1">
               <Label htmlFor={key}>{key}</Label>
               <Input
                 id={key}
-                value={text}
-                onChange={(e) =>
-                  set(
-                    key,
-                    e.target.value
-                      .split(',')
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  )
-                }
+                value={arrayText[key] ?? ''}
+                onChange={(e) => setArrayText((prev) => ({ ...prev, [key]: e.target.value }))}
               />
             </div>
           );
