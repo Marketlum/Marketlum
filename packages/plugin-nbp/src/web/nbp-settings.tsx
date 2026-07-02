@@ -26,17 +26,29 @@ export function NbpSettings() {
     cron: '',
     trackedCurrencies: [],
   });
+  // Raw text for the tracked-currencies field. Kept separate from the parsed
+  // array so in-progress input (e.g. a trailing comma) isn't lost on re-render.
+  const [trackedText, setTrackedText] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+
+  const parseTracked = (text: string): string[] =>
+    text
+      .split(',')
+      .map((x) => x.trim().toUpperCase())
+      .filter(Boolean);
 
   useEffect(() => {
     let active = true;
     api
       .get<{ value: NbpSettings }>('/plugins/nbp/settings')
       .then((r) => {
-        if (active) setSettings(r.value);
+        if (active) {
+          setSettings(r.value);
+          setTrackedText(r.value.trackedCurrencies.join(', '));
+        }
       })
       .catch(() => undefined)
       .finally(() => {
@@ -51,8 +63,12 @@ export function NbpSettings() {
     setSaving(true);
     setStatus(null);
     try {
-      const r = await api.put<{ value: NbpSettings }>('/plugins/nbp/settings', settings);
+      const r = await api.put<{ value: NbpSettings }>('/plugins/nbp/settings', {
+        ...settings,
+        trackedCurrencies: parseTracked(trackedText),
+      });
       setSettings(r.value);
+      setTrackedText(r.value.trackedCurrencies.join(', '));
       setStatus(t('saved'));
     } catch {
       setStatus(t('failed'));
@@ -105,16 +121,8 @@ export function NbpSettings() {
         <Label htmlFor="nbp-tracked">{t('tracked')}</Label>
         <Input
           id="nbp-tracked"
-          value={settings.trackedCurrencies.join(', ')}
-          onChange={(e) =>
-            setSettings((s) => ({
-              ...s,
-              trackedCurrencies: e.target.value
-                .split(',')
-                .map((x) => x.trim().toUpperCase())
-                .filter(Boolean),
-            }))
-          }
+          value={trackedText}
+          onChange={(e) => setTrackedText(e.target.value)}
         />
       </div>
       <div className="flex gap-2">
