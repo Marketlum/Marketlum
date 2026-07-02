@@ -14,10 +14,17 @@ export interface PluginNavItem {
   groupLabelKey?: string;
 }
 
+/** Props passed to a plugin route component by the renderer. */
+export interface PluginRouteComponentProps {
+  /** Values captured by `:param` segments in the route slug, e.g. { id: '…' } for 'platforms/:id'. */
+  params?: Record<string, string>;
+}
+
 /** A page contributed by a plugin, rendered by the /admin/x/[...slug] catch-all. */
 export interface PluginRoute {
+  /** Path under /admin/x/. May contain `:param` segments ('platforms/:id'); exact slugs win over patterns. */
   slug: string;
-  Component: ComponentType;
+  Component: ComponentType<PluginRouteComponentProps>;
 }
 
 /**

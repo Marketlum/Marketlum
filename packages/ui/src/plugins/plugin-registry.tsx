@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import type { MarketlumWebPlugin, PluginRoute } from './types';
+import { matchPluginRoute, type PluginRouteMatch } from './match';
 
 const PluginRegistryContext = createContext<MarketlumWebPlugin[]>([]);
 
@@ -22,22 +23,26 @@ export function usePlugins(): MarketlumWebPlugin[] {
   return useContext(PluginRegistryContext);
 }
 
+/** Resolve a plugin page (with captured :param values) by its slug. */
+export function usePluginRouteMatch(slug: string): PluginRouteMatch | undefined {
+  const plugins = usePlugins();
+  return matchPluginRoute(
+    slug,
+    plugins.flatMap((p) => p.routes ?? []),
+  );
+}
+
 /** Resolve a plugin page by its slug (used by the /admin/x/[...slug] catch-all). */
 export function usePluginRoute(slug: string): PluginRoute | undefined {
-  const plugins = usePlugins();
-  for (const plugin of plugins) {
-    const route = plugin.routes?.find((r) => r.slug === slug);
-    if (route) return route;
-  }
-  return undefined;
+  return usePluginRouteMatch(slug)?.route;
 }
 
 /** Renders the plugin page matching a slug; shown by the catch-all route. */
 export function PluginRouteRenderer({ slug }: { slug: string }) {
-  const route = usePluginRoute(slug);
-  if (!route) {
+  const match = usePluginRouteMatch(slug);
+  if (!match) {
     return <div className="p-6 text-sm text-muted-foreground">Not found</div>;
   }
-  const Component = route.Component;
-  return <Component />;
+  const Component = match.route.Component;
+  return <Component params={match.params} />;
 }

@@ -316,8 +316,10 @@ export { setLocale } from './i18n/actions';
 // =============================================================================
 // 9. Plugins (frontend extension surface)
 // =============================================================================
-export type { MarketlumWebPlugin, PluginNavItem, PluginRoute } from './plugins/types';
-export { PluginRegistryProvider, usePlugins, usePluginRoute, PluginRouteRenderer } from './plugins/plugin-registry';
+export type { MarketlumWebPlugin, PluginNavItem, PluginRoute, PluginRouteComponentProps } from './plugins/types';
+export { matchPluginRoute } from './plugins/match';
+export type { PluginRouteMatch } from './plugins/match';
+export { PluginRegistryProvider, usePlugins, usePluginRoute, usePluginRouteMatch, PluginRouteRenderer } from './plugins/plugin-registry';
 export { PluginSettingsForm } from './plugins/plugin-settings-form';
 export { mergePluginNav } from './plugins/plugin-nav';
 export type { ResolvedNavGroup, ResolvedNavItem } from './plugins/plugin-nav';
