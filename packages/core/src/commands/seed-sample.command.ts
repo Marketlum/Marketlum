@@ -1,6 +1,8 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger, Optional } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { PLUGINS } from '../plugins/plugin-tokens';
+import { MarketlumApiPlugin } from '../plugins/marketlum-api-plugin';
 import { faker } from '@faker-js/faker';
 import { LocalesService } from '../locales/locales.service';
 import { TaxonomiesService } from '../taxonomies/taxonomies.service';
@@ -83,6 +85,7 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly recurringFlowsService: RecurringFlowsService,
     private readonly exchangeRatesService: ExchangeRatesService,
     private readonly systemSettingsService: SystemSettingsService,
+    @Optional() @Inject(PLUGINS) private readonly plugins: MarketlumApiPlugin[] | null,
   ) {
     super();
   }
@@ -259,6 +262,13 @@ export class SeedSampleCommand extends CommandRunner {
       values,
     });
     this.logger.log(`  Created ${recurringFlows.length} recurring flows`);
+
+    for (const plugin of this.plugins ?? []) {
+      if (!plugin.seed) continue;
+      this.logger.log(`Seeding plugin "${plugin.manifest.id}"...`);
+      await plugin.seed(this.dataSource);
+      this.logger.log(`  Plugin "${plugin.manifest.id}" seeded`);
+    }
 
     this.logger.log('Sample data seeded successfully!');
   }
