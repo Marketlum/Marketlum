@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MarketlumCoreModule } from '@marketlum/core';
 import { nbpPlugin } from '@marketlum/plugin-nbp';
+import { rdhyPlugin } from '@marketlum/plugin-rdhy';
 import { examplePlugin } from './plugins/example/example.plugin';
 
 /**
@@ -15,7 +16,7 @@ import { examplePlugin } from './plugins/example/example.plugin';
       isGlobal: true,
       envFilePath: '../../.env',
     }),
-    MarketlumCoreModule.forRoot({ plugins: [examplePlugin, nbpPlugin] }),
+    MarketlumCoreModule.forRoot({ plugins: [examplePlugin, nbpPlugin, rdhyPlugin] }),
   ],
 })
 export class TestAppModule {}
