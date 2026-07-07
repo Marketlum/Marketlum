@@ -26,6 +26,8 @@ import {
 } from '@marketlum/ui';
 import type { PluginRouteComponentProps } from '@marketlum/ui';
 import type { RdhyPlatformDetailResponse } from '../shared/schemas';
+import type { RdhyVamAgreementSummary } from '../shared/vam-schemas';
+import { VamStatusBadge } from './vam-status-badge';
 
 interface ValueStreamTreeNode {
   id: string;
@@ -57,9 +59,11 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
   const id = params?.id;
   const t = useTranslations('plugin.rdhy.detail');
   const tp = useTranslations('plugin.rdhy.platforms');
+  const tv = useTranslations('plugin.rdhy.vam.platformSection');
   const router = useRouter();
 
   const [platform, setPlatform] = useState<RdhyPlatformDetailResponse | null>(null);
+  const [sponsored, setSponsored] = useState<RdhyVamAgreementSummary[]>([]);
   const [options, setOptions] = useState<ValueStreamOption[]>([]);
   const [query, setQuery] = useState('');
   const [editOpen, setEditOpen] = useState(false);
@@ -87,7 +91,13 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
       .get<ValueStreamTreeNode[]>('/value-streams/tree')
       .then((tree) => setOptions(flattenTree(tree)))
       .catch(() => undefined);
-  }, [load]);
+    if (id) {
+      api
+        .get<RdhyVamAgreementSummary[]>(`/plugins/rdhy/platforms/${id}/vam-agreements`)
+        .then(setSponsored)
+        .catch(() => undefined);
+    }
+  }, [load, id]);
 
   const memberIds = useMemo(
     () => new Set(platform?.members.map((m) => m.id) ?? []),
@@ -269,6 +279,25 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
             </ul>
           ))}
       </div>
+
+      <h2 className="mb-2 mt-8 text-lg font-semibold">{tv('title')}</h2>
+      {sponsored.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{tv('empty')}</p>
+      ) : (
+        <ul className="space-y-1 text-sm">
+          {sponsored.map((agreement) => (
+            <li key={agreement.id} className="flex items-center gap-2">
+              <Link
+                href={`/admin/x/vam-agreements/${agreement.id}`}
+                className="underline-offset-2 hover:underline"
+              >
+                {agreement.title}
+              </Link>
+              <VamStatusBadge status={agreement.status} />
+            </li>
+          ))}
+        </ul>
+      )}
 
       {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
