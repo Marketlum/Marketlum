@@ -3,7 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
+  api,
   Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Input,
   Label,
   Select,
@@ -19,6 +26,8 @@ import {
   VAM_COST_CATEGORIES,
   VAM_INVESTMENT_KINDS,
   type RdhyVamAgreementDocument,
+  type RdhyVamAgreementSummary,
+  type RdhyVamCanvasResponse,
   type VamCanvasInput,
 } from '../shared/vam-schemas';
 import { SortableRow, SortableRows, moveEntry } from './sortable-rows';
@@ -67,9 +76,9 @@ interface EditableCanvas {
   terminationConditions: EditableRule[];
 }
 
-function fromDocument(document: RdhyVamAgreementDocument): EditableCanvas {
+function canvasToEditable(canvas: RdhyVamCanvasResponse): EditableCanvas {
   return {
-    milestones: document.canvas.milestones.map((m) => ({
+    milestones: canvas.milestones.map((m) => ({
       uid: uid(),
       offsetMonths: String(m.offsetMonths),
       label: m.label ?? '',
@@ -80,20 +89,20 @@ function fromDocument(document: RdhyVamAgreementDocument): EditableCanvas {
         amount: i.amount ?? '',
       })),
     })),
-    costEntries: document.canvas.costEntries.map((c) => ({
+    costEntries: canvas.costEntries.map((c) => ({
       uid: uid(),
       category: c.category,
       label: c.label,
       amount: c.amount,
       headcount: c.headcount != null ? String(c.headcount) : '',
     })),
-    investmentEntries: document.canvas.investmentEntries.map((v) => ({
+    investmentEntries: canvas.investmentEntries.map((v) => ({
       uid: uid(),
       kind: v.kind,
       label: v.label ?? '',
       amount: v.amount,
     })),
-    terminationConditions: document.canvas.terminationConditions.map((r) => ({
+    terminationConditions: canvas.terminationConditions.map((r) => ({
       uid: uid(),
       text: r.text,
     })),
@@ -138,6 +147,76 @@ function sumOf(entries: Array<{ amount: string }>): number {
   }, 0);
 }
 
+/** Reorders an item within its track cell, preserving positions of other tracks' items. */
+function moveWithinTrack(
+  items: EditableItem[],
+  track: EditableItem['track'],
+  from: number,
+  to: number,
+): EditableItem[] {
+  const subset = items.filter((i) => i.track === track);
+  const moved = subset[from];
+  const target = subset[to];
+  if (!moved || !target) return items;
+  const without = items.filter((i) => i.uid !== moved.uid);
+  const targetIndex = without.findIndex((i) => i.uid === target.uid);
+  without.splice(from < to ? targetIndex + 1 : targetIndex, 0, moved);
+  return without;
+}
+
+/** Numeric input that shows a thousands-formatted value with the currency
+ * suffix while unfocused, and the raw editable number while focused. */
+function AmountInput({
+  value,
+  onChange,
+  suffix,
+  placeholder,
+  className,
+  autoFocus,
+  onEnter,
+}: {
+  value: string;
+  onChange: (raw: string) => void;
+  suffix: string | null;
+  placeholder?: string;
+  className?: string;
+  autoFocus?: boolean;
+  onEnter?: () => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const numeric = Number(value);
+  const formatted =
+    value.trim() !== '' && Number.isFinite(numeric) ? numeric.toLocaleString('en-US') : value;
+
+  return (
+    <div className={`relative ${className ?? ''}`}>
+      <Input
+        type={focused ? 'number' : 'text'}
+        min={0}
+        inputMode="decimal"
+        placeholder={placeholder}
+        autoFocus={autoFocus}
+        value={focused ? value : formatted}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && onEnter) {
+            e.preventDefault();
+            onEnter();
+          }
+        }}
+        className={suffix ? 'pr-12' : undefined}
+      />
+      {suffix && (
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+          {suffix}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function VamCanvasEditor({
   document,
   onSave,
@@ -159,13 +238,25 @@ export function VamCanvasEditor({
   const tt = useTranslations('plugin.rdhy.vam.tracks');
   const tc = useTranslations('plugin.rdhy.vam.categories');
   const tk = useTranslations('plugin.rdhy.vam.kinds');
-  const [canvas, setCanvas] = useState<EditableCanvas>(() => fromDocument(document));
+  const [canvas, setCanvas] = useState<EditableCanvas>(() => canvasToEditable(document.canvas));
   const initialSnapshot = useRef<string>(JSON.stringify(canvas));
+  const [focusUid, setFocusUid] = useState<string | null>(null);
+
+  const [copySources, setCopySources] = useState<RdhyVamAgreementSummary[]>([]);
+  const [pendingCopyId, setPendingCopyId] = useState<string | null>(null);
+  const [copyConfirmOpen, setCopyConfirmOpen] = useState(false);
 
   const dirty = JSON.stringify(canvas) !== initialSnapshot.current;
   useEffect(() => {
     onDirtyChange?.(dirty);
   }, [dirty, onDirtyChange]);
+
+  useEffect(() => {
+    api
+      .get<RdhyVamAgreementSummary[]>('/plugins/rdhy/vam-agreements')
+      .then((all) => setCopySources(all.filter((a) => a.id !== document.id)))
+      .catch(() => undefined);
+  }, [document.id]);
 
   const currencySuffix = document.currency ? document.currency.code.toUpperCase() : null;
 
@@ -175,6 +266,44 @@ export function VamCanvasEditor({
     patch({
       milestones: canvas.milestones.map((m, i) => (i === index ? { ...m, ...change } : m)),
     });
+
+  const patchItem = (mi: number, itemUid: string, change: Partial<EditableItem>) =>
+    patchMilestone(mi, {
+      items: canvas.milestones[mi].items.map((x) =>
+        x.uid === itemUid ? { ...x, ...change } : x,
+      ),
+    });
+
+  const addItem = (mi: number, track: EditableItem['track']) => {
+    const newUid = uid();
+    setFocusUid(newUid);
+    patchMilestone(mi, {
+      items: [
+        ...canvas.milestones[mi].items,
+        { uid: newUid, track, description: '', amount: '' },
+      ],
+    });
+  };
+
+  const applyCopy = async (sourceId: string) => {
+    try {
+      const source = await api.get<RdhyVamAgreementDocument>(
+        `/plugins/rdhy/vam-agreements/${sourceId}`,
+      );
+      setCanvas(canvasToEditable(source.canvas));
+    } catch {
+      // Copy is best-effort; the source list itself came from the same API.
+    }
+  };
+
+  const requestCopy = (sourceId: string) => {
+    if (dirty) {
+      setPendingCopyId(sourceId);
+      setCopyConfirmOpen(true);
+    } else {
+      void applyCopy(sourceId);
+    }
+  };
 
   /** Mirrors the server rules so 400s are caught before saving. */
   const milestoneErrors = useMemo(() => {
@@ -213,148 +342,171 @@ export function VamCanvasEditor({
 
   return (
     <div className="space-y-8">
+      {copySources.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Label className="text-sm text-muted-foreground">{t('copyFrom')}</Label>
+          <Select value="" onValueChange={requestCopy}>
+            <SelectTrigger className="w-72">
+              <SelectValue placeholder={t('copyPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {copySources.map((source) => (
+                <SelectItem key={source.id} value={source.id}>
+                  {source.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">{t('milestones')}</h2>
-        {canvas.milestones.map((milestone, mi) => {
-          const offsetError = milestoneErrors.get(milestone.uid);
-          return (
-            <div key={milestone.uid} className="space-y-3 rounded-md border p-3">
-              <div className="flex items-end gap-2">
-                <div className="w-28 space-y-1">
-                  <Label>{t('offsetMonths')}</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={document.horizonMonths}
-                    value={milestone.offsetMonths}
-                    aria-invalid={Boolean(offsetError)}
-                    className={offsetError ? 'border-destructive' : undefined}
-                    onChange={(e) => patchMilestone(mi, { offsetMonths: e.target.value })}
-                  />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <Label>{t('label')}</Label>
-                  <Input
-                    value={milestone.label}
-                    onChange={(e) => patchMilestone(mi, { label: e.target.value })}
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    patch({ milestones: canvas.milestones.filter((_, i) => i !== mi) })
-                  }
-                >
-                  {t('remove')}
-                </Button>
-              </div>
-              {offsetError && <p className="text-sm text-destructive">{offsetError}</p>}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{t('items')}</p>
-                <SortableRows
-                  ids={milestone.items.map((i) => i.uid)}
-                  onReorder={(from, to) =>
-                    patchMilestone(mi, { items: moveEntry(milestone.items, from, to) })
-                  }
-                >
-                  {milestone.items.map((item, ii) => (
-                    <SortableRow
-                      key={item.uid}
-                      id={item.uid}
-                      className="flex items-center gap-2 py-1"
+        <div className="overflow-x-auto rounded-md border">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b bg-muted/40">
+                <th className="w-40 min-w-[10rem] p-2 text-left align-bottom font-medium" />
+                {canvas.milestones.map((milestone, mi) => {
+                  const offsetError = milestoneErrors.get(milestone.uid);
+                  return (
+                    <th
+                      key={milestone.uid}
+                      className="min-w-[16rem] border-l p-2 text-left align-top font-normal"
                     >
-                      <Select
-                        value={item.track}
-                        onValueChange={(track) =>
-                          patchMilestone(mi, {
-                            items: milestone.items.map((x, i) =>
-                              i === ii ? { ...x, track: track as EditableItem['track'] } : x,
-                            ),
-                          })
-                        }
-                      >
-                        <SelectTrigger className="w-48">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {VAM_TRACKS.map((track) => (
-                            <SelectItem key={track} value={track}>
-                              {tt(track)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        className="flex-1"
-                        placeholder={t('itemDescription')}
-                        value={item.description}
-                        onChange={(e) =>
-                          patchMilestone(mi, {
-                            items: milestone.items.map((x, i) =>
-                              i === ii ? { ...x, description: e.target.value } : x,
-                            ),
-                          })
-                        }
-                      />
-                      <Input
-                        className="w-32"
-                        type="number"
-                        min={0}
-                        placeholder={t('amount')}
-                        value={item.amount}
-                        onChange={(e) =>
-                          patchMilestone(mi, {
-                            items: milestone.items.map((x, i) =>
-                              i === ii ? { ...x, amount: e.target.value } : x,
-                            ),
-                          })
-                        }
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          patchMilestone(mi, {
-                            items: milestone.items.filter((_, i) => i !== ii),
-                          })
-                        }
-                      >
-                        ×
-                      </Button>
-                    </SortableRow>
-                  ))}
-                </SortableRows>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    patchMilestone(mi, {
-                      items: [
-                        ...milestone.items,
-                        { uid: uid(), track: 'DIRECT_VALUE', description: '', amount: '' },
-                      ],
-                    })
-                  }
-                >
-                  {t('addItem')}
-                </Button>
-              </div>
-            </div>
-          );
-        })}
-        <Button
-          variant="outline"
-          onClick={() =>
-            patch({
-              milestones: [
-                ...canvas.milestones,
-                { uid: uid(), offsetMonths: '', label: '', items: [] },
-              ],
-            })
-          }
-        >
-          {t('addMilestone')}
-        </Button>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          className={`w-20 ${offsetError ? 'border-destructive' : ''}`}
+                          type="number"
+                          min={1}
+                          max={document.horizonMonths}
+                          aria-invalid={Boolean(offsetError)}
+                          placeholder={t('offsetMonths')}
+                          value={milestone.offsetMonths}
+                          onChange={(e) => patchMilestone(mi, { offsetMonths: e.target.value })}
+                        />
+                        <Input
+                          className="flex-1"
+                          placeholder={t('label')}
+                          value={milestone.label}
+                          onChange={(e) => patchMilestone(mi, { label: e.target.value })}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label={t('remove')}
+                          onClick={() =>
+                            patch({
+                              milestones: canvas.milestones.filter((_, i) => i !== mi),
+                            })
+                          }
+                        >
+                          ×
+                        </Button>
+                      </div>
+                      {offsetError && (
+                        <p className="mt-1 text-xs font-normal text-destructive">{offsetError}</p>
+                      )}
+                    </th>
+                  );
+                })}
+                <th className="w-32 min-w-[8rem] border-l p-2 align-top">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      patch({
+                        milestones: [
+                          ...canvas.milestones,
+                          { uid: uid(), offsetMonths: '', label: '', items: [] },
+                        ],
+                      })
+                    }
+                  >
+                    {t('addMilestone')}
+                  </Button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {VAM_TRACKS.map((track) => (
+                <tr key={track} className="border-b last:border-b-0">
+                  <td className="w-40 min-w-[10rem] p-2 align-top font-medium">{tt(track)}</td>
+                  {canvas.milestones.map((milestone, mi) => {
+                    const cellItems = milestone.items.filter((i) => i.track === track);
+                    return (
+                      <td key={milestone.uid} className="border-l p-2 align-top">
+                        <SortableRows
+                          ids={cellItems.map((i) => i.uid)}
+                          onReorder={(from, to) =>
+                            patchMilestone(mi, {
+                              items: moveWithinTrack(milestone.items, track, from, to),
+                            })
+                          }
+                        >
+                          <div className="space-y-2">
+                            {cellItems.map((item) => (
+                              <SortableRow
+                                key={item.uid}
+                                id={item.uid}
+                                className="flex items-start gap-1 rounded-md border p-1.5"
+                              >
+                                <div className="flex-1 space-y-1">
+                                  <Input
+                                    placeholder={t('itemDescription')}
+                                    autoFocus={item.uid === focusUid}
+                                    value={item.description}
+                                    onChange={(e) =>
+                                      patchItem(mi, item.uid, { description: e.target.value })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        addItem(mi, track);
+                                      }
+                                    }}
+                                  />
+                                  <AmountInput
+                                    value={item.amount}
+                                    suffix={currencySuffix}
+                                    placeholder={t('amount')}
+                                    onChange={(raw) => patchItem(mi, item.uid, { amount: raw })}
+                                    onEnter={() => addItem(mi, track)}
+                                  />
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  aria-label={t('remove')}
+                                  onClick={() =>
+                                    patchMilestone(mi, {
+                                      items: milestone.items.filter((x) => x.uid !== item.uid),
+                                    })
+                                  }
+                                >
+                                  ×
+                                </Button>
+                              </SortableRow>
+                            ))}
+                          </div>
+                        </SortableRows>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mt-1 text-muted-foreground"
+                          onClick={() => addItem(mi, track)}
+                        >
+                          {t('addItem')}
+                        </Button>
+                      </td>
+                    );
+                  })}
+                  <td className="border-l" />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="space-y-2">
@@ -403,16 +555,15 @@ export function VamCanvasEditor({
                   })
                 }
               />
-              <Input
-                className="w-32"
-                type="number"
-                min={0}
-                placeholder={t('amount')}
+              <AmountInput
+                className="w-36"
                 value={cost.amount}
-                onChange={(e) =>
+                suffix={currencySuffix}
+                placeholder={t('amount')}
+                onChange={(raw) =>
                   patch({
                     costEntries: canvas.costEntries.map((x, i) =>
-                      i === ci ? { ...x, amount: e.target.value } : x,
+                      i === ci ? { ...x, amount: raw } : x,
                     ),
                   })
                 }
@@ -517,16 +668,15 @@ export function VamCanvasEditor({
                   })
                 }
               />
-              <Input
-                className="w-32"
-                type="number"
-                min={0}
-                placeholder={t('amount')}
+              <AmountInput
+                className="w-36"
                 value={investment.amount}
-                onChange={(e) =>
+                suffix={currencySuffix}
+                placeholder={t('amount')}
+                onChange={(raw) =>
                   patch({
                     investmentEntries: canvas.investmentEntries.map((x, i) =>
-                      i === vi ? { ...x, amount: e.target.value } : x,
+                      i === vi ? { ...x, amount: raw } : x,
                     ),
                   })
                 }
@@ -635,6 +785,37 @@ export function VamCanvasEditor({
           {t('cancel')}
         </Button>
       </div>
+
+      <Dialog
+        open={copyConfirmOpen}
+        onOpenChange={(open) => {
+          setCopyConfirmOpen(open);
+          if (!open) setPendingCopyId(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('copyOverwriteTitle')}</DialogTitle>
+            <DialogDescription>{t('copyOverwriteDescription')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCopyConfirmOpen(false)}>
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                const sourceId = pendingCopyId;
+                setCopyConfirmOpen(false);
+                setPendingCopyId(null);
+                if (sourceId) void applyCopy(sourceId);
+              }}
+            >
+              {t('copyReplace')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
