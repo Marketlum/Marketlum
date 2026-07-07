@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
 import {
   api,
+  ApiError,
   Button,
   ConfirmDeleteDialog,
   Dialog,
@@ -29,7 +30,7 @@ import {
   TableRow,
   Textarea,
 } from '@marketlum/ui';
-import type { PluginRouteComponentProps } from '@marketlum/ui';
+import type { ApiFieldError, PluginRouteComponentProps } from '@marketlum/ui';
 import {
   VAM_TRACKS,
   type RdhyVamAgreementDocument,
@@ -52,6 +53,7 @@ function sumAmounts(entries: Array<{ amount: string }>): string {
 export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
   const id = params?.id;
   const t = useTranslations('plugin.rdhy.vam.detail');
+  const te = useTranslations('plugin.rdhy.vam.editor');
   const tt = useTranslations('plugin.rdhy.vam.tracks');
   const tc = useTranslations('plugin.rdhy.vam.categories');
   const tk = useTranslations('plugin.rdhy.vam.kinds');
@@ -60,8 +62,12 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
 
   const [document, setDocument] = useState<RdhyVamAgreementDocument | null>(null);
   const [editing, setEditing] = useState(false);
+  const [editorDirty, setEditorDirty] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const discardNavigatesAway = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serverErrors, setServerErrors] = useState<ApiFieldError[] | null>(null);
   const [activateOpen, setActivateOpen] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
   const [terminateOpen, setTerminateOpen] = useState(false);
@@ -80,6 +86,42 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Warn before reload/close while the editor holds unsaved changes.
+  useEffect(() => {
+    if (!(editing && editorDirty)) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [editing, editorDirty]);
+
+  const exitEditor = () => {
+    setEditing(false);
+    setEditorDirty(false);
+    setServerErrors(null);
+    setError(null);
+  };
+
+  const requestCancelEditing = () => {
+    if (editorDirty) {
+      discardNavigatesAway.current = false;
+      setDiscardOpen(true);
+    } else {
+      exitEditor();
+    }
+  };
+
+  const confirmDiscard = () => {
+    setDiscardOpen(false);
+    exitEditor();
+    if (discardNavigatesAway.current) {
+      discardNavigatesAway.current = false;
+      router.push('/admin/x/vam-agreements');
+    }
+  };
 
   const currencyCode = document?.currency?.code ?? null;
 
@@ -143,15 +185,20 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
     if (!id) return;
     setBusy(true);
     setError(null);
+    setServerErrors(null);
     try {
       const updated = await api.put<RdhyVamAgreementDocument>(
         `/plugins/rdhy/vam-agreements/${id}/canvas`,
         canvas,
       );
       setDocument(updated);
-      setEditing(false);
-    } catch {
-      setError(t('failed'));
+      exitEditor();
+    } catch (e) {
+      if (e instanceof ApiError && e.errors.length > 0) {
+        setServerErrors(e.errors);
+      } else {
+        setError(t('failed'));
+      }
     } finally {
       setBusy(false);
     }
@@ -173,6 +220,13 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
       <Link
         href="/admin/x/vam-agreements"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        onClick={(event) => {
+          if (editing && editorDirty) {
+            event.preventDefault();
+            discardNavigatesAway.current = true;
+            setDiscardOpen(true);
+          }
+        }}
       >
         <ArrowLeft className="h-4 w-4" />
         {t('back')}
@@ -228,12 +282,11 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
         <VamCanvasEditor
           document={document}
           onSave={saveCanvas}
-          onCancel={() => {
-            setEditing(false);
-            setError(null);
-          }}
+          onCancel={requestCancelEditing}
+          onDirtyChange={setEditorDirty}
           saving={busy}
           error={error}
+          serverErrors={serverErrors}
         />
       ) : !hasCanvas ? (
         <p className="text-sm text-muted-foreground">{t('emptyCanvas')}</p>
@@ -454,6 +507,29 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
         description={t('deleteDescription')}
         isDeleting={busy}
       />
+
+      <Dialog
+        open={discardOpen}
+        onOpenChange={(open) => {
+          setDiscardOpen(open);
+          if (!open) discardNavigatesAway.current = false;
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{te('unsavedTitle')}</DialogTitle>
+            <DialogDescription>{te('unsavedDescription')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDiscardOpen(false)}>
+              {te('keepEditing')}
+            </Button>
+            <Button variant="destructive" onClick={confirmDiscard}>
+              {te('discard')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

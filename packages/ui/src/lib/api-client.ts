@@ -1,9 +1,16 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+export interface ApiFieldError {
+  field: string;
+  message: string;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** Field-level validation errors as returned by ZodValidationPipe (400s). */
+    public errors: ApiFieldError[] = [],
   ) {
     super(message);
     this.name = 'ApiError';
@@ -23,7 +30,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
-    throw new ApiError(res.status, body.message || res.statusText);
+    throw new ApiError(
+      res.status,
+      body.message || res.statusText,
+      Array.isArray(body.errors) ? body.errors : [],
+    );
   }
 
   if (res.status === 204) return undefined as T;

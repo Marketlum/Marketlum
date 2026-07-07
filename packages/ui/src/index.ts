@@ -239,6 +239,7 @@ export { useValues } from './hooks/use-values';
 // =============================================================================
 
 export { ApiError, api } from './lib/api-client';
+export type { ApiFieldError } from './lib/api-client';
 export { login, logout, getMe } from './lib/auth';
 export { getMobileColumnVisibility, mergeColumnVisibility } from './lib/column-visibility';
 export type { FieldDef, ExportFormat } from './lib/export-utils';
