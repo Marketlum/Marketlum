@@ -16,3 +16,10 @@ Feature: RDHY sample seeding
     And the RDHY platform "shared_services" exists with name "Shared Services"
     And the value stream "home_appliances" is assigned to an RDHY platform
     And the value stream "smart_devices" is assigned to an RDHY platform
+
+  Scenario: The seed hook creates the sample VAM agreements idempotently
+    Given a value stream exists with code "home_appliances" and name "Home Appliances"
+    When the RDHY plugin seed hook runs
+    And the RDHY plugin seed hook runs again
+    Then exactly one VAM agreement titled "Web 3 Consulting HUB" exists with status "ACTIVE" and 4 milestones
+    And exactly one VAM agreement titled "Web 3 Consulting HUB — renewal" exists with status "DRAFT" and 0 milestones
