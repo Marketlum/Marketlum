@@ -3,6 +3,8 @@ import { codeSchema } from '@marketlum/shared';
 
 export const RDHY_PLUGIN_ID = 'rdhy';
 
+export * from './vam-schemas';
+
 export const createRdhyPlatformSchema = z.object({
   code: codeSchema,
   name: z.string().min(1).max(255),

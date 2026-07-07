@@ -18,11 +18,15 @@ import {
   UpdateRdhyPlatformInput,
 } from '../shared/schemas';
 import { PlatformsService } from './platforms.service';
+import { VamAgreementsService } from '../vam/vam-agreements.service';
 
 @Controller('plugins/rdhy/platforms')
 @UseGuards(AdminGuard)
 export class PlatformsController {
-  constructor(private readonly platforms: PlatformsService) {}
+  constructor(
+    private readonly platforms: PlatformsService,
+    private readonly vamAgreements: VamAgreementsService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -40,6 +44,11 @@ export class PlatformsController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.platforms.findOne(id);
+  }
+
+  @Get(':id/vam-agreements')
+  async findSponsoredVamAgreements(@Param('id') id: string) {
+    return this.vamAgreements.findByPlatform(id);
   }
 
   @Patch(':id')

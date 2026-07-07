@@ -12,6 +12,7 @@ import type {
 } from '../shared/schemas';
 import { RdhyPlatform } from './rdhy-platform.entity';
 import { RdhyPlatformValueStream } from './rdhy-platform-value-stream.entity';
+import { RdhyVamAgreement } from '../vam/rdhy-vam-agreement.entity';
 
 @Injectable()
 export class PlatformsService {
@@ -22,6 +23,8 @@ export class PlatformsService {
     private readonly linkRepository: Repository<RdhyPlatformValueStream>,
     @InjectRepository(ValueStream)
     private readonly valueStreamRepository: Repository<ValueStream>,
+    @InjectRepository(RdhyVamAgreement)
+    private readonly vamAgreementRepository: Repository<RdhyVamAgreement>,
   ) {}
 
   async create(input: CreateRdhyPlatformInput): Promise<RdhyPlatformResponse> {
@@ -80,7 +83,14 @@ export class PlatformsService {
 
   async remove(id: string): Promise<void> {
     const platform = await this.requirePlatform(id);
-    // Link rows are removed by the database-level ON DELETE CASCADE.
+    // Agreements are contracts: block deletion while any exist (the FK's
+    // ON DELETE RESTRICT is the backstop). Membership link rows still cascade.
+    const sponsored = await this.vamAgreementRepository.count({ where: { platformId: id } });
+    if (sponsored > 0) {
+      throw new ConflictException(
+        `Platform sponsors ${sponsored} VAM agreement(s) and cannot be deleted`,
+      );
+    }
     await this.platformRepository.remove(platform);
   }
 
