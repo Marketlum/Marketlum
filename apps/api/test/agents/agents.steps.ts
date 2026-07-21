@@ -1345,6 +1345,73 @@ defineFeature(detailsFeature, (test) => {
     });
   });
 
+  test('Get agent details with ancestors', ({ given, when, then, and }) => {
+    const hierarchyIds = new Map<string, string>();
+
+    async function createHierarchyAgent(
+      name: string,
+      type: string,
+      parentName?: string,
+    ): Promise<void> {
+      const body: Record<string, unknown> = { name, type };
+      if (parentName) body.parentId = hierarchyIds.get(parentName);
+      const res = await request(getApp().getHttpServer())
+        .post('/agents')
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send(body);
+      expect(res.status).toBe(201);
+      hierarchyIds.set(name, res.body.id);
+    }
+
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+      hierarchyIds.clear();
+    });
+
+    and(
+      /^a root agent exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        await createHierarchyAgent(name, type);
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" under parent "(.*)"$/,
+      async (name: string, type: string, parentName: string) => {
+        await createHierarchyAgent(name, type, parentName);
+      },
+    );
+
+    and(
+      /^an agent exists with name "(.*)" and type "(.*)" under parent "(.*)"$/,
+      async (name: string, type: string, parentName: string) => {
+        await createHierarchyAgent(name, type, parentName);
+      },
+    );
+
+    when(/^I request the agent details of "(.*)"$/, async (name: string) => {
+      response = await request(getApp().getHttpServer())
+        .get(`/agents/${hierarchyIds.get(name)}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should include parent "(.*)"$/, (name: string) => {
+      expect(response.body.parent).not.toBeNull();
+      expect(response.body.parent.name).toBe(name);
+    });
+
+    and(/^the response should include ancestors "(.*)"$/, (names: string) => {
+      const expected = names.split(',').map((n) => n.trim());
+      const actual = response.body.ancestors.map((a: { name: string }) => a.name);
+      expect(actual).toEqual(expected);
+    });
+  });
+
   test('Get a non-existent agent returns 404', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');

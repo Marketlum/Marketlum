@@ -31,10 +31,14 @@ export {
 export {
   createAgentSchema,
   updateAgentSchema,
+  moveAgentSchema,
   agentResponseSchema,
   type CreateAgentInput,
   type UpdateAgentInput,
+  type MoveAgentInput,
   type AgentResponse,
+  type AgentSummary,
+  type AgentTreeNode,
 } from './schemas/agent.schema';
 
 export {

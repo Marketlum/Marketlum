@@ -194,6 +194,7 @@ export function AgentsDataTable() {
       name: tc('name'),
       type: tc('type'),
       taxonomy: t('taxonomy'),
+      parent: t('parent'),
       image: t('image'),
       purpose: t('purpose'),
       created: tc('created'),
@@ -208,6 +209,7 @@ export function AgentsDataTable() {
     { id: 'name', label: tc('name') },
     { id: 'type', label: tc('type') },
     { id: 'mainTaxonomy', label: t('taxonomy') },
+    { id: 'parent', label: t('parent') },
     { id: 'purpose', label: t('purpose') },
     { id: 'createdAt', label: tc('created') },
   ];
@@ -223,6 +225,10 @@ export function AgentsDataTable() {
     { key: 'taxonomies', label: t('taxonomies'), extract: (r) => {
       const taxs = r.taxonomies as { name: string }[] | undefined;
       return taxs?.map((tx) => tx.name).join(', ') ?? '';
+    }},
+    { key: 'parent', label: t('parent'), extract: (r) => {
+      const parent = r.parent as { name: string } | null | undefined;
+      return parent?.name ?? '';
     }},
     { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
     { key: 'updatedAt', label: t('updatedAt'), extract: (r) => String(r.updatedAt ?? '') },

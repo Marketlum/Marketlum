@@ -39,6 +39,7 @@ import { TaxonomyTreeSelect } from '../shared/taxonomy-tree-select';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { useTaxonomyTree } from '../../hooks/use-taxonomy-tree';
 import { useValues } from '../../hooks/use-values';
+import { useAgents } from '../../hooks/use-agents';
 import { api } from '../../lib/api-client';
 import { ImageLibraryDialog } from './image-library-dialog';
 
@@ -55,6 +56,8 @@ interface AgentFormDialogProps {
   agent?: AgentResponse | null;
   /** When set (create mode only), pre-fills the name field. */
   defaultName?: string;
+  /** When set (create mode only), preselects and locks the parent agent. */
+  defaultParentId?: string;
   isSubmitting?: boolean;
 }
 
@@ -64,6 +67,7 @@ export function AgentFormDialog({
   onSubmit,
   agent,
   defaultName,
+  defaultParentId,
   isSubmitting,
 }: AgentFormDialogProps) {
   const isEditing = !!agent;
@@ -107,6 +111,8 @@ export function AgentFormDialog({
   const mainTaxonomyIdValue = watch('mainTaxonomyId');
   const taxonomyIdsValue = watch('taxonomyIds') ?? [];
   const functionalCurrencyIdValue = watch('functionalCurrencyId');
+  const parentIdValue = watch('parentId');
+  const { agents: allAgents } = useAgents(open && !isEditing);
   const { values: allValues } = useValues(open);
   const currencyOptions = allValues.filter((v) => v.type === ValueType.CURRENCY);
   const originalFunctionalCurrencyId = agent?.functionalCurrency?.id ?? null;
@@ -156,11 +162,12 @@ export function AgentFormDialog({
           taxonomyIds: [],
           imageId: null,
           functionalCurrencyId: null,
+          parentId: defaultParentId ?? null,
         });
         setImagePreview(null);
       }
     }
-  }, [open, agent, defaultName, reset]);
+  }, [open, agent, defaultName, defaultParentId, reset]);
 
   const toggleTaxonomyId = (id: string) => {
     const current = taxonomyIdsValue;
@@ -242,6 +249,33 @@ export function AgentFormDialog({
             <Input id="purpose" {...register('purpose')} />
             {errors.purpose && (
               <p className="text-sm text-destructive">{errors.purpose.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>{t('parent')}</Label>
+            {isEditing ? (
+              <p className="text-sm text-muted-foreground">
+                {agent?.parent ? agent.parent.name : t('noParent')}
+                <span className="ml-1 text-xs">({t('parentEditHint')})</span>
+              </p>
+            ) : (
+              <Select
+                value={parentIdValue ?? '__none__'}
+                disabled={!!defaultParentId}
+                onValueChange={(v) => setValue('parentId', v === '__none__' ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('noParent')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('noParent')}</SelectItem>
+                  {allAgents.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
           <div className="space-y-2">

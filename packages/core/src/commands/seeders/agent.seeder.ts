@@ -8,13 +8,20 @@ interface AgentDeps {
   functionalCurrencyByAgentName?: Record<string, string>;
 }
 
-const AGENTS = [
+// Parents must appear before their children: the seeder resolves parentName
+// against agents created earlier in this list (spec 015 sample hierarchy).
+const AGENTS: Array<{
+  name: string;
+  type: AgentType;
+  purpose: string;
+  parentName?: string;
+}> = [
   { name: 'Acme Corp', type: AgentType.ORGANIZATION, purpose: 'Global manufacturing and distribution' },
   { name: 'TechNova Solutions', type: AgentType.ORGANIZATION, purpose: 'Cloud infrastructure provider' },
   { name: 'GreenLeaf Partners', type: AgentType.ORGANIZATION, purpose: 'Sustainable supply chain consulting' },
-  { name: 'Sarah Palmer', type: AgentType.INDIVIDUAL, purpose: 'Independent market analyst' },
-  { name: 'James Liu', type: AgentType.INDIVIDUAL, purpose: 'Freelance integration specialist' },
-  { name: 'AutoFlow Bot', type: AgentType.VIRTUAL, purpose: 'Automated order processing agent' },
+  { name: 'Sarah Palmer', type: AgentType.INDIVIDUAL, purpose: 'Independent market analyst', parentName: 'Acme Corp' },
+  { name: 'James Liu', type: AgentType.INDIVIDUAL, purpose: 'Freelance integration specialist', parentName: 'TechNova Solutions' },
+  { name: 'AutoFlow Bot', type: AgentType.VIRTUAL, purpose: 'Automated order processing agent', parentName: 'Acme Corp' },
 ];
 
 interface AddressSeed {
@@ -62,12 +69,17 @@ export async function seedAgents(
     const agentData = AGENTS[i];
     const taxonomy = deps.taxonomies.all[i % deps.taxonomies.all.length];
 
+    const parentId = agentData.parentName
+      ? agents.find((a) => a.name === agentData.parentName)?.id
+      : undefined;
+
     const agent = await service.create({
       name: agentData.name,
       type: agentData.type,
       purpose: agentData.purpose,
       mainTaxonomyId: taxonomy.id,
       functionalCurrencyId: deps.functionalCurrencyByAgentName?.[agentData.name],
+      parentId,
     } as unknown as CreateAgentInput);
     agents.push({ id: agent.id, name: agent.name, type: agentData.type });
 

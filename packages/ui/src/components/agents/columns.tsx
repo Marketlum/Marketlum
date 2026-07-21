@@ -19,6 +19,7 @@ interface AgentColumnsTranslations {
   type: string;
   purpose: string;
   taxonomy: string;
+  parent: string;
   image: string;
   created: string;
   edit: string;
@@ -81,6 +82,15 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
       cell: ({ row }) => {
         const mainTaxonomy = row.original.mainTaxonomy;
         return mainTaxonomy ? <Badge variant="outline">{mainTaxonomy.name}</Badge> : '-';
+      },
+    },
+    {
+      id: 'parent',
+      header: translations.parent,
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => {
+        const parent = row.original.parent;
+        return parent ? parent.name : '-';
       },
     },
     {

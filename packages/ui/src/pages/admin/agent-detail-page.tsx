@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Bot, Pencil, Trash2, ArrowLeft } from 'lucide-react';
+import { Bot, Pencil, Trash2, ArrowLeft, FolderTree } from 'lucide-react';
 import type { AgentResponse, CreateAgentInput } from '@marketlum/shared';
+import { useAgents } from '../../hooks/use-agents';
 import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { FileImagePreview } from '../../components/shared/file-image-preview';
@@ -13,6 +14,7 @@ import { AgentFormDialog } from '../../components/agents/agent-form-dialog';
 import { AgentTypeBadge } from '../../components/agents/agent-type-badge';
 import { AgentValuesTable } from '../../components/agents/agent-values-table';
 import { AddressesList } from '../../components/agents/addresses-list';
+import { SubAgentsTable } from '../../components/agents/sub-agents-table';
 import { OfferingsDataTable } from '../../components/offerings/offerings-data-table';
 import { AgreementTemplatesDataTable } from '../../components/agreement-templates/agreement-templates-data-table';
 import { AgreementsDataTable } from '../../components/agreements/agreements-data-table';
@@ -27,6 +29,22 @@ import {
   CardHeader,
   CardTitle,
 } from '../../components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog';
+import { Label } from '../../components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -55,6 +73,10 @@ export function AgentDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [moveParentId, setMoveParentId] = useState<string>('__root__');
+  const { agents: allAgents } = useAgents(moveOpen);
+  const [descendantIds, setDescendantIds] = useState<Set<string>>(new Set());
 
   const fetchAgent = useCallback(async () => {
     setLoading(true);
@@ -104,6 +126,40 @@ export function AgentDetailPage() {
     }
   };
 
+  const openMove = async () => {
+    if (!agent) return;
+    setMoveParentId(agent.parent ? agent.parent.id : '__root__');
+    // Own subtree is not a valid move target; the server enforces this too.
+    try {
+      const descendants = await api.get<AgentResponse[]>(`/agents/${agent.id}/descendants`);
+      setDescendantIds(new Set(descendants.map((d) => d.id)));
+    } catch {
+      setDescendantIds(new Set());
+    }
+    setMoveOpen(true);
+  };
+
+  const handleMove = async () => {
+    if (!agent) return;
+    setIsSubmitting(true);
+    try {
+      await api.patch(`/agents/${agent.id}/move`, {
+        parentId: moveParentId === '__root__' ? null : moveParentId,
+      });
+      toast.success(t('moved'));
+      setMoveOpen(false);
+      fetchAgent();
+    } catch {
+      toast.error(t('failedToMove'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const moveCandidates = allAgents.filter(
+    (candidate) => agent && candidate.id !== agent.id && !descendantIds.has(candidate.id),
+  );
+
   if (loading) {
     return (
       <div className="flex h-24 items-center justify-center text-muted-foreground">
@@ -142,6 +198,14 @@ export function AgentDetailPage() {
               <Link href="/admin/agents">{t('title')}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
+          {(agent.ancestors ?? []).map((ancestor) => (
+            <BreadcrumbItem key={ancestor.id} className="hidden md:inline-flex">
+              <BreadcrumbSeparator />
+              <BreadcrumbLink asChild>
+                <Link href={`/admin/agents/${ancestor.id}`}>{ancestor.name}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          ))}
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage>{agent.name}</BreadcrumbPage>
@@ -173,6 +237,10 @@ export function AgentDetailPage() {
               <Pencil className="mr-1.5 h-3.5 w-3.5" />
               {tc('edit')}
             </Button>
+            <Button variant="outline" size="sm" onClick={openMove}>
+              <FolderTree className="mr-1.5 h-3.5 w-3.5" />
+              {t('move')}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
               {tc('delete')}
@@ -184,6 +252,7 @@ export function AgentDetailPage() {
       <Tabs defaultValue="details">
         <TabsList>
           <TabsTrigger value="details">{t('details')}</TabsTrigger>
+          <TabsTrigger value="sub-agents">{t('subAgentsTab')}</TabsTrigger>
           <TabsTrigger value="values">{t('valuesTab')}</TabsTrigger>
           <TabsTrigger value="offerings">{t('offeringsTab')}</TabsTrigger>
           <TabsTrigger value="exchanges">{t('exchangesTab')}</TabsTrigger>
@@ -245,6 +314,9 @@ export function AgentDetailPage() {
             </Card>
           </div>
         </TabsContent>
+        <TabsContent value="sub-agents">
+          <SubAgentsTable agentId={agent.id} />
+        </TabsContent>
         <TabsContent value="values">
           <AgentValuesTable agentId={agent.id} />
         </TabsContent>
@@ -288,6 +360,39 @@ export function AgentDetailPage() {
         description={tc('confirmDeleteDescription', { name: agent.name })}
         isDeleting={isSubmitting}
       />
+
+      <Dialog open={moveOpen} onOpenChange={setMoveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('moveTitle', { name: agent.name })}</DialogTitle>
+            <DialogDescription>{t('moveDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>{t('parent')}</Label>
+            <Select value={moveParentId} onValueChange={setMoveParentId}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__root__">{t('makeRoot')}</SelectItem>
+                {moveCandidates.map((candidate) => (
+                  <SelectItem key={candidate.id} value={candidate.id}>
+                    {candidate.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMoveOpen(false)} disabled={isSubmitting}>
+              {tc('cancel')}
+            </Button>
+            <Button onClick={handleMove} disabled={isSubmitting}>
+              {t('move')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

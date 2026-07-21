@@ -34,11 +34,13 @@ import { ApiPaginatedResponse } from '../common/swagger/api-paginated-response.d
 import {
   createAgentSchema,
   updateAgentSchema,
+  moveAgentSchema,
   createAddressSchema,
   updateAddressSchema,
   paginationQuerySchema,
   CreateAgentInput,
   UpdateAgentInput,
+  MoveAgentInput,
   CreateAddressInput,
   UpdateAddressInput,
   PaginationQuery,
@@ -92,6 +94,19 @@ export class AgentsController {
     return this.agentsService.findAll({ ...query, type, taxonomyId });
   }
 
+  @Get('tree')
+  @ApiOperation({ summary: 'Full agent forest as nested trees' })
+  async findTree() {
+    return this.agentsService.findTree();
+  }
+
+  @Get('roots')
+  @ApiOperation({ summary: 'Root agents only' })
+  @ApiOkResponse({ type: AgentResponseDto, isArray: true })
+  async findRoots() {
+    return this.agentsService.findRoots();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get an agent by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
@@ -99,6 +114,37 @@ export class AgentsController {
   @ApiNotFoundResponse({ description: 'Agent not found' })
   async findOne(@Param('id') id: string) {
     return this.agentsService.findOne(id);
+  }
+
+  @Get(':id/children')
+  @ApiOperation({ summary: 'Direct sub-agents of an agent' })
+  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
+  @ApiOkResponse({ type: AgentResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: 'Agent not found' })
+  async findChildren(@Param('id') id: string) {
+    return this.agentsService.findChildren(id);
+  }
+
+  @Get(':id/descendants')
+  @ApiOperation({ summary: 'All descendants of an agent (flat list)' })
+  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
+  @ApiOkResponse({ type: AgentResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: 'Agent not found' })
+  async findDescendants(@Param('id') id: string) {
+    return this.agentsService.findDescendants(id);
+  }
+
+  @Patch(':id/move')
+  @ApiOperation({ summary: 'Move an agent under a different parent (null = root)' })
+  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
+  @ApiOkResponse({ type: AgentResponseDto })
+  @ApiBadRequestResponse({ description: 'Move into itself or its own subtree' })
+  @ApiNotFoundResponse({ description: 'Agent or parent not found' })
+  async move(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(moveAgentSchema)) body: MoveAgentInput,
+  ) {
+    return this.agentsService.move(id, body);
   }
 
   @Get(':id/snapshot-references')

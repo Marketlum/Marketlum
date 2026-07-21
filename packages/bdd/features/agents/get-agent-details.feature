@@ -19,6 +19,16 @@ Feature: Get Agent Details
     And the response should contain createdAt
     And the response should contain updatedAt
 
+  Scenario: Get agent details with ancestors
+    Given I am authenticated as "admin@marketlum.com"
+    And a root agent exists with name "Acme Holding" and type "organization"
+    And an agent exists with name "Acme Poland" and type "organization" under parent "Acme Holding"
+    And an agent exists with name "Sarah Palmer" and type "individual" under parent "Acme Poland"
+    When I request the agent details of "Sarah Palmer"
+    Then the response status should be 200
+    And the response should include parent "Acme Poland"
+    And the response should include ancestors "Acme Holding, Acme Poland"
+
   Scenario: Get a non-existent agent returns 404
     Given I am authenticated as "admin@marketlum.com"
     When I request an agent with ID "00000000-0000-0000-0000-000000000000"

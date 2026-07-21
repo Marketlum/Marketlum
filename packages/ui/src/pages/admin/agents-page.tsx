@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import { Bot } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import { AgentsDataTable } from '../../components/agents/agents-data-table';
+import { AgentTreeView } from '../../components/agents/agent-tree-view';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,9 +13,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '../../components/ui/breadcrumb';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 
-export async function AgentsPage() {
-  const t = await getTranslations();
+export function AgentsPage() {
+  const t = useTranslations();
 
   return (
     <div>
@@ -34,7 +38,19 @@ export async function AgentsPage() {
         {t('agents.title')}
       </h1>
       <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{t('agents.description')}</p>
-      <AgentsDataTable />
+
+      <Tabs defaultValue="table">
+        <TabsList className="mb-4">
+          <TabsTrigger value="table">{t('agents.tableView')}</TabsTrigger>
+          <TabsTrigger value="tree">{t('agents.treeView')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="table">
+          <AgentsDataTable />
+        </TabsContent>
+        <TabsContent value="tree">
+          <AgentTreeView />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -49,6 +49,7 @@ import { AddFunctionalCurrency1700000000047 } from './1700000000047-AddFunctiona
 import { DenormalizeInvoiceTotal1700000000048 } from './1700000000048-DenormalizeInvoiceTotal';
 import { AddInvoiceDirection1700000000049 } from './1700000000049-AddInvoiceDirection';
 import { AddAgreementTemplateAgent1700000000050 } from './1700000000050-AddAgreementTemplateAgent';
+import { AddAgentHierarchy1700000000051 } from './1700000000051-AddAgentHierarchy';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -102,4 +103,5 @@ export const ALL_MIGRATIONS = [
   DenormalizeInvoiceTotal1700000000048,
   AddInvoiceDirection1700000000049,
   AddAgreementTemplateAgent1700000000050,
+  AddAgentHierarchy1700000000051,
 ];

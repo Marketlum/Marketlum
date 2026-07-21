@@ -9,6 +9,10 @@ import {
   OneToMany,
   JoinTable,
   JoinColumn,
+  Tree,
+  TreeParent,
+  TreeChildren,
+  TreeLevelColumn,
 } from 'typeorm';
 import { AgentType } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
@@ -17,6 +21,7 @@ import { Address } from '../addresses/entities/address.entity';
 import { Value } from '../../values/entities/value.entity';
 
 @Entity('agents')
+@Tree('closure-table')
 export class Agent {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -26,6 +31,24 @@ export class Agent {
 
   @Column({ type: 'enum', enum: AgentType })
   type: AgentType;
+
+  @TreeParent()
+  @JoinColumn({ name: 'parentId' })
+  parent: Agent | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  parentId: string | null;
+
+  @TreeChildren()
+  children: Agent[];
+
+  // Unlike the other trees, level is maintained by AgentsService (TypeORM
+  // does not populate it — DB DEFAULT 0 is the insert-time backstop).
+  @TreeLevelColumn()
+  level: number;
+
+  /** Not a column: populated by AgentsService.findOne (root → direct parent). */
+  ancestors?: Agent[];
 
   @Column({ type: 'text', nullable: true })
   purpose: string | null;

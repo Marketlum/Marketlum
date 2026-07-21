@@ -176,7 +176,22 @@
     "addressDeleted": "Address deleted",
     "failedToCreateAddress": "Failed to add address",
     "failedToUpdateAddress": "Failed to update address",
-    "failedToDeleteAddress": "Failed to delete address"
+    "failedToDeleteAddress": "Failed to delete address",
+    "parent": "Parent agent",
+    "noParent": "No parent (root)",
+    "parentEditHint": "use Move to change",
+    "subAgentsTab": "Sub-agents",
+    "addSubAgent": "Add sub-agent",
+    "noSubAgents": "No sub-agents yet.",
+    "move": "Move",
+    "moveTitle": "Move {name}",
+    "moveDescription": "Choose a new parent agent, or make it a root agent. An agent cannot move under itself or one of its own sub-agents.",
+    "makeRoot": "Make root (no parent)",
+    "moved": "Agent moved",
+    "failedToMove": "Failed to move agent",
+    "tableView": "Table",
+    "treeView": "Tree",
+    "emptyTree": "No agents yet."
   },
   "agentsMap": {
     "title": "Agents map",

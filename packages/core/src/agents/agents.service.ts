@@ -1,6 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, TreeRepository, In, IsNull } from 'typeorm';
 import { Agent } from './entities/agent.entity';
 import { Address } from './addresses/entities/address.entity';
 import { AddressesService } from './addresses/addresses.service';
@@ -12,6 +17,7 @@ import { RecurringFlow } from '../recurring-flows/entities/recurring-flow.entity
 import {
   CreateAgentInput,
   UpdateAgentInput,
+  MoveAgentInput,
   PaginationQuery,
   AgentType,
   ValueType,
@@ -21,7 +27,7 @@ import {
 export class AgentsService {
   constructor(
     @InjectRepository(Agent)
-    private readonly agentsRepository: Repository<Agent>,
+    private readonly agentsRepository: TreeRepository<Agent>,
     @InjectRepository(Taxonomy)
     private readonly taxonomyRepository: Repository<Taxonomy>,
     @InjectRepository(File)
@@ -38,9 +44,23 @@ export class AgentsService {
   ) {}
 
   async create(input: CreateAgentInput): Promise<Agent> {
-    const { mainTaxonomyId, taxonomyIds, imageId, functionalCurrencyId, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, imageId, functionalCurrencyId, parentId, ...rest } =
+      input;
 
     const agent = this.agentsRepository.create(rest);
+
+    if (parentId) {
+      const parent = await this.agentsRepository.findOne({ where: { id: parentId } });
+      if (!parent) {
+        throw new NotFoundException('Parent agent not found');
+      }
+      agent.parent = parent;
+      // TypeORM does not maintain level — this service does.
+      agent.level = parent.level + 1;
+    } else {
+      agent.parent = null;
+      agent.level = 0;
+    }
 
     if (functionalCurrencyId !== undefined && functionalCurrencyId !== null) {
       await this.assertCurrencyValue(functionalCurrencyId);
@@ -97,6 +117,7 @@ export class AgentsService {
     qb.leftJoinAndSelect('agent.addresses', 'addresses');
     qb.leftJoinAndSelect('addresses.country', 'addressCountry');
     qb.leftJoinAndSelect('agent.functionalCurrency', 'functionalCurrency');
+    qb.leftJoinAndSelect('agent.parent', 'parent');
 
     if (type) {
       qb.andWhere('agent.type = :type', { type });
@@ -151,12 +172,105 @@ export class AgentsService {
         'addresses',
         'addresses.country',
         'functionalCurrency',
+        'parent',
       ],
     });
     if (!agent) {
       throw new NotFoundException('Agent not found');
     }
     agent.addresses = this.addressesService.sortAddresses(agent.addresses ?? []);
+    const ancestorsWithSelf = await this.agentsRepository.findAncestors(agent);
+    agent.ancestors = ancestorsWithSelf
+      .filter((a) => a.id !== agent.id)
+      .sort((a, b) => a.level - b.level);
+    return agent;
+  }
+
+  async findTree(): Promise<Agent[]> {
+    const trees = await this.agentsRepository.findTrees({ relations: ['image'] });
+    const sortByName = (nodes: Agent[]): Agent[] => {
+      nodes.sort((a, b) => a.name.localeCompare(b.name));
+      for (const node of nodes) {
+        if (node.children?.length) sortByName(node.children);
+      }
+      return nodes;
+    };
+    return sortByName(trees);
+  }
+
+  async findRoots(): Promise<Agent[]> {
+    return this.agentsRepository.find({
+      where: { parentId: IsNull() },
+      relations: ['mainTaxonomy', 'image', 'parent'],
+      order: { name: 'ASC' },
+    });
+  }
+
+  async findChildren(id: string): Promise<Agent[]> {
+    await this.requireAgent(id);
+    return this.agentsRepository.find({
+      where: { parentId: id },
+      relations: ['mainTaxonomy', 'image', 'parent'],
+      order: { name: 'ASC' },
+    });
+  }
+
+  async findDescendants(id: string): Promise<Agent[]> {
+    const agent = await this.requireAgent(id);
+    const withSelf = await this.agentsRepository.findDescendants(agent, {
+      relations: ['image', 'parent'],
+    });
+    return withSelf
+      .filter((a) => a.id !== id)
+      .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+  }
+
+  async move(id: string, input: MoveAgentInput): Promise<Agent> {
+    const agent = await this.requireAgent(id);
+
+    let newParent: Agent | null = null;
+    let newLevel = 0;
+    if (input.parentId !== null) {
+      if (input.parentId === id) {
+        throw new BadRequestException('Cannot move an agent under itself');
+      }
+      newParent = await this.agentsRepository.findOne({ where: { id: input.parentId } });
+      if (!newParent) {
+        throw new NotFoundException('Parent agent not found');
+      }
+      const subtree = await this.agentsRepository.findDescendants(agent);
+      if (subtree.some((d) => d.id === input.parentId)) {
+        throw new BadRequestException('Cannot move an agent under its own descendant');
+      }
+      newLevel = newParent.level + 1;
+    }
+
+    const delta = newLevel - agent.level;
+    agent.parent = newParent;
+    agent.level = newLevel;
+    await this.agentsRepository.save(agent);
+
+    // Shift descendant levels by the same delta (subtree membership is
+    // unchanged by the move, so the closure table addresses them correctly).
+    if (delta !== 0) {
+      await this.agentsRepository.query(
+        `UPDATE "agents" SET "level" = "level" + $1
+         WHERE "id" IN (
+           SELECT "id_descendant" FROM "agents_closure"
+           WHERE "id_ancestor" = $2 AND "id_descendant" <> $2
+         )`,
+        [delta, id],
+      );
+    }
+
+    return this.findOne(id);
+  }
+
+  private async requireAgent(id: string): Promise<Agent> {
+    const agent = await this.agentsRepository.findOne({ where: { id } });
+    if (!agent) {
+      throw new NotFoundException('Agent not found');
+    }
     return agent;
   }
 
@@ -227,6 +341,12 @@ export class AgentsService {
 
   async remove(id: string): Promise<void> {
     const agent = await this.findOne(id);
+    const childCount = await this.agentsRepository.count({ where: { parentId: id } });
+    if (childCount > 0) {
+      throw new ConflictException(
+        'Agent has sub-agents. Move or delete them before deleting this agent.',
+      );
+    }
     await this.agentsRepository.remove(agent);
   }
 

@@ -175,7 +175,22 @@
     "addressDeleted": "Usunięto adres",
     "failedToCreateAddress": "Nie udało się dodać adresu",
     "failedToUpdateAddress": "Nie udało się zaktualizować adresu",
-    "failedToDeleteAddress": "Nie udało się usunąć adresu"
+    "failedToDeleteAddress": "Nie udało się usunąć adresu",
+    "parent": "Agent nadrzędny",
+    "noParent": "Brak nadrzędnego (korzeń)",
+    "parentEditHint": "użyj „Przenieś”, aby zmienić",
+    "subAgentsTab": "Agenci podrzędni",
+    "addSubAgent": "Dodaj agenta podrzędnego",
+    "noSubAgents": "Brak agentów podrzędnych.",
+    "move": "Przenieś",
+    "moveTitle": "Przenieś {name}",
+    "moveDescription": "Wybierz nowego agenta nadrzędnego lub uczyń agenta korzeniem. Agenta nie można przenieść pod niego samego ani pod jego agentów podrzędnych.",
+    "makeRoot": "Uczyń korzeniem (bez nadrzędnego)",
+    "moved": "Agent przeniesiony",
+    "failedToMove": "Nie udało się przenieść agenta",
+    "tableView": "Tabela",
+    "treeView": "Drzewo",
+    "emptyTree": "Brak agentów."
   },
   "agentsMap": {
     "title": "Mapa agentów",
