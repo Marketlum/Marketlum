@@ -1399,6 +1399,64 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
+  test('Filter by agentId matching either side', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
+      await createAgent(authCookie, name);
+    });
+
+    and(/^a value exists with name "(.*)"$/, async (name: string) => {
+      await createValue(authCookie, name);
+    });
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)"$/,
+      async (number: string, from: string, to: string) => {
+        await createInvoice(authCookie, number, from, to);
+      },
+    );
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)"$/,
+      async (number: string, from: string, to: string) => {
+        await createInvoice(authCookie, number, from, to);
+      },
+    );
+
+    and(
+      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)"$/,
+      async (number: string, from: string, to: string) => {
+        await createInvoice(authCookie, number, from, to);
+      },
+    );
+
+    when(/^I search invoices with agentId for "(.*)"$/, async (agentName: string) => {
+      const agentId = agentIds.get(agentName);
+      response = await request(getApp().getHttpServer())
+        .get(`/invoices/search?agentId=${agentId}`)
+        .set('Cookie', [authCookie]);
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the total count should be (\d+)$/, (count: string) => {
+      expect(response.body.meta.total).toBe(parseInt(count));
+    });
+  });
+
   test('Filter by paid status', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');

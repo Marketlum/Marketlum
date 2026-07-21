@@ -77,11 +77,15 @@ interface InvoiceRow {
 }
 
 interface InvoicesDataTableProps {
+  /** Scope the table to one value stream: filters every query. */
   valueStreamId?: string;
+  /** Scope the table to invoices involving one agent (issuer or receiver): filters every query. */
+  agentId?: string;
 }
 
 export function InvoicesDataTable({
   valueStreamId: scopedValueStreamId,
+  agentId: scopedAgentId,
 }: InvoicesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
@@ -175,6 +179,7 @@ export function InvoicesDataTable({
       if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
       if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
       if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
+      if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
       const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
       setData(result);
     } catch {
@@ -182,7 +187,7 @@ export function InvoicesDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter]);
+  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter, scopedValueStreamId, scopedAgentId]);
 
   useEffect(() => {
     fetchData();
@@ -371,9 +376,10 @@ export function InvoicesDataTable({
     if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
     if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
+    if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
     const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter, scopedValueStreamId, scopedAgentId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);

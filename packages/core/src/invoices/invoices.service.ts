@@ -205,6 +205,7 @@ export class InvoicesService {
     query: PaginationQuery & {
       fromAgentId?: string;
       toAgentId?: string;
+      agentId?: string;
       direction?: string;
       paid?: string;
       currencyId?: string;
@@ -220,6 +221,7 @@ export class InvoicesService {
       sortOrder,
       fromAgentId,
       toAgentId,
+      agentId,
       direction,
       paid,
       currencyId,
@@ -259,6 +261,10 @@ export class InvoicesService {
 
     if (toAgentId) {
       qb.andWhere('invoice.toAgentId = :toAgentId', { toAgentId });
+    }
+
+    if (agentId) {
+      qb.andWhere('(invoice.fromAgentId = :agentId OR invoice.toAgentId = :agentId)', { agentId });
     }
 
     if (direction) {
@@ -321,6 +327,11 @@ export class InvoicesService {
     }
     if (toAgentId) {
       countQb.andWhere('invoice.toAgentId = :toAgentId', { toAgentId });
+    }
+    if (agentId) {
+      countQb.andWhere('(invoice.fromAgentId = :agentId OR invoice.toAgentId = :agentId)', {
+        agentId,
+      });
     }
     if (direction) {
       countQb.andWhere('invoice.direction = :direction', { direction });
