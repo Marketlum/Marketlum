@@ -8,7 +8,14 @@ import { RdhyVamItem } from '../vam/rdhy-vam-item.entity';
 import { RdhyVamCostEntry } from '../vam/rdhy-vam-cost-entry.entity';
 import { RdhyVamInvestmentEntry } from '../vam/rdhy-vam-investment-entry.entity';
 import { RdhyVamTerminationCondition } from '../vam/rdhy-vam-termination-condition.entity';
+import { RdhyEmcAgreement } from '../emc/rdhy-emc-agreement.entity';
+import { RdhyEmcNode } from '../emc/rdhy-emc-node.entity';
+import { RdhyEmcExposedService } from '../emc/rdhy-emc-exposed-service.entity';
+import { RdhyEmcLeadingGoal } from '../emc/rdhy-emc-leading-goal.entity';
+import { RdhyEmcCostEntry } from '../emc/rdhy-emc-cost-entry.entity';
+import { RdhyEmcTerminationCondition } from '../emc/rdhy-emc-termination-condition.entity';
 import type { RdhyVamTrack } from '../shared/vam-schemas';
+import type { RdhyEmcNodeTier } from '../shared/emc-schemas';
 
 const PLATFORMS: Array<Pick<RdhyPlatform, 'code' | 'name' | 'description'>> = [
   {
@@ -110,6 +117,85 @@ const VAM_TERMINATION_CONDITIONS = [
   'The micro-enterprise will be terminated when exceeding the cashflow allowance and not being able to recover within 3 months',
 ];
 
+const EMC_TITLE = 'DAO Infrastructure EMC';
+
+/** The sample EMC setting and micro-nodes, adapted from the source EMC Canvas
+ * PDF (spec 015). Nodes are anchored to whichever value streams exist, in
+ * candidate order: leading strategic hub, strategic development, tactical
+ * legal counseling. */
+const EMC_SETTING = {
+  collaborativeScenario:
+    'Proposing, selling and supporting a market leading DAO technological infrastructure for corporate clients',
+  collaborativeGoals: 'Signing and delivering 15 contracts for $10M within 1.5 year',
+  governanceModel:
+    'Decisions made by consent (no objections) coordinated by the owner of the lead ME',
+  reinvestmentPercent: '5.00',
+  investmentNote:
+    'Additional 5% of the profits reinvested among all parties involved to foster further development and growth of the EMC',
+};
+
+const EMC_NODES: Array<{
+  tier: RdhyEmcNodeTier;
+  isLeading: boolean;
+  profitSharePercent: string | null;
+  services: string[];
+  goals: string[];
+  costEntries: Array<{ label: string; amount: number; headcount?: number }>;
+}> = [
+  {
+    tier: 'STRATEGIC',
+    isLeading: true,
+    profitSharePercent: '10.00',
+    services: [
+      'Defining the DAO protocol',
+      'Designing the UX and interaction',
+      'Writing functional specs',
+      'Selling the service to clients',
+      'Performing account and project management',
+    ],
+    goals: [
+      'Guaranteeing the minimum number of clients',
+      'Guaranteeing the minimum amount of revenues',
+      'Achieving an effective and pleasant collaboration among all parties',
+    ],
+    costEntries: [{ label: '2 FTEs', amount: 150000, headcount: 2 }],
+  },
+  {
+    tier: 'STRATEGIC',
+    isLeading: false,
+    profitSharePercent: '7.00',
+    services: [
+      'Implementing the DAO code following the given specs',
+      'Testing and deploying the code',
+      'Running software maintenance and bug fixing',
+      'Delivering on change requests',
+    ],
+    goals: [
+      'Code online within 90 days',
+      'Less than 10 bugs found',
+      'Complex bugs fixed within 3 days, simple bugs within 1 day',
+    ],
+    costEntries: [{ label: '3 FTEs', amount: 210000, headcount: 3 }],
+  },
+  {
+    tier: 'TACTICAL',
+    isLeading: false,
+    profitSharePercent: null,
+    services: [
+      'Translating client requirements into a contractual agreement',
+      'Evaluating and introducing local restrictions into the agreements',
+      'Drafting the agreements for all the parties in the EMC',
+    ],
+    goals: ['Contracts ready within 30 days', 'Contracts signed within 45 days'],
+    costEntries: [{ label: '2 FTEs', amount: 140000, headcount: 2 }],
+  },
+];
+
+const EMC_TERMINATION_CONDITIONS = [
+  'The EMC will be dissolved if the collaborative goals are missed by more than 25%',
+  'A micro-node exits the EMC when its leading goals are repeatedly missed and no remediation is agreed by consent',
+];
+
 /** Idempotent: platforms are upserted by code, already-assigned streams are
  * skipped, and VAM agreements are upserted by title + value stream. */
 export async function seedRdhy(dataSource: DataSource): Promise<void> {
@@ -142,6 +228,76 @@ export async function seedRdhy(dataSource: DataSource): Promise<void> {
   }
 
   await seedVamAgreements(dataSource, platforms[0], candidates[0] ?? null);
+  await seedEmcAgreement(dataSource, platforms[0], candidates);
+}
+
+async function seedEmcAgreement(
+  dataSource: DataSource,
+  sponsor: RdhyPlatform,
+  valueStreams: ValueStream[],
+): Promise<void> {
+  if (valueStreams.length === 0) return;
+
+  const agreementRepository = dataSource.getRepository(RdhyEmcAgreement);
+  const existing = await agreementRepository.findOne({ where: { title: EMC_TITLE } });
+  if (existing) return;
+
+  const currency = await dataSource.getRepository(Value).findOne({ where: { code: 'usd' } });
+  const agreement = await agreementRepository.save(
+    agreementRepository.create({
+      title: EMC_TITLE,
+      platformId: sponsor.id,
+      currencyId: currency?.id ?? null,
+      status: 'ACTIVE',
+      startedAt: new Date(),
+      ...EMC_SETTING,
+    }),
+  );
+
+  const nodeRepository = dataSource.getRepository(RdhyEmcNode);
+  const serviceRepository = dataSource.getRepository(RdhyEmcExposedService);
+  const goalRepository = dataSource.getRepository(RdhyEmcLeadingGoal);
+  const costRepository = dataSource.getRepository(RdhyEmcCostEntry);
+  for (const [ni, definition] of EMC_NODES.entries()) {
+    const valueStream = valueStreams[ni];
+    if (!valueStream) break;
+    const node = await nodeRepository.save(
+      nodeRepository.create({
+        agreementId: agreement.id,
+        valueStreamId: valueStream.id,
+        tier: definition.tier,
+        isLeading: definition.isLeading,
+        profitSharePercent: definition.profitSharePercent,
+        position: ni,
+      }),
+    );
+    for (const [si, text] of definition.services.entries()) {
+      await serviceRepository.save(
+        serviceRepository.create({ nodeId: node.id, position: si, text }),
+      );
+    }
+    for (const [gi, text] of definition.goals.entries()) {
+      await goalRepository.save(goalRepository.create({ nodeId: node.id, position: gi, text }));
+    }
+    for (const [ci, cost] of definition.costEntries.entries()) {
+      await costRepository.save(
+        costRepository.create({
+          nodeId: node.id,
+          label: cost.label,
+          amount: String(cost.amount),
+          headcount: cost.headcount ?? null,
+          position: ci,
+        }),
+      );
+    }
+  }
+
+  const terminationRepository = dataSource.getRepository(RdhyEmcTerminationCondition);
+  for (const [ti, text] of EMC_TERMINATION_CONDITIONS.entries()) {
+    await terminationRepository.save(
+      terminationRepository.create({ agreementId: agreement.id, position: ti, text }),
+    );
+  }
 }
 
 async function seedVamAgreements(

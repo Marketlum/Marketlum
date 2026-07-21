@@ -23,3 +23,11 @@ Feature: RDHY sample seeding
     And the RDHY plugin seed hook runs again
     Then exactly one VAM agreement titled "Web 3 Consulting HUB" exists with status "ACTIVE" and 4 milestones
     And exactly one VAM agreement titled "Web 3 Consulting HUB — renewal" exists with status "DRAFT" and 0 milestones
+
+  Scenario: The seed hook creates the sample EMC agreement idempotently
+    Given a value stream exists with code "home_appliances" and name "Home Appliances"
+    And a value stream exists with code "smart_devices" and name "Smart Devices"
+    And a value stream exists with code "web3_consulting" and name "Web3 Consulting"
+    When the RDHY plugin seed hook runs
+    And the RDHY plugin seed hook runs again
+    Then exactly one EMC agreement titled "DAO Infrastructure EMC" exists with status "ACTIVE" and 3 micro-nodes

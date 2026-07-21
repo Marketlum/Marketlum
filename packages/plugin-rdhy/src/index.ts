@@ -8,19 +8,27 @@ import { RdhyVamItem } from './vam/rdhy-vam-item.entity';
 import { RdhyVamCostEntry } from './vam/rdhy-vam-cost-entry.entity';
 import { RdhyVamInvestmentEntry } from './vam/rdhy-vam-investment-entry.entity';
 import { RdhyVamTerminationCondition } from './vam/rdhy-vam-termination-condition.entity';
+import { RdhyEmcAgreement } from './emc/rdhy-emc-agreement.entity';
+import { RdhyEmcNode } from './emc/rdhy-emc-node.entity';
+import { RdhyEmcExposedService } from './emc/rdhy-emc-exposed-service.entity';
+import { RdhyEmcLeadingGoal } from './emc/rdhy-emc-leading-goal.entity';
+import { RdhyEmcCostEntry } from './emc/rdhy-emc-cost-entry.entity';
+import { RdhyEmcTerminationCondition } from './emc/rdhy-emc-termination-condition.entity';
 import { CreateRdhyPlatformTables1700000000100 } from './migrations/1700000000100-CreateRdhyPlatformTables';
 import { CreateRdhyVamTables1700000000101 } from './migrations/1700000000101-CreateRdhyVamTables';
+import { CreateRdhyEmcTables1700000000102 } from './migrations/1700000000102-CreateRdhyEmcTables';
 import { seedRdhy } from './seed/rdhy.seeder';
 import { RDHY_PLUGIN_ID } from './shared/schemas';
 
 /** The RenDanHeYi plugin: groups core value streams into plugin-owned
- * platforms (spec 013) and models VAM canvas agreements (spec 014).
- * Owns the plugin_rdhy_* tables; never touches core. */
+ * platforms (spec 013), models VAM canvas agreements (spec 014) and EMC
+ * canvas agreements (spec 015). Owns the plugin_rdhy_* tables; never
+ * touches core. */
 export const rdhyPlugin: MarketlumApiPlugin = {
   manifest: {
     id: RDHY_PLUGIN_ID,
     name: 'RenDanHeYi',
-    version: '0.2.0',
+    version: '0.3.0',
     marketlumCoreVersion: '^0.4.0',
   },
   module: RdhyModule,
@@ -33,9 +41,19 @@ export const rdhyPlugin: MarketlumApiPlugin = {
     RdhyVamCostEntry,
     RdhyVamInvestmentEntry,
     RdhyVamTerminationCondition,
+    RdhyEmcAgreement,
+    RdhyEmcNode,
+    RdhyEmcExposedService,
+    RdhyEmcLeadingGoal,
+    RdhyEmcCostEntry,
+    RdhyEmcTerminationCondition,
   ],
-  migrations: [CreateRdhyPlatformTables1700000000100, CreateRdhyVamTables1700000000101],
-  primaryEntities: [RdhyPlatform, RdhyVamAgreement],
+  migrations: [
+    CreateRdhyPlatformTables1700000000100,
+    CreateRdhyVamTables1700000000101,
+    CreateRdhyEmcTables1700000000102,
+  ],
+  primaryEntities: [RdhyPlatform, RdhyVamAgreement, RdhyEmcAgreement],
   seed: seedRdhy,
 };
 
@@ -50,5 +68,12 @@ export { RdhyVamCostEntry } from './vam/rdhy-vam-cost-entry.entity';
 export { RdhyVamInvestmentEntry } from './vam/rdhy-vam-investment-entry.entity';
 export { RdhyVamTerminationCondition } from './vam/rdhy-vam-termination-condition.entity';
 export { VamAgreementsService } from './vam/vam-agreements.service';
+export { RdhyEmcAgreement } from './emc/rdhy-emc-agreement.entity';
+export { RdhyEmcNode } from './emc/rdhy-emc-node.entity';
+export { RdhyEmcExposedService } from './emc/rdhy-emc-exposed-service.entity';
+export { RdhyEmcLeadingGoal } from './emc/rdhy-emc-leading-goal.entity';
+export { RdhyEmcCostEntry } from './emc/rdhy-emc-cost-entry.entity';
+export { RdhyEmcTerminationCondition } from './emc/rdhy-emc-termination-condition.entity';
+export { EmcAgreementsService } from './emc/emc-agreements.service';
 export { seedRdhy } from './seed/rdhy.seeder';
 export * from './shared/schemas';

@@ -13,6 +13,7 @@ import type {
 import { RdhyPlatform } from './rdhy-platform.entity';
 import { RdhyPlatformValueStream } from './rdhy-platform-value-stream.entity';
 import { RdhyVamAgreement } from '../vam/rdhy-vam-agreement.entity';
+import { RdhyEmcAgreement } from '../emc/rdhy-emc-agreement.entity';
 
 @Injectable()
 export class PlatformsService {
@@ -25,6 +26,8 @@ export class PlatformsService {
     private readonly valueStreamRepository: Repository<ValueStream>,
     @InjectRepository(RdhyVamAgreement)
     private readonly vamAgreementRepository: Repository<RdhyVamAgreement>,
+    @InjectRepository(RdhyEmcAgreement)
+    private readonly emcAgreementRepository: Repository<RdhyEmcAgreement>,
   ) {}
 
   async create(input: CreateRdhyPlatformInput): Promise<RdhyPlatformResponse> {
@@ -89,6 +92,12 @@ export class PlatformsService {
     if (sponsored > 0) {
       throw new ConflictException(
         `Platform sponsors ${sponsored} VAM agreement(s) and cannot be deleted`,
+      );
+    }
+    const sponsoredEmc = await this.emcAgreementRepository.count({ where: { platformId: id } });
+    if (sponsoredEmc > 0) {
+      throw new ConflictException(
+        `Platform sponsors ${sponsoredEmc} EMC agreement(s) and cannot be deleted`,
       );
     }
     await this.platformRepository.remove(platform);

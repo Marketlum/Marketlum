@@ -146,4 +146,38 @@ defineFeature(feature, (test) => {
       },
     );
   });
+
+  test('The seed hook creates the sample EMC agreement idempotently', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      ctx.authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+    registerValueStreamExists(given);
+    registerValueStreamExists(and);
+    registerValueStreamExists(and);
+    registerSeedRuns(when, /^the RDHY plugin seed hook runs$/);
+    registerSeedRuns(and, /^the RDHY plugin seed hook runs again$/);
+    then(
+      /^exactly one EMC agreement titled "(.*)" exists with status "(.*)" and (\d+) micro-nodes$/,
+      async (title: string, status: string, nodes: string) => {
+        const server = getApp().getHttpServer();
+        const list = await request(server)
+          .get('/plugins/rdhy/emc-agreements')
+          .set('Cookie', [ctx.authCookie]);
+        expect(list.status).toBe(200);
+        const matches = list.body.filter((a: { title: string }) => a.title === title);
+        expect(matches).toHaveLength(1);
+        expect(matches[0].status).toBe(status);
+        const doc = await request(server)
+          .get(`/plugins/rdhy/emc-agreements/${matches[0].id}`)
+          .set('Cookie', [ctx.authCookie]);
+        expect(doc.status).toBe(200);
+        expect(doc.body.canvas.nodes).toHaveLength(Number(nodes));
+      },
+    );
+  });
 });

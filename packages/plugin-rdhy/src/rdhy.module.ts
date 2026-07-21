@@ -14,6 +14,14 @@ import { RdhyVamInvestmentEntry } from './vam/rdhy-vam-investment-entry.entity';
 import { RdhyVamTerminationCondition } from './vam/rdhy-vam-termination-condition.entity';
 import { VamAgreementsController } from './vam/vam-agreements.controller';
 import { VamAgreementsService } from './vam/vam-agreements.service';
+import { RdhyEmcAgreement } from './emc/rdhy-emc-agreement.entity';
+import { RdhyEmcNode } from './emc/rdhy-emc-node.entity';
+import { RdhyEmcExposedService } from './emc/rdhy-emc-exposed-service.entity';
+import { RdhyEmcLeadingGoal } from './emc/rdhy-emc-leading-goal.entity';
+import { RdhyEmcCostEntry } from './emc/rdhy-emc-cost-entry.entity';
+import { RdhyEmcTerminationCondition } from './emc/rdhy-emc-termination-condition.entity';
+import { EmcAgreementsController } from './emc/emc-agreements.controller';
+import { EmcAgreementsService } from './emc/emc-agreements.service';
 
 @Module({
   imports: [
@@ -26,13 +34,24 @@ import { VamAgreementsService } from './vam/vam-agreements.service';
       RdhyVamCostEntry,
       RdhyVamInvestmentEntry,
       RdhyVamTerminationCondition,
+      RdhyEmcAgreement,
+      RdhyEmcNode,
+      RdhyEmcExposedService,
+      RdhyEmcLeadingGoal,
+      RdhyEmcCostEntry,
+      RdhyEmcTerminationCondition,
       ValueStream,
       Value,
       Agreement,
     ]),
   ],
-  controllers: [PlatformsController, AssignmentsController, VamAgreementsController],
-  providers: [PlatformsService, VamAgreementsService],
-  exports: [PlatformsService, VamAgreementsService],
+  controllers: [
+    PlatformsController,
+    AssignmentsController,
+    VamAgreementsController,
+    EmcAgreementsController,
+  ],
+  providers: [PlatformsService, VamAgreementsService, EmcAgreementsService],
+  exports: [PlatformsService, VamAgreementsService, EmcAgreementsService],
 })
 export class RdhyModule {}
