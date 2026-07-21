@@ -59,10 +59,16 @@ interface ExchangeRow {
 }
 
 interface ExchangesDataTableProps {
+  /** Scope the table to one value stream: filters every query and hides the column. */
   valueStreamId?: string;
+  /** Scope the table to exchanges involving one agent: filters every query and hides the party filter. */
+  partyAgentId?: string;
 }
 
-export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: ExchangesDataTableProps = {}) {
+export function ExchangesDataTable({
+  valueStreamId: scopedValueStreamId,
+  partyAgentId: scopedPartyAgentId,
+}: ExchangesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -150,6 +156,9 @@ export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: Excha
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
   }), [columnVisibility, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, pagination.sortBy, pagination.sortOrder]);
 
+  const effectivePartyAgentId =
+    scopedPartyAgentId ?? (partyAgentFilter !== 'all' ? partyAgentFilter : undefined);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -159,7 +168,7 @@ export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: Excha
       if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
       if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
       else if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
-      if (partyAgentFilter && partyAgentFilter !== 'all') qs += `&partyAgentId=${partyAgentFilter}`;
+      if (effectivePartyAgentId) qs += `&partyAgentId=${effectivePartyAgentId}`;
       if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
       const result = await api.get<PaginatedResponse<ExchangeRow>>(`/exchanges/search?${qs}`);
       setData(result);
@@ -168,7 +177,7 @@ export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: Excha
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter]);
+  }, [pagination.toQueryString, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, effectivePartyAgentId, leadFilter, scopedValueStreamId]);
 
   useEffect(() => {
     fetchData();
@@ -310,12 +319,13 @@ export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: Excha
     if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
     if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
-    if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
-    if (partyAgentFilter && partyAgentFilter !== 'all') qs += `&partyAgentId=${partyAgentFilter}`;
+    if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
+    else if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+    if (effectivePartyAgentId) qs += `&partyAgentId=${effectivePartyAgentId}`;
     if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
     const result = await api.get<PaginatedResponse<ExchangeRow>>(`/exchanges/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, effectivePartyAgentId, leadFilter, scopedValueStreamId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
@@ -360,7 +370,7 @@ export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: Excha
         onClear: () => setValueStreamFilter('all'),
       });
     }
-    if (partyAgentFilter !== 'all') {
+    if (!scopedPartyAgentId && partyAgentFilter !== 'all') {
       const agent = agents.find((a) => a.id === partyAgentFilter);
       filters.push({
         key: 'partyAgent',
@@ -379,7 +389,7 @@ export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: Excha
       });
     }
     return filters;
-  }, [stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, channels, pipelines, valueStreams, agents, users, t]);
+  }, [stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, channels, pipelines, valueStreams, agents, users, scopedPartyAgentId, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -510,20 +520,22 @@ export function ExchangesDataTable({ valueStreamId: scopedValueStreamId }: Excha
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">{t('partyAgent')}</label>
-          <Select value={partyAgentFilter} onValueChange={setPartyAgentFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!scopedPartyAgentId && (
+          <div className="space-y-1">
+            <label className="text-sm font-medium">{t('partyAgent')}</label>
+            <Select value={partyAgentFilter} onValueChange={setPartyAgentFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allAgents')}</SelectItem>
+                {agents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="space-y-1">
           <label className="text-sm font-medium">{t('lead')}</label>
           <Select value={leadFilter} onValueChange={setLeadFilter}>
