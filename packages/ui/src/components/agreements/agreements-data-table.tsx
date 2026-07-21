@@ -36,10 +36,16 @@ import {
 import type { FieldDef } from '../../lib/export-utils';
 
 interface AgreementsDataTableProps {
+  /** Scope the table to one value stream: filters every query. */
   valueStreamId?: string;
+  /** Scope the table to agreements involving one agent: filters every query and hides the party filter. */
+  partyId?: string;
 }
 
-export function AgreementsDataTable({ valueStreamId: scopedValueStreamId }: AgreementsDataTableProps = {}) {
+export function AgreementsDataTable({
+  valueStreamId: scopedValueStreamId,
+  partyId: scopedPartyId,
+}: AgreementsDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -101,12 +107,15 @@ export function AgreementsDataTable({ valueStreamId: scopedValueStreamId }: Agre
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
   }), [columnVisibility, partyFilter, pagination.sortBy, pagination.sortOrder]);
 
+  const effectivePartyId =
+    scopedPartyId ?? (partyFilter !== 'all' ? partyFilter : undefined);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       let qs = pagination.toQueryString();
-      if (partyFilter && partyFilter !== 'all') {
-        qs += `&partyId=${partyFilter}`;
+      if (effectivePartyId) {
+        qs += `&partyId=${effectivePartyId}`;
       }
       if (scopedValueStreamId) {
         qs += `&valueStreamId=${scopedValueStreamId}`;
@@ -118,7 +127,7 @@ export function AgreementsDataTable({ valueStreamId: scopedValueStreamId }: Agre
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, partyFilter, scopedValueStreamId]);
+  }, [pagination.toQueryString, effectivePartyId, scopedValueStreamId]);
 
   useEffect(() => {
     fetchData();
@@ -229,17 +238,18 @@ export function AgreementsDataTable({ valueStreamId: scopedValueStreamId }: Agre
     let qs = `page=1&limit=10000`;
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
-    if (partyFilter && partyFilter !== 'all') qs += `&partyId=${partyFilter}`;
+    if (effectivePartyId) qs += `&partyId=${effectivePartyId}`;
+    if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
     const result = await api.get<PaginatedResponse<AgreementResponse>>(`/agreements/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, partyFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, effectivePartyId, scopedValueStreamId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];
-    if (partyFilter !== 'all') {
+    if (!scopedPartyId && partyFilter !== 'all') {
       const agent = agents.find((a) => a.id === partyFilter);
       filters.push({
         key: 'party',
@@ -249,7 +259,7 @@ export function AgreementsDataTable({ valueStreamId: scopedValueStreamId }: Agre
       });
     }
     return filters;
-  }, [partyFilter, agents, t]);
+  }, [partyFilter, agents, scopedPartyId, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -313,22 +323,24 @@ export function AgreementsDataTable({ valueStreamId: scopedValueStreamId }: Agre
       <ActiveFilters filters={activeFilters} />
 
       <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">{t('parties')}</label>
-          <Select value={partyFilter} onValueChange={setPartyFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allParties')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!scopedPartyId && (
+          <div className="space-y-1">
+            <label className="text-sm font-medium">{t('parties')}</label>
+            <Select value={partyFilter} onValueChange={setPartyFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allParties')}</SelectItem>
+                {agents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </DataTableFilterSheet>
 
       {loading ? (
