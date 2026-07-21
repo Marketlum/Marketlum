@@ -32,6 +32,22 @@ Feature: Create Agreement Template
     And the response should contain an agreement template with description "Full partnership desc"
     And the response should contain an agreement template with link "https://example.com/partner"
 
+  Scenario: Successfully create an agreement template referencing an agent
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Acme Corp"
+    When I create an agreement template with:
+      | name           | type            |
+      | Acme Contract  | main_agreement  |
+    And the agreement template references agent "Acme Corp"
+    Then the response status should be 201
+    And the response should contain an agreement template with name "Acme Contract"
+    And the response should include agent "Acme Corp"
+
+  Scenario: Creating an agreement template referencing an unknown agent fails
+    Given I am authenticated as "admin@marketlum.com"
+    When I create an agreement template referencing an unknown agent
+    Then the response status should be 404
+
   Scenario: Creating an agreement template with duplicate name fails
     Given I am authenticated as "admin@marketlum.com"
     And a root agreement template exists with name "Sales Agreement" and type "main_agreement"

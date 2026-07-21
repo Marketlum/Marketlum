@@ -54,6 +54,15 @@ Feature: Search Agreement Templates
     Then the response status should be 200
     And the total count should be 1
 
+  Scenario: Filter agreement templates by agent
+    Given I am authenticated as "admin@marketlum.com"
+    And an agent exists with name "Acme Corp"
+    And an agreement template exists with name "Sales Agreement" and type "main_agreement" and agent "Acme Corp"
+    And an agreement template exists with name "Payment Terms" and type "annex"
+    When I request the list of agreement templates with agentId for "Acme Corp"
+    Then the response status should be 200
+    And the total count should be 1
+
   Scenario: Sort agreement templates by name
     Given I am authenticated as "admin@marketlum.com"
     And the following agreement templates exist:

@@ -37,10 +37,16 @@ import {
 import type { FieldDef } from '../../lib/export-utils';
 
 interface OfferingsDataTableProps {
+  /** Scope the table to one value stream: filters every query, hides the column and its filter. */
   valueStreamId?: string;
+  /** Scope the table to one agent: filters every query, hides the column and its filter. */
+  agentId?: string;
 }
 
-export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: OfferingsDataTableProps = {}) {
+export function OfferingsDataTable({
+  valueStreamId: scopedValueStreamId,
+  agentId: scopedAgentId,
+}: OfferingsDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -108,13 +114,18 @@ export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: Offer
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
   }), [columnVisibility, stateFilter, agentFilter, valueStreamFilter, pagination.sortBy, pagination.sortOrder]);
 
+  const effectiveAgentId =
+    scopedAgentId ?? (agentFilter !== 'all' ? agentFilter : undefined);
+  const effectiveValueStreamId =
+    scopedValueStreamId ?? (valueStreamFilter !== 'all' ? valueStreamFilter : undefined);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       let qs = pagination.toQueryString();
       if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
-      if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
-      if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+      if (effectiveAgentId) qs += `&agentId=${effectiveAgentId}`;
+      if (effectiveValueStreamId) qs += `&valueStreamId=${effectiveValueStreamId}`;
       const result = await api.get<PaginatedResponse<OfferingResponse>>(`/offerings/search?${qs}`);
       setData(result);
     } catch {
@@ -122,7 +133,7 @@ export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: Offer
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, stateFilter, agentFilter, valueStreamFilter]);
+  }, [pagination.toQueryString, stateFilter, effectiveAgentId, effectiveValueStreamId]);
 
   useEffect(() => {
     fetchData();
@@ -235,16 +246,17 @@ export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: Offer
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
-    if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
-    if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+    if (effectiveAgentId) qs += `&agentId=${effectiveAgentId}`;
+    if (effectiveValueStreamId) qs += `&valueStreamId=${effectiveValueStreamId}`;
     const result = await api.get<PaginatedResponse<OfferingResponse>>(`/offerings/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, agentFilter, valueStreamFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, effectiveAgentId, effectiveValueStreamId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
     ...mergeColumnVisibility(columnVisibility, mobileVisibility),
     ...(scopedValueStreamId ? { valueStream: false } : {}),
+    ...(scopedAgentId ? { agent: false } : {}),
   };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
@@ -257,7 +269,7 @@ export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: Offer
         onClear: () => setStateFilter('all'),
       });
     }
-    if (agentFilter !== 'all') {
+    if (!scopedAgentId && agentFilter !== 'all') {
       const agent = agents.find((a) => a.id === agentFilter);
       filters.push({
         key: 'agent',
@@ -266,7 +278,7 @@ export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: Offer
         onClear: () => setAgentFilter('all'),
       });
     }
-    if (valueStreamFilter !== 'all') {
+    if (!scopedValueStreamId && valueStreamFilter !== 'all') {
       const vs = valueStreams.find((v) => v.id === valueStreamFilter);
       filters.push({
         key: 'valueStream',
@@ -276,7 +288,7 @@ export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: Offer
       });
     }
     return filters;
-  }, [stateFilter, agentFilter, valueStreamFilter, agents, valueStreams, t]);
+  }, [stateFilter, agentFilter, valueStreamFilter, agents, valueStreams, scopedAgentId, scopedValueStreamId, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -353,38 +365,42 @@ export function OfferingsDataTable({ valueStreamId: scopedValueStreamId }: Offer
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">{t('agent')}</label>
-          <Select value={agentFilter} onValueChange={setAgentFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">{t('valueStream')}</label>
-          <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allValueStreams')}</SelectItem>
-              {valueStreams.map((vs) => (
-                <SelectItem key={vs.id} value={vs.id}>
-                  {vs.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!scopedAgentId && (
+          <div className="space-y-1">
+            <label className="text-sm font-medium">{t('agent')}</label>
+            <Select value={agentFilter} onValueChange={setAgentFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allAgents')}</SelectItem>
+                {agents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {!scopedValueStreamId && (
+          <div className="space-y-1">
+            <label className="text-sm font-medium">{t('valueStream')}</label>
+            <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allValueStreams')}</SelectItem>
+                {valueStreams.map((vs) => (
+                  <SelectItem key={vs.id} value={vs.id}>
+                    {vs.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </DataTableFilterSheet>
 
       {loading ? (

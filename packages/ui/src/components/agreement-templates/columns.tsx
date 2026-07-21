@@ -19,6 +19,7 @@ interface AgreementTemplateColumnsTranslations {
   purpose: string;
   description: string;
   valueStream: string;
+  agent: string;
   created: string;
   edit: string;
   delete: string;
@@ -105,6 +106,15 @@ export function getAgreementTemplateColumns({
       cell: ({ row }) => {
         const vs = row.original.valueStream;
         return vs ? vs.name : '-';
+      },
+    },
+    {
+      id: 'agent',
+      header: translations.agent,
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => {
+        const agent = row.original.agent;
+        return agent ? agent.name : '-';
       },
     },
     {

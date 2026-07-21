@@ -13,6 +13,8 @@ import { AgentFormDialog } from '../../components/agents/agent-form-dialog';
 import { AgentTypeBadge } from '../../components/agents/agent-type-badge';
 import { AgentValuesTable } from '../../components/agents/agent-values-table';
 import { AddressesList } from '../../components/agents/addresses-list';
+import { OfferingsDataTable } from '../../components/offerings/offerings-data-table';
+import { AgreementTemplatesDataTable } from '../../components/agreement-templates/agreement-templates-data-table';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -180,6 +182,8 @@ export function AgentDetailPage() {
         <TabsList>
           <TabsTrigger value="details">{t('details')}</TabsTrigger>
           <TabsTrigger value="values">{t('valuesTab')}</TabsTrigger>
+          <TabsTrigger value="offerings">{t('offeringsTab')}</TabsTrigger>
+          <TabsTrigger value="agreement-templates">{t('agreementTemplatesTab')}</TabsTrigger>
           <TabsTrigger value="addresses">
             {t('addressesTab')} ({agent.addresses?.length ?? 0})
           </TabsTrigger>
@@ -237,6 +241,12 @@ export function AgentDetailPage() {
         </TabsContent>
         <TabsContent value="values">
           <AgentValuesTable agentId={agent.id} />
+        </TabsContent>
+        <TabsContent value="offerings">
+          <OfferingsDataTable agentId={agent.id} />
+        </TabsContent>
+        <TabsContent value="agreement-templates">
+          <AgreementTemplatesDataTable agentId={agent.id} />
         </TabsContent>
         <TabsContent value="addresses">
           <AddressesList

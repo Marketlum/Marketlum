@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AgreementTemplateType } from '../enums/agreement-template-type.enum';
+import { AgentType } from '../enums/agent-type.enum';
 import { codeSchema } from './code.schema';
 
 export const createAgreementTemplateSchema = z.object({
@@ -11,6 +12,7 @@ export const createAgreementTemplateSchema = z.object({
   link: z.string().url().optional(),
   parentId: z.string().uuid().optional(),
   valueStreamId: z.string().uuid().optional(),
+  agentId: z.string().uuid().optional(),
 });
 
 export const updateAgreementTemplateSchema = z.object({
@@ -20,6 +22,7 @@ export const updateAgreementTemplateSchema = z.object({
   description: z.string().optional(),
   link: z.string().url().optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
+  agentId: z.string().uuid().nullable().optional(),
 });
 
 export const moveAgreementTemplateSchema = z.object({
@@ -30,6 +33,7 @@ export const agreementTemplateSearchQuerySchema = z.object({
   type: z.nativeEnum(AgreementTemplateType).optional(),
   valueStreamId: z.string().uuid().optional(),
   valueStreamIdWithGlobals: z.string().uuid().optional(),
+  agentId: z.string().uuid().optional(),
 });
 
 export const agreementTemplateResponseSchema = z.object({
@@ -45,6 +49,11 @@ export const agreementTemplateResponseSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
     code: z.string(),
+  }).nullable(),
+  agent: z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+    type: z.nativeEnum(AgentType),
   }).nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -66,6 +75,7 @@ export interface AgreementTemplateTreeNode {
   link: string | null;
   level: number;
   valueStream: { id: string; name: string; code: string } | null;
+  agent: { id: string; name: string; type: AgentType } | null;
   createdAt: string;
   updatedAt: string;
   children: AgreementTemplateTreeNode[];

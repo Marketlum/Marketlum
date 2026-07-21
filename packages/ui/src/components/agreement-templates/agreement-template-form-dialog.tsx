@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { useValueStreams } from '../../hooks/use-value-streams';
+import { useAgents } from '../../hooks/use-agents';
 
 interface AgreementTemplateFormDialogProps {
   open: boolean;
@@ -55,6 +56,7 @@ export function AgreementTemplateFormDialog({
   const t = useTranslations('agreementTemplates');
   const tc = useTranslations('common');
   const { valueStreams } = useValueStreams(open);
+  const { agents } = useAgents(open);
 
   const {
     register,
@@ -69,6 +71,7 @@ export function AgreementTemplateFormDialog({
 
   const watchedType = watch('type');
   const watchedValueStreamId = watch('valueStreamId');
+  const watchedAgentId = watch('agentId');
   const nameValue = watch('name') ?? '';
   const codeValue = watch('code') ?? '';
   const codeEditedRef = useRef(false);
@@ -85,6 +88,7 @@ export function AgreementTemplateFormDialog({
           description: template.description ?? '',
           link: template.link ?? '',
           valueStreamId: template.valueStream?.id ?? undefined,
+          agentId: template.agent?.id ?? undefined,
         });
       } else {
         reset({
@@ -96,6 +100,7 @@ export function AgreementTemplateFormDialog({
           link: '',
           parentId: parentId ?? undefined,
           valueStreamId: undefined,
+          agentId: undefined,
         });
       }
     }
@@ -202,6 +207,26 @@ export function AgreementTemplateFormDialog({
                 {valueStreams.map((vs) => (
                   <SelectItem key={vs.id} value={vs.id}>
                     {vs.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('agent')}</Label>
+            <Select
+              value={watchedAgentId ?? 'none'}
+              onValueChange={(val) => setFormValue('agentId', val === 'none' ? undefined : val)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-</SelectItem>
+                {agents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.name}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -35,11 +35,15 @@ import {
 import type { FieldDef } from '../../lib/export-utils';
 
 interface AgreementTemplatesDataTableProps {
+  /** Scope to one value stream (plus globally-available templates); hides the column. */
   valueStreamId?: string;
+  /** Scope to one agent: filters every query and hides the agent column. */
+  agentId?: string;
 }
 
 export function AgreementTemplatesDataTable({
   valueStreamId: scopedValueStreamId,
+  agentId: scopedAgentId,
 }: AgreementTemplatesDataTableProps = {}) {
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -123,6 +127,9 @@ export function AgreementTemplatesDataTable({
       } else if (valueStreamFilter && valueStreamFilter !== 'all') {
         qs += `&valueStreamId=${valueStreamFilter}`;
       }
+      if (scopedAgentId) {
+        qs += `&agentId=${scopedAgentId}`;
+      }
       const result = await api.get<PaginatedResponse<AgreementTemplateResponse>>(`/agreement-templates/search?${qs}`);
       setData(result);
     } catch {
@@ -130,7 +137,7 @@ export function AgreementTemplatesDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter, valueStreamFilter]);
+  }, [pagination.toQueryString, typeFilter, valueStreamFilter, scopedValueStreamId, scopedAgentId]);
 
   useEffect(() => {
     fetchData();
@@ -206,6 +213,7 @@ export function AgreementTemplatesDataTable({
       purpose: t('purpose'),
       description: t('description'),
       valueStream: t('valueStream'),
+      agent: t('agent'),
       created: tc('created'),
       edit: tc('edit'),
       delete: tc('delete'),
@@ -221,6 +229,7 @@ export function AgreementTemplatesDataTable({
     { id: 'purpose', label: t('purpose') },
     { id: 'description', label: t('description') },
     { id: 'valueStream', label: t('valueStream') },
+    { id: 'agent', label: t('agent') },
     { id: 'createdAt', label: tc('created') },
   ];
 
@@ -234,6 +243,10 @@ export function AgreementTemplatesDataTable({
       const vs = r.valueStream as { name: string } | null | undefined;
       return vs?.name ?? '';
     }},
+    { key: 'agent', label: t('agent'), extract: (r) => {
+      const agent = r.agent as { name: string } | null | undefined;
+      return agent?.name ?? '';
+    }},
     { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
   ];
 
@@ -246,15 +259,21 @@ export function AgreementTemplatesDataTable({
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
-    if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+    if (scopedValueStreamId) {
+      qs += `&valueStreamIdWithGlobals=${scopedValueStreamId}`;
+    } else if (valueStreamFilter && valueStreamFilter !== 'all') {
+      qs += `&valueStreamId=${valueStreamFilter}`;
+    }
+    if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
     const result = await api.get<PaginatedResponse<AgreementTemplateResponse>>(`/agreement-templates/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, valueStreamFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, valueStreamFilter, scopedValueStreamId, scopedAgentId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
     ...mergeColumnVisibility(columnVisibility, mobileVisibility),
     ...(scopedValueStreamId ? { valueStream: false } : {}),
+    ...(scopedAgentId ? { agent: false } : {}),
   };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
