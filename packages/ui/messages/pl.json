@@ -190,7 +190,18 @@
     "failedToMove": "Nie udało się przenieść agenta",
     "tableView": "Tabela",
     "treeView": "Drzewo",
-    "emptyTree": "Brak agentów."
+    "emptyTree": "Brak agentów.",
+    "financialsTab": "Finanse",
+    "financials": {
+      "noCurrencyTitle": "Brak waluty funkcjonalnej",
+      "noCurrencyBody": "Ustaw walutę funkcjonalną agenta, aby zobaczyć jego rachunek zysków i strat.",
+      "noCurrencyAction": "Ustaw walutę funkcjonalną",
+      "noInvoicesTitle": "Brak faktur w tym roku",
+      "noInvoicesBody": "Tutaj pojawią się faktury wystawione przez tego agenta lub dla niego.",
+      "notConvertedTitle": "{count} faktur(y) bez przeliczonej kwoty",
+      "notConvertedBody": "Te faktury są pominięte w danych, ponieważ brak kursu wymiany na walutę funkcjonalną agenta.",
+      "failedToLoad": "Nie udało się wczytać finansów"
+    }
   },
   "agentsMap": {
     "title": "Mapa agentów",

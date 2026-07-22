@@ -1,73 +1,82 @@
 'use client';
 
-import Link from 'next/link';
-import { AlertTriangle, Info, Plus } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import type { ValueStreamFinancialsResponse } from '@marketlum/shared';
-import { Button } from '../ui/button';
+import { AlertTriangle, Info } from 'lucide-react';
+import type { FinancialsView } from './financials-view';
 
-interface Props {
-  financials: ValueStreamFinancialsResponse;
-  valueStreamId: string;
+export interface FinancialsBannerContent {
+  title: string;
+  body: string;
+  action?: React.ReactNode;
 }
 
-export function FinancialsEmptyStates({ financials, valueStreamId }: Props) {
-  const t = useTranslations('valueStreamFinancials');
+interface Props {
+  financials: FinancialsView;
+  /** Shown when no reporting currency is configured (`currencyName === null`). */
+  missingCurrency: FinancialsBannerContent;
+  /** Shown when no invoices exist in the period. */
+  noInvoices: FinancialsBannerContent;
+  /** Shown when notConvertedCount > 0; the caller interpolates the count. */
+  notConverted: FinancialsBannerContent;
+}
+
+function Banner({
+  content,
+  tone,
+  icon,
+}: {
+  content: FinancialsBannerContent;
+  tone: 'amber' | 'sky';
+  icon: React.ReactNode;
+}) {
+  const toneClass =
+    tone === 'amber'
+      ? 'border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950'
+      : 'border-sky-300 bg-sky-50 dark:border-sky-700 dark:bg-sky-950';
+  return (
+    <div className={`flex items-start gap-3 rounded-md border p-3 text-sm ${toneClass}`}>
+      {icon}
+      <div className="flex-1">
+        <p className="font-medium">{content.title}</p>
+        <p className="text-muted-foreground">{content.body}</p>
+      </div>
+      {content.action}
+    </div>
+  );
+}
+
+export function FinancialsEmptyStates({ financials, missingCurrency, noInvoices, notConverted }: Props) {
   const banners: React.ReactNode[] = [];
 
-  if (financials.presentationCurrency === null) {
+  if (financials.currencyName === null) {
     banners.push(
-      <div
-        key="no-base"
-        className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700 dark:bg-amber-950"
-      >
-        <Info className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
-        <div className="flex-1">
-          <p className="font-medium">{t('noBaseValueTitle')}</p>
-          <p className="text-muted-foreground">{t('noBaseValueBody')}</p>
-        </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/admin/exchange-rates">{t('noBaseValueAction')}</Link>
-        </Button>
-      </div>,
+      <Banner
+        key="no-currency"
+        content={missingCurrency}
+        tone="amber"
+        icon={<Info className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />}
+      />,
     );
   }
 
   if (financials.invoiceCount === 0) {
     banners.push(
-      <div
+      <Banner
         key="no-invoices"
-        className="flex items-start gap-3 rounded-md border border-sky-300 bg-sky-50 p-3 text-sm dark:border-sky-700 dark:bg-sky-950"
-      >
-        <Info className="h-4 w-4 mt-0.5 text-sky-600 shrink-0" />
-        <div className="flex-1">
-          <p className="font-medium">{t('noInvoicesTitle')}</p>
-          <p className="text-muted-foreground">{t('noInvoicesBody')}</p>
-        </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/admin/value-streams/${valueStreamId}/invoices`}>
-            <Plus className="mr-1 h-3.5 w-3.5" />
-            {t('noInvoicesAction')}
-          </Link>
-        </Button>
-      </div>,
+        content={noInvoices}
+        tone="sky"
+        icon={<Info className="h-4 w-4 mt-0.5 text-sky-600 shrink-0" />}
+      />,
     );
   }
 
   if (financials.notConvertedCount > 0) {
     banners.push(
-      <div
+      <Banner
         key="not-converted"
-        className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700 dark:bg-amber-950"
-      >
-        <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
-        <div className="flex-1">
-          <p className="font-medium">
-            {t('notConvertedTitle', { count: financials.notConvertedCount })}
-          </p>
-          <p className="text-muted-foreground">{t('notConvertedBody')}</p>
-        </div>
-      </div>,
+        content={notConverted}
+        tone="amber"
+        icon={<AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />}
+      />,
     );
   }
 

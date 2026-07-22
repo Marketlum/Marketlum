@@ -15,6 +15,7 @@ import { AgentTypeBadge } from '../../components/agents/agent-type-badge';
 import { AgentValuesTable } from '../../components/agents/agent-values-table';
 import { AddressesList } from '../../components/agents/addresses-list';
 import { SubAgentsTable } from '../../components/agents/sub-agents-table';
+import { AgentFinancialsTab } from '../../components/agents/agent-financials-tab';
 import { OfferingsDataTable } from '../../components/offerings/offerings-data-table';
 import { AgreementTemplatesDataTable } from '../../components/agreement-templates/agreement-templates-data-table';
 import { AgreementsDataTable } from '../../components/agreements/agreements-data-table';
@@ -252,6 +253,7 @@ export function AgentDetailPage() {
       <Tabs defaultValue="details">
         <TabsList>
           <TabsTrigger value="details">{t('details')}</TabsTrigger>
+          <TabsTrigger value="financials">{t('financialsTab')}</TabsTrigger>
           <TabsTrigger value="sub-agents">{t('subAgentsTab')}</TabsTrigger>
           <TabsTrigger value="values">{t('valuesTab')}</TabsTrigger>
           <TabsTrigger value="offerings">{t('offeringsTab')}</TabsTrigger>
@@ -313,6 +315,9 @@ export function AgentDetailPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+        <TabsContent value="financials">
+          <AgentFinancialsTab agentId={agent.id} onSetCurrency={() => setEditOpen(true)} />
         </TabsContent>
         <TabsContent value="sub-agents">
           <SubAgentsTable agentId={agent.id} />

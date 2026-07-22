@@ -14,9 +14,10 @@ import {
 
 interface YearSelectorProps {
   year: number;
-  directOnly: boolean;
   onYearChange: (year: number) => void;
-  onDirectOnlyChange: (directOnly: boolean) => void;
+  /** When omitted, the direct-only checkbox is not rendered. */
+  directOnly?: boolean;
+  onDirectOnlyChange?: (directOnly: boolean) => void;
 }
 
 export function YearSelector({
@@ -64,14 +65,16 @@ export function YearSelector({
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-      <label className="flex items-center gap-2 text-sm cursor-pointer">
-        <input
-          type="checkbox"
-          checked={directOnly}
-          onChange={(e) => onDirectOnlyChange(e.target.checked)}
-        />
-        <span>{t('directOnly')}</span>
-      </label>
+      {onDirectOnlyChange && (
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={directOnly ?? false}
+            onChange={(e) => onDirectOnlyChange(e.target.checked)}
+          />
+          <span>{t('directOnly')}</span>
+        </label>
+      )}
     </div>
   );
 }

@@ -1,20 +1,20 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ValueStreamFinancialsResponse } from '@marketlum/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '../../lib/utils';
 import { formatFigure, netClass } from '../../lib/figures';
+import type { FinancialsView } from './financials-view';
 
 interface Props {
-  financials: ValueStreamFinancialsResponse;
+  financials: FinancialsView;
 }
 
 type Period = 'monthly' | 'quarterly' | 'annual';
 
 export function FinancialsSummaryCards({ financials }: Props) {
   const t = useTranslations('valueStreamFinancials');
-  const currency = financials.presentationCurrency?.name ?? '';
+  const currency = financials.currencyName ?? '';
 
   const periods: Period[] = ['monthly', 'quarterly', 'annual'];
 

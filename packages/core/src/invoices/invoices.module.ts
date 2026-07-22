@@ -11,8 +11,10 @@ import { Channel } from '../channels/channel.entity';
 import { InvoicesService } from './invoices.service';
 import { InvoiceImportService } from './invoice-import.service';
 import { ValueStreamFinancialsService } from './value-stream-financials.service';
+import { AgentFinancialsService } from './agent-financials.service';
 import { InvoicesController } from './invoices.controller';
 import { ValueStreamFinancialsController } from './value-stream-financials.controller';
+import { AgentFinancialsController } from './agent-financials.controller';
 import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from '../system-settings/system-settings.module';
 import { AiModule } from '../ai/ai.module';
@@ -35,8 +37,13 @@ import { FilesModule } from '../files/files.module';
     AiModule,
     FilesModule,
   ],
-  controllers: [InvoicesController, ValueStreamFinancialsController],
-  providers: [InvoicesService, InvoiceImportService, ValueStreamFinancialsService],
+  controllers: [InvoicesController, ValueStreamFinancialsController, AgentFinancialsController],
+  providers: [
+    InvoicesService,
+    InvoiceImportService,
+    ValueStreamFinancialsService,
+    AgentFinancialsService,
+  ],
   exports: [InvoicesService],
 })
 export class InvoicesModule {}

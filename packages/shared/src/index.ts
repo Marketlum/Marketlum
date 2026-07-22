@@ -394,6 +394,24 @@ export {
   type ValueStreamFinancialsResponse,
 } from './schemas/value-stream-financials.schema';
 
+export {
+  financialsFigureSchema,
+  financialsMonthRowSchema,
+  financialsQuarterRowSchema,
+  financialsSummarySchema,
+  type FinancialsFigure,
+  type FinancialsMonthRow,
+  type FinancialsQuarterRow,
+  type FinancialsSummary,
+} from './schemas/financials-figures.schema';
+
+export {
+  agentFinancialsQuerySchema,
+  agentFinancialsResponseSchema,
+  type AgentFinancialsQuery,
+  type AgentFinancialsResponse,
+} from './schemas/agent-financials.schema';
+
 export type {
   DomainEvent,
   DomainEventEnvelope,

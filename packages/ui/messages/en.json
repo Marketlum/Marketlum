@@ -191,7 +191,18 @@
     "failedToMove": "Failed to move agent",
     "tableView": "Table",
     "treeView": "Tree",
-    "emptyTree": "No agents yet."
+    "emptyTree": "No agents yet.",
+    "financialsTab": "Financials",
+    "financials": {
+      "noCurrencyTitle": "No functional currency set",
+      "noCurrencyBody": "Set this agent's functional currency to see its profit & loss statement.",
+      "noCurrencyAction": "Set functional currency",
+      "noInvoicesTitle": "No invoices in this year",
+      "noInvoicesBody": "Invoices issued by or to this agent will appear here.",
+      "notConvertedTitle": "{count} invoice(s) without a converted amount",
+      "notConvertedBody": "These invoices are excluded from the figures because no exchange rate to the agent's functional currency was available.",
+      "failedToLoad": "Failed to load financials"
+    }
   },
   "agentsMap": {
     "title": "Agents map",

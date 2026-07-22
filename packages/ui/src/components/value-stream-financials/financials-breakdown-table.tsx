@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { ValueStreamFinancialsResponse } from '@marketlum/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import {
@@ -15,9 +14,10 @@ import {
 } from '../ui/table';
 import { cn } from '../../lib/utils';
 import { cellClass, fmt } from '../../lib/figures';
+import type { FinancialsView } from './financials-view';
 
 interface Props {
-  financials: ValueStreamFinancialsResponse;
+  financials: FinancialsView;
 }
 
 const MONTH_LABELS = [

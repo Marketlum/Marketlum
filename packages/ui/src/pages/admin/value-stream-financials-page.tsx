@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import type {
   DashboardTimeSeriesPoint,
   ValueStreamFinancialsResponse,
@@ -24,6 +24,7 @@ import { YearSelector } from '../../components/value-stream-budget/year-selector
 import { FinancialsSummaryCards } from '../../components/value-stream-financials/financials-summary-cards';
 import { FinancialsBreakdownTable } from '../../components/value-stream-financials/financials-breakdown-table';
 import { FinancialsEmptyStates } from '../../components/value-stream-financials/financials-empty-states';
+import type { FinancialsView } from '../../components/value-stream-financials/financials-view';
 import { RevenueExpensesChart } from '../../components/dashboard/revenue-expenses-chart';
 
 export function ValueStreamFinancialsPage() {
@@ -157,14 +158,52 @@ export function ValueStreamFinancialsPage() {
         />
       </div>
 
-      {financials && (
-        <>
-          <FinancialsEmptyStates financials={financials} valueStreamId={params.id} />
-          <FinancialsSummaryCards financials={financials} />
-          <RevenueExpensesChart data={chartData} />
-          <FinancialsBreakdownTable financials={financials} />
-        </>
-      )}
+      {financials && (() => {
+        const view: FinancialsView = {
+          year: financials.year,
+          currencyName: financials.presentationCurrency?.name ?? null,
+          summary: financials.summary,
+          byMonth: financials.byMonth,
+          byQuarter: financials.byQuarter,
+          invoiceCount: financials.invoiceCount,
+          notConvertedCount: financials.notConvertedCount,
+        };
+        return (
+          <>
+            <FinancialsEmptyStates
+              financials={view}
+              missingCurrency={{
+                title: t('noBaseValueTitle'),
+                body: t('noBaseValueBody'),
+                action: (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/admin/exchange-rates">{t('noBaseValueAction')}</Link>
+                  </Button>
+                ),
+              }}
+              noInvoices={{
+                title: t('noInvoicesTitle'),
+                body: t('noInvoicesBody'),
+                action: (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/admin/value-streams/${params.id}/invoices`}>
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      {t('noInvoicesAction')}
+                    </Link>
+                  </Button>
+                ),
+              }}
+              notConverted={{
+                title: t('notConvertedTitle', { count: financials.notConvertedCount }),
+                body: t('notConvertedBody'),
+              }}
+            />
+            <FinancialsSummaryCards financials={view} />
+            <RevenueExpensesChart data={chartData} />
+            <FinancialsBreakdownTable financials={view} />
+          </>
+        );
+      })()}
     </div>
   );
 }

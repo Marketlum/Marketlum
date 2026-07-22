@@ -11,23 +11,23 @@ const valueSummarySchema = z.object({
   code: z.string(),
 });
 
-export const valueStreamFinancialsQuerySchema = z.object({
+export const agentFinancialsQuerySchema = z.object({
   year: z.coerce
     .number()
     .int()
     .min(1900)
     .max(2100)
     .default(() => new Date().getUTCFullYear()),
-  directOnly: z
-    .union([z.boolean(), z.enum(['true', 'false']).transform((v) => v === 'true')])
-    .default(false),
 });
 
-export const valueStreamFinancialsResponseSchema = z.object({
-  valueStreamId: z.string().uuid(),
+/** Agent P&L: invoices the agent issued are revenue, invoices it received
+ * are expense, reported in the agent's functional currency from the
+ * per-agent snapshot totals. Null figures when the agent has no
+ * functional currency. */
+export const agentFinancialsResponseSchema = z.object({
+  agentId: z.string().uuid(),
   year: z.number().int(),
-  directOnly: z.boolean(),
-  presentationCurrency: valueSummarySchema.nullable(),
+  functionalCurrency: valueSummarySchema.nullable(),
   summary: financialsSummarySchema,
   byMonth: z.array(financialsMonthRowSchema).length(12),
   byQuarter: z.array(financialsQuarterRowSchema).length(4),
@@ -35,5 +35,5 @@ export const valueStreamFinancialsResponseSchema = z.object({
   notConvertedCount: z.number().int(),
 });
 
-export type ValueStreamFinancialsQuery = z.infer<typeof valueStreamFinancialsQuerySchema>;
-export type ValueStreamFinancialsResponse = z.infer<typeof valueStreamFinancialsResponseSchema>;
+export type AgentFinancialsQuery = z.infer<typeof agentFinancialsQuerySchema>;
+export type AgentFinancialsResponse = z.infer<typeof agentFinancialsResponseSchema>;
