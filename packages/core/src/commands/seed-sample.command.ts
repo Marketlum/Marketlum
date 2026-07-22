@@ -184,8 +184,18 @@ export class SeedSampleCommand extends CommandRunner {
       'James Liu': currencyByName.USD,
       'AutoFlow Bot': currencyByName.USD,
     };
-    for (const agent of agents) {
-      const currencyId = functionalCurrencyByAgentName[agent.name];
+    // Agents outside the explicit map cycle deterministically through the
+    // seeded currencies so every agent has one.
+    const currencyCycle = [
+      currencyByName.USD,
+      currencyByName.EUR,
+      currencyByName.PLN,
+      currencyByName.GBP,
+    ].filter((id): id is string => !!id);
+    for (const [index, agent] of agents.entries()) {
+      const currencyId =
+        functionalCurrencyByAgentName[agent.name] ??
+        currencyCycle[index % currencyCycle.length];
       if (currencyId) {
         await this.agentsService.update(agent.id, { functionalCurrencyId: currencyId });
       }

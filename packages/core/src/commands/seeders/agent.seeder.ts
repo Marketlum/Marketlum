@@ -10,18 +10,70 @@ interface AgentDeps {
 
 // Parents must appear before their children: the seeder resolves parentName
 // against agents created earlier in this list (spec 015 sample hierarchy).
+// The first six names are load-bearing — exchange/tension/value/value-instance
+// seeders and the functional-currency map look them up by name.
 const AGENTS: Array<{
   name: string;
   type: AgentType;
   purpose: string;
   parentName?: string;
 }> = [
+  // --- Root organizations ---
   { name: 'Acme Corp', type: AgentType.ORGANIZATION, purpose: 'Global manufacturing and distribution' },
   { name: 'TechNova Solutions', type: AgentType.ORGANIZATION, purpose: 'Cloud infrastructure provider' },
   { name: 'GreenLeaf Partners', type: AgentType.ORGANIZATION, purpose: 'Sustainable supply chain consulting' },
+  { name: 'Meridian Logistics Group', type: AgentType.ORGANIZATION, purpose: 'Intermodal freight and last-mile delivery' },
+  { name: 'Bluewater Capital', type: AgentType.ORGANIZATION, purpose: 'Growth investments in industrial technology' },
+  { name: 'Helios Energy Cooperative', type: AgentType.ORGANIZATION, purpose: 'Community-owned renewable energy projects' },
+  { name: 'Kite & Anchor Studio', type: AgentType.ORGANIZATION, purpose: 'Brand design and product storytelling' },
+  { name: 'Northwind Manufacturing', type: AgentType.ORGANIZATION, purpose: 'Precision components for heavy industry' },
+  { name: 'Sakura Trading House', type: AgentType.ORGANIZATION, purpose: 'Cross-border wholesale and import services' },
+  { name: 'Alpine Data Works', type: AgentType.ORGANIZATION, purpose: 'Analytics platforms for regulated industries' },
+  // --- Subsidiary organizations ---
+  { name: 'Acme Poland', type: AgentType.ORGANIZATION, purpose: 'Central European operations of Acme Corp', parentName: 'Acme Corp' },
+  { name: 'Acme Nordics', type: AgentType.ORGANIZATION, purpose: 'Scandinavian sales and service of Acme Corp', parentName: 'Acme Corp' },
+  { name: 'Meridian Iberia', type: AgentType.ORGANIZATION, purpose: 'Iberian road network of Meridian Logistics', parentName: 'Meridian Logistics Group' },
+  // --- TechNova virtual sub-agent teams ---
+  { name: 'TechNova Support Desk', type: AgentType.VIRTUAL, purpose: 'Tier-1 customer support automation team', parentName: 'TechNova Solutions' },
+  { name: 'TechNova DevOps Crew', type: AgentType.VIRTUAL, purpose: 'Deployment and reliability engineering team', parentName: 'TechNova Solutions' },
+  { name: 'TechNova Data Platform Team', type: AgentType.VIRTUAL, purpose: 'Ingestion pipelines and warehouse operations', parentName: 'TechNova Solutions' },
+  { name: 'TechNova Security Response', type: AgentType.VIRTUAL, purpose: 'Threat monitoring and incident response', parentName: 'TechNova Solutions' },
+  { name: 'TechNova Onboarding Bots', type: AgentType.VIRTUAL, purpose: 'Automated tenant provisioning workflows', parentName: 'TechNova Solutions' },
+  // --- Other virtual agents ---
+  { name: 'AutoFlow Bot', type: AgentType.VIRTUAL, purpose: 'Automated order processing agent', parentName: 'Acme Corp' },
+  { name: 'GreenLeaf Audit Team', type: AgentType.VIRTUAL, purpose: 'Supplier sustainability scoring team', parentName: 'GreenLeaf Partners' },
+  { name: 'Meridian Freight Analytics', type: AgentType.VIRTUAL, purpose: 'Route and load optimization models', parentName: 'Meridian Logistics Group' },
+  { name: 'Helios Grid Watch', type: AgentType.VIRTUAL, purpose: 'Production and grid balancing telemetry', parentName: 'Helios Energy Cooperative' },
+  { name: 'Northwind Assembly Line Bot', type: AgentType.VIRTUAL, purpose: 'Shop-floor scheduling automation', parentName: 'Northwind Manufacturing' },
+  { name: 'Sakura Customs Broker Bot', type: AgentType.VIRTUAL, purpose: 'Automated customs declarations', parentName: 'Sakura Trading House' },
+  { name: 'Alpine ETL Pipeline', type: AgentType.VIRTUAL, purpose: 'Managed data ingestion service', parentName: 'Alpine Data Works' },
+  { name: 'Ledger Reconciliation Bot', type: AgentType.VIRTUAL, purpose: 'Independent settlement reconciliation service' },
+  { name: 'Market Pulse Crawler', type: AgentType.VIRTUAL, purpose: 'Market signal aggregation service' },
+  // --- Individuals inside organizations ---
   { name: 'Sarah Palmer', type: AgentType.INDIVIDUAL, purpose: 'Independent market analyst', parentName: 'Acme Corp' },
   { name: 'James Liu', type: AgentType.INDIVIDUAL, purpose: 'Freelance integration specialist', parentName: 'TechNova Solutions' },
-  { name: 'AutoFlow Bot', type: AgentType.VIRTUAL, purpose: 'Automated order processing agent', parentName: 'Acme Corp' },
+  { name: 'Piotr Nowak', type: AgentType.INDIVIDUAL, purpose: 'Plant operations manager', parentName: 'Acme Poland' },
+  { name: 'Anna Wiśniewska', type: AgentType.INDIVIDUAL, purpose: 'Regional key account manager', parentName: 'Acme Poland' },
+  { name: 'Freja Lindqvist', type: AgentType.INDIVIDUAL, purpose: 'Nordic partnerships lead', parentName: 'Acme Nordics' },
+  { name: 'Carlos Mendez', type: AgentType.INDIVIDUAL, purpose: 'Fleet coordinator', parentName: 'Meridian Iberia' },
+  { name: 'Nina Petrova', type: AgentType.INDIVIDUAL, purpose: 'Investment analyst', parentName: 'Bluewater Capital' },
+  { name: 'Maria Santos', type: AgentType.INDIVIDUAL, purpose: 'Circular economy consultant', parentName: 'GreenLeaf Partners' },
+  { name: 'Kenji Watanabe', type: AgentType.INDIVIDUAL, purpose: 'Sourcing director', parentName: 'Sakura Trading House' },
+  { name: 'Lena Hoffmann', type: AgentType.INDIVIDUAL, purpose: 'Compliance data architect', parentName: 'Alpine Data Works' },
+  // --- Independent individuals ---
+  { name: 'Tomás Oliveira', type: AgentType.INDIVIDUAL, purpose: 'Freelance logistics auditor' },
+  { name: 'Aisha Bello', type: AgentType.INDIVIDUAL, purpose: 'Trade finance advisor' },
+  { name: 'David Chen', type: AgentType.INDIVIDUAL, purpose: 'Independent hardware prototyper' },
+  { name: 'Ingrid Johansson', type: AgentType.INDIVIDUAL, purpose: 'Sustainability reporting specialist' },
+  { name: 'Rafael Costa', type: AgentType.INDIVIDUAL, purpose: 'Contract manufacturing broker' },
+  { name: 'Chloe Martin', type: AgentType.INDIVIDUAL, purpose: 'Freelance UX researcher' },
+  { name: 'Omar Haddad', type: AgentType.INDIVIDUAL, purpose: 'Customs and tariffs consultant' },
+  { name: 'Elena Rossi', type: AgentType.INDIVIDUAL, purpose: 'Interim CFO for scale-ups' },
+  { name: "Jack O'Brien", type: AgentType.INDIVIDUAL, purpose: 'Field service engineer' },
+  { name: 'Yuki Tanaka', type: AgentType.INDIVIDUAL, purpose: 'Localization project manager' },
+  { name: 'Priya Sharma', type: AgentType.INDIVIDUAL, purpose: 'Procurement negotiator' },
+  { name: 'Sofia Almeida', type: AgentType.INDIVIDUAL, purpose: 'Renewable energy project developer' },
+  { name: 'Ewa Kamińska', type: AgentType.INDIVIDUAL, purpose: 'Independent legal counsel' },
 ];
 
 interface AddressSeed {
@@ -46,6 +98,30 @@ const ADDRESSES: Record<string, AddressSeed[]> = {
   'GreenLeaf Partners': [
     { label: 'HQ', line1: '1 Long Acre', city: 'London', postalCode: 'WC2E 9LH', countryCode: 'GB', isPrimary: true, latitude: '51.5128396', longitude: '-0.1240489' },
     { label: 'Warehouse', line1: 'ul. Hutnicza 5', city: 'Gdańsk', postalCode: '80-871', countryCode: 'PL', isPrimary: false, latitude: '54.3520252', longitude: '18.6466384' },
+  ],
+  'Meridian Logistics Group': [
+    { label: 'HQ', line1: 'Speicherstadt 12', city: 'Hamburg', postalCode: '20457', countryCode: 'DE', isPrimary: true, latitude: '53.5432127', longitude: '9.9922345' },
+  ],
+  'Bluewater Capital': [
+    { label: 'HQ', line1: '200 Park Ave', city: 'New York', postalCode: '10166', countryCode: 'US', isPrimary: true, latitude: '40.7539653', longitude: '-73.9761677' },
+  ],
+  'Helios Energy Cooperative': [
+    { label: 'HQ', line1: '45 Rue de la Villette', city: 'Lyon', postalCode: '69003', countryCode: 'FR', isPrimary: true, latitude: '45.7607882', longitude: '4.8590743' },
+  ],
+  'Kite & Anchor Studio': [
+    { label: 'Studio', line1: '30 Cecil St', city: 'Singapore', postalCode: '049712', countryCode: 'SG', isPrimary: true, latitude: '1.2818542', longitude: '103.8496305' },
+  ],
+  'Northwind Manufacturing': [
+    { label: 'Plant', line1: '233 S Wacker Dr', city: 'Chicago', postalCode: '60606', countryCode: 'US', isPrimary: true, latitude: '41.8788764', longitude: '-87.6359149' },
+  ],
+  'Sakura Trading House': [
+    { label: 'HQ', line1: '1-9-1 Marunouchi', city: 'Tokyo', postalCode: '100-0005', countryCode: 'JP', isPrimary: true, latitude: '35.6812362', longitude: '139.7671248' },
+  ],
+  'Alpine Data Works': [
+    { label: 'HQ', line1: 'Leopoldstr. 27', city: 'München', postalCode: '80802', countryCode: 'DE', isPrimary: true, latitude: '48.1548898', longitude: '11.5811628' },
+  ],
+  'Acme Poland': [
+    { label: 'Office', line1: 'ul. Piotrkowska 100', city: 'Łódź', postalCode: '90-004', countryCode: 'PL', isPrimary: true, latitude: '51.7660978', longitude: '19.4568759' },
   ],
 };
 
