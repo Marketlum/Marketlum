@@ -15,6 +15,7 @@ import { Agent } from '../../agents/entities/agent.entity';
 import { Value } from '../../values/entities/value.entity';
 import { Channel } from '../../channels/channel.entity';
 import { File } from '../../files/entities/file.entity';
+import { Order } from '../../orders/entities/order.entity';
 import { InvoiceItem } from './invoice-item.entity';
 
 @Entity('invoices')
@@ -75,6 +76,13 @@ export class Invoice {
 
   @Column({ type: 'uuid', nullable: true })
   channelId: string | null;
+
+  @ManyToOne(() => Order, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'orderId' })
+  order: Order | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  orderId: string | null;
 
   @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items: InvoiceItem[];

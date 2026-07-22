@@ -48,6 +48,7 @@ export const createInvoiceSchema = z.object({
   link: z.string().optional(),
   fileId: z.string().uuid().nullable().optional(),
   channelId: z.string().uuid().nullable().optional(),
+  orderId: z.string().uuid().nullable().optional(),
   items: z.array(createInvoiceItemSchema).optional(),
 });
 
@@ -63,6 +64,7 @@ export const updateInvoiceSchema = z.object({
   link: z.string().nullable().optional(),
   fileId: z.string().uuid().nullable().optional(),
   channelId: z.string().uuid().nullable().optional(),
+  orderId: z.string().uuid().nullable().optional(),
   items: z.array(createInvoiceItemSchema).optional(),
 });
 
@@ -94,6 +96,7 @@ export const invoiceResponseSchema = z.object({
   link: z.string().nullable(),
   file: z.any().nullable(),
   channel: channelSummarySchema.nullable(),
+  order: z.object({ id: z.string().uuid(), number: z.string() }).nullable(),
   items: z.array(invoiceItemResponseSchema),
   total: z.string(),
   presentationTotal: z.string().nullable(),

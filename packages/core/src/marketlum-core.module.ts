@@ -19,6 +19,7 @@ import { AgreementsModule } from './agreements/agreements.module';
 import { ChannelsModule } from './channels/channels.module';
 import { OfferingsModule } from './offerings/offerings.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { OrdersModule } from './orders/orders.module';
 import { PipelinesModule } from './pipelines/pipelines.module';
 import { TensionsModule } from './tensions/tensions.module';
 import { ExchangesModule } from './exchanges/exchanges.module';
@@ -52,6 +53,7 @@ const CORE_FEATURE_MODULES = [
   ChannelsModule,
   OfferingsModule,
   InvoicesModule,
+  OrdersModule,
   PipelinesModule,
   TensionsModule,
   ExchangesModule,
@@ -80,6 +82,7 @@ const CORE_EXPORTED_MODULES = [
   ChannelsModule,
   OfferingsModule,
   InvoicesModule,
+  OrdersModule,
   PipelinesModule,
   TensionsModule,
   ExchangesModule,

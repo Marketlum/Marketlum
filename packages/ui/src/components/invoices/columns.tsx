@@ -27,6 +27,7 @@ interface InvoiceRow {
   link: string | null;
   file: unknown;
   channel: { id: string; name: string } | null;
+  order: { id: string; number: string } | null;
   items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string; presentationRate: string | null; presentationAmount: string | null }[];
   createdAt: string;
   updatedAt: string;
@@ -47,6 +48,7 @@ interface InvoiceColumnsTranslations {
   marketInternal: string;
   marketExternal: string;
   channel: string;
+  order: string;
   link: string;
   edit: string;
   delete: string;

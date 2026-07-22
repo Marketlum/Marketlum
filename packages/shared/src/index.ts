@@ -6,6 +6,8 @@ export { TableName } from './enums/table-name.enum';
 export { OfferingState } from './enums/offering-state.enum';
 export { ExchangeState } from './enums/exchange-state.enum';
 export { ExchangeTransitionAction } from './enums/exchange-transition-action.enum';
+export { OrderState } from './enums/order-state.enum';
+export { OrderTransitionAction } from './enums/order-transition-action.enum';
 export { TensionState } from './enums/tension-state.enum';
 export { TensionTransitionAction } from './enums/tension-transition-action.enum';
 export { GeographyType } from './enums/geography-type.enum';
@@ -235,6 +237,26 @@ export {
 export { exchangeMachine } from './machines/exchange.machine';
 
 export {
+  orderAddressSchema,
+  createOrderItemSchema,
+  createOrderSchema,
+  updateOrderSchema,
+  orderAddressResponseSchema,
+  orderItemResponseSchema,
+  orderResponseSchema,
+  type OrderAddressInput,
+  type CreateOrderItemInput,
+  type CreateOrderInput,
+  type UpdateOrderInput,
+  type OrderItemResponse,
+  type OrderResponse,
+} from './schemas/order.schema';
+
+export { orderMachine } from './machines/order.machine';
+
+export { orderItemTotal, orderTotal } from './helpers/order.helpers';
+
+export {
   dashboardQuerySchema,
   type DashboardQuery,
   type DashboardTimeSeriesPoint,
@@ -384,6 +406,7 @@ export type {
   ChannelCreatedEvent, ChannelUpdatedEvent, ChannelDeletedEvent,
   OfferingCreatedEvent, OfferingUpdatedEvent, OfferingDeletedEvent,
   InvoiceCreatedEvent, InvoiceUpdatedEvent, InvoiceDeletedEvent,
+  OrderCreatedEvent, OrderUpdatedEvent, OrderDeletedEvent,
   ExchangeCreatedEvent, ExchangeUpdatedEvent, ExchangeDeletedEvent,
   GeographyCreatedEvent, GeographyUpdatedEvent, GeographyDeletedEvent,
   ArchetypeCreatedEvent, ArchetypeUpdatedEvent, ArchetypeDeletedEvent,

@@ -64,6 +64,10 @@ export type InvoiceCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.in
 export type InvoiceUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.invoice.updated', T>;
 export type InvoiceDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.invoice.deleted', T>;
 
+export type OrderCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.order.created', T>;
+export type OrderUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.order.updated', T>;
+export type OrderDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.order.deleted', T>;
+
 export type ExchangeCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.exchange.created', T>;
 export type ExchangeUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.exchange.updated', T>;
 export type ExchangeDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.exchange.deleted', T>;
@@ -116,6 +120,7 @@ export type DomainEvent =
   | ChannelCreatedEvent | ChannelUpdatedEvent | ChannelDeletedEvent
   | OfferingCreatedEvent | OfferingUpdatedEvent | OfferingDeletedEvent
   | InvoiceCreatedEvent | InvoiceUpdatedEvent | InvoiceDeletedEvent
+  | OrderCreatedEvent | OrderUpdatedEvent | OrderDeletedEvent
   | ExchangeCreatedEvent | ExchangeUpdatedEvent | ExchangeDeletedEvent
   | GeographyCreatedEvent | GeographyUpdatedEvent | GeographyDeletedEvent
   | ArchetypeCreatedEvent | ArchetypeUpdatedEvent | ArchetypeDeletedEvent

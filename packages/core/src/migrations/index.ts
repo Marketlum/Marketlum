@@ -54,6 +54,7 @@ import { RemoveInvoiceDirectionAndValueStream1700000000052 } from './17000000000
 import { RemoveRecurringFlows1700000000053 } from './1700000000053-RemoveRecurringFlows';
 import { AddInvoiceMarket1700000000054 } from './1700000000054-AddInvoiceMarket';
 import { RemoveValueStreamAgent1700000000055 } from './1700000000055-RemoveValueStreamAgent';
+import { AddOrders1700000000056 } from './1700000000056-AddOrders';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -112,4 +113,5 @@ export const ALL_MIGRATIONS = [
   RemoveRecurringFlows1700000000053,
   AddInvoiceMarket1700000000054,
   RemoveValueStreamAgent1700000000055,
+  AddOrders1700000000056,
 ];

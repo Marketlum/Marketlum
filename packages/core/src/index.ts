@@ -60,6 +60,8 @@ export { Offering } from './offerings/entities/offering.entity';
 export { OfferingComponent } from './offerings/entities/offering-component.entity';
 export { Invoice } from './invoices/entities/invoice.entity';
 export { InvoiceItem } from './invoices/entities/invoice-item.entity';
+export { Order } from './orders/entities/order.entity';
+export { OrderItem } from './orders/entities/order-item.entity';
 export { Exchange } from './exchanges/entities/exchange.entity';
 export { ExchangeParty } from './exchanges/entities/exchange-party.entity';
 export { ExchangeFlow } from './exchanges/entities/exchange-flow.entity';

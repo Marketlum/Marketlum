@@ -105,6 +105,7 @@ export class InvoicesController {
   @ApiQuery({ name: 'paid', required: false, enum: ['true', 'false'] })
   @ApiQuery({ name: 'currencyId', required: false, type: String })
   @ApiQuery({ name: 'channelId', required: false, type: String })
+  @ApiQuery({ name: 'orderId', required: false, type: String })
   @ApiPaginatedResponse(InvoiceResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
@@ -115,6 +116,7 @@ export class InvoicesController {
     @Query('paid') paid?: string,
     @Query('currencyId') currencyId?: string,
     @Query('channelId') channelId?: string,
+    @Query('orderId') orderId?: string,
   ) {
     return this.invoicesService.search({
       ...query,
@@ -125,6 +127,7 @@ export class InvoicesController {
       paid,
       currencyId,
       channelId,
+      orderId,
     });
   }
 

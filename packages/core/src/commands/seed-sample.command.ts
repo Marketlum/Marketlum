@@ -21,6 +21,7 @@ import { TensionsService } from '../tensions/tensions.service';
 import { AccountsService } from '../ledger/accounts.service';
 import { OfferingsService } from '../offerings/offerings.service';
 import { InvoicesService } from '../invoices/invoices.service';
+import { OrdersService } from '../orders/orders.service';
 import { TransactionsService } from '../ledger/transactions.service';
 import { ValueInstancesService } from '../value-instances/value-instances.service';
 import { ExchangesService } from '../exchanges/exchanges.service';
@@ -42,6 +43,7 @@ import { seedTensions } from './seeders/tension.seeder';
 import { seedAccounts } from './seeders/account.seeder';
 import { seedOfferings } from './seeders/offering.seeder';
 import { seedInvoices } from './seeders/invoice.seeder';
+import { seedOrders } from './seeders/order.seeder';
 import { seedTransactions } from './seeders/transaction.seeder';
 import { seedValueInstances } from './seeders/value-instance.seeder';
 import { seedExchanges } from './seeders/exchange.seeder';
@@ -76,6 +78,7 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly accountsService: AccountsService,
     private readonly offeringsService: OfferingsService,
     private readonly invoicesService: InvoicesService,
+    private readonly ordersService: OrdersService,
     private readonly transactionsService: TransactionsService,
     private readonly valueInstancesService: ValueInstancesService,
     private readonly exchangesService: ExchangesService,
@@ -240,6 +243,17 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log('Seeding invoices...');
     const invoices = await seedInvoices(this.invoicesService, { agents, values });
     this.logger.log(`  Created ${invoices.length} invoices`);
+
+    this.logger.log('Seeding orders...');
+    const orders = await seedOrders(this.ordersService, this.invoicesService, {
+      agents,
+      values,
+      channels: channels.all,
+      pipelines,
+      locales,
+      invoices,
+    });
+    this.logger.log(`  Created ${orders.length} orders`);
 
     // Level 7: Transactions, Value Instances, Exchanges
     this.logger.log('Seeding transactions...');

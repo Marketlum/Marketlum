@@ -28,6 +28,8 @@ import { Tension } from './tensions/entities/tension.entity';
 import { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity';
 import { SystemSetting } from './system-settings/entities/system-setting.entity';
 import { Address } from './agents/addresses/entities/address.entity';
+import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/order-item.entity';
 
 export const ALL_ENTITIES = [
   User,
@@ -48,6 +50,8 @@ export const ALL_ENTITIES = [
   OfferingComponent,
   Invoice,
   InvoiceItem,
+  Order,
+  OrderItem,
   Exchange,
   ExchangeParty,
   ExchangeFlow,

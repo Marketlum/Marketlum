@@ -7,6 +7,7 @@ import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { File } from '../files/entities/file.entity';
 import { Channel } from '../channels/channel.entity';
+import { Order } from '../orders/entities/order.entity';
 import { InvoicesService } from './invoices.service';
 import { InvoiceImportService } from './invoice-import.service';
 import { AgentFinancialsService } from './agent-financials.service';
@@ -27,6 +28,7 @@ import { FilesModule } from '../files/files.module';
       ValueInstance,
       File,
       Channel,
+      Order,
     ]),
     ExchangeRatesModule,
     SystemSettingsModule,

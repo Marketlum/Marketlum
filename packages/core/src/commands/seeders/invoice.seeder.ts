@@ -28,7 +28,7 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
     (v) => !(CURRENCY_NAMES as readonly string[]).includes(v.name),
   );
 
-  const invoices: Array<{ id: string; number: string }> = [];
+  const invoices: Array<{ id: string; number: string; currencyId: string }> = [];
 
   for (let i = 0; i < NUM_INVOICES; i++) {
     const fromAgent = faker.helpers.arrayElement(deps.agents);
@@ -72,7 +72,7 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
       paid: faker.datatype.boolean(),
       items,
     });
-    invoices.push({ id: invoice.id, number });
+    invoices.push({ id: invoice.id, number, currencyId: currency.id });
   }
 
   return invoices;

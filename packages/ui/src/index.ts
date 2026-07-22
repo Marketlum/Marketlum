@@ -145,6 +145,14 @@ export { InvoiceFormDialog } from './components/invoices/invoice-form-dialog';
 export { InvoicesDataTable } from './components/invoices/invoices-data-table';
 export { getInvoiceColumns } from './components/invoices/columns';
 
+// orders
+export { OrderFormDialog } from './components/orders/order-form-dialog';
+export { OrdersDataTable } from './components/orders/orders-data-table';
+export { getOrderColumns } from './components/orders/columns';
+export { OrderAddressCard } from './components/orders/order-address-card';
+export { OrderItemsEditor } from './components/orders/order-items-editor';
+export { OrderInvoicesTab } from './components/orders/order-invoices-tab';
+
 // locales
 export { LocaleCreateDialog } from './components/locales/locale-create-dialog';
 export { LocalesDataTable } from './components/locales/locales-data-table';
@@ -271,6 +279,8 @@ export { FilesPage } from './pages/admin/files-page';
 export { GeographiesPage } from './pages/admin/geographies-page';
 export { InvoiceDetailPage } from './pages/admin/invoice-detail-page';
 export { InvoicesPage } from './pages/admin/invoices-page';
+export { OrdersPage } from './pages/admin/orders-page';
+export { OrderDetailPage } from './pages/admin/order-detail-page';
 export { LocalesPage } from './pages/admin/locales-page';
 export { OfferingDetailPage } from './pages/admin/offering-detail-page';
 export { OfferingsPage } from './pages/admin/offerings-page';

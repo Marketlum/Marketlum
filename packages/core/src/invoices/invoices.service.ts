@@ -12,10 +12,12 @@ import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { Channel } from '../channels/channel.entity';
 import { File } from '../files/entities/file.entity';
+import { Order } from '../orders/entities/order.entity';
 import {
   CreateInvoiceInput,
   UpdateInvoiceInput,
   PaginationQuery,
+  OrderState,
   convertAmount,
   formatPresentationAmount,
   IDENTITY_RATE,
@@ -59,6 +61,8 @@ export class InvoicesService {
     private readonly fileRepository: Repository<File>,
     @InjectRepository(Channel)
     private readonly channelRepository: Repository<Channel>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
     private readonly exchangeRatesService: ExchangeRatesService,
     private readonly systemSettingsService: SystemSettingsService,
   ) {}
@@ -114,6 +118,22 @@ export class InvoicesService {
     return agent?.functionalCurrencyId ?? null;
   }
 
+  private async validateOrderLink(
+    orderId: string,
+    invoiceCurrencyId: string,
+  ): Promise<void> {
+    const order = await this.orderRepository.findOne({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order not found');
+    if (order.state === OrderState.COMPLETED || order.state === OrderState.CANCELLED) {
+      throw new ConflictException(
+        'Cannot link an invoice to a completed or cancelled order',
+      );
+    }
+    if (order.currencyId !== invoiceCurrencyId) {
+      throw new ConflictException('Invoice currency must match the order currency');
+    }
+  }
+
   async create(input: CreateInvoiceInput): Promise<Invoice> {
     const {
       fromAgentId,
@@ -121,6 +141,7 @@ export class InvoicesService {
       currencyId,
       fileId,
       channelId,
+      orderId,
       items,
       ...rest
     } = input;
@@ -157,6 +178,11 @@ export class InvoicesService {
       if (!ch) throw new NotFoundException('Channel not found');
     }
 
+    // Validate order link if provided
+    if (orderId) {
+      await this.validateOrderLink(orderId, currencyId);
+    }
+
     // Check unique constraint (fromAgentId, number)
     const existing = await this.invoiceRepository.findOne({
       where: { fromAgentId, number: rest.number },
@@ -177,6 +203,7 @@ export class InvoicesService {
       link: rest.link ?? null,
       fileId: fileId ?? null,
       channelId: channelId ?? null,
+      orderId: orderId ?? null,
     });
 
     const saved = await this.invoiceRepository.save(invoice);
@@ -197,6 +224,7 @@ export class InvoicesService {
       paid?: string;
       currencyId?: string;
       channelId?: string;
+      orderId?: string;
     },
   ) {
     const {
@@ -212,6 +240,7 @@ export class InvoicesService {
       paid,
       currencyId,
       channelId,
+      orderId,
     } = query;
     const skip = (page - 1) * limit;
 
@@ -222,6 +251,7 @@ export class InvoicesService {
     qb.leftJoinAndSelect('invoice.currency', 'currency');
     qb.leftJoinAndSelect('invoice.file', 'file');
     qb.leftJoinAndSelect('invoice.channel', 'channel');
+    qb.leftJoinAndSelect('invoice.order', 'order');
 
     // Per-perspective totals (presentation / from-agent / to-agent) are
     // still computed at read time. NULL when any item is missing a snapshot
@@ -265,6 +295,10 @@ export class InvoicesService {
 
     if (channelId) {
       qb.andWhere('invoice.channelId = :channelId', { channelId });
+    }
+
+    if (orderId) {
+      qb.andWhere('invoice.orderId = :orderId', { orderId });
     }
 
     if (search) {
@@ -325,6 +359,9 @@ export class InvoicesService {
     if (channelId) {
       countQb.andWhere('invoice.channelId = :channelId', { channelId });
     }
+    if (orderId) {
+      countQb.andWhere('invoice.orderId = :orderId', { orderId });
+    }
     if (search) {
       countQb.andWhere(
         '(invoice.number ILIKE :search OR fromAgent.name ILIKE :search OR toAgent.name ILIKE :search)',
@@ -354,6 +391,7 @@ export class InvoicesService {
         'currency',
         'file',
         'channel',
+        'order',
         'items',
         'items.value',
         'items.valueInstance',
@@ -406,6 +444,7 @@ export class InvoicesService {
       currencyId,
       fileId,
       channelId,
+      orderId,
       items,
       ...rest
     } = input;
@@ -468,6 +507,16 @@ export class InvoicesService {
       }
     }
 
+    if (orderId !== undefined) {
+      if (orderId === null) {
+        invoice.order = null;
+        invoice.orderId = null;
+      } else {
+        await this.validateOrderLink(orderId, invoice.currencyId);
+        invoice.orderId = orderId;
+      }
+    }
+
     // Check unique constraint on update
     const effectiveFromAgentId = fromAgentId ?? invoice.fromAgentId;
     const effectiveNumber = rest.number ?? invoice.number;
@@ -487,6 +536,7 @@ export class InvoicesService {
     delete (invoice as any).currency;
     delete (invoice as any).file;
     delete (invoice as any).channel;
+    delete (invoice as any).order;
     delete (invoice as any).total;
     await this.invoiceRepository.save(invoice);
 

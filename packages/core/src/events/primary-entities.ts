@@ -13,6 +13,7 @@ import { Channel } from '../channels/channel.entity';
 import { Offering } from '../offerings/entities/offering.entity';
 import { Invoice } from '../invoices/entities/invoice.entity';
 import { Exchange } from '../exchanges/entities/exchange.entity';
+import { Order } from '../orders/entities/order.entity';
 import { Geography } from '../geographies/geography.entity';
 import { Archetype } from '../archetypes/entities/archetype.entity';
 import { Locale } from '../locales/locale.entity';
@@ -42,6 +43,7 @@ export const PRIMARY_ENTITIES: PrimaryEntityDescriptor[] = [
   { cls: Channel, snakeName: 'channel' },
   { cls: Offering, snakeName: 'offering' },
   { cls: Invoice, snakeName: 'invoice' },
+  { cls: Order, snakeName: 'order' },
   { cls: Exchange, snakeName: 'exchange' },
   { cls: Geography, snakeName: 'geography' },
   { cls: Archetype, snakeName: 'archetype' },

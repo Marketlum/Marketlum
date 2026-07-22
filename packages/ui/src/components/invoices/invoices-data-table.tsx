@@ -70,6 +70,7 @@ interface InvoiceRow {
   link: string | null;
   file: unknown;
   channel: { id: string; name: string } | null;
+  order: { id: string; number: string } | null;
   items: InvoiceItemRow[];
   createdAt: string;
   updatedAt: string;
@@ -311,6 +312,7 @@ export function InvoicesDataTable({
       marketInternal: t('marketInternal'),
       marketExternal: t('marketExternal'),
       channel: t('channel'),
+      order: t('order'),
       link: t('link'),
       edit: tc('edit'),
       delete: tc('delete'),
@@ -328,6 +330,7 @@ export function InvoicesDataTable({
     { id: 'paid', label: t('paid') },
     { id: 'market', label: t('market') },
     { id: 'channel', label: t('channel') },
+    { id: 'order', label: t('order') },
     { id: 'link', label: t('link') },
   ];
 
@@ -352,6 +355,10 @@ export function InvoicesDataTable({
     { key: 'channel', label: t('channel'), extract: (r) => {
       const ch = r.channel as { name: string } | null;
       return ch?.name ?? '';
+    }},
+    { key: 'order', label: t('order'), extract: (r) => {
+      const o = r.order as { number: string } | null;
+      return o?.number ?? '';
     }},
     { key: 'link', label: t('link'), extract: (r) => String(r.link ?? '') },
   ];

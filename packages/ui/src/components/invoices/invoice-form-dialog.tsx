@@ -39,6 +39,11 @@ import { useAgents } from '../../hooks/use-agents';
 import { useValues } from '../../hooks/use-values';
 import { useChannels } from '../../hooks/use-channels';
 
+interface OrderOption {
+  id: string;
+  number: string;
+}
+
 interface ItemRow {
   valueId: string;
   valueInstanceId: string;
@@ -60,6 +65,7 @@ interface InvoiceData {
   link: string | null;
   file: unknown;
   channel: { id: string; name: string } | null;
+  order: { id: string; number: string } | null;
   items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string }[];
 }
 
@@ -94,6 +100,16 @@ export function InvoiceFormDialog({
   const { values } = useValues(open);
   const { channels } = useChannels(open);
   const [items, setItems] = useState<ItemRow[]>([]);
+  const [orders, setOrders] = useState<OrderOption[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      api
+        .get<{ data: OrderOption[] }>('/orders/search?page=1&limit=10000')
+        .then((result) => setOrders(result.data))
+        .catch(() => {});
+    }
+  }, [open]);
   const [agentFormFor, setAgentFormFor] = useState<
     'fromAgentId' | 'toAgentId' | null
   >(null);
@@ -149,6 +165,7 @@ export function InvoiceFormDialog({
           paid: invoice.paid,
           link: invoice.link ?? '',
           channelId: invoice.channel?.id ?? null,
+          orderId: invoice.order?.id ?? null,
         });
         setItems(
           (invoice.items ?? []).map((item) => ({
@@ -176,6 +193,7 @@ export function InvoiceFormDialog({
           link: '',
           fileId: prefill.fileId,
           channelId: null,
+          orderId: null,
         });
         setItems(
           prefill.extracted.items.map((item) => ({
@@ -198,6 +216,7 @@ export function InvoiceFormDialog({
           paid: false,
           link: '',
           channelId: null,
+          orderId: null,
         });
         setItems([]);
       }
@@ -452,6 +471,25 @@ export function InvoiceFormDialog({
                   {channels.map((ch) => (
                     <SelectItem key={ch.id} value={ch.id}>
                       {ch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('order')}</Label>
+              <Select
+                value={watch('orderId') ?? '__none__'}
+                onValueChange={(v) => setFormValue('orderId', v === '__none__' ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('selectOrder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">&mdash;</SelectItem>
+                  {orders.map((order) => (
+                    <SelectItem key={order.id} value={order.id}>
+                      {order.number}
                     </SelectItem>
                   ))}
                 </SelectContent>
