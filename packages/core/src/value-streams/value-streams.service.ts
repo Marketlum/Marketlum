@@ -4,7 +4,6 @@ import { TreeRepository, Repository } from 'typeorm';
 import { ValueStream } from './entities/value-stream.entity';
 import { User } from '../users/entities/user.entity';
 import { File } from '../files/entities/file.entity';
-import { Agent } from '../agents/entities/agent.entity';
 import {
   CreateValueStreamInput,
   UpdateValueStreamInput,
@@ -21,12 +20,10 @@ export class ValueStreamsService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
   ) {}
 
   async create(input: CreateValueStreamInput): Promise<ValueStream> {
-    const { parentId, leadUserId, imageId, agentId, ...rest } = input;
+    const { parentId, leadUserId, imageId, ...rest } = input;
 
     const valueStream = this.valueStreamRepository.create({
       ...rest,
@@ -65,11 +62,6 @@ export class ValueStreamsService {
       valueStream.image = file;
     }
 
-    if (agentId !== undefined && agentId !== null) {
-      const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-      if (!agent) throw new NotFoundException('Owning agent not found');
-      valueStream.agentId = agentId;
-    }
 
     let saved: ValueStream;
     try {
@@ -91,7 +83,7 @@ export class ValueStreamsService {
   async findByCode(code: string): Promise<ValueStream> {
     const valueStream = await this.valueStreamRepository.findOne({
       where: { code },
-      relations: ['lead', 'image', 'agent'],
+      relations: ['lead', 'image'],
     });
     if (!valueStream) {
       throw new NotFoundException('Value stream not found');
@@ -107,7 +99,6 @@ export class ValueStreamsService {
 
     qb.leftJoinAndSelect('valueStream.lead', 'lead');
     qb.leftJoinAndSelect('valueStream.image', 'image');
-    qb.leftJoinAndSelect('valueStream.agent', 'agent');
 
     if (search) {
       qb.andWhere(
@@ -139,7 +130,7 @@ export class ValueStreamsService {
 
   async findTree(): Promise<ValueStream[]> {
     const trees = await this.valueStreamRepository.findTrees({
-      relations: ['lead', 'image', 'agent'],
+      relations: ['lead', 'image'],
     });
     return trees;
   }
@@ -151,7 +142,7 @@ export class ValueStreamsService {
   async findOne(id: string): Promise<ValueStream> {
     const valueStream = await this.valueStreamRepository.findOne({
       where: { id },
-      relations: ['lead', 'image', 'agent'],
+      relations: ['lead', 'image'],
     });
     if (!valueStream) {
       throw new NotFoundException('Value stream not found');
@@ -174,21 +165,10 @@ export class ValueStreamsService {
 
   async update(id: string, input: UpdateValueStreamInput): Promise<ValueStream> {
     const valueStream = await this.findOne(id);
-    const { leadUserId, imageId, agentId, ...rest } = input;
+    const { leadUserId, imageId, ...rest } = input;
 
     Object.assign(valueStream, rest);
 
-    if (agentId !== undefined) {
-      if (agentId === null) {
-        valueStream.agent = null;
-        valueStream.agentId = null;
-      } else {
-        const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-        if (!agent) throw new NotFoundException('Owning agent not found');
-        valueStream.agent = null;
-        valueStream.agentId = agentId;
-      }
-    }
 
     if (leadUserId !== undefined) {
       if (leadUserId === null) {

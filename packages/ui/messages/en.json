@@ -494,8 +494,6 @@
     "failedToDelete": "Failed to delete value stream",
     "lead": "Lead",
     "selectLead": "Select lead",
-    "owningAgent": "Owning Agent",
-    "selectOwningAgent": "Select owning agent",
     "image": "Image",
     "purpose": "Purpose",
     "uploadImage": "Upload",
