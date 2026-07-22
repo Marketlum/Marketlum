@@ -7,13 +7,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ValueStream, Value } from '@marketlum/core';
+import { Agent, Value } from '@marketlum/core';
 import { RdhyPlatform } from '../platforms/rdhy-platform.entity';
 import type { RdhyVamStatus } from '../shared/vam-schemas';
 
 /**
- * One VAM (Value Adjustment Mechanism) canvas: a value co-creation plan for a
- * value stream over a time horizon, sponsored by an RDHY platform. Plan-only
+ * One VAM (Value Adjustment Mechanism) canvas: a value co-creation plan for an
+ * agent over a time horizon, sponsored by an RDHY platform. Plan-only
  * in spec 014; guarded lifecycle DRAFT -> ACTIVE -> COMPLETED | TERMINATED.
  */
 @Entity('plugin_rdhy_vam_agreements')
@@ -31,11 +31,11 @@ export class RdhyVamAgreement {
   status: RdhyVamStatus;
 
   @Column({ type: 'uuid' })
-  valueStreamId: string;
+  agentId: string;
 
-  @ManyToOne(() => ValueStream, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'valueStreamId' })
-  valueStream: ValueStream;
+  @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'agentId' })
+  agent: Agent;
 
   @Column({ type: 'uuid' })
   platformId: string;

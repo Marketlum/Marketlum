@@ -29,29 +29,9 @@ import type { RdhyPlatformDetailResponse } from '../shared/schemas';
 import type { RdhyVamAgreementSummary } from '../shared/vam-schemas';
 import { VamStatusBadge } from './vam-status-badge';
 
-interface ValueStreamTreeNode {
+interface AgentOption {
   id: string;
-  code: string;
-  name: string;
-  level: number;
-  children?: ValueStreamTreeNode[];
-}
-
-interface ValueStreamOption {
-  id: string;
-  code: string;
-  name: string;
   label: string;
-}
-
-function flattenTree(nodes: ValueStreamTreeNode[], path: string[] = []): ValueStreamOption[] {
-  return nodes.flatMap((node) => {
-    const label = [...path, node.name].join(' / ');
-    return [
-      { id: node.id, code: node.code, name: node.name, label },
-      ...flattenTree(node.children ?? [], [...path, node.name]),
-    ];
-  });
 }
 
 /** Page rendered at /admin/x/platforms/:id — platform detail + member management. */
@@ -64,7 +44,7 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
 
   const [platform, setPlatform] = useState<RdhyPlatformDetailResponse | null>(null);
   const [sponsored, setSponsored] = useState<RdhyVamAgreementSummary[]>([]);
-  const [options, setOptions] = useState<ValueStreamOption[]>([]);
+  const [options, setOptions] = useState<AgentOption[]>([]);
   const [query, setQuery] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -88,8 +68,8 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
   useEffect(() => {
     load();
     api
-      .get<ValueStreamTreeNode[]>('/value-streams/tree')
-      .then((tree) => setOptions(flattenTree(tree)))
+      .get<{ data: Array<{ id: string; name: string }> }>('/agents?limit=1000')
+      .then((res) => setOptions(res.data.map((a) => ({ id: a.id, label: a.name }))))
       .catch(() => undefined);
     if (id) {
       api
@@ -109,12 +89,7 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
     if (!q) return [];
     return options
       .filter((o) => !memberIds.has(o.id))
-      .filter(
-        (o) =>
-          o.name.toLowerCase().includes(q) ||
-          o.code.toLowerCase().includes(q) ||
-          o.label.toLowerCase().includes(q),
-      )
+      .filter((o) => o.label.toLowerCase().includes(q))
       .slice(0, 10);
   }, [options, memberIds, query]);
 
@@ -149,12 +124,12 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
     }
   };
 
-  const assign = async (valueStreamId: string) => {
+  const assign = async (agentId: string) => {
     if (!id) return;
     setBusy(true);
     setError(null);
     try {
-      await api.put(`/plugins/rdhy/value-streams/${valueStreamId}/platform`, {
+      await api.put(`/plugins/rdhy/agents/${agentId}/platform`, {
         platformId: id,
       });
       setQuery('');
@@ -166,11 +141,11 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
     }
   };
 
-  const detach = async (valueStreamId: string) => {
+  const detach = async (agentId: string) => {
     setBusy(true);
     setError(null);
     try {
-      await api.delete(`/plugins/rdhy/value-streams/${valueStreamId}/platform`);
+      await api.delete(`/plugins/rdhy/agents/${agentId}/platform`);
       await load();
     } catch {
       setError(tp('failed'));
@@ -222,18 +197,16 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{tp('code')}</TableHead>
               <TableHead>{tp('name')}</TableHead>
-              <TableHead>{t('level')}</TableHead>
+              <TableHead>{t('agentType')}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
             {platform.members.map((member) => (
               <TableRow key={member.id}>
-                <TableCell className="font-mono text-xs">{member.code}</TableCell>
                 <TableCell>{member.name}</TableCell>
-                <TableCell>{member.level}</TableCell>
+                <TableCell className="text-muted-foreground">{member.type}</TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="outline"
@@ -265,12 +238,7 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
             <ul className="divide-y rounded-md border">
               {candidates.map((option) => (
                 <li key={option.id} className="flex items-center justify-between gap-2 p-2">
-                  <span className="text-sm">
-                    {option.label}{' '}
-                    <span className="font-mono text-xs text-muted-foreground">
-                      ({option.code})
-                    </span>
-                  </span>
+                  <span className="text-sm">{option.label}</span>
                   <Button size="sm" onClick={() => assign(option.id)} disabled={busy}>
                     {t('add')}
                   </Button>

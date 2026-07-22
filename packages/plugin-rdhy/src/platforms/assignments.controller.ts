@@ -13,29 +13,29 @@ import { AdminGuard, ZodValidationPipe } from '@marketlum/core';
 import { assignRdhyPlatformSchema, AssignRdhyPlatformInput } from '../shared/schemas';
 import { PlatformsService } from './platforms.service';
 
-/** Value-stream-centric view of platform membership: "the platform of a value
- * stream" is a single settable property, so PUT/DELETE/GET a singleton. */
-@Controller('plugins/rdhy/value-streams/:valueStreamId/platform')
+/** Agent-centric view of platform membership: "the platform of an agent" is
+ * a single settable property, so PUT/DELETE/GET a singleton. */
+@Controller('plugins/rdhy/agents/:agentId/platform')
 @UseGuards(AdminGuard)
 export class AssignmentsController {
   constructor(private readonly platforms: PlatformsService) {}
 
   @Put()
   async assign(
-    @Param('valueStreamId') valueStreamId: string,
+    @Param('agentId') agentId: string,
     @Body(new ZodValidationPipe(assignRdhyPlatformSchema)) body: AssignRdhyPlatformInput,
   ) {
-    return this.platforms.assign(valueStreamId, body);
+    return this.platforms.assign(agentId, body);
   }
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
-  async detach(@Param('valueStreamId') valueStreamId: string) {
-    await this.platforms.detach(valueStreamId);
+  async detach(@Param('agentId') agentId: string) {
+    await this.platforms.detach(agentId);
   }
 
   @Get()
-  async lookup(@Param('valueStreamId') valueStreamId: string) {
-    return this.platforms.platformOf(valueStreamId);
+  async lookup(@Param('agentId') agentId: string) {
+    return this.platforms.platformOf(agentId);
   }
 }

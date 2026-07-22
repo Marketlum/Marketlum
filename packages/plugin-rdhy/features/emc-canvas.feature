@@ -3,34 +3,34 @@ Feature: RDHY EMC canvas editing
   The canvas content of an EMC agreement — micro-nodes with their exposed
   services, leading goals and cost entries, plus termination conditions —
   is replaced as one document via PUT /plugins/rdhy/emc-agreements/:id/canvas.
-  Each micro-node is anchored to a core value stream and sits in one of two
+  Each micro-node is anchored to a core agent and sits in one of two
   tiers: STRATEGIC nodes participate through value sharing (a percent of
   the profits), TACTICAL nodes participate without value sharing. When any
   nodes exist, exactly one must be the leading node and it must be
   strategic. The replace is transactional, array order defines display
   order, and it is only allowed while the agreement is a DRAFT. The
   "sample canvas" used in these scenarios has 3 micro-nodes — the leading
-  strategic node "web3_hub_stream" with a 10 percent share, 2 services,
-  2 goals and 2 cost entries; the strategic node "web3_dev_stream" with a
+  strategic node "Web3 Consulting Hub" with a 10 percent share, 2 services,
+  2 goals and 2 cost entries; the strategic node "Web3 Development" with a
   7 percent share, 1 service, 1 goal and 1 cost entry; the tactical node
-  "legal_stream" with 1 service, 1 goal and 1 cost entry — and 2
+  "Legal Counseling" with 1 service, 1 goal and 1 cost entry — and 2
   termination conditions. The "minimal canvas" has a single leading
   strategic node with one service and nothing else.
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
     And an RDHY platform exists with code "web3_industry_platform" and name "Web3 Industry Platform"
-    And a value stream exists with code "web3_hub_stream" and name "Web3 Consulting Hub"
-    And a value stream exists with code "web3_dev_stream" and name "Web3 Development"
-    And a value stream exists with code "legal_stream" and name "Legal Counseling"
+    And an agent exists with name "Web3 Consulting Hub"
+    And an agent exists with name "Web3 Development"
+    And an agent exists with name "Legal Counseling"
     And an EMC agreement titled "DAO Infrastructure EMC" exists sponsored by "web3_industry_platform"
 
   Scenario: Replacing the canvas populates all sections in order
     When I replace the canvas of the EMC agreement "DAO Infrastructure EMC" with the sample canvas
     Then the response status should be 200
     And the EMC canvas has 3 micro-nodes, 4 services, 4 goals, 4 cost entries and 2 termination conditions
-    And the EMC canvas micro-nodes are ordered "web3_hub_stream, web3_dev_stream, legal_stream"
-    And the EMC canvas micro-node "web3_hub_stream" is the leading node with a 10 percent share
+    And the EMC canvas micro-nodes are ordered "Web3 Consulting Hub, Web3 Development, Legal Counseling"
+    And the EMC canvas micro-node "Web3 Consulting Hub" is the leading node with a 10 percent share
 
   Scenario: Re-replacing the canvas discards the previous content
     Given the canvas of the EMC agreement "DAO Infrastructure EMC" is replaced with the sample canvas
@@ -59,12 +59,12 @@ Feature: RDHY EMC canvas editing
     When I replace the canvas of the EMC agreement "DAO Infrastructure EMC" with a canvas whose profit shares sum to 96 percent
     Then the response status should be 400
 
-  Scenario: Duplicate micro-nodes for the same value stream are rejected
-    When I replace the canvas of the EMC agreement "DAO Infrastructure EMC" with a canvas containing the value stream "web3_hub_stream" twice
+  Scenario: Duplicate micro-nodes for the same agent are rejected
+    When I replace the canvas of the EMC agreement "DAO Infrastructure EMC" with a canvas containing the agent "Web3 Consulting Hub" twice
     Then the response status should be 400
 
-  Scenario: A micro-node for an unknown value stream is rejected
-    When I replace the canvas of the EMC agreement "DAO Infrastructure EMC" with a canvas containing an unknown value stream
+  Scenario: A micro-node for an unknown agent is rejected
+    When I replace the canvas of the EMC agreement "DAO Infrastructure EMC" with a canvas containing an unknown agent
     Then the response status should be 404
 
   Scenario: Canvas edits are rejected once active
@@ -72,9 +72,9 @@ Feature: RDHY EMC canvas editing
     When I replace the canvas of the EMC agreement "DAO Infrastructure EMC" with the sample canvas
     Then the response status should be 409
 
-  Scenario: Deleting a value stream through core removes its micro-node
+  Scenario: Deleting an agent through core removes its micro-node
     Given the canvas of the EMC agreement "DAO Infrastructure EMC" is replaced with the sample canvas
-    When I delete the value stream "legal_stream" through the core API
+    When I delete the agent "Legal Counseling" through the core API
     And I fetch the EMC agreement "DAO Infrastructure EMC"
     Then the response status should be 200
     And the EMC canvas has 2 micro-nodes, 3 services, 3 goals, 3 cost entries and 2 termination conditions

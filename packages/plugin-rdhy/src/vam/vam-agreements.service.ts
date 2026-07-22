@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
-import { Agreement, Value, ValueStream } from '@marketlum/core';
+import { Agent, Agreement, Value } from '@marketlum/core';
 import { RdhyPlatform } from '../platforms/rdhy-platform.entity';
 import { RdhyVamAgreement } from './rdhy-vam-agreement.entity';
 import { RdhyVamMilestone } from './rdhy-vam-milestone.entity';
@@ -39,8 +39,8 @@ export class VamAgreementsService {
     private readonly investmentRepository: Repository<RdhyVamInvestmentEntry>,
     @InjectRepository(RdhyVamTerminationCondition)
     private readonly terminationRepository: Repository<RdhyVamTerminationCondition>,
-    @InjectRepository(ValueStream)
-    private readonly valueStreamRepository: Repository<ValueStream>,
+    @InjectRepository(Agent)
+    private readonly coreAgentRepository: Repository<Agent>,
     @InjectRepository(RdhyPlatform)
     private readonly platformRepository: Repository<RdhyPlatform>,
     @InjectRepository(Value)
@@ -54,7 +54,7 @@ export class VamAgreementsService {
     const saved = await this.agreementRepository.save(
       this.agreementRepository.create({
         title: input.title,
-        valueStreamId: input.valueStreamId,
+        agentId: input.agentId,
         platformId: input.platformId,
         horizonMonths: input.horizonMonths,
         currencyId: input.currencyId ?? null,
@@ -67,7 +67,7 @@ export class VamAgreementsService {
 
   async findAll(): Promise<RdhyVamAgreementSummary[]> {
     const agreements = await this.agreementRepository.find({
-      relations: ['valueStream', 'platform', 'currency'],
+      relations: ['agent', 'platform', 'currency'],
       order: { updatedAt: 'DESC' },
     });
     return agreements.map((a) => this.toSummary(a));
@@ -78,7 +78,7 @@ export class VamAgreementsService {
     if (!platform) throw new NotFoundException('RDHY platform not found');
     const agreements = await this.agreementRepository.find({
       where: { platformId },
-      relations: ['valueStream', 'platform', 'currency'],
+      relations: ['agent', 'platform', 'currency'],
       order: { updatedAt: 'DESC' },
     });
     return agreements.map((a) => this.toSummary(a));
@@ -101,7 +101,7 @@ export class VamAgreementsService {
     this.requireStatus(agreement, 'DRAFT', 'Only draft VAM agreements can be updated');
     await this.validateReferences(input);
     if (input.title !== undefined) agreement.title = input.title;
-    if (input.valueStreamId !== undefined) agreement.valueStreamId = input.valueStreamId;
+    if (input.agentId !== undefined) agreement.agentId = input.agentId;
     if (input.platformId !== undefined) agreement.platformId = input.platformId;
     if (input.horizonMonths !== undefined) agreement.horizonMonths = input.horizonMonths;
     if (input.currencyId !== undefined) agreement.currencyId = input.currencyId ?? null;
@@ -192,12 +192,10 @@ export class VamAgreementsService {
     const agreement = await this.requireAgreement(id);
     this.requireStatus(agreement, 'DRAFT', 'Only draft VAM agreements can be activated');
     const activeSibling = await this.agreementRepository.findOne({
-      where: { valueStreamId: agreement.valueStreamId, status: 'ACTIVE' },
+      where: { agentId: agreement.agentId, status: 'ACTIVE' },
     });
     if (activeSibling) {
-      throw new ConflictException(
-        'An active VAM agreement already exists for this value stream',
-      );
+      throw new ConflictException('An active VAM agreement already exists for this agent');
     }
     agreement.status = 'ACTIVE';
     agreement.startedAt = new Date();
@@ -251,9 +249,9 @@ export class VamAgreementsService {
   private async validateReferences(
     input: Partial<CreateVamAgreementInput>,
   ): Promise<void> {
-    if (input.valueStreamId !== undefined) {
-      const vs = await this.valueStreamRepository.findOne({ where: { id: input.valueStreamId } });
-      if (!vs) throw new NotFoundException('Value stream not found');
+    if (input.agentId !== undefined) {
+      const agent = await this.coreAgentRepository.findOne({ where: { id: input.agentId } });
+      if (!agent) throw new NotFoundException('Agent not found');
     }
     if (input.platformId !== undefined) {
       const platform = await this.platformRepository.findOne({ where: { id: input.platformId } });
@@ -288,7 +286,7 @@ export class VamAgreementsService {
   private async reload(id: string): Promise<RdhyVamAgreement> {
     const agreement = await this.agreementRepository.findOne({
       where: { id },
-      relations: ['valueStream', 'platform', 'currency'],
+      relations: ['agent', 'platform', 'currency'],
     });
     if (!agreement) throw new NotFoundException('VAM agreement not found');
     return agreement;
@@ -302,10 +300,10 @@ export class VamAgreementsService {
       horizonMonths: agreement.horizonMonths,
       startedAt: agreement.startedAt ? agreement.startedAt.toISOString() : null,
       endedAt: agreement.endedAt ? agreement.endedAt.toISOString() : null,
-      valueStream: {
-        id: agreement.valueStream.id,
-        code: agreement.valueStream.code,
-        name: agreement.valueStream.name,
+      agent: {
+        id: agreement.agent.id,
+        name: agreement.agent.name,
+        type: agreement.agent.type,
       },
       platform: {
         id: agreement.platform.id,

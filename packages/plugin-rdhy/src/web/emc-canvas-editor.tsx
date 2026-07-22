@@ -40,8 +40,8 @@ interface EditableCost {
 
 interface EditableNode {
   uid: string;
-  valueStreamId: string;
-  valueStreamLabel: string;
+  agentId: string;
+  agentLabel: string;
   tier: (typeof EMC_NODE_TIERS)[number];
   isLeading: boolean;
   profitSharePercent: string;
@@ -55,35 +55,17 @@ interface EditableCanvas {
   terminationConditions: EditableText[];
 }
 
-interface ValueStreamTreeNode {
+interface AgentOption {
   id: string;
-  code: string;
-  name: string;
-  children?: ValueStreamTreeNode[];
-}
-
-interface ValueStreamOption {
-  id: string;
-  code: string;
   label: string;
-}
-
-function flattenTree(nodes: ValueStreamTreeNode[], path: string[] = []): ValueStreamOption[] {
-  return nodes.flatMap((node) => {
-    const label = [...path, node.name].join(' / ');
-    return [
-      { id: node.id, code: node.code, label },
-      ...flattenTree(node.children ?? [], [...path, node.name]),
-    ];
-  });
 }
 
 function canvasToEditable(canvas: RdhyEmcCanvasResponse): EditableCanvas {
   return {
     nodes: canvas.nodes.map((n) => ({
       uid: uid(),
-      valueStreamId: n.valueStream.id,
-      valueStreamLabel: n.valueStream.name,
+      agentId: n.agent.id,
+      agentLabel: n.agent.name,
       tier: n.tier,
       isLeading: n.isLeading,
       profitSharePercent: n.profitSharePercent != null ? String(Number(n.profitSharePercent)) : '',
@@ -103,7 +85,7 @@ function canvasToEditable(canvas: RdhyEmcCanvasResponse): EditableCanvas {
 function toPayload(canvas: EditableCanvas): EmcCanvasInput {
   return {
     nodes: canvas.nodes.map((n) => ({
-      valueStreamId: n.valueStreamId,
+      agentId: n.agentId,
       tier: n.tier,
       isLeading: n.isLeading,
       profitSharePercent:
@@ -208,8 +190,8 @@ export function EmcCanvasEditor({
   const tr = useTranslations('plugin.rdhy.emc.tiers');
   const [canvas, setCanvas] = useState<EditableCanvas>(() => canvasToEditable(document.canvas));
   const initialSnapshot = useRef<string>(JSON.stringify(canvas));
-  const [valueStreams, setValueStreams] = useState<ValueStreamOption[]>([]);
-  const [valueStreamQuery, setValueStreamQuery] = useState('');
+  const [agents, setAgents] = useState<AgentOption[]>([]);
+  const [agentQuery, setAgentQuery] = useState('');
 
   const dirty = JSON.stringify(canvas) !== initialSnapshot.current;
   useEffect(() => {
@@ -218,8 +200,8 @@ export function EmcCanvasEditor({
 
   useEffect(() => {
     api
-      .get<ValueStreamTreeNode[]>('/value-streams/tree')
-      .then((tree) => setValueStreams(flattenTree(tree)))
+      .get<{ data: Array<{ id: string; name: string }> }>('/agents?limit=1000')
+      .then((res) => setAgents(res.data.map((a) => ({ id: a.id, label: a.name }))))
       .catch(() => undefined);
   }, []);
 
@@ -233,15 +215,15 @@ export function EmcCanvasEditor({
   const setLeading = (index: number) =>
     patch({ nodes: canvas.nodes.map((n, i) => ({ ...n, isLeading: i === index })) });
 
-  const addNode = (option: ValueStreamOption) => {
-    setValueStreamQuery('');
+  const addNode = (option: AgentOption) => {
+    setAgentQuery('');
     patch({
       nodes: [
         ...canvas.nodes,
         {
           uid: uid(),
-          valueStreamId: option.id,
-          valueStreamLabel: option.label,
+          agentId: option.id,
+          agentLabel: option.label,
           tier: 'STRATEGIC',
           isLeading: canvas.nodes.length === 0,
           profitSharePercent: '',
@@ -253,15 +235,15 @@ export function EmcCanvasEditor({
     });
   };
 
-  const valueStreamCandidates = useMemo(() => {
-    const q = valueStreamQuery.trim().toLowerCase();
+  const agentCandidates = useMemo(() => {
+    const q = agentQuery.trim().toLowerCase();
     if (!q) return [];
-    const used = new Set(canvas.nodes.map((n) => n.valueStreamId));
-    return valueStreams
-      .filter((v) => !used.has(v.id))
-      .filter((v) => v.label.toLowerCase().includes(q) || v.code.toLowerCase().includes(q))
+    const used = new Set(canvas.nodes.map((n) => n.agentId));
+    return agents
+      .filter((a) => !used.has(a.id))
+      .filter((a) => a.label.toLowerCase().includes(q))
       .slice(0, 8);
-  }, [valueStreams, valueStreamQuery, canvas.nodes]);
+  }, [agents, agentQuery, canvas.nodes]);
 
   const reinvestment = document.reinvestmentPercent ? Number(document.reinvestmentPercent) : 0;
   const shareSum = canvas.nodes.reduce((sum, n) => sum + shareOf(n), 0);
@@ -303,7 +285,7 @@ export function EmcCanvasEditor({
             {canvas.nodes.map((node, ni) => (
               <SortableRow key={node.uid} id={node.uid} className="rounded-md border p-3">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{node.valueStreamLabel}</span>
+                  <span className="font-medium">{node.agentLabel}</span>
                   <Select
                     value={node.tier}
                     onValueChange={(tier) =>
@@ -481,21 +463,20 @@ export function EmcCanvasEditor({
           <Label htmlFor="emc-add-node">{t('addNode')}</Label>
           <Input
             id="emc-add-node"
-            value={valueStreamQuery}
-            onChange={(e) => setValueStreamQuery(e.target.value)}
+            value={agentQuery}
+            onChange={(e) => setAgentQuery(e.target.value)}
             placeholder={t('addNodePlaceholder')}
           />
-          {valueStreamCandidates.length > 0 && (
+          {agentCandidates.length > 0 && (
             <ul className="divide-y rounded-md border">
-              {valueStreamCandidates.map((option) => (
+              {agentCandidates.map((option) => (
                 <li key={option.id}>
                   <button
                     type="button"
                     className="w-full p-2 text-left text-sm hover:bg-accent"
                     onClick={() => addNode(option)}
                   >
-                    {option.label}{' '}
-                    <span className="font-mono text-xs text-muted-foreground">({option.code})</span>
+                    {option.label}
                   </button>
                 </li>
               ))}

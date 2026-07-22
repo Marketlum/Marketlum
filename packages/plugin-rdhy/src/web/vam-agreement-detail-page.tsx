@@ -262,7 +262,7 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
         )}
       </div>
       <p className="mb-4 md:mb-6 text-sm text-muted-foreground">
-        {document.valueStream.name} · {t('sponsoredBy')} {document.platform.name} ·{' '}
+        {document.agent.name} · {t('sponsoredBy')} {document.platform.name} ·{' '}
         {tl('months', { count: document.horizonMonths })}
         {currencyCode ? ` · ${currencyCode.toUpperCase()}` : ''}
       </p>

@@ -10,7 +10,7 @@ import {
   createAuthenticatedUser,
 } from '../../setup';
 import { expectEventWithId } from '../../events/event-steps';
-import { createPlatform, createValueStream } from './rdhy-helpers';
+import { createPlatform, createRdhyAgent } from './rdhy-helpers';
 import {
   VamCtx,
   makeVamCtx,
@@ -51,18 +51,18 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^a value stream exists with code "(.*)" and name "(.*)"$/,
-      async (code: string, name: string) => {
-        await createValueStream(ctx, code, name);
+      /^an agent exists with name "(.*)"$/,
+      async (name: string) => {
+        await createRdhyAgent(ctx, name);
       },
     );
   }
 
   function registerAgreementExists(step: StepFn) {
     step(
-      /^a VAM agreement titled "(.*)" exists for the value stream "(.*)" sponsored by "(.*)"$/,
-      async (title: string, valueStreamCode: string, platformCode: string) => {
-        const res = await createVamAgreement(ctx, title, valueStreamCode, platformCode);
+      /^a VAM agreement titled "(.*)" exists for the agent "(.*)" sponsored by "(.*)"$/,
+      async (title: string, agentName: string, platformCode: string) => {
+        const res = await createVamAgreement(ctx, title, agentName, platformCode);
         expect(res.status).toBe(201);
       },
     );
@@ -83,12 +83,12 @@ defineFeature(feature, (test) => {
 
   function registerCreate(when: StepFn) {
     when(
-      /^I create a VAM agreement titled "(.*)" for the value stream "(.*)" sponsored by "(.*)" over (\d+) months$/,
-      async (title: string, valueStreamCode: string, platformCode: string, months: string) => {
+      /^I create a VAM agreement titled "(.*)" for the agent "(.*)" sponsored by "(.*)" over (\d+) months$/,
+      async (title: string, agentName: string, platformCode: string, months: string) => {
         ctx.response = await createVamAgreement(
           ctx,
           title,
-          valueStreamCode,
+          agentName,
           platformCode,
           Number(months),
         );
@@ -116,7 +116,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Creating a VAM agreement for an unknown value stream fails', ({
+  test('Creating a VAM agreement for an unknown agent fails', ({
     given,
     and,
     when,
@@ -124,7 +124,7 @@ defineFeature(feature, (test) => {
   }) => {
     registerBackground(given, and);
     when(
-      /^I create a VAM agreement titled "(.*)" for an unknown value stream sponsored by "(.*)" over (\d+) months$/,
+      /^I create a VAM agreement titled "(.*)" for an unknown agent sponsored by "(.*)" over (\d+) months$/,
       async (title: string, platformCode: string, months: string) => {
         ctx.response = await request(getApp().getHttpServer())
           .post('/plugins/rdhy/vam-agreements')
@@ -132,7 +132,7 @@ defineFeature(feature, (test) => {
           .set('X-CSRF-Protection', '1')
           .send({
             title,
-            valueStreamId: randomUUID(),
+            agentId: randomUUID(),
             platformId: ctx.platforms.get(platformCode),
             horizonMonths: Number(months),
           });
@@ -149,15 +149,15 @@ defineFeature(feature, (test) => {
   }) => {
     registerBackground(given, and);
     when(
-      /^I create a VAM agreement titled "(.*)" for the value stream "(.*)" sponsored by an unknown platform over (\d+) months$/,
-      async (title: string, valueStreamCode: string, months: string) => {
+      /^I create a VAM agreement titled "(.*)" for the agent "(.*)" sponsored by an unknown platform over (\d+) months$/,
+      async (title: string, agentName: string, months: string) => {
         ctx.response = await request(getApp().getHttpServer())
           .post('/plugins/rdhy/vam-agreements')
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1')
           .send({
             title,
-            valueStreamId: ctx.valueStreams.get(valueStreamCode),
+            agentId: ctx.agents.get(agentName),
             platformId: randomUUID(),
             horizonMonths: Number(months),
           });
@@ -184,11 +184,11 @@ defineFeature(feature, (test) => {
     registerStatus(then);
     const listContains = (step: StepFn) =>
       step(
-        /^the VAM agreement list contains "(.*)" with value stream "(.*)" and platform "(.*)"$/,
-        (title: string, valueStreamCode: string, platformCode: string) => {
+        /^the VAM agreement list contains "(.*)" with agent "(.*)" and platform "(.*)"$/,
+        (title: string, agentName: string, platformCode: string) => {
           const entry = ctx.response.body.find((a: { title: string }) => a.title === title);
           expect(entry).toBeDefined();
-          expect(entry.valueStream.code).toBe(valueStreamCode);
+          expect(entry.agent.name).toBe(agentName);
           expect(entry.platform.code).toBe(platformCode);
         },
       );

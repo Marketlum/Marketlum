@@ -13,8 +13,8 @@ import {
   RdhyCtx,
   makeRdhyCtx,
   createPlatform,
-  createValueStream,
-  assignValueStream,
+  createRdhyAgent,
+  assignAgent,
   listPlatforms,
   expectUnassigned,
 } from './rdhy-helpers';
@@ -56,20 +56,20 @@ defineFeature(feature, (test) => {
     );
   }
 
-  function registerValueStreamExists(step: StepFn) {
+  function registerAgentExists(step: StepFn) {
     step(
-      /^a value stream exists with code "(.*)" and name "(.*)"$/,
-      async (code: string, name: string) => {
-        await createValueStream(ctx, code, name);
+      /^an agent exists with name "(.*)"$/,
+      async (name: string) => {
+        await createRdhyAgent(ctx, name);
       },
     );
   }
 
   function registerAssigned(step: StepFn) {
     step(
-      /^the value stream "(.*)" is assigned to the RDHY platform "(.*)"$/,
-      async (valueStreamCode: string, platformCode: string) => {
-        const res = await assignValueStream(ctx, valueStreamCode, platformCode);
+      /^the agent "(.*)" is assigned to the RDHY platform "(.*)"$/,
+      async (agentName: string, platformCode: string) => {
+        const res = await assignAgent(ctx, agentName, platformCode);
         expect(res.status).toBe(200);
       },
     );
@@ -134,7 +134,7 @@ defineFeature(feature, (test) => {
     registerBackground(given);
     registerPlatformExists(given);
     registerPlatformExists(and);
-    registerValueStreamExists(and);
+    registerAgentExists(and);
     registerAssigned(and);
     when(/^I list RDHY platforms$/, async () => {
       ctx.response = await listPlatforms(ctx);
@@ -167,10 +167,10 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Platform detail includes member value stream summaries', ({ given, when, then, and }) => {
+  test('Platform detail includes member agent summaries', ({ given, when, then, and }) => {
     registerBackground(given);
     registerPlatformExists(given);
-    registerValueStreamExists(and);
+    registerAgentExists(and);
     registerAssigned(and);
     when(/^I get the RDHY platform "(.*)"$/, async (code: string) => {
       ctx.response = await request(getApp().getHttpServer())
@@ -178,12 +178,11 @@ defineFeature(feature, (test) => {
         .set('Cookie', [ctx.authCookie]);
     });
     registerStatus(then);
-    and(/^the RDHY platform detail lists the member value stream "(.*)"$/, (code: string) => {
-      const member = ctx.response.body.members.find((m: { code: string }) => m.code === code);
+    and(/^the RDHY platform detail lists the member agent "(.*)"$/, (name: string) => {
+      const member = ctx.response.body.members.find((m: { name: string }) => m.name === name);
       expect(member).toBeDefined();
-      expect(member.id).toBe(ctx.valueStreams.get(code));
-      expect(typeof member.name).toBe('string');
-      expect(typeof member.level).toBe('number');
+      expect(member.id).toBe(ctx.agents.get(name));
+      expect(typeof member.type).toBe('string');
     });
   });
 
@@ -224,10 +223,10 @@ defineFeature(feature, (test) => {
     registerResponseCodeAndName(and);
   });
 
-  test('Deleting a platform detaches its member value streams', ({ given, when, then, and }) => {
+  test('Deleting a platform detaches its member agents', ({ given, when, then, and }) => {
     registerBackground(given);
     registerPlatformExists(given);
-    registerValueStreamExists(and);
+    registerAgentExists(and);
     registerAssigned(and);
     when(/^I delete the RDHY platform "(.*)"$/, async (code: string) => {
       ctx.response = await request(getApp().getHttpServer())
@@ -236,7 +235,7 @@ defineFeature(feature, (test) => {
         .set('X-CSRF-Protection', '1');
     });
     registerStatus(then);
-    and(/^the value stream "(.*)" is not assigned to any RDHY platform$/, async (code: string) => {
+    and(/^the agent "(.*)" is not assigned to any RDHY platform$/, async (code: string) => {
       await expectUnassigned(ctx, code);
     });
     and(/^the event "(.*)" was published with the entity's id$/, (eventName: string) => {

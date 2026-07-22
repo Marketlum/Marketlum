@@ -13,7 +13,7 @@ function server() {
 }
 
 interface EmcCanvasNode {
-  valueStreamId: string | undefined;
+  agentId: string | undefined;
   tier: 'STRATEGIC' | 'TACTICAL';
   isLeading: boolean;
   profitSharePercent: number | null;
@@ -24,11 +24,11 @@ interface EmcCanvasNode {
 
 function node(
   ctx: EmcCtx,
-  valueStreamCode: string,
+  agentName: string,
   overrides: Partial<EmcCanvasNode> = {},
 ): EmcCanvasNode {
   return {
-    valueStreamId: ctx.valueStreams.get(valueStreamCode),
+    agentId: ctx.agents.get(agentName),
     tier: 'STRATEGIC',
     isLeading: false,
     profitSharePercent: null,
@@ -44,7 +44,7 @@ function node(
 export function sampleEmcCanvas(ctx: EmcCtx) {
   return {
     nodes: [
-      node(ctx, 'web3_hub_stream', {
+      node(ctx, 'Web3 Consulting Hub', {
         isLeading: true,
         profitSharePercent: 10,
         services: ['Defining the DAO protocol', 'Selling the service to clients'],
@@ -54,13 +54,13 @@ export function sampleEmcCanvas(ctx: EmcCtx) {
           { label: 'Operating budget', amount: 150000 },
         ],
       }),
-      node(ctx, 'web3_dev_stream', {
+      node(ctx, 'Web3 Development', {
         profitSharePercent: 7,
         services: ['Implementing the DAO code following the given specs'],
         goals: ['Code online within 90 days'],
         costEntries: [{ label: '3 FTEs', amount: 210000, headcount: 3 }],
       }),
-      node(ctx, 'legal_stream', {
+      node(ctx, 'Legal Counseling', {
         tier: 'TACTICAL',
         services: ['Drafting the agreements for all the parties in the EMC'],
         goals: ['Contracts ready within 30 days'],
@@ -78,7 +78,7 @@ export function sampleEmcCanvas(ctx: EmcCtx) {
 export function minimalEmcCanvas(ctx: EmcCtx) {
   return {
     nodes: [
-      node(ctx, 'web3_hub_stream', {
+      node(ctx, 'Web3 Consulting Hub', {
         isLeading: true,
         services: ['Defining the DAO protocol'],
       }),

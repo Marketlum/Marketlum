@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
-import { Agreement, Value, ValueStream } from '@marketlum/core';
+import { Agent, Agreement, Value } from '@marketlum/core';
 import { RdhyPlatform } from '../platforms/rdhy-platform.entity';
 import { RdhyEmcAgreement } from './rdhy-emc-agreement.entity';
 import { RdhyEmcNode } from './rdhy-emc-node.entity';
@@ -39,8 +39,8 @@ export class EmcAgreementsService {
     private readonly costRepository: Repository<RdhyEmcCostEntry>,
     @InjectRepository(RdhyEmcTerminationCondition)
     private readonly terminationRepository: Repository<RdhyEmcTerminationCondition>,
-    @InjectRepository(ValueStream)
-    private readonly valueStreamRepository: Repository<ValueStream>,
+    @InjectRepository(Agent)
+    private readonly coreAgentRepository: Repository<Agent>,
     @InjectRepository(RdhyPlatform)
     private readonly platformRepository: Repository<RdhyPlatform>,
     @InjectRepository(Value)
@@ -120,9 +120,9 @@ export class EmcAgreementsService {
     const agreement = await this.requireAgreement(id);
     this.requireStatus(agreement, 'DRAFT', 'Only draft EMC agreements can have their canvas edited');
 
-    const valueStreamIds = canvas.nodes.map((n) => n.valueStreamId);
-    if (new Set(valueStreamIds).size !== valueStreamIds.length) {
-      throw new BadRequestException('Each value stream can appear as a micro-node only once');
+    const agentIds = canvas.nodes.map((n) => n.agentId);
+    if (new Set(agentIds).size !== agentIds.length) {
+      throw new BadRequestException('Each agent can appear as a micro-node only once');
     }
     if (canvas.nodes.length > 0) {
       const leading = canvas.nodes.filter((n) => n.isLeading);
@@ -148,10 +148,10 @@ export class EmcAgreementsService {
         `Profit shares (${shareSum}%) plus the reinvestment share (${reinvestment}%) exceed 100%`,
       );
     }
-    if (valueStreamIds.length > 0) {
-      const found = await this.valueStreamRepository.find({ where: { id: In(valueStreamIds) } });
-      if (found.length !== valueStreamIds.length) {
-        throw new NotFoundException('Value stream not found');
+    if (agentIds.length > 0) {
+      const found = await this.coreAgentRepository.find({ where: { id: In(agentIds) } });
+      if (found.length !== agentIds.length) {
+        throw new NotFoundException('Agent not found');
       }
     }
 
@@ -164,7 +164,7 @@ export class EmcAgreementsService {
         const savedNode = await manager.save(
           manager.create(RdhyEmcNode, {
             agreementId: id,
-            valueStreamId: node.valueStreamId,
+            agentId: node.agentId,
             tier: node.tier,
             isLeading: node.isLeading,
             profitSharePercent:
@@ -351,7 +351,7 @@ export class EmcAgreementsService {
   private async toDocument(agreement: RdhyEmcAgreement): Promise<RdhyEmcAgreementDocument> {
     const nodes = await this.nodeRepository.find({
       where: { agreementId: agreement.id },
-      relations: ['valueStream'],
+      relations: ['agent'],
       order: { position: 'ASC' },
     });
     const nodeIds = nodes.map((n) => n.id);
@@ -375,10 +375,10 @@ export class EmcAgreementsService {
       canvas: {
         nodes: nodes.map((n) => ({
           id: n.id,
-          valueStream: {
-            id: n.valueStream.id,
-            code: n.valueStream.code,
-            name: n.valueStream.name,
+          agent: {
+            id: n.agent.id,
+            name: n.agent.name,
+            type: n.agent.type,
           },
           tier: n.tier,
           isLeading: n.isLeading,

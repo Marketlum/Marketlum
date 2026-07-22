@@ -31,16 +31,8 @@ import type { RdhyPlatformResponse } from '../shared/schemas';
 import { VAM_STATUSES, type RdhyVamAgreementSummary } from '../shared/vam-schemas';
 import { VamStatusBadge } from './vam-status-badge';
 
-interface ValueStreamTreeNode {
+interface AgentOption {
   id: string;
-  code: string;
-  name: string;
-  children?: ValueStreamTreeNode[];
-}
-
-interface ValueStreamOption {
-  id: string;
-  code: string;
   label: string;
 }
 
@@ -48,16 +40,6 @@ interface CurrencyOption {
   id: string;
   code: string;
   name: string;
-}
-
-function flattenTree(nodes: ValueStreamTreeNode[], path: string[] = []): ValueStreamOption[] {
-  return nodes.flatMap((node) => {
-    const label = [...path, node.name].join(' / ');
-    return [
-      { id: node.id, code: node.code, label },
-      ...flattenTree(node.children ?? [], [...path, node.name]),
-    ];
-  });
 }
 
 const ALL = '__all__';
@@ -71,15 +53,15 @@ export function VamAgreementsListPage() {
   const [agreements, setAgreements] = useState<RdhyVamAgreementSummary[]>([]);
   const [platforms, setPlatforms] = useState<RdhyPlatformResponse[]>([]);
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
-  const [valueStreams, setValueStreams] = useState<ValueStreamOption[]>([]);
+  const [agentOptions, setAgentOptions] = useState<AgentOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(ALL);
   const [platformFilter, setPlatformFilter] = useState(ALL);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [valueStreamQuery, setValueStreamQuery] = useState('');
-  const [valueStreamId, setValueStreamId] = useState('');
+  const [agentQuery, setAgentQuery] = useState('');
+  const [agentId, setAgentId] = useState('');
   const [platformId, setPlatformId] = useState('');
   const [horizon, setHorizon] = useState('12');
   const [currencyId, setCurrencyId] = useState(NONE);
@@ -98,8 +80,8 @@ export function VamAgreementsListPage() {
       load(),
       api.get<RdhyPlatformResponse[]>('/plugins/rdhy/platforms').then(setPlatforms),
       api
-        .get<ValueStreamTreeNode[]>('/value-streams/tree')
-        .then((tree) => setValueStreams(flattenTree(tree))),
+        .get<{ data: Array<{ id: string; name: string }> }>('/agents?limit=1000')
+        .then((res) => setAgentOptions(res.data.map((a) => ({ id: a.id, label: a.name })))),
       api
         .get<{ data: CurrencyOption[] }>('/values?type=currency&limit=100')
         .then((r) => setCurrencies(r.data)),
@@ -116,15 +98,13 @@ export function VamAgreementsListPage() {
     [agreements, statusFilter, platformFilter],
   );
 
-  const valueStreamCandidates = useMemo(() => {
-    const q = valueStreamQuery.trim().toLowerCase();
+  const agentCandidates = useMemo(() => {
+    const q = agentQuery.trim().toLowerCase();
     if (!q) return [];
-    return valueStreams
-      .filter((v) => v.label.toLowerCase().includes(q) || v.code.toLowerCase().includes(q))
-      .slice(0, 8);
-  }, [valueStreams, valueStreamQuery]);
+    return agentOptions.filter((a) => a.label.toLowerCase().includes(q)).slice(0, 8);
+  }, [agentOptions, agentQuery]);
 
-  const selectedValueStream = valueStreams.find((v) => v.id === valueStreamId);
+  const selectedAgent = agentOptions.find((a) => a.id === agentId);
 
   const create = async () => {
     setSaving(true);
@@ -132,7 +112,7 @@ export function VamAgreementsListPage() {
     try {
       const created = await api.post<RdhyVamAgreementSummary>('/plugins/rdhy/vam-agreements', {
         title,
-        valueStreamId,
+        agentId,
         platformId,
         horizonMonths: Number(horizon),
         currencyId: currencyId === NONE ? null : currencyId,
@@ -193,7 +173,7 @@ export function VamAgreementsListPage() {
           <TableHeader>
             <TableRow>
               <TableHead>{t('list.titleCol')}</TableHead>
-              <TableHead>{t('list.valueStream')}</TableHead>
+              <TableHead>{t('list.agent')}</TableHead>
               <TableHead>{t('list.platform')}</TableHead>
               <TableHead>{t('list.status')}</TableHead>
               <TableHead>{t('list.horizon')}</TableHead>
@@ -204,7 +184,7 @@ export function VamAgreementsListPage() {
             {filtered.map((agreement) => (
               <TableRow key={agreement.id}>
                 <TableCell>{agreement.title}</TableCell>
-                <TableCell>{agreement.valueStream.name}</TableCell>
+                <TableCell>{agreement.agent.name}</TableCell>
                 <TableCell>{agreement.platform.name}</TableCell>
                 <TableCell>
                   <VamStatusBadge status={agreement.status} />
@@ -232,38 +212,35 @@ export function VamAgreementsListPage() {
               <Input id="vam-title" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="vam-vs">{t('create.valueStream')}</Label>
-              {selectedValueStream ? (
+              <Label htmlFor="vam-agent">{t('create.agent')}</Label>
+              {selectedAgent ? (
                 <div className="flex items-center justify-between rounded-md border p-2 text-sm">
-                  <span>{selectedValueStream.label}</span>
-                  <Button variant="ghost" size="sm" onClick={() => setValueStreamId('')}>
+                  <span>{selectedAgent.label}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setAgentId('')}>
                     ×
                   </Button>
                 </div>
               ) : (
                 <>
                   <Input
-                    id="vam-vs"
-                    value={valueStreamQuery}
-                    onChange={(e) => setValueStreamQuery(e.target.value)}
-                    placeholder={t('create.valueStreamPlaceholder')}
+                    id="vam-agent"
+                    value={agentQuery}
+                    onChange={(e) => setAgentQuery(e.target.value)}
+                    placeholder={t('create.agentPlaceholder')}
                   />
-                  {valueStreamCandidates.length > 0 && (
+                  {agentCandidates.length > 0 && (
                     <ul className="divide-y rounded-md border">
-                      {valueStreamCandidates.map((option) => (
+                      {agentCandidates.map((option) => (
                         <li key={option.id}>
                           <button
                             type="button"
                             className="w-full p-2 text-left text-sm hover:bg-accent"
                             onClick={() => {
-                              setValueStreamId(option.id);
-                              setValueStreamQuery('');
+                              setAgentId(option.id);
+                              setAgentQuery('');
                             }}
                           >
-                            {option.label}{' '}
-                            <span className="font-mono text-xs text-muted-foreground">
-                              ({option.code})
-                            </span>
+                            {option.label}
                           </button>
                         </li>
                       ))}
@@ -322,7 +299,7 @@ export function VamAgreementsListPage() {
             </Button>
             <Button
               onClick={create}
-              disabled={saving || !title || !valueStreamId || !platformId || !Number(horizon)}
+              disabled={saving || !title || !agentId || !platformId || !Number(horizon)}
             >
               {t('create.save')}
             </Button>

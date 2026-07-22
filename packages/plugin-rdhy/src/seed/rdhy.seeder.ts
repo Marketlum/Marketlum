@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
-import { Value, ValueStream } from '@marketlum/core';
+import { Agent, Value } from '@marketlum/core';
 import { RdhyPlatform } from '../platforms/rdhy-platform.entity';
-import { RdhyPlatformValueStream } from '../platforms/rdhy-platform-value-stream.entity';
+import { RdhyPlatformAgent } from '../platforms/rdhy-platform-agent.entity';
 import { RdhyVamAgreement } from '../vam/rdhy-vam-agreement.entity';
 import { RdhyVamMilestone } from '../vam/rdhy-vam-milestone.entity';
 import { RdhyVamItem } from '../vam/rdhy-vam-item.entity';
@@ -30,7 +30,7 @@ const PLATFORMS: Array<Pick<RdhyPlatform, 'code' | 'name' | 'description'>> = [
   },
 ];
 
-/** How many existing value streams get assigned across the sample platforms. */
+/** How many existing agents get assigned across the sample platforms. */
 const ASSIGNMENT_TARGET = 4;
 
 const VAM_TITLE = 'Web 3 Consulting HUB';
@@ -120,9 +120,9 @@ const VAM_TERMINATION_CONDITIONS = [
 const EMC_TITLE = 'DAO Infrastructure EMC';
 
 /** The sample EMC setting and micro-nodes, adapted from the source EMC Canvas
- * PDF (spec 015). Nodes are anchored to whichever value streams exist, in
- * candidate order: leading strategic hub, strategic development, tactical
- * legal counseling. */
+ * PDF (spec 015). Nodes are anchored to whichever agents exist, in candidate
+ * order: leading strategic hub, strategic development, tactical legal
+ * counseling. */
 const EMC_SETTING = {
   collaborativeScenario:
     'Proposing, selling and supporting a market leading DAO technological infrastructure for corporate clients',
@@ -196,12 +196,12 @@ const EMC_TERMINATION_CONDITIONS = [
   'A micro-node exits the EMC when its leading goals are repeatedly missed and no remediation is agreed by consent',
 ];
 
-/** Idempotent: platforms are upserted by code, already-assigned streams are
- * skipped, and VAM agreements are upserted by title + value stream. */
+/** Idempotent: platforms are upserted by code, already-assigned agents are
+ * skipped, and VAM agreements are upserted by title + agent. */
 export async function seedRdhy(dataSource: DataSource): Promise<void> {
   const platformRepository = dataSource.getRepository(RdhyPlatform);
-  const linkRepository = dataSource.getRepository(RdhyPlatformValueStream);
-  const valueStreamRepository = dataSource.getRepository(ValueStream);
+  const linkRepository = dataSource.getRepository(RdhyPlatformAgent);
+  const coreAgentRepository = dataSource.getRepository(Agent);
 
   const platforms: RdhyPlatform[] = [];
   for (const definition of PLATFORMS) {
@@ -212,16 +212,16 @@ export async function seedRdhy(dataSource: DataSource): Promise<void> {
     platforms.push(platform);
   }
 
-  const candidates = await valueStreamRepository.find({
-    order: { code: 'ASC' },
+  const candidates = await coreAgentRepository.find({
+    order: { name: 'ASC' },
     take: ASSIGNMENT_TARGET,
   });
-  for (const [index, valueStream] of candidates.entries()) {
-    const existing = await linkRepository.findOne({ where: { valueStreamId: valueStream.id } });
+  for (const [index, agent] of candidates.entries()) {
+    const existing = await linkRepository.findOne({ where: { agentId: agent.id } });
     if (existing) continue;
     await linkRepository.save(
       linkRepository.create({
-        valueStreamId: valueStream.id,
+        agentId: agent.id,
         platformId: platforms[index % platforms.length].id,
       }),
     );
@@ -234,9 +234,9 @@ export async function seedRdhy(dataSource: DataSource): Promise<void> {
 async function seedEmcAgreement(
   dataSource: DataSource,
   sponsor: RdhyPlatform,
-  valueStreams: ValueStream[],
+  agents: Agent[],
 ): Promise<void> {
-  if (valueStreams.length === 0) return;
+  if (agents.length === 0) return;
 
   const agreementRepository = dataSource.getRepository(RdhyEmcAgreement);
   const existing = await agreementRepository.findOne({ where: { title: EMC_TITLE } });
@@ -259,12 +259,12 @@ async function seedEmcAgreement(
   const goalRepository = dataSource.getRepository(RdhyEmcLeadingGoal);
   const costRepository = dataSource.getRepository(RdhyEmcCostEntry);
   for (const [ni, definition] of EMC_NODES.entries()) {
-    const valueStream = valueStreams[ni];
-    if (!valueStream) break;
+    const agent = agents[ni];
+    if (!agent) break;
     const node = await nodeRepository.save(
       nodeRepository.create({
         agreementId: agreement.id,
-        valueStreamId: valueStream.id,
+        agentId: agent.id,
         tier: definition.tier,
         isLeading: definition.isLeading,
         profitSharePercent: definition.profitSharePercent,
@@ -303,9 +303,9 @@ async function seedEmcAgreement(
 async function seedVamAgreements(
   dataSource: DataSource,
   sponsor: RdhyPlatform,
-  valueStream: ValueStream | null,
+  agent: Agent | null,
 ): Promise<void> {
-  if (!valueStream) return;
+  if (!agent) return;
 
   const agreementRepository = dataSource.getRepository(RdhyVamAgreement);
   const currency = await dataSource
@@ -313,13 +313,13 @@ async function seedVamAgreements(
     .findOne({ where: { code: 'usd' } });
 
   let active = await agreementRepository.findOne({
-    where: { title: VAM_TITLE, valueStreamId: valueStream.id },
+    where: { title: VAM_TITLE, agentId: agent.id },
   });
   if (!active) {
     active = await agreementRepository.save(
       agreementRepository.create({
         title: VAM_TITLE,
-        valueStreamId: valueStream.id,
+        agentId: agent.id,
         platformId: sponsor.id,
         horizonMonths: 12,
         currencyId: currency?.id ?? null,
@@ -388,13 +388,13 @@ async function seedVamAgreements(
   }
 
   const draft = await agreementRepository.findOne({
-    where: { title: VAM_DRAFT_TITLE, valueStreamId: valueStream.id },
+    where: { title: VAM_DRAFT_TITLE, agentId: agent.id },
   });
   if (!draft) {
     await agreementRepository.save(
       agreementRepository.create({
         title: VAM_DRAFT_TITLE,
-        valueStreamId: valueStream.id,
+        agentId: agent.id,
         platformId: sponsor.id,
         horizonMonths: 12,
         currencyId: currency?.id ?? null,

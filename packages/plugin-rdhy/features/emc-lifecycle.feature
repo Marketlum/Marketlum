@@ -2,7 +2,7 @@ Feature: RDHY EMC agreement lifecycle
 
   EMC agreements follow a guarded state machine: DRAFT -> ACTIVE ->
   COMPLETED | TERMINATED. Activation stamps the start date. Unlike VAM
-  agreements, no exclusivity is enforced: a value stream may participate
+  agreements, no exclusivity is enforced: an agent may participate
   in several active EMCs at once — that is the point of ecosystem
   micro-communities. Completion and termination stamp the end date;
   termination must cite one of the agreement's own termination conditions
@@ -12,9 +12,9 @@ Feature: RDHY EMC agreement lifecycle
   Background:
     Given I am authenticated as "admin@marketlum.com"
     And an RDHY platform exists with code "web3_industry_platform" and name "Web3 Industry Platform"
-    And a value stream exists with code "web3_hub_stream" and name "Web3 Consulting Hub"
-    And a value stream exists with code "web3_dev_stream" and name "Web3 Development"
-    And a value stream exists with code "legal_stream" and name "Legal Counseling"
+    And an agent exists with name "Web3 Consulting Hub"
+    And an agent exists with name "Web3 Development"
+    And an agent exists with name "Legal Counseling"
     And an EMC agreement titled "DAO Infrastructure EMC" exists sponsored by "web3_industry_platform"
 
   Scenario: Activating a draft
@@ -22,7 +22,7 @@ Feature: RDHY EMC agreement lifecycle
     Then the response status should be 200
     And the EMC agreement response has status "ACTIVE" and a start date
 
-  Scenario: A value stream may participate in several active EMCs
+  Scenario: An agent may participate in several active EMCs
     Given the canvas of the EMC agreement "DAO Infrastructure EMC" is replaced with the sample canvas
     And the EMC agreement "DAO Infrastructure EMC" is activated
     And an EMC agreement titled "Parallel EMC" exists sponsored by "web3_industry_platform"

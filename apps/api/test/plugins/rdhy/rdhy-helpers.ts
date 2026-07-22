@@ -4,14 +4,14 @@ import { getApp } from '../../setup';
 export interface RdhyCtx {
   authCookie: string;
   platforms: Map<string, string>; // platform code -> id
-  valueStreams: Map<string, string>; // value stream code -> id
+  agents: Map<string, string>; // agent name -> id
   response: request.Response;
 }
 
 export const makeRdhyCtx = (): RdhyCtx => ({
   authCookie: '',
   platforms: new Map(),
-  valueStreams: new Map(),
+  agents: new Map(),
   response: undefined as never,
 });
 
@@ -29,23 +29,23 @@ export async function createPlatform(ctx: RdhyCtx, code: string, name: string): 
   ctx.platforms.set(code, res.body.id);
 }
 
-export async function createValueStream(ctx: RdhyCtx, code: string, name: string): Promise<void> {
+export async function createRdhyAgent(ctx: RdhyCtx, name: string): Promise<void> {
   const res = await request(server())
-    .post('/value-streams')
+    .post('/agents')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
-    .send({ code, name });
+    .send({ name, type: 'organization' });
   expect(res.status).toBe(201);
-  ctx.valueStreams.set(code, res.body.id);
+  ctx.agents.set(name, res.body.id);
 }
 
-export async function assignValueStream(
+export async function assignAgent(
   ctx: RdhyCtx,
-  valueStreamCode: string,
+  agentName: string,
   platformCode: string,
 ): Promise<request.Response> {
   return request(server())
-    .put(`/plugins/rdhy/value-streams/${ctx.valueStreams.get(valueStreamCode)}/platform`)
+    .put(`/plugins/rdhy/agents/${ctx.agents.get(agentName)}/platform`)
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ platformId: ctx.platforms.get(platformCode) });
@@ -53,10 +53,10 @@ export async function assignValueStream(
 
 export async function lookupPlatform(
   ctx: RdhyCtx,
-  valueStreamCode: string,
+  agentName: string,
 ): Promise<request.Response> {
   return request(server())
-    .get(`/plugins/rdhy/value-streams/${ctx.valueStreams.get(valueStreamCode)}/platform`)
+    .get(`/plugins/rdhy/agents/${ctx.agents.get(agentName)}/platform`)
     .set('Cookie', [ctx.authCookie]);
 }
 
@@ -76,8 +76,8 @@ export async function expectMemberCount(
   expect(platform.memberCount).toBe(count);
 }
 
-export async function expectUnassigned(ctx: RdhyCtx, valueStreamCode: string): Promise<void> {
-  const res = await lookupPlatform(ctx, valueStreamCode);
+export async function expectUnassigned(ctx: RdhyCtx, agentName: string): Promise<void> {
+  const res = await lookupPlatform(ctx, agentName);
   expect(res.status).toBe(200);
   expect(res.body.platform).toBeNull();
 }

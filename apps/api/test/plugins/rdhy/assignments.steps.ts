@@ -13,8 +13,8 @@ import {
   RdhyCtx,
   makeRdhyCtx,
   createPlatform,
-  createValueStream,
-  assignValueStream,
+  createRdhyAgent,
+  assignAgent,
   lookupPlatform,
   expectMemberCount,
   expectUnassigned,
@@ -59,18 +59,18 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^a value stream exists with code "(.*)" and name "(.*)"$/,
-      async (code: string, name: string) => {
-        await createValueStream(ctx, code, name);
+      /^an agent exists with name "(.*)"$/,
+      async (name: string) => {
+        await createRdhyAgent(ctx, name);
       },
     );
   }
 
   function registerAssignedGiven(given: StepFn) {
     given(
-      /^the value stream "(.*)" is assigned to the RDHY platform "(.*)"$/,
-      async (valueStreamCode: string, platformCode: string) => {
-        const res = await assignValueStream(ctx, valueStreamCode, platformCode);
+      /^the agent "(.*)" is assigned to the RDHY platform "(.*)"$/,
+      async (agentName: string, platformCode: string) => {
+        const res = await assignAgent(ctx, agentName, platformCode);
         expect(res.status).toBe(200);
       },
     );
@@ -78,17 +78,17 @@ defineFeature(feature, (test) => {
 
   function registerAssignWhen(when: StepFn) {
     when(
-      /^I assign the value stream "(.*)" to the RDHY platform "(.*)"$/,
-      async (valueStreamCode: string, platformCode: string) => {
-        ctx.response = await assignValueStream(ctx, valueStreamCode, platformCode);
+      /^I assign the agent "(.*)" to the RDHY platform "(.*)"$/,
+      async (agentName: string, platformCode: string) => {
+        ctx.response = await assignAgent(ctx, agentName, platformCode);
       },
     );
   }
 
   function registerDetachWhen(when: StepFn) {
-    when(/^I detach the value stream "(.*)" from its RDHY platform$/, async (code: string) => {
+    when(/^I detach the agent "(.*)" from its RDHY platform$/, async (code: string) => {
       ctx.response = await request(getApp().getHttpServer())
-        .delete(`/plugins/rdhy/value-streams/${ctx.valueStreams.get(code)}/platform`)
+        .delete(`/plugins/rdhy/agents/${ctx.agents.get(code)}/platform`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1');
     });
@@ -102,9 +102,9 @@ defineFeature(feature, (test) => {
 
   function registerPlatformOfIs(and: StepFn) {
     and(
-      /^the RDHY platform of the value stream "(.*)" is "(.*)"$/,
-      async (valueStreamCode: string, platformCode: string) => {
-        const res = await lookupPlatform(ctx, valueStreamCode);
+      /^the RDHY platform of the agent "(.*)" is "(.*)"$/,
+      async (agentName: string, platformCode: string) => {
+        const res = await lookupPlatform(ctx, agentName);
         expect(res.status).toBe(200);
         expect(res.body.platform).not.toBeNull();
         expect(res.body.platform.code).toBe(platformCode);
@@ -121,14 +121,14 @@ defineFeature(feature, (test) => {
     );
   }
 
-  test('Assigning a value stream to a platform', ({ given, and, when, then }) => {
+  test('Assigning an agent to a platform', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerAssignWhen(when);
     registerStatus(then);
     registerPlatformOfIs(and);
   });
 
-  test('Reassigning silently moves the value stream to the new platform', ({
+  test('Reassigning silently moves the agent to the new platform', ({
     given,
     and,
     when,
@@ -150,30 +150,30 @@ defineFeature(feature, (test) => {
     registerMemberCount(and);
   });
 
-  test('Detaching a value stream from its platform', ({ given, and, when, then }) => {
+  test('Detaching an agent from its platform', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerAssignedGiven(given);
     registerDetachWhen(when);
     registerStatus(then);
-    and(/^the value stream "(.*)" is not assigned to any RDHY platform$/, async (code: string) => {
+    and(/^the agent "(.*)" is not assigned to any RDHY platform$/, async (code: string) => {
       await expectUnassigned(ctx, code);
     });
   });
 
-  test('Detaching an unassigned value stream is idempotent', ({ given, and, when, then }) => {
+  test('Detaching an unassigned agent is idempotent', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerDetachWhen(when);
     registerStatus(then);
   });
 
-  test('Looking up the platform of an unassigned value stream returns null', ({
+  test('Looking up the platform of an unassigned agent returns null', ({
     given,
     and,
     when,
     then,
   }) => {
     registerBackground(given, and);
-    when(/^I look up the RDHY platform of the value stream "(.*)"$/, async (code: string) => {
+    when(/^I look up the RDHY platform of the agent "(.*)"$/, async (code: string) => {
       ctx.response = await lookupPlatform(ctx, code);
     });
     registerStatus(then);
@@ -182,13 +182,13 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Assigning an unknown value stream fails', ({ given, and, when, then }) => {
+  test('Assigning an unknown agent fails', ({ given, and, when, then }) => {
     registerBackground(given, and);
     when(
-      /^I assign an unknown value stream to the RDHY platform "(.*)"$/,
+      /^I assign an unknown agent to the RDHY platform "(.*)"$/,
       async (platformCode: string) => {
         ctx.response = await request(getApp().getHttpServer())
-          .put(`/plugins/rdhy/value-streams/${randomUUID()}/platform`)
+          .put(`/plugins/rdhy/agents/${randomUUID()}/platform`)
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1')
           .send({ platformId: ctx.platforms.get(platformCode) });
@@ -200,10 +200,10 @@ defineFeature(feature, (test) => {
   test('Assigning to an unknown platform fails', ({ given, and, when, then }) => {
     registerBackground(given, and);
     when(
-      /^I assign the value stream "(.*)" to an unknown RDHY platform$/,
-      async (valueStreamCode: string) => {
+      /^I assign the agent "(.*)" to an unknown RDHY platform$/,
+      async (agentName: string) => {
         ctx.response = await request(getApp().getHttpServer())
-          .put(`/plugins/rdhy/value-streams/${ctx.valueStreams.get(valueStreamCode)}/platform`)
+          .put(`/plugins/rdhy/agents/${ctx.agents.get(agentName)}/platform`)
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1')
           .send({ platformId: randomUUID() });
@@ -212,14 +212,14 @@ defineFeature(feature, (test) => {
     registerStatus(then);
   });
 
-  test('Deleting a value stream removes its platform assignment', ({ given, and, when, then }) => {
+  test('Deleting an agent removes its platform assignment', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerAssignedGiven(given);
     when(
-      /^I delete the value stream "(.*)" through the core API$/,
+      /^I delete the agent "(.*)" through the core API$/,
       async (code: string) => {
         ctx.response = await request(getApp().getHttpServer())
-          .delete(`/value-streams/${ctx.valueStreams.get(code)}`)
+          .delete(`/agents/${ctx.agents.get(code)}`)
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1');
       },

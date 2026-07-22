@@ -1,16 +1,16 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
-import { ValueStream } from '@marketlum/core';
+import { Agent } from '@marketlum/core';
 import { RdhyEmcAgreement } from './rdhy-emc-agreement.entity';
 import type { RdhyEmcNodeTier } from '../shared/emc-schemas';
 
 /**
- * One micro-node of an EMC, anchored to a core value stream. STRATEGIC nodes
+ * One micro-node of an EMC, anchored to a core agent. STRATEGIC nodes
  * participate through value sharing (profitSharePercent); TACTICAL nodes
  * participate without it. Exactly one node per canvas is the leading node,
  * and it must be strategic (enforced by the service on canvas replace).
  */
 @Entity('plugin_rdhy_emc_nodes')
-@Unique('UQ_plugin_rdhy_emc_node_value_stream', ['agreementId', 'valueStreamId'])
+@Unique('UQ_plugin_rdhy_emc_node_agent', ['agreementId', 'agentId'])
 export class RdhyEmcNode {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,11 +23,11 @@ export class RdhyEmcNode {
   agreement: RdhyEmcAgreement;
 
   @Column({ type: 'uuid' })
-  valueStreamId: string;
+  agentId: string;
 
-  @ManyToOne(() => ValueStream, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'valueStreamId' })
-  valueStream: ValueStream;
+  @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'agentId' })
+  agent: Agent;
 
   @Column({ type: 'varchar', length: 16 })
   tier: RdhyEmcNodeTier;

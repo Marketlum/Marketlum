@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ValueStream } from '@marketlum/core';
+import { Agent } from '@marketlum/core';
 import type {
   AssignRdhyPlatformInput,
   CreateRdhyPlatformInput,
@@ -11,7 +11,7 @@ import type {
   UpdateRdhyPlatformInput,
 } from '../shared/schemas';
 import { RdhyPlatform } from './rdhy-platform.entity';
-import { RdhyPlatformValueStream } from './rdhy-platform-value-stream.entity';
+import { RdhyPlatformAgent } from './rdhy-platform-agent.entity';
 import { RdhyVamAgreement } from '../vam/rdhy-vam-agreement.entity';
 import { RdhyEmcAgreement } from '../emc/rdhy-emc-agreement.entity';
 
@@ -20,10 +20,10 @@ export class PlatformsService {
   constructor(
     @InjectRepository(RdhyPlatform)
     private readonly platformRepository: Repository<RdhyPlatform>,
-    @InjectRepository(RdhyPlatformValueStream)
-    private readonly linkRepository: Repository<RdhyPlatformValueStream>,
-    @InjectRepository(ValueStream)
-    private readonly valueStreamRepository: Repository<ValueStream>,
+    @InjectRepository(RdhyPlatformAgent)
+    private readonly linkRepository: Repository<RdhyPlatformAgent>,
+    @InjectRepository(Agent)
+    private readonly coreAgentRepository: Repository<Agent>,
     @InjectRepository(RdhyVamAgreement)
     private readonly vamAgreementRepository: Repository<RdhyVamAgreement>,
     @InjectRepository(RdhyEmcAgreement)
@@ -63,14 +63,13 @@ export class PlatformsService {
     const platform = await this.requirePlatform(id);
     const links = await this.linkRepository.find({
       where: { platformId: platform.id },
-      relations: ['valueStream'],
+      relations: ['agent'],
       order: { createdAt: 'ASC' },
     });
     const members = links.map((link) => ({
-      id: link.valueStream.id,
-      code: link.valueStream.code,
-      name: link.valueStream.name,
-      level: link.valueStream.level,
+      id: link.agent.id,
+      name: link.agent.name,
+      type: link.agent.type,
     }));
     return { ...this.toResponse(platform, members.length), members };
   }
@@ -104,34 +103,34 @@ export class PlatformsService {
   }
 
   async assign(
-    valueStreamId: string,
+    agentId: string,
     input: AssignRdhyPlatformInput,
   ): Promise<RdhyPlatformLookupResponse> {
-    await this.requireValueStream(valueStreamId);
+    await this.requireAgent(agentId);
     const platform = await this.requirePlatform(input.platformId);
 
-    const existing = await this.linkRepository.findOne({ where: { valueStreamId } });
+    const existing = await this.linkRepository.findOne({ where: { agentId } });
     if (existing) {
       existing.platformId = platform.id;
       await this.linkRepository.save(existing);
     } else {
       await this.linkRepository.save(
-        this.linkRepository.create({ valueStreamId, platformId: platform.id }),
+        this.linkRepository.create({ agentId, platformId: platform.id }),
       );
     }
     return { platform: { id: platform.id, code: platform.code, name: platform.name } };
   }
 
-  async detach(valueStreamId: string): Promise<void> {
-    await this.requireValueStream(valueStreamId);
-    const link = await this.linkRepository.findOne({ where: { valueStreamId } });
+  async detach(agentId: string): Promise<void> {
+    await this.requireAgent(agentId);
+    const link = await this.linkRepository.findOne({ where: { agentId } });
     if (link) await this.linkRepository.remove(link);
   }
 
-  async platformOf(valueStreamId: string): Promise<RdhyPlatformLookupResponse> {
-    await this.requireValueStream(valueStreamId);
+  async platformOf(agentId: string): Promise<RdhyPlatformLookupResponse> {
+    await this.requireAgent(agentId);
     const link = await this.linkRepository.findOne({
-      where: { valueStreamId },
+      where: { agentId },
       relations: ['platform'],
     });
     if (!link) return { platform: null };
@@ -146,10 +145,10 @@ export class PlatformsService {
     return platform;
   }
 
-  private async requireValueStream(id: string): Promise<ValueStream> {
-    const valueStream = await this.valueStreamRepository.findOne({ where: { id } });
-    if (!valueStream) throw new NotFoundException('Value stream not found');
-    return valueStream;
+  private async requireAgent(id: string): Promise<Agent> {
+    const agent = await this.coreAgentRepository.findOne({ where: { id } });
+    if (!agent) throw new NotFoundException('Agent not found');
+    return agent;
   }
 
   private async memberCounts(): Promise<Map<string, number>> {

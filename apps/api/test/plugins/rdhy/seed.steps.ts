@@ -13,7 +13,7 @@ import {
 import {
   RdhyCtx,
   makeRdhyCtx,
-  createValueStream,
+  createRdhyAgent,
   listPlatforms,
   lookupPlatform,
 } from './rdhy-helpers';
@@ -40,11 +40,11 @@ defineFeature(feature, (test) => {
     Object.assign(ctx, makeRdhyCtx());
   });
 
-  function registerValueStreamExists(step: StepFn) {
+  function registerAgentExists(step: StepFn) {
     step(
-      /^a value stream exists with code "(.*)" and name "(.*)"$/,
-      async (code: string, name: string) => {
-        await createValueStream(ctx, code, name);
+      /^an agent exists with name "(.*)"$/,
+      async (name: string) => {
+        await createRdhyAgent(ctx, name);
       },
     );
   }
@@ -55,7 +55,7 @@ defineFeature(feature, (test) => {
     });
   }
 
-  test('The seed hook creates sample platforms and assigns value streams idempotently', ({
+  test('The seed hook creates sample platforms and assigns agents idempotently', ({
     given,
     and,
     when,
@@ -64,8 +64,8 @@ defineFeature(feature, (test) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    registerValueStreamExists(given);
-    registerValueStreamExists(and);
+    registerAgentExists(given);
+    registerAgentExists(and);
     registerSeedRuns(when, /^the RDHY plugin seed hook runs$/);
     registerSeedRuns(and, /^the RDHY plugin seed hook runs again$/);
     then(
@@ -88,12 +88,12 @@ defineFeature(feature, (test) => {
         expect(platforms[0].name).toBe(name);
       },
     );
-    and(/^the value stream "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
+    and(/^the agent "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
       const res = await lookupPlatform(ctx, code);
       expect(res.status).toBe(200);
       expect(res.body.platform).not.toBeNull();
     });
-    and(/^the value stream "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
+    and(/^the agent "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
       const res = await lookupPlatform(ctx, code);
       expect(res.status).toBe(200);
       expect(res.body.platform).not.toBeNull();
@@ -109,7 +109,7 @@ defineFeature(feature, (test) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    registerValueStreamExists(given);
+    registerAgentExists(given);
     registerSeedRuns(when, /^the RDHY plugin seed hook runs$/);
     registerSeedRuns(and, /^the RDHY plugin seed hook runs again$/);
 
@@ -156,9 +156,9 @@ defineFeature(feature, (test) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    registerValueStreamExists(given);
-    registerValueStreamExists(and);
-    registerValueStreamExists(and);
+    registerAgentExists(given);
+    registerAgentExists(and);
+    registerAgentExists(and);
     registerSeedRuns(when, /^the RDHY plugin seed hook runs$/);
     registerSeedRuns(and, /^the RDHY plugin seed hook runs again$/);
     then(

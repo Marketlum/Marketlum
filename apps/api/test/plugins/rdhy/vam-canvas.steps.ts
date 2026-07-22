@@ -6,7 +6,7 @@ import {
   teardownApp,
   createAuthenticatedUser,
 } from '../../setup';
-import { createPlatform, createValueStream } from './rdhy-helpers';
+import { createPlatform, createRdhyAgent } from './rdhy-helpers';
 import {
   VamCtx,
   makeVamCtx,
@@ -74,15 +74,15 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^a value stream exists with code "(.*)" and name "(.*)"$/,
-      async (code: string, name: string) => {
-        await createValueStream(ctx, code, name);
+      /^an agent exists with name "(.*)"$/,
+      async (name: string) => {
+        await createRdhyAgent(ctx, name);
       },
     );
     and(
-      /^a VAM agreement titled "(.*)" exists for the value stream "(.*)" sponsored by "(.*)"$/,
-      async (title: string, valueStreamCode: string, platformCode: string) => {
-        const res = await createVamAgreement(ctx, title, valueStreamCode, platformCode);
+      /^a VAM agreement titled "(.*)" exists for the agent "(.*)" sponsored by "(.*)"$/,
+      async (title: string, agentName: string, platformCode: string) => {
+        const res = await createVamAgreement(ctx, title, agentName, platformCode);
         expect(res.status).toBe(201);
       },
     );

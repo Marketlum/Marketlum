@@ -73,7 +73,7 @@ export const MINIMAL_CANVAS = {
 export async function createVamAgreement(
   ctx: VamCtx,
   title: string,
-  valueStreamCode: string,
+  agentName: string,
   platformCode: string,
   horizonMonths = 12,
 ): Promise<request.Response> {
@@ -83,7 +83,7 @@ export async function createVamAgreement(
     .set('X-CSRF-Protection', '1')
     .send({
       title,
-      valueStreamId: ctx.valueStreams.get(valueStreamCode),
+      agentId: ctx.agents.get(agentName),
       platformId: ctx.platforms.get(platformCode),
       horizonMonths,
     });

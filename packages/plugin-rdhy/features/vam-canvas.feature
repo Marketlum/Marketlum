@@ -13,8 +13,8 @@ Feature: RDHY VAM canvas editing
   Background:
     Given I am authenticated as "admin@marketlum.com"
     And an RDHY platform exists with code "industrial_platform" and name "Industrial Platform"
-    And a value stream exists with code "web3_stream" and name "Web3 Stream"
-    And a VAM agreement titled "Web 3 Consulting HUB" exists for the value stream "web3_stream" sponsored by "industrial_platform"
+    And an agent exists with name "Web3 ME"
+    And a VAM agreement titled "Web 3 Consulting HUB" exists for the agent "Web3 ME" sponsored by "industrial_platform"
 
   Scenario: Replacing the canvas populates all sections in order
     When I replace the canvas of the VAM agreement "Web 3 Consulting HUB" with the sample canvas

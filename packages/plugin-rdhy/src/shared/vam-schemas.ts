@@ -35,7 +35,7 @@ const amountSchema = z.number().finite().nonnegative();
 
 export const createVamAgreementSchema = z.object({
   title: z.string().min(1).max(255),
-  valueStreamId: z.string().uuid(),
+  agentId: z.string().uuid(),
   platformId: z.string().uuid(),
   horizonMonths: z.number().int().min(1).max(120),
   currencyId: z.string().uuid().nullish(),
@@ -94,6 +94,12 @@ interface EntitySummary {
   name: string;
 }
 
+interface AgentSummary {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export interface RdhyVamAgreementSummary {
   id: string;
   title: string;
@@ -101,7 +107,7 @@ export interface RdhyVamAgreementSummary {
   horizonMonths: number;
   startedAt: string | null;
   endedAt: string | null;
-  valueStream: EntitySummary;
+  agent: AgentSummary;
   platform: EntitySummary;
   currency: EntitySummary | null;
   agreementId: string | null;

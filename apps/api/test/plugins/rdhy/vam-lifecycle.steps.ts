@@ -8,7 +8,7 @@ import {
   getApp,
   createAuthenticatedUser,
 } from '../../setup';
-import { createPlatform, createValueStream } from './rdhy-helpers';
+import { createPlatform, createRdhyAgent } from './rdhy-helpers';
 import {
   VamCtx,
   makeVamCtx,
@@ -53,15 +53,15 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^a value stream exists with code "(.*)" and name "(.*)"$/,
-      async (code: string, name: string) => {
-        await createValueStream(ctx, code, name);
+      /^an agent exists with name "(.*)"$/,
+      async (name: string) => {
+        await createRdhyAgent(ctx, name);
       },
     );
     and(
-      /^a VAM agreement titled "(.*)" exists for the value stream "(.*)" sponsored by "(.*)"$/,
-      async (title: string, valueStreamCode: string, platformCode: string) => {
-        const res = await createVamAgreement(ctx, title, valueStreamCode, platformCode);
+      /^a VAM agreement titled "(.*)" exists for the agent "(.*)" sponsored by "(.*)"$/,
+      async (title: string, agentName: string, platformCode: string) => {
+        const res = await createVamAgreement(ctx, title, agentName, platformCode);
         expect(res.status).toBe(201);
       },
     );
@@ -69,9 +69,9 @@ defineFeature(feature, (test) => {
 
   function registerAgreementExists(step: StepFn) {
     step(
-      /^a VAM agreement titled "(.*)" exists for the value stream "(.*)" sponsored by "(.*)"$/,
-      async (title: string, valueStreamCode: string, platformCode: string) => {
-        const res = await createVamAgreement(ctx, title, valueStreamCode, platformCode);
+      /^a VAM agreement titled "(.*)" exists for the agent "(.*)" sponsored by "(.*)"$/,
+      async (title: string, agentName: string, platformCode: string) => {
+        const res = await createVamAgreement(ctx, title, agentName, platformCode);
         expect(res.status).toBe(201);
       },
     );
@@ -120,7 +120,7 @@ defineFeature(feature, (test) => {
     registerStatusWithDate(and, 'start');
   });
 
-  test('Only one active agreement per value stream', ({ given, and, when, then }) => {
+  test('Only one active agreement per agent', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerActivatedGiven(given);
     registerAgreementExists(and);
@@ -226,10 +226,10 @@ defineFeature(feature, (test) => {
     });
     registerStatus(then);
     when(
-      /^I delete the value stream "(.*)" through the core API$/,
+      /^I delete the agent "(.*)" through the core API$/,
       async (code: string) => {
         ctx.response = await request(getApp().getHttpServer())
-          .delete(`/value-streams/${ctx.valueStreams.get(code)}`)
+          .delete(`/agents/${ctx.agents.get(code)}`)
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1');
         expect(ctx.response.status).toBe(204);

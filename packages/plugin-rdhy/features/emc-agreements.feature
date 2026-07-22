@@ -1,7 +1,7 @@
 Feature: RDHY EMC agreements
 
   An EMC agreement models one Ecosystem Micro-community canvas: a group of
-  micro-nodes (each anchored to a core value stream) collaborating on a
+  micro-nodes (each anchored to a core agent) collaborating on a
   shared scenario, sponsored by an RDHY industry platform. The agreement
   header carries the EMC setting: collaborative scenario, collaborative
   goals, governance model and the reinvestment share of profits set aside

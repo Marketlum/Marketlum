@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Agreement, Value, ValueStream } from '@marketlum/core';
+import { Agent, Agreement, Value } from '@marketlum/core';
 import { RdhyPlatform } from './platforms/rdhy-platform.entity';
-import { RdhyPlatformValueStream } from './platforms/rdhy-platform-value-stream.entity';
+import { RdhyPlatformAgent } from './platforms/rdhy-platform-agent.entity';
 import { PlatformsController } from './platforms/platforms.controller';
 import { AssignmentsController } from './platforms/assignments.controller';
 import { PlatformsService } from './platforms/platforms.service';
@@ -27,7 +27,7 @@ import { EmcAgreementsService } from './emc/emc-agreements.service';
   imports: [
     TypeOrmModule.forFeature([
       RdhyPlatform,
-      RdhyPlatformValueStream,
+      RdhyPlatformAgent,
       RdhyVamAgreement,
       RdhyVamMilestone,
       RdhyVamItem,
@@ -40,7 +40,7 @@ import { EmcAgreementsService } from './emc/emc-agreements.service';
       RdhyEmcLeadingGoal,
       RdhyEmcCostEntry,
       RdhyEmcTerminationCondition,
-      ValueStream,
+      Agent,
       Value,
       Agreement,
     ]),
