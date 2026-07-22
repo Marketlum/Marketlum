@@ -78,7 +78,6 @@ export const agentResponseSchema = z.object({
 
 export const agentSnapshotReferencesResponseSchema = z.object({
   invoiceItems: z.number().int().nonnegative(),
-  recurringFlows: z.number().int().nonnegative(),
 });
 
 export type CreateAgentInput = z.infer<typeof createAgentSchema>;

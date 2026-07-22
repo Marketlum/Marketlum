@@ -27,7 +27,6 @@ import { GeographiesModule } from './geographies/geographies.module';
 import { ArchetypesModule } from './archetypes/archetypes.module';
 import { LocalesModule } from './locales/locales.module';
 import { AgreementTemplatesModule } from './agreement-templates/agreement-templates.module';
-import { RecurringFlowsModule } from './recurring-flows/recurring-flows.module';
 import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { AiModule } from './ai/ai.module';
@@ -61,7 +60,6 @@ const CORE_FEATURE_MODULES = [
   ArchetypesModule,
   LocalesModule,
   AgreementTemplatesModule,
-  RecurringFlowsModule,
   ExchangeRatesModule,
   SystemSettingsModule,
   AiModule,
@@ -89,7 +87,6 @@ const CORE_EXPORTED_MODULES = [
   ArchetypesModule,
   LocalesModule,
   AgreementTemplatesModule,
-  RecurringFlowsModule,
   ExchangeRatesModule,
   SystemSettingsModule,
   AiModule,

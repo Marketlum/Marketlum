@@ -32,9 +32,8 @@ Feature: Agent functional currency
     When I create an agent named "Wrong Type" with functional currency "Coffee"
     Then the response status should be 400
 
-  Scenario: Snapshot references endpoint returns zero counts for an agent with no invoices or flows
+  Scenario: Snapshot references endpoint returns zero counts for an agent with no invoices
     Given an agent exists named "Lonely Agent" with functional currency "USD"
     When I fetch the snapshot references for "Lonely Agent"
     Then the response status should be 200
     And the snapshot references invoiceItems should be 0
-    And the snapshot references recurringFlows should be 0

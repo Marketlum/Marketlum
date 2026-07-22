@@ -13,7 +13,6 @@ import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
 import { Value } from '../values/entities/value.entity';
 import { InvoiceItem } from '../invoices/entities/invoice-item.entity';
-import { RecurringFlow } from '../recurring-flows/entities/recurring-flow.entity';
 import {
   CreateAgentInput,
   UpdateAgentInput,
@@ -38,8 +37,6 @@ export class AgentsService {
     private readonly valueRepository: Repository<Value>,
     @InjectRepository(InvoiceItem)
     private readonly invoiceItemRepository: Repository<InvoiceItem>,
-    @InjectRepository(RecurringFlow)
-    private readonly recurringFlowRepository: Repository<RecurringFlow>,
     private readonly addressesService: AddressesService,
   ) {}
 
@@ -350,46 +347,19 @@ export class AgentsService {
     await this.agentsRepository.remove(agent);
   }
 
-  async getSnapshotReferences(
-    id: string,
-  ): Promise<{ invoiceItems: number; recurringFlows: number }> {
+  async getSnapshotReferences(id: string): Promise<{ invoiceItems: number }> {
     const agent = await this.agentsRepository.findOne({ where: { id } });
     if (!agent) throw new NotFoundException('Agent not found');
 
-    const [invoiceItems, recurringFlows] = await Promise.all([
-      this.invoiceItemRepository.query(
-        `SELECT COUNT(*) AS count FROM invoice_items ii
-         JOIN invoices i ON i.id = ii."invoiceId"
-         WHERE (i."fromAgentId" = $1 AND ii."fromAgentAmount" IS NOT NULL)
-            OR (i."toAgentId"   = $1 AND ii."toAgentAmount"   IS NOT NULL)`,
-        [id],
-      ),
-      this.recurringFlowRepository.query(
-        `SELECT COUNT(*) AS count FROM recurring_flows rf
-         LEFT JOIN value_streams vs ON vs.id = rf."valueStreamId"
-         WHERE
-           (
-             rf.direction = 'inbound'
-             AND (
-               (rf."counterpartyAgentId" = $1 AND rf."fromAgentAmount" IS NOT NULL)
-               OR (vs."agentId"          = $1 AND rf."toAgentAmount"   IS NOT NULL)
-             )
-           )
-           OR (
-             rf.direction = 'outbound'
-             AND (
-               (vs."agentId"             = $1 AND rf."fromAgentAmount" IS NOT NULL)
-               OR (rf."counterpartyAgentId" = $1 AND rf."toAgentAmount" IS NOT NULL)
-             )
-           )`,
-        [id],
-      ),
-    ]);
+    const invoiceItems = await this.invoiceItemRepository.query(
+      `SELECT COUNT(*) AS count FROM invoice_items ii
+       JOIN invoices i ON i.id = ii."invoiceId"
+       WHERE (i."fromAgentId" = $1 AND ii."fromAgentAmount" IS NOT NULL)
+          OR (i."toAgentId"   = $1 AND ii."toAgentAmount"   IS NOT NULL)`,
+      [id],
+    );
 
-    return {
-      invoiceItems: Number(invoiceItems[0]?.count ?? 0),
-      recurringFlows: Number(recurringFlows[0]?.count ?? 0),
-    };
+    return { invoiceItems: Number(invoiceItems[0]?.count ?? 0) };
   }
 
   private async assertCurrencyValue(valueId: string): Promise<void> {

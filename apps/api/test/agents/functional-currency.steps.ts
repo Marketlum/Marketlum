@@ -185,7 +185,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Snapshot references endpoint returns zero counts for an agent with no invoices or flows', ({ given, and, when, then }) => {
+  test('Snapshot references endpoint returns zero counts for an agent with no invoices', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
     and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
@@ -204,9 +204,6 @@ defineFeature(feature, (test) => {
     });
     and(/^the snapshot references invoiceItems should be (\d+)$/, (n: string) => {
       expect(ctx.response.body.invoiceItems).toBe(parseInt(n));
-    });
-    and(/^the snapshot references recurringFlows should be (\d+)$/, (n: string) => {
-      expect(ctx.response.body.recurringFlows).toBe(parseInt(n));
     });
   });
 });

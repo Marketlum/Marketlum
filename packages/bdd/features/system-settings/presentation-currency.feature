@@ -18,7 +18,7 @@ Feature: System Presentation Currency Setting
     And a value exists named "USD"
     And a value exists named "EUR"
     And the system presentation currency is set to "USD"
-    And a recurring flow exists with a presentation snapshot
+    And an invoice item exists with a presentation snapshot
     When I set the system presentation currency to "EUR"
     Then the response status should be 409
 

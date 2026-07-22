@@ -28,7 +28,7 @@ interface ValueDef {
 // parentCode (if set) must reference a value defined earlier so the seeder
 // can look up the parent id during a single forward pass.
 const VALUES: ValueDef[] = [
-  // ===== Currencies (used by invoices, recurring flows, exchange rates) =====
+  // ===== Currencies (used by invoices and exchange rates) =====
   { code: 'usd', name: 'USD', type: ValueType.CURRENCY, lifecycleStage: ValueLifecycleStage.STABLE,
     purpose: 'Reserve currency for international transactions',
     valueStream: 'backoffice_operations', agent: null },

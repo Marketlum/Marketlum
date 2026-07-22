@@ -11,7 +11,7 @@ export const RESERVED_PLUGIN_IDS = new Set<string>([
   'search', 'ledger', 'agreements', 'channels', 'offerings', 'invoices',
   'pipelines', 'tensions', 'exchanges', 'exchange-rates', 'dashboard',
   'geographies', 'archetypes', 'locales', 'agreement-templates',
-  'recurring-flows', 'system-settings', 'ai', 'geocoding', 'events', 'plugins',
+  'system-settings', 'ai', 'geocoding', 'events', 'plugins',
 ]);
 
 /**

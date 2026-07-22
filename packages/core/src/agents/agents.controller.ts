@@ -157,7 +157,6 @@ export class AgentsController {
       type: 'object',
       properties: {
         invoiceItems: { type: 'integer' },
-        recurringFlows: { type: 'integer' },
       },
     },
   })

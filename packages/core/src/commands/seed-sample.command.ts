@@ -45,8 +45,6 @@ import { seedInvoices } from './seeders/invoice.seeder';
 import { seedTransactions } from './seeders/transaction.seeder';
 import { seedValueInstances } from './seeders/value-instance.seeder';
 import { seedExchanges } from './seeders/exchange.seeder';
-import { seedRecurringFlows } from './seeders/recurring-flow.seeder';
-import { RecurringFlowsService } from '../recurring-flows/recurring-flows.service';
 import { seedExchangeRates } from './seeders/exchange-rate.seeder';
 import { seedSystemSettings } from './seeders/system-settings.seeder';
 import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
@@ -82,7 +80,6 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly valueInstancesService: ValueInstancesService,
     private readonly exchangesService: ExchangesService,
     private readonly exchangeFlowsService: ExchangeFlowsService,
-    private readonly recurringFlowsService: RecurringFlowsService,
     private readonly exchangeRatesService: ExchangeRatesService,
     private readonly systemSettingsService: SystemSettingsService,
     @Optional() @Inject(PLUGINS) private readonly plugins: MarketlumApiPlugin[] | null,
@@ -227,7 +224,7 @@ export class SeedSampleCommand extends CommandRunner {
     const offerings = await seedOfferings(this.offeringsService, { values, agents, valueStreams });
     this.logger.log(`  Created ${offerings.length} offerings`);
 
-    // Seed exchange rates and presentation currency BEFORE invoices and recurring
+    // Seed exchange rates and presentation currency BEFORE invoices
     // flows so those entities can resolve presentation-currency and per-agent
     // snapshots at write time.
     this.logger.log('Seeding exchange rates...');
@@ -264,14 +261,6 @@ export class SeedSampleCommand extends CommandRunner {
       tensions,
     });
     this.logger.log(`  Created ${exchanges.length} exchanges`);
-
-    this.logger.log('Seeding recurring flows...');
-    const recurringFlows = await seedRecurringFlows(this.recurringFlowsService, {
-      valueStreams: valueStreams.all,
-      agents,
-      values,
-    });
-    this.logger.log(`  Created ${recurringFlows.length} recurring flows`);
 
     for (const plugin of this.plugins ?? []) {
       if (!plugin.seed) continue;

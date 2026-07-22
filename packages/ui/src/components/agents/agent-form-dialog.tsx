@@ -134,7 +134,7 @@ export function AgentFormDialog({
     functionalCurrencyIdValue !== undefined &&
     functionalCurrencyIdValue !== originalFunctionalCurrencyId &&
     snapshotRefs !== null &&
-    snapshotRefs.invoiceItems + snapshotRefs.recurringFlows > 0;
+    snapshotRefs.invoiceItems > 0;
 
   useEffect(() => {
     if (open) {
@@ -302,7 +302,6 @@ export function AgentFormDialog({
               <div className="rounded-md border border-yellow-400 bg-yellow-50 px-3 py-2 text-sm text-yellow-900">
                 {t('functionalCurrencyChangeWarning', {
                   invoiceItems: snapshotRefs.invoiceItems,
-                  recurringFlows: snapshotRefs.recurringFlows,
                 })}
               </div>
             )}

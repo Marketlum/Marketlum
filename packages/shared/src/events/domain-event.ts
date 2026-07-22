@@ -92,9 +92,6 @@ export type TensionCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.te
 export type TensionUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.updated', T>;
 export type TensionDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.deleted', T>;
 
-export type RecurringFlowCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.recurring_flow.created', T>;
-export type RecurringFlowUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.recurring_flow.updated', T>;
-export type RecurringFlowDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.recurring_flow.deleted', T>;
 
 export type ExchangeRateCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.exchange_rate.created', T>;
 export type ExchangeRateUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.exchange_rate.updated', T>;
@@ -126,6 +123,5 @@ export type DomainEvent =
   | AgreementTemplateCreatedEvent | AgreementTemplateUpdatedEvent | AgreementTemplateDeletedEvent
   | PipelineCreatedEvent | PipelineUpdatedEvent | PipelineDeletedEvent
   | TensionCreatedEvent | TensionUpdatedEvent | TensionDeletedEvent
-  | RecurringFlowCreatedEvent | RecurringFlowUpdatedEvent | RecurringFlowDeletedEvent
   | ExchangeRateCreatedEvent | ExchangeRateUpdatedEvent | ExchangeRateDeletedEvent
   | SystemSettingCreatedEvent | SystemSettingUpdatedEvent | SystemSettingDeletedEvent;

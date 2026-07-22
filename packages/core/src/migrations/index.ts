@@ -51,6 +51,7 @@ import { AddInvoiceDirection1700000000049 } from './1700000000049-AddInvoiceDire
 import { AddAgreementTemplateAgent1700000000050 } from './1700000000050-AddAgreementTemplateAgent';
 import { AddAgentHierarchy1700000000051 } from './1700000000051-AddAgentHierarchy';
 import { RemoveInvoiceDirectionAndValueStream1700000000052 } from './1700000000052-RemoveInvoiceDirectionAndValueStream';
+import { RemoveRecurringFlows1700000000053 } from './1700000000053-RemoveRecurringFlows';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -106,4 +107,5 @@ export const ALL_MIGRATIONS = [
   AddAgreementTemplateAgent1700000000050,
   AddAgentHierarchy1700000000051,
   RemoveInvoiceDirectionAndValueStream1700000000052,
+  RemoveRecurringFlows1700000000053,
 ];

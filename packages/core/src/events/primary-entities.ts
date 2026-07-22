@@ -19,7 +19,6 @@ import { Locale } from '../locales/locale.entity';
 import { AgreementTemplate } from '../agreement-templates/entities/agreement-template.entity';
 import { Pipeline } from '../pipelines/entities/pipeline.entity';
 import { Tension } from '../tensions/entities/tension.entity';
-import { RecurringFlow } from '../recurring-flows/entities/recurring-flow.entity';
 import { ExchangeRate } from '../exchange-rates/entities/exchange-rate.entity';
 import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 
@@ -50,7 +49,6 @@ export const PRIMARY_ENTITIES: PrimaryEntityDescriptor[] = [
   { cls: AgreementTemplate, snakeName: 'agreement_template' },
   { cls: Pipeline, snakeName: 'pipeline' },
   { cls: Tension, snakeName: 'tension' },
-  { cls: RecurringFlow, snakeName: 'recurring_flow' },
   { cls: ExchangeRate, snakeName: 'exchange_rate' },
   { cls: SystemSetting, snakeName: 'system_setting' },
 ];

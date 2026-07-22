@@ -15,18 +15,10 @@ import {
 interface YearSelectorProps {
   year: number;
   onYearChange: (year: number) => void;
-  /** When omitted, the direct-only checkbox is not rendered. */
-  directOnly?: boolean;
-  onDirectOnlyChange?: (directOnly: boolean) => void;
 }
 
-export function YearSelector({
-  year,
-  directOnly,
-  onYearChange,
-  onDirectOnlyChange,
-}: YearSelectorProps) {
-  const t = useTranslations('valueStreamBudget');
+export function YearSelector({ year, onYearChange }: YearSelectorProps) {
+  const t = useTranslations('financials');
   const currentYear = new Date().getUTCFullYear();
   const years: number[] = [];
   for (let y = currentYear - 3; y <= currentYear + 3; y++) years.push(y);
@@ -65,16 +57,6 @@ export function YearSelector({
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-      {onDirectOnlyChange && (
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={directOnly ?? false}
-            onChange={(e) => onDirectOnlyChange(e.target.checked)}
-          />
-          <span>{t('directOnly')}</span>
-        </label>
-      )}
     </div>
   );
 }

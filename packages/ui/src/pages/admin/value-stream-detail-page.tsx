@@ -3,17 +3,12 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Plus, ArrowRightLeft, RefreshCw } from 'lucide-react';
-import type {
-  CreateValueInput,
-  CreateExchangeInput,
-  CreateRecurringFlowInput,
-} from '@marketlum/shared';
+import { Plus, ArrowRightLeft } from 'lucide-react';
+import type { CreateValueInput, CreateExchangeInput } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { ValueFormDialog } from '../../components/values/value-form-dialog';
 import { ExchangeFormDialog } from '../../components/exchanges/exchange-form-dialog';
-import { RecurringFlowFormDialog } from '../../components/recurring-flows/recurring-flow-form-dialog';
 import { Button } from '../../components/ui/button';
 
 export function ValueStreamDetailPage() {
@@ -23,11 +18,9 @@ export function ValueStreamDetailPage() {
   const tvs = useTranslations('valueStreams');
   const tv = useTranslations('values');
   const te = useTranslations('exchanges');
-  const trf = useTranslations('recurringFlows');
 
   const [createValueOpen, setCreateValueOpen] = useState(false);
   const [createExchangeOpen, setCreateExchangeOpen] = useState(false);
-  const [createRecurringFlowOpen, setCreateRecurringFlowOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateValue = async (input: CreateValueInput) => {
@@ -56,19 +49,6 @@ export function ValueStreamDetailPage() {
     }
   };
 
-  const handleCreateRecurringFlow = async (input: CreateRecurringFlowInput) => {
-    setIsSubmitting(true);
-    try {
-      await api.post('/recurring-flows', input);
-      toast.success(trf('created'));
-      setCreateRecurringFlowOpen(false);
-    } catch {
-      toast.error(trf('failedToCreate'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Quick actions */}
@@ -80,10 +60,6 @@ export function ValueStreamDetailPage() {
         <Button size="sm" variant="outline" onClick={() => setCreateExchangeOpen(true)}>
           <ArrowRightLeft className="mr-1.5 h-3.5 w-3.5" />
           {t('createExchange')}
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => setCreateRecurringFlowOpen(true)}>
-          <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-          {t('createRecurringFlow')}
         </Button>
       </div>
 
@@ -104,13 +80,6 @@ export function ValueStreamDetailPage() {
         isSubmitting={isSubmitting}
       />
 
-      <RecurringFlowFormDialog
-        open={createRecurringFlowOpen}
-        onOpenChange={setCreateRecurringFlowOpen}
-        onSubmit={handleCreateRecurringFlow}
-        defaultValueStreamId={id}
-        isSubmitting={isSubmitting}
-      />
     </div>
   );
 }

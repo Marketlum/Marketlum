@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 import { SystemSetting } from './entities/system-setting.entity';
 import { Value } from '../values/entities/value.entity';
 import { InvoiceItem } from '../invoices/entities/invoice-item.entity';
-import { RecurringFlow } from '../recurring-flows/entities/recurring-flow.entity';
 
 export const PRESENTATION_CURRENCY_KEY = 'presentation_currency_id';
 
@@ -27,8 +26,6 @@ export class SystemSettingsService {
     private readonly valueRepository: Repository<Value>,
     @InjectRepository(InvoiceItem)
     private readonly invoiceItemRepository: Repository<InvoiceItem>,
-    @InjectRepository(RecurringFlow)
-    private readonly recurringFlowRepository: Repository<RecurringFlow>,
   ) {}
 
   async getPresentationCurrency(): Promise<PresentationCurrencyResponse> {
@@ -89,14 +86,6 @@ export class SystemSettingsService {
       .getCount()
       .catch(() => 0);
 
-    if (invoiceCount > 0) return true;
-
-    const recurringCount = await this.recurringFlowRepository
-      .createQueryBuilder('flow')
-      .where('flow.presentationRate IS NOT NULL OR flow.presentationAmount IS NOT NULL')
-      .getCount()
-      .catch(() => 0);
-
-    return recurringCount > 0;
+    return invoiceCount > 0;
   }
 }

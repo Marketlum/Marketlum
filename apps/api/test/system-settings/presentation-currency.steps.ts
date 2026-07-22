@@ -99,27 +99,32 @@ defineFeature(presentationCurrencyFeature, (test) => {
         .set('X-CSRF-Protection', '1')
         .send({ presentationCurrencyId: ValueRegistry.get(name) });
     });
-    and('a recurring flow exists with a presentation snapshot', async () => {
-      // Directly insert a recurring_flow row carrying a non-null presentationAmount
+    and('an invoice item exists with a presentation snapshot', async () => {
+      // Directly insert an invoice item carrying a non-null presentationAmount
       // so the snapshot-lock guard is triggered without going through the whole
-      // flow create plumbing (this scenario only cares about the guard).
+      // invoice create plumbing (this scenario only cares about the guard).
       const ds = getApp().get<DataSource>(DataSource);
-      const valueStream = await ds.query(
-        `INSERT INTO value_streams ("code", "name", "level") VALUES ($1, $2, 0) RETURNING id`,
-        ['ps-test-stream', 'Presentation snapshot test stream'],
-      );
-      const agent = await ds.query(
+      const seller = await ds.query(
         `INSERT INTO agents ("name", "type") VALUES ($1, 'organization') RETURNING id`,
-        ['Snapshot Lock Counterparty'],
+        ['Snapshot Lock Seller'],
+      );
+      const buyer = await ds.query(
+        `INSERT INTO agents ("name", "type") VALUES ($1, 'organization') RETURNING id`,
+        ['Snapshot Lock Buyer'],
       );
       const usdId = ValueRegistry.get('USD');
+      const invoice = await ds.query(
+        `INSERT INTO invoices
+          ("number", "fromAgentId", "toAgentId", "issuedAt", "dueAt", "currencyId")
+         VALUES ('INV-SNAP-LOCK', $1, $2, '2026-01-01', '2026-02-01', $3) RETURNING id`,
+        [seller[0].id, buyer[0].id, usdId],
+      );
       await ds.query(
-        `INSERT INTO recurring_flows
-          ("valueStreamId", "counterpartyAgentId", "currencyId", direction,
-           amount, frequency, "interval", "startDate", status,
+        `INSERT INTO invoice_items
+          ("invoiceId", "quantity", "unitPrice", "total",
            "presentationAmount", "presentationRate")
-         VALUES ($1, $2, $3, 'inbound', 100, 'monthly', 1, '2026-01-01', 'active', 100, '1.0000000000')`,
-        [valueStream[0].id, agent[0].id, usdId],
+         VALUES ($1, 1, 100, 100, 100, '1.0000000000')`,
+        [invoice[0].id],
       );
     });
     when(/^I set the system presentation currency to "(.*)"$/, async (name: string) => {

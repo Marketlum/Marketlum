@@ -25,7 +25,6 @@ import { Locale } from './locales/locale.entity';
 import { AgreementTemplate } from './agreement-templates/entities/agreement-template.entity';
 import { Pipeline } from './pipelines/entities/pipeline.entity';
 import { Tension } from './tensions/entities/tension.entity';
-import { RecurringFlow } from './recurring-flows/entities/recurring-flow.entity';
 import { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity';
 import { SystemSetting } from './system-settings/entities/system-setting.entity';
 import { Address } from './agents/addresses/entities/address.entity';
@@ -58,7 +57,6 @@ export const ALL_ENTITIES = [
   AgreementTemplate,
   Pipeline,
   Tension,
-  RecurringFlow,
   ExchangeRate,
   SystemSetting,
   Address,
