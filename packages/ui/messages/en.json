@@ -475,8 +475,7 @@
     "createValue": "Create Value",
     "createExchange": "Create Exchange",
     "createRecurringFlow": "Create Recurring Flow",
-    "atAGlance": "At a glance",
-    "tabFinancials": "Financials"
+    "atAGlance": "At a glance"
   },
   "valueStreamBudget": {
     "title": "Budget",
@@ -1241,8 +1240,7 @@
     "en": "English",
     "pl": "Polski"
   },
-  "valueStreamFinancials": {
-    "title": "Financials",
+  "financials": {
     "monthly": "Monthly",
     "quarterly": "Quarterly",
     "annual": "Annual",
@@ -1251,18 +1249,6 @@
     "net": "Net",
     "breakdown": "Breakdown",
     "viewMonths": "Months",
-    "viewQuarters": "Quarters",
-    "previousYear": "Previous year",
-    "nextYear": "Next year",
-    "directOnly": "Direct only",
-    "noBaseValueTitle": "No presentation currency configured",
-    "noBaseValueBody": "Set a presentation currency to total actuals across currencies.",
-    "noBaseValueAction": "Open exchange rates",
-    "noInvoicesTitle": "No invoices in this period",
-    "noInvoicesBody": "Attribute invoices to this value stream to see actual revenue and expenses.",
-    "noInvoicesAction": "Add invoice",
-    "notConvertedTitle": "{count} invoice line(s) could not be converted",
-    "notConvertedBody": "These lines have no presentation-currency snapshot and are excluded from totals.",
-    "failedToLoad": "Failed to load financials"
+    "viewQuarters": "Quarters"
   }
 }

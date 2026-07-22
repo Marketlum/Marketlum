@@ -13,7 +13,7 @@ interface Props {
 type Period = 'monthly' | 'quarterly' | 'annual';
 
 export function FinancialsSummaryCards({ financials }: Props) {
-  const t = useTranslations('valueStreamFinancials');
+  const t = useTranslations('financials');
   const currency = financials.currencyName ?? '';
 
   const periods: Period[] = ['monthly', 'quarterly', 'annual'];

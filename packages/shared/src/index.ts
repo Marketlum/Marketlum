@@ -388,13 +388,6 @@ export {
 } from './schemas/value-stream-budget.schema';
 
 export {
-  valueStreamFinancialsQuerySchema,
-  valueStreamFinancialsResponseSchema,
-  type ValueStreamFinancialsQuery,
-  type ValueStreamFinancialsResponse,
-} from './schemas/value-stream-financials.schema';
-
-export {
   financialsFigureSchema,
   financialsMonthRowSchema,
   financialsQuarterRowSchema,

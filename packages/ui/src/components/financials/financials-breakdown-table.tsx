@@ -26,7 +26,7 @@ const MONTH_LABELS = [
 ];
 
 export function FinancialsBreakdownTable({ financials }: Props) {
-  const t = useTranslations('valueStreamFinancials');
+  const t = useTranslations('financials');
   const [view, setView] = useState<'months' | 'quarters'>('months');
 
   return (

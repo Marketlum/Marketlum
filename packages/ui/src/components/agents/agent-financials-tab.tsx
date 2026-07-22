@@ -7,10 +7,10 @@ import type { AgentFinancialsResponse } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { YearSelector } from '../value-stream-budget/year-selector';
-import { FinancialsSummaryCards } from '../value-stream-financials/financials-summary-cards';
-import { FinancialsBreakdownTable } from '../value-stream-financials/financials-breakdown-table';
-import { FinancialsEmptyStates } from '../value-stream-financials/financials-empty-states';
-import type { FinancialsView } from '../value-stream-financials/financials-view';
+import { FinancialsSummaryCards } from '../financials/financials-summary-cards';
+import { FinancialsBreakdownTable } from '../financials/financials-breakdown-table';
+import { FinancialsEmptyStates } from '../financials/financials-empty-states';
+import type { FinancialsView } from '../financials/financials-view';
 
 interface AgentFinancialsTabProps {
   agentId: string;

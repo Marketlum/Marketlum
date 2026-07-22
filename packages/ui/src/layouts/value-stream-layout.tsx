@@ -107,7 +107,6 @@ export function ValueStreamLayout({ children }: { children: ReactNode }) {
     { segment: 'invoices', label: tSec('tabInvoices') },
     { segment: 'recurring-flows', label: tSec('tabRecurringFlows') },
     { segment: 'budget', label: tSec('tabBudget') },
-    { segment: 'financials', label: tSec('tabFinancials') },
   ];
 
   const hrefFor = (segment: string | null) =>

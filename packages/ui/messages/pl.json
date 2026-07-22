@@ -474,8 +474,7 @@
     "createValue": "Utwórz wartość",
     "createExchange": "Utwórz wymianę",
     "createRecurringFlow": "Utwórz przepływ cykliczny",
-    "atAGlance": "W skrócie",
-    "tabFinancials": "Finanse"
+    "atAGlance": "W skrócie"
   },
   "valueStreamBudget": {
     "title": "Budżet",
@@ -1241,8 +1240,7 @@
     "en": "English",
     "pl": "Polski"
   },
-  "valueStreamFinancials": {
-    "title": "Finanse",
+  "financials": {
     "monthly": "Miesięcznie",
     "quarterly": "Kwartalnie",
     "annual": "Rocznie",
@@ -1251,18 +1249,6 @@
     "net": "Netto",
     "breakdown": "Zestawienie",
     "viewMonths": "Miesiące",
-    "viewQuarters": "Kwartały",
-    "previousYear": "Poprzedni rok",
-    "nextYear": "Następny rok",
-    "directOnly": "Tylko bezpośrednie",
-    "noBaseValueTitle": "Nie skonfigurowano waluty prezentacji",
-    "noBaseValueBody": "Ustaw walutę prezentacji, aby sumować dane rzeczywiste w różnych walutach.",
-    "noBaseValueAction": "Otwórz kursy wymiany",
-    "noInvoicesTitle": "Brak faktur w tym okresie",
-    "noInvoicesBody": "Przypisz faktury do tego strumienia wartości, aby zobaczyć rzeczywiste przychody i koszty.",
-    "noInvoicesAction": "Dodaj fakturę",
-    "notConvertedTitle": "Nie udało się przeliczyć {count} pozycji faktur",
-    "notConvertedBody": "Te pozycje nie mają migawki w walucie prezentacji i są wyłączone z sum.",
-    "failedToLoad": "Nie udało się załadować finansów"
+    "viewQuarters": "Kwartały"
   }
 }
