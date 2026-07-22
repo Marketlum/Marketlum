@@ -1,6 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
+import { InvoiceMarket } from '@marketlum/shared';
 import { MoreHorizontal, ArrowUpDown, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -19,6 +20,7 @@ interface InvoiceRow {
   issuedAt: string;
   dueAt: string;
   currency: { id: string; name: string } | null;
+  market: InvoiceMarket;
   total?: string;
   presentationTotal?: string | null;
   paid: boolean;
@@ -41,6 +43,9 @@ interface InvoiceColumnsTranslations {
   paid: string;
   paidYes: string;
   paidNo: string;
+  market: string;
+  marketInternal: string;
+  marketExternal: string;
   channel: string;
   link: string;
   edit: string;
@@ -131,6 +136,22 @@ export function getInvoiceColumns({
           </Badge>
         );
       },
+    },
+    {
+      accessorKey: 'market',
+      header: () => (
+        <Button variant="ghost" onClick={() => onSort('market')}>
+          {translations.market} <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      meta: { hideOnMobile: true },
+      cell: ({ row }) => (
+        <Badge variant="outline">
+          {row.original.market === InvoiceMarket.INTERNAL
+            ? translations.marketInternal
+            : translations.marketExternal}
+        </Badge>
+      ),
     },
     {
       id: 'channel',

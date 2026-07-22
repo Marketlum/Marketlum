@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Plus, UserPlus, X } from 'lucide-react';
 import {
+  InvoiceMarket,
   createInvoiceSchema,
   updateInvoiceSchema,
   type CreateInvoiceInput,
@@ -54,6 +55,7 @@ interface InvoiceData {
   issuedAt: string;
   dueAt: string;
   currency: { id: string; name: string } | null;
+  market: InvoiceMarket;
   paid: boolean;
   link: string | null;
   file: unknown;
@@ -143,6 +145,7 @@ export function InvoiceFormDialog({
           issuedAt: invoice.issuedAt ? invoice.issuedAt.slice(0, 16) : '',
           dueAt: invoice.dueAt ? invoice.dueAt.slice(0, 16) : '',
           currencyId: invoice.currency?.id ?? '',
+          market: invoice.market,
           paid: invoice.paid,
           link: invoice.link ?? '',
           channelId: invoice.channel?.id ?? null,
@@ -168,6 +171,7 @@ export function InvoiceFormDialog({
             ? `${prefill.extracted.dueAt}T00:00`
             : '',
           currencyId: prefill.extracted.currency.id ?? '',
+          market: InvoiceMarket.EXTERNAL,
           paid: false,
           link: '',
           fileId: prefill.fileId,
@@ -190,6 +194,7 @@ export function InvoiceFormDialog({
           issuedAt: '',
           dueAt: '',
           currencyId: '',
+          market: InvoiceMarket.EXTERNAL,
           paid: false,
           link: '',
           channelId: null,
@@ -395,6 +400,21 @@ export function InvoiceFormDialog({
                   .reduce((sum, it) => sum + (Number(it.total) || 0), 0)
                   .toFixed(2)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('market')}</Label>
+              <Select
+                value={watch('market') ?? InvoiceMarket.EXTERNAL}
+                onValueChange={(v) => setFormValue('market', v as InvoiceMarket)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={InvoiceMarket.EXTERNAL}>{t('marketExternal')}</SelectItem>
+                  <SelectItem value={InvoiceMarket.INTERNAL}>{t('marketInternal')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>{t('paid')}</Label>

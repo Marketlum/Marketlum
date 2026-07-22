@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AgentType } from '../enums/agent-type.enum';
+import { InvoiceMarket } from '../enums/invoice-market.enum';
 
 const agentSummarySchema = z.object({
   id: z.string().uuid(),
@@ -42,6 +43,7 @@ export const createInvoiceSchema = z.object({
   issuedAt: z.string(),
   dueAt: z.string(),
   currencyId: z.string().uuid(),
+  market: z.nativeEnum(InvoiceMarket).default(InvoiceMarket.EXTERNAL),
   paid: z.boolean().default(false),
   link: z.string().optional(),
   fileId: z.string().uuid().nullable().optional(),
@@ -56,6 +58,7 @@ export const updateInvoiceSchema = z.object({
   issuedAt: z.string().optional(),
   dueAt: z.string().optional(),
   currencyId: z.string().uuid().optional(),
+  market: z.nativeEnum(InvoiceMarket).optional(),
   paid: z.boolean().optional(),
   link: z.string().nullable().optional(),
   fileId: z.string().uuid().nullable().optional(),
@@ -86,6 +89,7 @@ export const invoiceResponseSchema = z.object({
   issuedAt: z.string(),
   dueAt: z.string(),
   currency: valueSummarySchema,
+  market: z.nativeEnum(InvoiceMarket),
   paid: z.boolean(),
   link: z.string().nullable(),
   file: z.any().nullable(),

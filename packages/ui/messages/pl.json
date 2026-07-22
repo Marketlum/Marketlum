@@ -778,7 +778,11 @@
     "inAgentBooks": "W księgach {name}",
     "inPresentationCurrency": "W walucie prezentacji",
     "inCurrency": "W {currency}",
-    "functionalCurrencyLabel": "Waluta funkcjonalna"
+    "functionalCurrencyLabel": "Waluta funkcjonalna",
+    "market": "Rynek",
+    "marketInternal": "Wewnętrzny",
+    "marketExternal": "Zewnętrzny",
+    "allMarkets": "Wszystkie rynki"
   },
   "exchanges": {
     "title": "Wymiany",

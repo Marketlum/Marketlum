@@ -101,6 +101,7 @@ export class InvoicesController {
   @ApiQuery({ name: 'fromAgentId', required: false, type: String })
   @ApiQuery({ name: 'toAgentId', required: false, type: String })
   @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'market', required: false, enum: ['internal', 'external'] })
   @ApiQuery({ name: 'paid', required: false, enum: ['true', 'false'] })
   @ApiQuery({ name: 'currencyId', required: false, type: String })
   @ApiQuery({ name: 'channelId', required: false, type: String })
@@ -110,6 +111,7 @@ export class InvoicesController {
     @Query('fromAgentId') fromAgentId?: string,
     @Query('toAgentId') toAgentId?: string,
     @Query('agentId') agentId?: string,
+    @Query('market') market?: string,
     @Query('paid') paid?: string,
     @Query('currencyId') currencyId?: string,
     @Query('channelId') channelId?: string,
@@ -119,6 +121,7 @@ export class InvoicesController {
       fromAgentId,
       toAgentId,
       agentId,
+      market,
       paid,
       currencyId,
       channelId,

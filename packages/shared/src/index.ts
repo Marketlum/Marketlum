@@ -1,4 +1,5 @@
 export { AgentType } from './enums/agent-type.enum';
+export { InvoiceMarket } from './enums/invoice-market.enum';
 export { ValueType } from './enums/value-type.enum';
 export { ValueParentType } from './enums/value-parent-type.enum';
 export { TableName } from './enums/table-name.enum';

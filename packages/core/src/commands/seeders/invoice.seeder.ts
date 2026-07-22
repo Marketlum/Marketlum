@@ -1,3 +1,4 @@
+import { InvoiceMarket } from '@marketlum/shared';
 import { faker } from '@faker-js/faker';
 import { InvoicesService } from '../../invoices/invoices.service';
 
@@ -53,12 +54,19 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
       };
     });
 
+    // Mostly external counterparty trade, with some internal-market invoices.
+    const market = faker.helpers.weightedArrayElement([
+      { weight: 7, value: InvoiceMarket.EXTERNAL },
+      { weight: 3, value: InvoiceMarket.INTERNAL },
+    ]);
+
     const number = `INV-2026-${String(i + 1).padStart(4, '0')}`;
     const invoice = await service.create({
       number,
       fromAgentId: fromAgent.id,
       toAgentId: toAgent.id,
       currencyId: currency.id,
+      market,
       issuedAt: issuedAt.toISOString(),
       dueAt: dueAt.toISOString(),
       paid: faker.datatype.boolean(),

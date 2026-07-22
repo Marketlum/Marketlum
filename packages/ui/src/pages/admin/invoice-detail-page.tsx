@@ -261,12 +261,14 @@ export function InvoiceDetailPage() {
               <div className="mt-1 font-mono text-sm text-muted-foreground">
                 {invoice.number}
               </div>
-              <Badge
-                variant={invoice.paid ? 'default' : 'secondary'}
-                className="mt-3"
-              >
-                {invoice.paid ? t('paidYes') : t('paidNo')}
-              </Badge>
+              <div className="mt-3 flex gap-1.5">
+                <Badge variant={invoice.paid ? 'default' : 'secondary'}>
+                  {invoice.paid ? t('paidYes') : t('paidNo')}
+                </Badge>
+                <Badge variant="outline">
+                  {invoice.market === 'internal' ? t('marketInternal') : t('marketExternal')}
+                </Badge>
+              </div>
             </div>
             <div className="text-sm">
               <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">

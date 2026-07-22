@@ -10,6 +10,7 @@ import {
   Index,
   Unique,
 } from 'typeorm';
+import { InvoiceMarket } from '@marketlum/shared';
 import { Agent } from '../../agents/entities/agent.entity';
 import { Value } from '../../values/entities/value.entity';
 import { Channel } from '../../channels/channel.entity';
@@ -52,6 +53,8 @@ export class Invoice {
   @Column({ type: 'uuid' })
   currencyId: string;
 
+  @Column({ type: 'enum', enum: InvoiceMarket, default: InvoiceMarket.EXTERNAL })
+  market: InvoiceMarket;
 
   @Column({ type: 'boolean', default: false })
   paid: boolean;

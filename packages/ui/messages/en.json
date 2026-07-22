@@ -779,7 +779,11 @@
     "inAgentBooks": "In {name}'s books",
     "inPresentationCurrency": "In presentation currency",
     "inCurrency": "In {currency}",
-    "functionalCurrencyLabel": "Functional currency"
+    "functionalCurrencyLabel": "Functional currency",
+    "market": "Market",
+    "marketInternal": "Internal",
+    "marketExternal": "External",
+    "allMarkets": "All markets"
   },
   "exchanges": {
     "title": "Exchanges",

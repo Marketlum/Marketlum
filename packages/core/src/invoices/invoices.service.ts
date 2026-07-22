@@ -193,6 +193,7 @@ export class InvoicesService {
       fromAgentId?: string;
       toAgentId?: string;
       agentId?: string;
+      market?: string;
       paid?: string;
       currencyId?: string;
       channelId?: string;
@@ -207,6 +208,7 @@ export class InvoicesService {
       fromAgentId,
       toAgentId,
       agentId,
+      market,
       paid,
       currencyId,
       channelId,
@@ -247,6 +249,10 @@ export class InvoicesService {
 
     if (agentId) {
       qb.andWhere('(invoice.fromAgentId = :agentId OR invoice.toAgentId = :agentId)', { agentId });
+    }
+
+    if (market) {
+      qb.andWhere('invoice.market = :market', { market });
     }
 
     if (paid !== undefined) {
@@ -306,6 +312,9 @@ export class InvoicesService {
       countQb.andWhere('(invoice.fromAgentId = :agentId OR invoice.toAgentId = :agentId)', {
         agentId,
       });
+    }
+    if (market) {
+      countQb.andWhere('invoice.market = :market', { market });
     }
     if (paid !== undefined) {
       countQb.andWhere('invoice.paid = :paid', { paid: paid === 'true' });
@@ -405,6 +414,7 @@ export class InvoicesService {
     if (rest.issuedAt !== undefined)
       invoice.issuedAt = new Date(rest.issuedAt);
     if (rest.dueAt !== undefined) invoice.dueAt = new Date(rest.dueAt);
+    if (rest.market !== undefined) invoice.market = rest.market;
     if (rest.paid !== undefined) invoice.paid = rest.paid;
     if (rest.link !== undefined) invoice.link = rest.link ?? null;
 
