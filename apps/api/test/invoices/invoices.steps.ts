@@ -33,7 +33,6 @@ const invoiceIds = new Map<string, string>();
 const agentIds = new Map<string, string>();
 const valueIds = new Map<string, string>();
 const valueInstanceIds = new Map<string, string>();
-const valueStreamIds = new Map<string, string>();
 const channelIds = new Map<string, string>();
 
 async function createAgent(authCookie: string, name: string): Promise<string> {
@@ -70,16 +69,6 @@ async function createValueInstance(
   return res.body.id;
 }
 
-async function createValueStream(authCookie: string, name: string): Promise<string> {
-  const res = await request(getApp().getHttpServer())
-    .post('/value-streams')
-    .set('Cookie', [authCookie])
-    .set('X-CSRF-Protection', '1')
-    .send({ name });
-  valueStreamIds.set(name, res.body.id);
-  return res.body.id;
-}
-
 async function createChannel(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
     .post('/channels')
@@ -99,7 +88,6 @@ async function createInvoice(
     paid?: boolean;
     currencyName?: string;
     items?: { valueId?: string; valueInstanceId?: string; quantity: string; unitPrice: string; total: string }[];
-    valueStreamId?: string;
     channelId?: string;
   } = {},
 ): Promise<request.Response> {
@@ -113,11 +101,9 @@ async function createInvoice(
     issuedAt: '2025-01-15T00:00:00.000Z',
     dueAt: '2025-02-15T00:00:00.000Z',
     currencyId,
-    direction: 'revenue',
   };
   if (opts.paid !== undefined) body.paid = opts.paid;
   if (opts.items) body.items = opts.items;
-  if (opts.valueStreamId) body.valueStreamId = opts.valueStreamId;
   if (opts.channelId) body.channelId = opts.channelId;
   return request(getApp().getHttpServer())
     .post('/invoices')
@@ -131,7 +117,6 @@ function clearMaps() {
   agentIds.clear();
   valueIds.clear();
   valueInstanceIds.clear();
-  valueStreamIds.clear();
   channelIds.clear();
 }
 
@@ -170,10 +155,6 @@ defineFeature(createFeature, (test) => {
       await createValue(authCookie, name);
     });
 
-    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
-      await createValueStream(authCookie, name);
-    });
-
     when(
       'I create an invoice with:',
       async (table: { number: string; issuedAt: string; dueAt: string; paid: string; link: string }[]) => {
@@ -181,7 +162,6 @@ defineFeature(createFeature, (test) => {
         const fromAgentId = agentIds.get('Seller Corp')!;
         const toAgentId = agentIds.get('Buyer Inc')!;
         const currencyId = valueIds.get('USD')!;
-        const valueStreamId = valueStreamIds.values().next().value;
         response = await request(getApp().getHttpServer())
           .post('/invoices')
           .set('Cookie', [authCookie])
@@ -193,10 +173,8 @@ defineFeature(createFeature, (test) => {
             issuedAt: row.issuedAt,
             dueAt: row.dueAt,
             currencyId,
-            direction: 'revenue',
             paid: row.paid === 'true',
             link: row.link,
-            valueStreamId,
           });
       },
     );
@@ -222,11 +200,6 @@ defineFeature(createFeature, (test) => {
     and(/^the response should contain a currency with name "(.*)"$/, (name: string) => {
       expect(response.body.currency).toBeDefined();
       expect(response.body.currency.name).toBe(name);
-    });
-
-    and(/^the response should contain a valueStream with name "(.*)"$/, (name: string) => {
-      expect(response.body.valueStream).toBeDefined();
-      expect(response.body.valueStream.name).toBe(name);
     });
 
     and(/^the response should contain an invoice with paid (.*)$/, (paid: string) => {
@@ -1601,63 +1574,6 @@ defineFeature(searchFeature, (test) => {
       const channelId = channelIds.get(channelName);
       response = await request(getApp().getHttpServer())
         .get(`/invoices/search?channelId=${channelId}`)
-        .set('Cookie', [authCookie]);
-    });
-
-    then(/^the response status should be (\d+)$/, (status: string) => {
-      expect(response.status).toBe(parseInt(status));
-    });
-
-    and(/^the total count should be (\d+)$/, (count: string) => {
-      expect(response.body.meta.total).toBe(parseInt(count));
-    });
-  });
-
-  test('Filter by valueStreamId', ({ given, when, then, and }) => {
-    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
-      authCookie = await createAuthenticatedUser(email, 'password123');
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
-    });
-
-    and(/^a value exists with name "(.*)"$/, async (name: string) => {
-      await createValue(authCookie, name);
-    });
-
-    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
-      await createValueStream(authCookie, name);
-    });
-
-    and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
-      await createValueStream(authCookie, name);
-    });
-
-    and(
-      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)" with value stream "(.*)"$/,
-      async (number: string, from: string, to: string, valueStreamName: string) => {
-        const valueStreamId = valueStreamIds.get(valueStreamName)!;
-        await createInvoice(authCookie, number, from, to, { valueStreamId });
-      },
-    );
-
-    and(
-      /^an invoice exists with number "(.*)" from "(.*)" to "(.*)" with value stream "(.*)"$/,
-      async (number: string, from: string, to: string, valueStreamName: string) => {
-        const valueStreamId = valueStreamIds.get(valueStreamName)!;
-        await createInvoice(authCookie, number, from, to, { valueStreamId });
-      },
-    );
-
-    when(/^I search invoices with valueStreamId for "(.*)"$/, async (valueStreamName: string) => {
-      const valueStreamId = valueStreamIds.get(valueStreamName);
-      response = await request(getApp().getHttpServer())
-        .get(`/invoices/search?valueStreamId=${valueStreamId}`)
         .set('Cookie', [authCookie]);
     });
 

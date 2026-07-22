@@ -98,19 +98,6 @@ Feature: Search Invoices
     Then the response status should be 200
     And the total count should be 1
 
-  Scenario: Filter by valueStreamId
-    Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
-    And a value exists with name "USD"
-    And a value stream exists with name "Platform"
-    And a value stream exists with name "Marketing"
-    And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc" with value stream "Platform"
-    And an invoice exists with number "INV-002" from "Seller Corp" to "Buyer Inc" with value stream "Marketing"
-    When I search invoices with valueStreamId for "Platform"
-    Then the response status should be 200
-    And the total count should be 1
-
   Scenario: Sort by number ascending
     Given I am authenticated as "admin@marketlum.com"
     And an agent exists with name "Seller Corp"

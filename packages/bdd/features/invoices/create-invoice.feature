@@ -5,7 +5,6 @@ Feature: Create Invoice
     And an agent exists with name "Seller Corp"
     And an agent exists with name "Buyer Inc"
     And a value exists with name "USD"
-    And a value stream exists with name "Main Stream"
     When I create an invoice with:
       | number   | issuedAt                 | dueAt                    | paid  | link                       |
       | INV-001  | 2025-01-15T00:00:00.000Z | 2025-02-15T00:00:00.000Z | false | https://example.com/inv001 |
@@ -14,7 +13,6 @@ Feature: Create Invoice
     And the response should contain a fromAgent with name "Seller Corp"
     And the response should contain a toAgent with name "Buyer Inc"
     And the response should contain a currency with name "USD"
-    And the response should contain a valueStream with name "Main Stream"
     And the response should contain an invoice with paid false
 
   Scenario: Create invoice with items

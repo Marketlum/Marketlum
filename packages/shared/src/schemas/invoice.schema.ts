@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { AgentType } from '../enums/agent-type.enum';
-import { InvoiceDirection } from '../enums/invoice-direction.enum';
 
 const agentSummarySchema = z.object({
   id: z.string().uuid(),
@@ -15,12 +14,6 @@ const valueSummarySchema = z.object({
 });
 
 const valueInstanceSummarySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  code: z.string(),
-});
-
-const valueStreamSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   code: z.string(),
@@ -49,11 +42,9 @@ export const createInvoiceSchema = z.object({
   issuedAt: z.string(),
   dueAt: z.string(),
   currencyId: z.string().uuid(),
-  direction: z.nativeEnum(InvoiceDirection),
   paid: z.boolean().default(false),
   link: z.string().optional(),
   fileId: z.string().uuid().nullable().optional(),
-  valueStreamId: z.string().uuid().nullable().optional(),
   channelId: z.string().uuid().nullable().optional(),
   items: z.array(createInvoiceItemSchema).optional(),
 });
@@ -65,11 +56,9 @@ export const updateInvoiceSchema = z.object({
   issuedAt: z.string().optional(),
   dueAt: z.string().optional(),
   currencyId: z.string().uuid().optional(),
-  direction: z.nativeEnum(InvoiceDirection).optional(),
   paid: z.boolean().optional(),
   link: z.string().nullable().optional(),
   fileId: z.string().uuid().nullable().optional(),
-  valueStreamId: z.string().uuid().nullable().optional(),
   channelId: z.string().uuid().nullable().optional(),
   items: z.array(createInvoiceItemSchema).optional(),
 });
@@ -97,11 +86,9 @@ export const invoiceResponseSchema = z.object({
   issuedAt: z.string(),
   dueAt: z.string(),
   currency: valueSummarySchema,
-  direction: z.nativeEnum(InvoiceDirection),
   paid: z.boolean(),
   link: z.string().nullable(),
   file: z.any().nullable(),
-  valueStream: valueStreamSummarySchema.nullable(),
   channel: channelSummarySchema.nullable(),
   items: z.array(invoiceItemResponseSchema),
   total: z.string(),

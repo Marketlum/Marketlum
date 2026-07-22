@@ -407,23 +407,10 @@ export function InvoiceDetailPage() {
           </div>
 
           {/* Footer metadata */}
-          {(invoice.valueStream || invoice.channel || invoice.link) && (
+          {(invoice.channel || invoice.link) && (
             <>
               <div className="border-t" />
               <div className="grid gap-3 text-sm sm:grid-cols-3">
-                {invoice.valueStream && (
-                  <div>
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                      {t('valueStream')}
-                    </div>
-                    <Link
-                      href={`/admin/value-streams/${invoice.valueStream.id}`}
-                      className="hover:underline print:no-underline"
-                    >
-                      {invoice.valueStream.name}
-                    </Link>
-                  </div>
-                )}
                 {invoice.channel && (
                   <div>
                     <div className="text-xs uppercase tracking-wider text-muted-foreground">

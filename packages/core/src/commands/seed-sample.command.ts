@@ -241,7 +241,7 @@ export class SeedSampleCommand extends CommandRunner {
     );
 
     this.logger.log('Seeding invoices...');
-    const invoices = await seedInvoices(this.invoicesService, { agents, values, valueStreams });
+    const invoices = await seedInvoices(this.invoicesService, { agents, values });
     this.logger.log(`  Created ${invoices.length} invoices`);
 
     // Level 7: Transactions, Value Instances, Exchanges

@@ -20,12 +20,10 @@ interface AggregateRow {
 
 /**
  * Agent P&L (spec 016): invoices the agent issued are revenue, invoices it
- * received are expense — the invoice `direction` column encodes the
- * value-stream perspective and is ignored here. Amounts come from the
- * per-agent snapshot totals (spec 010) in the agent's functional currency;
- * an invoice whose relevant per-agent total is NULL is excluded from sums
- * and counted in notConvertedCount. A self-invoice contributes to both
- * sides (net zero).
+ * received are expense. Amounts come from the per-agent snapshot totals
+ * (spec 010) in the agent's functional currency; an invoice whose relevant
+ * per-agent total is NULL is excluded from sums and counted in
+ * notConvertedCount. A self-invoice contributes to both sides (net zero).
  */
 @Injectable()
 export class AgentFinancialsService {

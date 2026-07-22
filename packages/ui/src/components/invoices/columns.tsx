@@ -2,10 +2,8 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown, ExternalLink } from 'lucide-react';
-import { InvoiceDirection } from '@marketlum/shared';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { cn } from '../../lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,11 +21,9 @@ interface InvoiceRow {
   currency: { id: string; name: string } | null;
   total?: string;
   presentationTotal?: string | null;
-  direction: InvoiceDirection;
   paid: boolean;
   link: string | null;
   file: unknown;
-  valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
   items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string; presentationRate: string | null; presentationAmount: string | null }[];
   createdAt: string;
@@ -42,9 +38,6 @@ interface InvoiceColumnsTranslations {
   dueAt: string;
   currency: string;
   total: string;
-  direction: string;
-  directionRevenue: string;
-  directionExpense: string;
   paid: string;
   paidYes: string;
   paidNo: string;
@@ -135,31 +128,6 @@ export function getInvoiceColumns({
         return (
           <Badge variant={paid ? 'default' : 'secondary'}>
             {paid ? translations.paidYes : translations.paidNo}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: 'direction',
-      header: () => (
-        <Button variant="ghost" onClick={() => onSort('direction')}>
-          {translations.direction} <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => {
-        const direction = row.original.direction;
-        const isRevenue = direction === InvoiceDirection.REVENUE;
-        return (
-          <Badge
-            variant="outline"
-            className={cn(
-              'border-transparent',
-              isRevenue
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
-                : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-400',
-            )}
-          >
-            {isRevenue ? translations.directionRevenue : translations.directionExpense}
           </Badge>
         );
       },

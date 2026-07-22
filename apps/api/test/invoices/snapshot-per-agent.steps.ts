@@ -108,7 +108,6 @@ async function createInvoice(
       issuedAt: new Date().toISOString(),
       dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       currencyId: ctx.values.get(currencyName),
-      direction: 'revenue',
       items: [{ quantity: '1', unitPrice: itemTotal, total: itemTotal }],
     });
 }

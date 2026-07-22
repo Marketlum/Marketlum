@@ -16,11 +16,11 @@ export class DashboardService {
   ) {}
 
   async getSummary(query: DashboardQuery): Promise<DashboardSummaryResponse> {
-    const { agentId, valueStreamId, channelId, fromDate, toDate } = query;
+    const { agentId, channelId, fromDate, toDate } = query;
 
     const summary = agentId
-      ? await this.getSummaryByAgent(agentId, valueStreamId, channelId, fromDate, toDate)
-      : await this.getSummaryAll(valueStreamId, channelId, fromDate, toDate);
+      ? await this.getSummaryByAgent(agentId, channelId, fromDate, toDate)
+      : await this.getSummaryAll(channelId, fromDate, toDate);
 
     const notConvertedCount = await this.getNotConvertedCount(query);
     return { ...summary, notConvertedCount };
@@ -28,7 +28,6 @@ export class DashboardService {
 
   private async getSummaryByAgent(
     agentId: string,
-    valueStreamId?: string,
     channelId?: string,
     fromDate?: string,
     toDate?: string,
@@ -36,7 +35,6 @@ export class DashboardService {
     const revenueRows = await this.queryTimeSeries(
       'i."fromAgentId" = $1',
       [agentId],
-      valueStreamId,
       channelId,
       fromDate,
       toDate,
@@ -45,7 +43,6 @@ export class DashboardService {
     const expenseRows = await this.queryTimeSeries(
       'i."toAgentId" = $1',
       [agentId],
-      valueStreamId,
       channelId,
       fromDate,
       toDate,
@@ -91,12 +88,11 @@ export class DashboardService {
   }
 
   private async getSummaryAll(
-    valueStreamId?: string,
     channelId?: string,
     fromDate?: string,
     toDate?: string,
   ): Promise<DashboardSummaryResponse> {
-    const rows = await this.queryTimeSeries('1=1', [], valueStreamId, channelId, fromDate, toDate);
+    const rows = await this.queryTimeSeries('1=1', [], channelId, fromDate, toDate);
 
     const timeSeries: DashboardTimeSeriesPoint[] = rows.map((row) => ({
       period: row.period,
@@ -121,7 +117,6 @@ export class DashboardService {
   private async queryTimeSeries(
     agentCondition: string,
     agentParams: string[],
-    valueStreamId?: string,
     channelId?: string,
     fromDate?: string,
     toDate?: string,
@@ -129,12 +124,6 @@ export class DashboardService {
     const conditions = [agentCondition];
     const params = [...agentParams];
     let paramIndex = params.length + 1;
-
-    if (valueStreamId) {
-      conditions.push(`i."valueStreamId" = $${paramIndex}`);
-      params.push(valueStreamId);
-      paramIndex++;
-    }
 
     if (channelId) {
       conditions.push(`i."channelId" = $${paramIndex}`);
@@ -173,7 +162,7 @@ export class DashboardService {
   }
 
   async getNotConvertedCount(query: DashboardQuery): Promise<number> {
-    const { agentId, valueStreamId, channelId, fromDate, toDate } = query;
+    const { agentId, channelId, fromDate, toDate } = query;
     const conditions: string[] = [`ii."presentationAmount" IS NULL`];
     const params: string[] = [];
     let paramIndex = 1;
@@ -181,11 +170,6 @@ export class DashboardService {
     if (agentId) {
       conditions.push(`(i."fromAgentId" = $${paramIndex} OR i."toAgentId" = $${paramIndex})`);
       params.push(agentId);
-      paramIndex++;
-    }
-    if (valueStreamId) {
-      conditions.push(`i."valueStreamId" = $${paramIndex}`);
-      params.push(valueStreamId);
       paramIndex++;
     }
     if (channelId) {

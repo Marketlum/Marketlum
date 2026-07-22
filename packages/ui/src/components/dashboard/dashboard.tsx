@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import type { DashboardSummaryResponse } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { useAgents } from '../../hooks/use-agents';
-import { useValueStreams } from '../../hooks/use-value-streams';
 import { useChannels } from '../../hooks/use-channels';
 import { RevenueExpensesChart } from './revenue-expenses-chart';
 import { formatDate, getPresetRange } from '../../lib/date-range-presets';
@@ -13,11 +12,9 @@ import { formatDate, getPresetRange } from '../../lib/date-range-presets';
 export function Dashboard() {
   const t = useTranslations('dashboard');
   const { agents } = useAgents();
-  const { valueStreams } = useValueStreams();
   const { channels } = useChannels();
 
   const [agentId, setAgentId] = useState('');
-  const [valueStreamId, setValueStreamId] = useState('');
   const [channelId, setChannelId] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -55,7 +52,6 @@ export function Dashboard() {
     try {
       const params = new URLSearchParams();
       if (agentId) params.set('agentId', agentId);
-      if (valueStreamId) params.set('valueStreamId', valueStreamId);
       if (channelId) params.set('channelId', channelId);
       if (fromDate) params.set('fromDate', fromDate);
       if (toDate) params.set('toDate', toDate);
@@ -69,7 +65,7 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [agentId, valueStreamId, channelId, fromDate, toDate]);
+  }, [agentId, channelId, fromDate, toDate]);
 
   useEffect(() => {
     fetchData();
@@ -91,16 +87,6 @@ export function Dashboard() {
           <option value="">{t('allAgents')}</option>
           {agents.map((a) => (
             <option key={a.id} value={a.id}>{a.name}</option>
-          ))}
-        </select>
-        <select
-          value={valueStreamId}
-          onChange={(e) => setValueStreamId(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="">{t('allValueStreams')}</option>
-          {valueStreams.map((vs) => (
-            <option key={vs.id} value={vs.id}>{vs.name}</option>
           ))}
         </select>
         <select

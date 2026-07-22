@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Plus, ArrowRightLeft, RefreshCw } from 'lucide-react';
@@ -8,22 +8,13 @@ import type {
   CreateValueInput,
   CreateExchangeInput,
   CreateRecurringFlowInput,
-  DashboardSummaryResponse,
 } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
-import { formatDate, getPresetRange } from '../../lib/date-range-presets';
 import { toast } from 'sonner';
 import { ValueFormDialog } from '../../components/values/value-form-dialog';
 import { ExchangeFormDialog } from '../../components/exchanges/exchange-form-dialog';
 import { RecurringFlowFormDialog } from '../../components/recurring-flows/recurring-flow-form-dialog';
-import { RevenueExpensesChart } from '../../components/dashboard/revenue-expenses-chart';
 import { Button } from '../../components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '../../components/ui/card';
 
 export function ValueStreamDetailPage() {
   const params = useParams<{ id: string }>();
@@ -33,62 +24,11 @@ export function ValueStreamDetailPage() {
   const tv = useTranslations('values');
   const te = useTranslations('exchanges');
   const trf = useTranslations('recurringFlows');
-  const td = useTranslations('dashboard');
 
-  const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
   const [createValueOpen, setCreateValueOpen] = useState(false);
   const [createExchangeOpen, setCreateExchangeOpen] = useState(false);
   const [createRecurringFlowOpen, setCreateRecurringFlowOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [preset, setPreset] = useState('all');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-
-  const presetOptions = useMemo(() => [
-    { key: 'all', label: td('presetAll') },
-    { key: 'last7', label: td('presetLast7') },
-    { key: 'last30', label: td('presetLast30') },
-    { key: 'thisMonth', label: td('presetThisMonth') },
-    { key: 'lastMonth', label: td('presetLastMonth') },
-    { key: 'thisQuarter', label: td('presetThisQuarter') },
-    { key: 'thisYear', label: td('presetThisYear') },
-    { key: 'lastYear', label: td('presetLastYear') },
-    { key: 'custom', label: td('presetCustom') },
-  ], [td]);
-
-  const handlePresetChange = useCallback((key: string) => {
-    setPreset(key);
-    if (key === 'all') {
-      setFromDate('');
-      setToDate('');
-    } else if (key !== 'custom') {
-      const { from, to } = getPresetRange(key);
-      setFromDate(from);
-      setToDate(to);
-    }
-  }, []);
-
-  const fetchDashboard = useCallback(async () => {
-    try {
-      const qp = new URLSearchParams();
-      qp.set('valueStreamId', id);
-      if (fromDate) qp.set('fromDate', fromDate);
-      if (toDate) qp.set('toDate', toDate);
-      const result = await api.get<DashboardSummaryResponse>(`/dashboard/summary?${qp.toString()}`);
-      setDashboardData(result);
-    } catch {
-      setDashboardData(null);
-    }
-  }, [id, fromDate, toDate]);
-
-  useEffect(() => {
-    fetchDashboard();
-  }, [fetchDashboard]);
-
-  const net = dashboardData
-    ? (parseFloat(dashboardData.totalRevenue) - parseFloat(dashboardData.totalExpenses)).toFixed(2)
-    : '0.00';
 
   const handleCreateValue = async (input: CreateValueInput) => {
     setIsSubmitting(true);
@@ -146,65 +86,6 @@ export function ValueStreamDetailPage() {
           {t('createRecurringFlow')}
         </Button>
       </div>
-
-      {/* P&L summary */}
-      {dashboardData && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-lg border p-4">
-            <div className="text-xs text-muted-foreground">{td('totalRevenue')}</div>
-            <div className="text-2xl font-bold text-emerald-600">{dashboardData.totalRevenue}</div>
-          </div>
-          <div className="rounded-lg border p-4">
-            <div className="text-xs text-muted-foreground">{td('totalExpenses')}</div>
-            <div className="text-2xl font-bold text-rose-600">{dashboardData.totalExpenses}</div>
-          </div>
-          <div className="rounded-lg border p-4">
-            <div className="text-xs text-muted-foreground">{td('net')}</div>
-            <div className={`text-2xl font-bold ${parseFloat(net) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {net}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Revenue & Expenses chart */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle>{tvs('revenueExpenses')}</CardTitle>
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={preset}
-                onChange={(e) => handlePresetChange(e.target.value)}
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                {presetOptions.map((o) => (
-                  <option key={o.key} value={o.key}>{o.label}</option>
-                ))}
-              </select>
-              {preset === 'custom' && (
-                <>
-                  <input
-                    type="date"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                  />
-                  <input
-                    type="date"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                  />
-                </>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <RevenueExpensesChart data={dashboardData?.timeSeries ?? []} />
-        </CardContent>
-      </Card>
 
       {/* Dialogs */}
       <ValueFormDialog

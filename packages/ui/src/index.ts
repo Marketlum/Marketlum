@@ -272,7 +272,6 @@ export { ValueStreamLayout } from './layouts/value-stream-layout';
 export { ValueStreamValuesPage } from './pages/admin/value-stream-values-page';
 export { ValueStreamOfferingsPage } from './pages/admin/value-stream-offerings-page';
 export { ValueStreamExchangesPage } from './pages/admin/value-stream-exchanges-page';
-export { ValueStreamInvoicesPage } from './pages/admin/value-stream-invoices-page';
 export { ValueStreamAgreementTemplatesPage } from './pages/admin/value-stream-agreement-templates-page';
 export { ValueStreamAgreementsPage } from './pages/admin/value-stream-agreements-page';
 export { ValueStreamRecurringFlowsPage } from './pages/admin/value-stream-recurring-flows-page';

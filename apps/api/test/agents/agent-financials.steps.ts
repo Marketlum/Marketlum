@@ -88,7 +88,6 @@ async function createInvoice(
     to: string;
     issuedAt: string;
     amount: string;
-    direction: string;
     currencyName?: string;
     paid?: boolean;
   },
@@ -102,7 +101,6 @@ async function createInvoice(
       fromAgentId: ctx.agentIds.get(args.from),
       toAgentId: ctx.agentIds.get(args.to),
       currencyId: ctx.valueIds.get(args.currencyName ?? 'USD'),
-      direction: args.direction,
       issuedAt: `${args.issuedAt}T00:00:00.000Z`,
       dueAt: `${args.issuedAt}T00:00:00.000Z`,
       paid: args.paid ?? false,
@@ -158,9 +156,9 @@ defineFeature(feature, (test) => {
 
   function registerInvoiceStep(ctx: Ctx, step: StepFn) {
     step(
-      /^an invoice exists from "(.*)" to "(.*)" issued "(.*)" amount "(.*)" with direction "(.*)"$/,
-      async (from: string, to: string, issuedAt: string, amount: string, direction: string) => {
-        await createInvoice(ctx, { from, to, issuedAt, amount, direction });
+      /^an invoice exists from "(.*)" to "(.*)" issued "(.*)" amount "(.*)"$/,
+      async (from: string, to: string, issuedAt: string, amount: string) => {
+        await createInvoice(ctx, { from, to, issuedAt, amount });
       },
     );
   }
@@ -200,16 +198,6 @@ defineFeature(feature, (test) => {
     registerAnnual(ctx, and, 'expense');
     registerAnnual(ctx, and, 'net');
     registerInvoiceCount(ctx, and);
-  });
-
-  test('The invoice direction column does not affect the agent P&L', ({ given, and, when, then }) => {
-    const ctx = makeCtx();
-    registerBackground(ctx, given, and);
-    registerInvoiceStep(ctx, given);
-    registerRequest(ctx, when);
-    registerStatus(ctx, then);
-    registerAnnual(ctx, and, 'revenue');
-    registerAnnual(ctx, and, 'expense');
   });
 
   test('Figures land in the correct month and quarter', ({ given, and, when, then }) => {
@@ -263,9 +251,9 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^an invoice exists from "(.*)" to "(.*)" in "(.*)" issued "(.*)" amount "(.*)" with direction "(.*)"$/,
-      async (from: string, to: string, currency: string, issuedAt: string, amount: string, direction: string) => {
-        await createInvoice(ctx, { from, to, issuedAt, amount, direction, currencyName: currency });
+      /^an invoice exists from "(.*)" to "(.*)" in "(.*)" issued "(.*)" amount "(.*)"$/,
+      async (from: string, to: string, currency: string, issuedAt: string, amount: string) => {
+        await createInvoice(ctx, { from, to, issuedAt, amount, currencyName: currency });
       },
     );
     registerRequest(ctx, when);
@@ -300,9 +288,9 @@ defineFeature(feature, (test) => {
     );
     const currencyInvoice = (step: StepFn) =>
       step(
-        /^an invoice exists from "(.*)" to "(.*)" in "(.*)" issued "(.*)" amount "(.*)" with direction "(.*)"$/,
-        async (from: string, to: string, currency: string, issuedAt: string, amount: string, direction: string) => {
-          await createInvoice(ctx, { from, to, issuedAt, amount, direction, currencyName: currency });
+        /^an invoice exists from "(.*)" to "(.*)" in "(.*)" issued "(.*)" amount "(.*)"$/,
+        async (from: string, to: string, currency: string, issuedAt: string, amount: string) => {
+          await createInvoice(ctx, { from, to, issuedAt, amount, currencyName: currency });
         },
       );
     currencyInvoice(and);
@@ -331,9 +319,9 @@ defineFeature(feature, (test) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     given(
-      /^an unpaid invoice exists from "(.*)" to "(.*)" issued "(.*)" amount "(.*)" with direction "(.*)"$/,
-      async (from: string, to: string, issuedAt: string, amount: string, direction: string) => {
-        await createInvoice(ctx, { from, to, issuedAt, amount, direction, paid: false });
+      /^an unpaid invoice exists from "(.*)" to "(.*)" issued "(.*)" amount "(.*)"$/,
+      async (from: string, to: string, issuedAt: string, amount: string) => {
+        await createInvoice(ctx, { from, to, issuedAt, amount, paid: false });
       },
     );
     registerRequest(ctx, when);

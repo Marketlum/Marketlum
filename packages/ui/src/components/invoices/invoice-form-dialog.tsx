@@ -9,7 +9,6 @@ import { Plus, UserPlus, X } from 'lucide-react';
 import {
   createInvoiceSchema,
   updateInvoiceSchema,
-  InvoiceDirection,
   type CreateInvoiceInput,
   type CreateAgentInput,
   type AgentResponse,
@@ -37,7 +36,6 @@ import { AgentFormDialog } from '../agents/agent-form-dialog';
 import { api } from '../../lib/api-client';
 import { useAgents } from '../../hooks/use-agents';
 import { useValues } from '../../hooks/use-values';
-import { useValueStreams } from '../../hooks/use-value-streams';
 import { useChannels } from '../../hooks/use-channels';
 
 interface ItemRow {
@@ -56,11 +54,9 @@ interface InvoiceData {
   issuedAt: string;
   dueAt: string;
   currency: { id: string; name: string } | null;
-  direction: InvoiceDirection;
   paid: boolean;
   link: string | null;
   file: unknown;
-  valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
   items: { id: string; value: { id: string; name: string } | null; valueInstance: { id: string; name: string } | null; quantity: string; unitPrice: string; total: string }[];
 }
@@ -94,7 +90,6 @@ export function InvoiceFormDialog({
   const ta = useTranslations('agents');
   const { agents, refresh: refreshAgents } = useAgents(open);
   const { values } = useValues(open);
-  const { valueStreams } = useValueStreams(open);
   const { channels } = useChannels(open);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [agentFormFor, setAgentFormFor] = useState<
@@ -148,10 +143,8 @@ export function InvoiceFormDialog({
           issuedAt: invoice.issuedAt ? invoice.issuedAt.slice(0, 16) : '',
           dueAt: invoice.dueAt ? invoice.dueAt.slice(0, 16) : '',
           currencyId: invoice.currency?.id ?? '',
-          direction: invoice.direction,
           paid: invoice.paid,
           link: invoice.link ?? '',
-          valueStreamId: invoice.valueStream?.id ?? null,
           channelId: invoice.channel?.id ?? null,
         });
         setItems(
@@ -178,7 +171,6 @@ export function InvoiceFormDialog({
           paid: false,
           link: '',
           fileId: prefill.fileId,
-          valueStreamId: null,
           channelId: null,
         });
         setItems(
@@ -200,7 +192,6 @@ export function InvoiceFormDialog({
           currencyId: '',
           paid: false,
           link: '',
-          valueStreamId: null,
           channelId: null,
         });
         setItems([]);
@@ -417,50 +408,6 @@ export function InvoiceFormDialog({
                 <SelectContent>
                   <SelectItem value="false">{t('paidNo')}</SelectItem>
                   <SelectItem value="true">{t('paidYes')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>{t('direction')}</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant={watch('direction') === InvoiceDirection.REVENUE ? 'default' : 'outline'}
-                  onClick={() => setFormValue('direction', InvoiceDirection.REVENUE)}
-                >
-                  {t('directionRevenue')}
-                </Button>
-                <Button
-                  type="button"
-                  variant={watch('direction') === InvoiceDirection.EXPENSE ? 'default' : 'outline'}
-                  onClick={() => setFormValue('direction', InvoiceDirection.EXPENSE)}
-                >
-                  {t('directionExpense')}
-                </Button>
-              </div>
-              {errors.direction && (
-                <p className="text-sm text-destructive">{errors.direction.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>{t('valueStream')}</Label>
-              <Select
-                value={watch('valueStreamId') ?? '__none__'}
-                onValueChange={(v) => setFormValue('valueStreamId', v === '__none__' ? null : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('selectValueStream')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">&mdash;</SelectItem>
-                  {valueStreams.map((vs) => (
-                    <SelectItem key={vs.id} value={vs.id}>
-                      {vs.name}
-                    </SelectItem>
-                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -10,10 +10,8 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { InvoiceDirection } from '@marketlum/shared';
 import { Agent } from '../../agents/entities/agent.entity';
 import { Value } from '../../values/entities/value.entity';
-import { ValueStream } from '../../value-streams/entities/value-stream.entity';
 import { Channel } from '../../channels/channel.entity';
 import { File } from '../../files/entities/file.entity';
 import { InvoiceItem } from './invoice-item.entity';
@@ -54,8 +52,6 @@ export class Invoice {
   @Column({ type: 'uuid' })
   currencyId: string;
 
-  @Column({ type: 'enum', enum: InvoiceDirection })
-  direction: InvoiceDirection;
 
   @Column({ type: 'boolean', default: false })
   paid: boolean;
@@ -69,13 +65,6 @@ export class Invoice {
 
   @Column({ type: 'uuid', nullable: true })
   fileId: string | null;
-
-  @ManyToOne(() => ValueStream, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'valueStreamId' })
-  valueStream: ValueStream | null;
-
-  @Column({ type: 'uuid', nullable: true })
-  valueStreamId: string | null;
 
   @ManyToOne(() => Channel, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'channelId' })

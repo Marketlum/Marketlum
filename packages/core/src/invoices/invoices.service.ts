@@ -10,7 +10,6 @@ import { InvoiceItem } from './entities/invoice-item.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
-import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Channel } from '../channels/channel.entity';
 import { File } from '../files/entities/file.entity';
 import {
@@ -56,8 +55,6 @@ export class InvoicesService {
     private readonly valueRepository: Repository<Value>,
     @InjectRepository(ValueInstance)
     private readonly valueInstanceRepository: Repository<ValueInstance>,
-    @InjectRepository(ValueStream)
-    private readonly valueStreamRepository: Repository<ValueStream>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
     @InjectRepository(Channel)
@@ -123,7 +120,6 @@ export class InvoicesService {
       toAgentId,
       currencyId,
       fileId,
-      valueStreamId,
       channelId,
       items,
       ...rest
@@ -153,14 +149,6 @@ export class InvoicesService {
       if (!file) throw new NotFoundException('File not found');
     }
 
-    // Validate valueStream if provided
-    if (valueStreamId) {
-      const vs = await this.valueStreamRepository.findOne({
-        where: { id: valueStreamId },
-      });
-      if (!vs) throw new NotFoundException('Value stream not found');
-    }
-
     // Validate channel if provided
     if (channelId) {
       const ch = await this.channelRepository.findOne({
@@ -188,7 +176,6 @@ export class InvoicesService {
       dueAt: new Date(rest.dueAt),
       link: rest.link ?? null,
       fileId: fileId ?? null,
-      valueStreamId: valueStreamId ?? null,
       channelId: channelId ?? null,
     });
 
@@ -206,11 +193,9 @@ export class InvoicesService {
       fromAgentId?: string;
       toAgentId?: string;
       agentId?: string;
-      direction?: string;
       paid?: string;
       currencyId?: string;
       channelId?: string;
-      valueStreamId?: string;
     },
   ) {
     const {
@@ -222,11 +207,9 @@ export class InvoicesService {
       fromAgentId,
       toAgentId,
       agentId,
-      direction,
       paid,
       currencyId,
       channelId,
-      valueStreamId,
     } = query;
     const skip = (page - 1) * limit;
 
@@ -236,7 +219,6 @@ export class InvoicesService {
     qb.leftJoinAndSelect('invoice.toAgent', 'toAgent');
     qb.leftJoinAndSelect('invoice.currency', 'currency');
     qb.leftJoinAndSelect('invoice.file', 'file');
-    qb.leftJoinAndSelect('invoice.valueStream', 'valueStream');
     qb.leftJoinAndSelect('invoice.channel', 'channel');
 
     // Per-perspective totals (presentation / from-agent / to-agent) are
@@ -267,10 +249,6 @@ export class InvoicesService {
       qb.andWhere('(invoice.fromAgentId = :agentId OR invoice.toAgentId = :agentId)', { agentId });
     }
 
-    if (direction) {
-      qb.andWhere('invoice.direction = :direction', { direction });
-    }
-
     if (paid !== undefined) {
       qb.andWhere('invoice.paid = :paid', { paid: paid === 'true' });
     }
@@ -281,10 +259,6 @@ export class InvoicesService {
 
     if (channelId) {
       qb.andWhere('invoice.channelId = :channelId', { channelId });
-    }
-
-    if (valueStreamId) {
-      qb.andWhere('invoice.valueStreamId = :valueStreamId', { valueStreamId });
     }
 
     if (search) {
@@ -333,9 +307,6 @@ export class InvoicesService {
         agentId,
       });
     }
-    if (direction) {
-      countQb.andWhere('invoice.direction = :direction', { direction });
-    }
     if (paid !== undefined) {
       countQb.andWhere('invoice.paid = :paid', { paid: paid === 'true' });
     }
@@ -344,9 +315,6 @@ export class InvoicesService {
     }
     if (channelId) {
       countQb.andWhere('invoice.channelId = :channelId', { channelId });
-    }
-    if (valueStreamId) {
-      countQb.andWhere('invoice.valueStreamId = :valueStreamId', { valueStreamId });
     }
     if (search) {
       countQb.andWhere(
@@ -376,7 +344,6 @@ export class InvoicesService {
         'toAgent',
         'currency',
         'file',
-        'valueStream',
         'channel',
         'items',
         'items.value',
@@ -429,7 +396,6 @@ export class InvoicesService {
       toAgentId,
       currencyId,
       fileId,
-      valueStreamId,
       channelId,
       items,
       ...rest
@@ -439,7 +405,6 @@ export class InvoicesService {
     if (rest.issuedAt !== undefined)
       invoice.issuedAt = new Date(rest.issuedAt);
     if (rest.dueAt !== undefined) invoice.dueAt = new Date(rest.dueAt);
-    if (rest.direction !== undefined) invoice.direction = rest.direction;
     if (rest.paid !== undefined) invoice.paid = rest.paid;
     if (rest.link !== undefined) invoice.link = rest.link ?? null;
 
@@ -480,19 +445,6 @@ export class InvoicesService {
       }
     }
 
-    if (valueStreamId !== undefined) {
-      if (valueStreamId === null) {
-        invoice.valueStream = null;
-        invoice.valueStreamId = null;
-      } else {
-        const vs = await this.valueStreamRepository.findOne({
-          where: { id: valueStreamId },
-        });
-        if (!vs) throw new NotFoundException('Value stream not found');
-        invoice.valueStreamId = valueStreamId;
-      }
-    }
-
     if (channelId !== undefined) {
       if (channelId === null) {
         invoice.channel = null;
@@ -524,7 +476,6 @@ export class InvoicesService {
     delete (invoice as any).toAgent;
     delete (invoice as any).currency;
     delete (invoice as any).file;
-    delete (invoice as any).valueStream;
     delete (invoice as any).channel;
     delete (invoice as any).total;
     await this.invoiceRepository.save(invoice);

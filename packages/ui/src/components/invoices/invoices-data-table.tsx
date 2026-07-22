@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { SlidersHorizontal } from 'lucide-react';
 import type { PaginatedResponse, PerspectiveConfig, CreateInvoiceInput } from '@marketlum/shared';
-import { InvoiceDirection } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
@@ -65,11 +64,9 @@ interface InvoiceRow {
   currency: { id: string; name: string } | null;
   total?: string;
   presentationTotal?: string | null;
-  direction: InvoiceDirection;
   paid: boolean;
   link: string | null;
   file: unknown;
-  valueStream: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
   items: InvoiceItemRow[];
   createdAt: string;
@@ -77,14 +74,11 @@ interface InvoiceRow {
 }
 
 interface InvoicesDataTableProps {
-  /** Scope the table to one value stream: filters every query. */
-  valueStreamId?: string;
   /** Scope the table to invoices involving one agent (issuer or receiver): filters every query. */
   agentId?: string;
 }
 
 export function InvoicesDataTable({
-  valueStreamId: scopedValueStreamId,
   agentId: scopedAgentId,
 }: InvoicesDataTableProps = {}) {
   const router = useRouter();
@@ -99,7 +93,6 @@ export function InvoicesDataTable({
   const { channels } = useChannels();
   const [fromAgentFilter, setFromAgentFilter] = useState<string>('all');
   const [toAgentFilter, setToAgentFilter] = useState<string>('all');
-  const [directionFilter, setDirectionFilter] = useState<string>('all');
   const [paidFilter, setPaidFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
@@ -120,7 +113,6 @@ export function InvoicesDataTable({
     setColumnVisibility(config.columnVisibility ?? {});
     setFromAgentFilter(config.filters?.fromAgentId ?? 'all');
     setToAgentFilter(config.filters?.toAgentId ?? 'all');
-    setDirectionFilter(config.filters?.direction ?? 'all');
     setPaidFilter(config.filters?.paid ?? 'all');
     setCurrencyFilter(config.filters?.currencyId ?? 'all');
     setChannelFilter(config.filters?.channelId ?? 'all');
@@ -160,13 +152,12 @@ export function InvoicesDataTable({
     filters: {
       ...(fromAgentFilter !== 'all' ? { fromAgentId: fromAgentFilter } : {}),
       ...(toAgentFilter !== 'all' ? { toAgentId: toAgentFilter } : {}),
-      ...(directionFilter !== 'all' ? { direction: directionFilter } : {}),
       ...(paidFilter !== 'all' ? { paid: paidFilter } : {}),
       ...(currencyFilter !== 'all' ? { currencyId: currencyFilter } : {}),
       ...(channelFilter !== 'all' ? { channelId: channelFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -174,11 +165,9 @@ export function InvoicesDataTable({
       let qs = pagination.toQueryString();
       if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
       if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
-      if (directionFilter && directionFilter !== 'all') qs += `&direction=${directionFilter}`;
       if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
       if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
       if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
-      if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
       if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
       const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
       setData(result);
@@ -187,11 +176,11 @@ export function InvoicesDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter, scopedValueStreamId, scopedAgentId]);
+  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingInvoice(null);
@@ -308,9 +297,6 @@ export function InvoicesDataTable({
       dueAt: t('dueAt'),
       currency: t('currency'),
       total: t('total'),
-      direction: t('direction'),
-      directionRevenue: t('directionRevenue'),
-      directionExpense: t('directionExpense'),
       paid: t('paid'),
       paidYes: t('paidYes'),
       paidNo: t('paidNo'),
@@ -329,7 +315,6 @@ export function InvoicesDataTable({
     { id: 'dueAt', label: t('dueAt') },
     { id: 'currency', label: t('currency') },
     { id: 'total', label: t('total') },
-    { id: 'direction', label: t('direction') },
     { id: 'paid', label: t('paid') },
     { id: 'channel', label: t('channel') },
     { id: 'link', label: t('link') },
@@ -352,7 +337,6 @@ export function InvoicesDataTable({
       return c?.name ?? '';
     }},
     { key: 'total', label: t('total'), extract: (r) => String(r.total ?? '0.00') },
-    { key: 'direction', label: t('direction'), extract: (r) => r.direction === 'revenue' ? t('directionRevenue') : t('directionExpense') },
     { key: 'paid', label: t('paid'), extract: (r) => r.paid ? t('paidYes') : t('paidNo') },
     { key: 'channel', label: t('channel'), extract: (r) => {
       const ch = r.channel as { name: string } | null;
@@ -371,15 +355,13 @@ export function InvoicesDataTable({
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
     if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
-    if (directionFilter && directionFilter !== 'all') qs += `&direction=${directionFilter}`;
     if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
     if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
-    if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
     if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
     const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter, scopedValueStreamId, scopedAgentId]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -402,14 +384,6 @@ export function InvoicesDataTable({
         label: t('to'),
         displayValue: agent?.name ?? toAgentFilter,
         onClear: () => setToAgentFilter('all'),
-      });
-    }
-    if (directionFilter !== 'all') {
-      filters.push({
-        key: 'direction',
-        label: t('direction'),
-        displayValue: directionFilter === 'revenue' ? t('directionRevenue') : t('directionExpense'),
-        onClear: () => setDirectionFilter('all'),
       });
     }
     if (paidFilter !== 'all') {
@@ -439,7 +413,7 @@ export function InvoicesDataTable({
       });
     }
     return filters;
-  }, [fromAgentFilter, toAgentFilter, directionFilter, paidFilter, currencyFilter, channelFilter, agents, values, channels, t]);
+  }, [fromAgentFilter, toAgentFilter, paidFilter, currencyFilter, channelFilter, agents, values, channels, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -545,19 +519,6 @@ export function InvoicesDataTable({
                   {agent.name}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">{t('direction')}</label>
-          <Select value={directionFilter} onValueChange={setDirectionFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allDirections')}</SelectItem>
-              <SelectItem value="revenue">{t('directionRevenue')}</SelectItem>
-              <SelectItem value="expense">{t('directionExpense')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

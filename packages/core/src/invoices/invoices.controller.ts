@@ -101,33 +101,27 @@ export class InvoicesController {
   @ApiQuery({ name: 'fromAgentId', required: false, type: String })
   @ApiQuery({ name: 'toAgentId', required: false, type: String })
   @ApiQuery({ name: 'agentId', required: false, type: String })
-  @ApiQuery({ name: 'direction', required: false, enum: ['revenue', 'expense'] })
   @ApiQuery({ name: 'paid', required: false, enum: ['true', 'false'] })
   @ApiQuery({ name: 'currencyId', required: false, type: String })
   @ApiQuery({ name: 'channelId', required: false, type: String })
-  @ApiQuery({ name: 'valueStreamId', required: false, type: String })
   @ApiPaginatedResponse(InvoiceResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('fromAgentId') fromAgentId?: string,
     @Query('toAgentId') toAgentId?: string,
     @Query('agentId') agentId?: string,
-    @Query('direction') direction?: string,
     @Query('paid') paid?: string,
     @Query('currencyId') currencyId?: string,
     @Query('channelId') channelId?: string,
-    @Query('valueStreamId') valueStreamId?: string,
   ) {
     return this.invoicesService.search({
       ...query,
       fromAgentId,
       toAgentId,
       agentId,
-      direction,
       paid,
       currencyId,
       channelId,
-      valueStreamId,
     });
   }
 
