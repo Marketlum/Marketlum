@@ -263,7 +263,13 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
         )}
       </div>
       <p className="mb-4 md:mb-6 text-sm text-muted-foreground">
-        {document.agent.name} · {t('sponsoredBy')} {document.platform.name} ·{' '}
+        <Link
+          href={`/admin/agents/${document.agent.id}`}
+          className="underline-offset-2 hover:text-foreground hover:underline"
+        >
+          {document.agent.name}
+        </Link>{' '}
+        · {t('sponsoredBy')} {document.platform.name} ·{' '}
         {tl('months', { count: document.horizonMonths })}
         {currencyCode ? ` · ${currencyCode.toUpperCase()}` : ''}
       </p>
