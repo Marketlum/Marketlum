@@ -241,14 +241,14 @@ export function EmcAgreementDetailPage({ params }: PluginRouteComponentProps) {
                     </p>
                   </td>
                   <td className="border-l p-2">
-                    <ul className="list-disc space-y-1 pl-4">
+                    <ul className="list-disc space-y-1 pl-5">
                       {node.services.map((s) => (
                         <li key={s.id}>{s.text}</li>
                       ))}
                     </ul>
                   </td>
                   <td className="border-l p-2">
-                    <ul className="list-disc space-y-1 pl-4">
+                    <ul className="list-disc space-y-1 pl-5">
                       {node.goals.map((g) => (
                         <li key={g.id}>{g.text}</li>
                       ))}
