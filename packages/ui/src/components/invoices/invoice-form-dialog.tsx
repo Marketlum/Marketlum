@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Plus, UserPlus, X } from 'lucide-react';
 import {
   InvoiceMarket,
+  ValueType,
   createInvoiceSchema,
   updateInvoiceSchema,
   type CreateInvoiceInput,
@@ -98,6 +99,7 @@ export function InvoiceFormDialog({
   const ta = useTranslations('agents');
   const { agents, refresh: refreshAgents } = useAgents(open);
   const { values } = useValues(open);
+  const currencyOptions = values.filter((v) => v.type === ValueType.CURRENCY);
   const { channels } = useChannels(open);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [orders, setOrders] = useState<OrderOption[]>([]);
@@ -399,7 +401,7 @@ export function InvoiceFormDialog({
             <div className="space-y-2">
               <Label>{t('currency')}</Label>
               <ValueCombobox
-                values={values}
+                values={currencyOptions}
                 value={watch('currencyId') || null}
                 onSelect={(id) => setFormValue('currencyId', id ?? '')}
                 placeholder={
