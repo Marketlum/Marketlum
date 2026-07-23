@@ -10,6 +10,7 @@ import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { OfferingFormDialog } from '../../components/offerings/offering-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import {
@@ -159,16 +160,18 @@ export function OfferingDetailPage() {
           {offering.purpose && (
             <p className="text-muted-foreground mb-2">{offering.purpose}</p>
           )}
-          <div className="flex gap-2 mt-2">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
-          </div>
+          <Can resource="offerings" action="write">
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
+              </Button>
+            </div>
+          </Can>
         </div>
       </div>
 

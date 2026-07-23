@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { MarkdownEditor } from '../shared/markdown-editor';
 import { AgentFormDialog } from '../agents/agent-form-dialog';
 import { api } from '../../lib/api-client';
+import { Can } from '../../permissions/can';
 
 interface TensionFormDialogProps {
   open: boolean;
@@ -135,9 +136,11 @@ export function TensionFormDialog({
                   ))}
                 </SelectContent>
               </Select>
-              <Button type="button" variant="outline" size="icon" onClick={() => setCreateAgentOpen(true)}>
-                <Plus className="h-4 w-4" />
-              </Button>
+              <Can resource="agents" action="write">
+                <Button type="button" variant="outline" size="icon" onClick={() => setCreateAgentOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </Can>
             </div>
           </div>
 

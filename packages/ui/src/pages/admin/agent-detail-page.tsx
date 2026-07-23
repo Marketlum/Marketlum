@@ -23,6 +23,7 @@ import { ExchangesDataTable } from '../../components/exchanges/exchanges-data-ta
 import { InvoicesDataTable } from '../../components/invoices/invoices-data-table';
 import { OrdersDataTable } from '../../components/orders/orders-data-table';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import {
@@ -234,20 +235,22 @@ export function AgentDetailPage() {
             <h1 className="text-2xl md:text-3xl font-bold truncate">{agent.name}</h1>
             <AgentTypeBadge type={agent.type} label={t(typeTranslationKeys[agent.type])} />
           </div>
-          <div className="flex gap-2 mt-2">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={openMove}>
-              <FolderTree className="mr-1.5 h-3.5 w-3.5" />
-              {t('move')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
-          </div>
+          <Can resource="agents" action="write">
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={openMove}>
+                <FolderTree className="mr-1.5 h-3.5 w-3.5" />
+                {t('move')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
+              </Button>
+            </div>
+          </Can>
         </div>
       </div>
 

@@ -20,6 +20,7 @@ export const rdhyWebPlugin: MarketlumWebPlugin = {
       icon: Network,
       group: 'rdhy',
       groupLabelKey: 'plugin.rdhy.nav.group',
+      resource: 'rdhy.platforms',
     },
     {
       slug: 'vam-agreements',
@@ -27,6 +28,7 @@ export const rdhyWebPlugin: MarketlumWebPlugin = {
       icon: FileSpreadsheet,
       group: 'rdhy',
       groupLabelKey: 'plugin.rdhy.nav.group',
+      resource: 'rdhy.vam-agreements',
     },
     {
       slug: 'emc-agreements',
@@ -34,6 +36,7 @@ export const rdhyWebPlugin: MarketlumWebPlugin = {
       icon: Workflow,
       group: 'rdhy',
       groupLabelKey: 'plugin.rdhy.nav.group',
+      resource: 'rdhy.emc-agreements',
     },
   ],
   routes: [

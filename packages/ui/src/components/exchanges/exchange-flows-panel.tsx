@@ -28,6 +28,7 @@ import {
 } from '../ui/select';
 import { ValueCombobox } from '../shared/value-combobox';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 
 interface FlowRow {
   id: string;
@@ -192,11 +193,13 @@ export function ExchangeFlowsPanel({
             <DialogDescription>{t('manageFlows')}</DialogDescription>
           </DialogHeader>
 
-          <div className="flex justify-end mb-2">
-            <Button size="sm" onClick={openCreateForm}>
-              <Plus className="mr-1 h-3 w-3" /> {t('addFlow')}
-            </Button>
-          </div>
+          <Can resource="exchanges" action="write">
+            <div className="flex justify-end mb-2">
+              <Button size="sm" onClick={openCreateForm}>
+                <Plus className="mr-1 h-3 w-3" /> {t('addFlow')}
+              </Button>
+            </div>
+          </Can>
 
           {loading ? (
             <div className="flex h-24 items-center justify-center text-muted-foreground">
@@ -235,14 +238,16 @@ export function ExchangeFlowsPanel({
                       <td className="p-2">{flow.toAgent.name}</td>
                       <td className="p-2 text-right font-mono">{flow.quantity}</td>
                       <td className="p-2 text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditForm(flow)}>
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(flow)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
+                        <Can resource="exchanges" action="write">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditForm(flow)}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(flow)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </Can>
                       </td>
                     </tr>
                   ))}

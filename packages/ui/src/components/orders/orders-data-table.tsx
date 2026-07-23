@@ -30,6 +30,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { OrderFormDialog } from './order-form-dialog';
 import { getOrderColumns, type OrderRow } from './columns';
 import { Button } from '../ui/button';
@@ -57,6 +58,8 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('orders', 'write');
   const { agents } = useAgents();
   const { values } = useValues();
   const { channels } = useChannels();
@@ -193,7 +196,7 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
     }
   };
 
-  const columns = getOrderColumns({
+  const allColumns = getOrderColumns({
     onDelete: (order) => setDeleteTarget(order),
     onSort: pagination.setSort,
     hideAgentColumns: !!scopedAgentId,
@@ -211,6 +214,7 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'number', label: t('number') },
@@ -335,8 +339,8 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createOrder')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createOrder') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

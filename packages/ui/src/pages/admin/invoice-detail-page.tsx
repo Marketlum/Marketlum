@@ -13,6 +13,7 @@ import type {
 } from '@marketlum/shared';
 import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
+import { Can } from '../../permissions/can';
 import { InvoiceFormDialog } from '../../components/invoices/invoice-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { Button } from '../../components/ui/button';
@@ -237,14 +238,16 @@ export function InvoiceDetailPage() {
               <Printer className="mr-1.5 h-3.5 w-3.5" />
               {t('print')}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
+            <Can resource="invoices" action="write">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
+              </Button>
+            </Can>
           </div>
         </div>
       </div>

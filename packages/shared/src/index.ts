@@ -24,10 +24,12 @@ export {
   updateUserSchema,
   changeUserPasswordSchema,
   userResponseSchema,
+  authMeResponseSchema,
   type CreateUserInput,
   type UpdateUserInput,
   type ChangeUserPasswordInput,
   type UserResponse,
+  type AuthMeResponse,
 } from './schemas/user.schema';
 
 export {
@@ -428,6 +430,7 @@ export {
   permissionSchema,
   permissionFor,
   permissionResourceOf,
+  canPermission,
   type PermissionAction,
   type PermissionResource,
 } from './permissions';
@@ -438,11 +441,13 @@ export {
   assignUserRolesSchema,
   roleResponseSchema,
   roleSummarySchema,
+  permissionCatalogResponseSchema,
   type CreateRoleInput,
   type UpdateRoleInput,
   type AssignUserRolesInput,
   type RoleResponse,
   type RoleSummary,
+  type PermissionCatalogResponse,
 } from './schemas/role.schema';
 
 export {

@@ -25,6 +25,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { InvoiceFormDialog } from './invoice-form-dialog';
 import { ImportInvoiceDialog } from './import-invoice-dialog';
 import type { InvoiceImportResponse } from '@marketlum/shared';
@@ -91,6 +92,8 @@ export function InvoicesDataTable({
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('invoices', 'write');
   const { agents } = useAgents();
   const { values } = useValues();
   const { channels } = useChannels();
@@ -293,7 +296,7 @@ export function InvoicesDataTable({
     }
   };
 
-  const columns = getInvoiceColumns({
+  const allColumns = getInvoiceColumns({
     onEdit: handleOpenEdit,
     onDelete: (invoice) => setDeleteTarget(invoice),
     onSort: pagination.setSort,
@@ -318,6 +321,7 @@ export function InvoicesDataTable({
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'number', label: t('number') },
@@ -456,8 +460,8 @@ export function InvoicesDataTable({
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={handleOpenCreate}
-        createLabel={t('createInvoice')}
+        onCreateClick={canWrite ? handleOpenCreate : undefined}
+        createLabel={canWrite ? t('createInvoice') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />
@@ -470,10 +474,12 @@ export function InvoicesDataTable({
           </Button>
         }
         primaryActions={
-          <Button variant="outline" onClick={handleImportClick} className="w-full sm:w-auto">
-            <FileUp className="mr-2 h-4 w-4" />
-            {t('importFromPdf')}
-          </Button>
+          canWrite ? (
+            <Button variant="outline" onClick={handleImportClick} className="w-full sm:w-auto">
+              <FileUp className="mr-2 h-4 w-4" />
+              {t('importFromPdf')}
+            </Button>
+          ) : undefined
         }
       >
         <ColumnVisibilityDropdown

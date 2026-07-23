@@ -3,6 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown, User } from 'lucide-react';
 import type { UserResponse } from '@marketlum/shared';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
@@ -16,21 +17,25 @@ interface UserColumnsTranslations {
   avatar: string;
   name: string;
   email: string;
+  roles: string;
+  noRoles: string;
   created: string;
   edit: string;
   changePassword: string;
+  manageRoles: string;
   delete: string;
 }
 
 interface UserColumnsOptions {
   onEdit: (user: UserResponse) => void;
   onChangePassword: (user: UserResponse) => void;
+  onManageRoles: (user: UserResponse) => void;
   onDelete: (user: UserResponse) => void;
   onSort: (column: string) => void;
   translations: UserColumnsTranslations;
 }
 
-export function getUserColumns({ onEdit, onChangePassword, onDelete, onSort, translations }: UserColumnsOptions): ColumnDef<UserResponse>[] {
+export function getUserColumns({ onEdit, onChangePassword, onManageRoles, onDelete, onSort, translations }: UserColumnsOptions): ColumnDef<UserResponse>[] {
   return [
     {
       id: 'avatar',
@@ -72,6 +77,26 @@ export function getUserColumns({ onEdit, onChangePassword, onDelete, onSort, tra
       ),
     },
     {
+      id: 'roles',
+      meta: { hideOnMobile: true },
+      header: translations.roles,
+      cell: ({ row }) => {
+        const roles = row.original.roles ?? [];
+        if (roles.length === 0) {
+          return <span className="text-xs text-muted-foreground">{translations.noRoles}</span>;
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {roles.map((role) => (
+              <Badge key={role.id} variant="secondary">
+                {role.name}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'createdAt',
       meta: { hideOnMobile: true },
       header: translations.created,
@@ -92,6 +117,9 @@ export function getUserColumns({ onEdit, onChangePassword, onDelete, onSort, tra
               <DropdownMenuItem onClick={() => onEdit(user)}>{translations.edit}</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onChangePassword(user)}>
                 {translations.changePassword}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onManageRoles(user)}>
+                {translations.manageRoles}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(user)}

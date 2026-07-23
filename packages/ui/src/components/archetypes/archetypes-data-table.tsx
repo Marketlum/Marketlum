@@ -22,6 +22,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ArchetypeFormDialog } from './archetype-form-dialog';
 import { getArchetypeColumns } from './columns';
 import { Button } from '../ui/button';
@@ -43,6 +44,8 @@ export function ArchetypesDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('archetypes', 'write');
   const { taxonomies } = useTaxonomies();
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
@@ -164,7 +167,7 @@ export function ArchetypesDataTable() {
     }
   };
 
-  const columns = getArchetypeColumns({
+  const allColumns = getArchetypeColumns({
     onEdit: handleOpenEdit,
     onDelete: (archetype) => setDeleteTarget(archetype),
     onSort: pagination.setSort,
@@ -180,6 +183,7 @@ export function ArchetypesDataTable() {
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -239,8 +243,8 @@ export function ArchetypesDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={handleOpenCreate}
-        createLabel={t('createArchetype')}
+        onCreateClick={canWrite ? handleOpenCreate : undefined}
+        createLabel={canWrite ? t('createArchetype') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

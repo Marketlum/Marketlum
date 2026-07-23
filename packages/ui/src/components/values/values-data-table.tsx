@@ -24,6 +24,7 @@ import { ColumnVisibilityDropdown } from '../shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ValueFormDialog } from './value-form-dialog';
 import { getValueColumns } from './columns';
 import {
@@ -72,6 +73,8 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('values', 'write');
   const { tree } = useTaxonomyTree();
   const { agents } = useAgents();
   const { valueStreams } = useValueStreams();
@@ -254,7 +257,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     lifecycleStageLabels[stage] = t(lifecycleTranslationKeys[stage]);
   }
 
-  const columns = getValueColumns({
+  const allColumns = getValueColumns({
     onEdit: (value) => setEditingValue(value),
     onDuplicate: handleDuplicate,
     onDelete: (value) => setDeleteValue(value),
@@ -278,6 +281,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       typeLabels,
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'image', label: t('image') },
@@ -401,8 +405,8 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createValue')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createValue') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

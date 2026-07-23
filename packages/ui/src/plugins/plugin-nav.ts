@@ -6,6 +6,8 @@ export interface ResolvedNavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Permission resource; the layout hides the item without `<resource>:read`. */
+  resource?: string;
 }
 
 export interface ResolvedNavGroup {
@@ -41,6 +43,7 @@ export function mergePluginNav(
         href: `/admin/x/${item.slug}`,
         label: safeT(item.labelKey),
         icon: item.icon ?? Puzzle,
+        resource: item.resource,
       };
       const groupKey = item.group ?? 'plugins';
       let group = byKey.get(groupKey);

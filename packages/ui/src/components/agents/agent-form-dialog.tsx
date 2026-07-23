@@ -41,6 +41,7 @@ import { useTaxonomyTree } from '../../hooks/use-taxonomy-tree';
 import { useValues } from '../../hooks/use-values';
 import { useAgents } from '../../hooks/use-agents';
 import { api } from '../../lib/api-client';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ImageLibraryDialog } from './image-library-dialog';
 
 const typeTranslationKeys: Record<string, string> = {
@@ -75,6 +76,8 @@ export function AgentFormDialog({
   const t = useTranslations('agents');
   const tc = useTranslations('common');
   const { tree, refresh } = useTaxonomyTree();
+  const { can } = usePermissions();
+  const canWriteTaxonomies = can('taxonomies', 'write');
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<{ id: string; originalName: string; mimeType: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -360,7 +363,7 @@ export function AgentFormDialog({
               onSelect={(id) => setValue('mainTaxonomyId', id)}
               placeholder={t('selectMainTaxonomy')}
               noneLabel="-"
-              onCreate={handleCreateTaxonomy}
+              onCreate={canWriteTaxonomies ? handleCreateTaxonomy : undefined}
             />
           </div>
           <div className="space-y-2">
@@ -371,7 +374,7 @@ export function AgentFormDialog({
               values={taxonomyIdsValue}
               onToggle={toggleTaxonomyId}
               placeholder={t('selectTaxonomies')}
-              onCreate={handleCreateTaxonomy}
+              onCreate={canWriteTaxonomies ? handleCreateTaxonomy : undefined}
             />
           </div>
           <DialogFooter>

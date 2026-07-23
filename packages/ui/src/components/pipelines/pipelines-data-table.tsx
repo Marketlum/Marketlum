@@ -19,6 +19,7 @@ import { ColumnVisibilityDropdown } from '../shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { PipelineFormDialog } from './pipeline-form-dialog';
 import { getPipelineColumns } from './columns';
 import {
@@ -41,6 +42,8 @@ export function PipelinesDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('pipelines', 'write');
   const { valueStreams } = useValueStreams();
   const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
@@ -177,7 +180,7 @@ export function PipelinesDataTable() {
     }
   };
 
-  const columns = getPipelineColumns({
+  const allColumns = getPipelineColumns({
     onEdit: (p) => setEditingItem(p),
     onDelete: (p) => setDeleteItem(p),
     onDuplicate: handleDuplicate,
@@ -195,6 +198,7 @@ export function PipelinesDataTable() {
       duplicate: tc('duplicate'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -256,8 +260,8 @@ export function PipelinesDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createPipeline')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createPipeline') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

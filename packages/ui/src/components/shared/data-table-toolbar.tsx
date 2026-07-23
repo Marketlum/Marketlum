@@ -8,8 +8,9 @@ import { Plus } from 'lucide-react';
 interface DataTableToolbarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
-  onCreateClick: () => void;
-  createLabel: string;
+  /** Omit (or pass undefined) to hide the Create button, e.g. without `<resource>:write`. */
+  onCreateClick?: () => void;
+  createLabel?: string;
   filterButton?: React.ReactNode;
   children?: React.ReactNode;
   /** Rendered immediately before the Create button on the right side. */
@@ -41,10 +42,12 @@ export function DataTableToolbar({
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         {primaryActions}
-        <Button onClick={onCreateClick} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          {createLabel}
-        </Button>
+        {onCreateClick && createLabel && (
+          <Button onClick={onCreateClick} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            {createLabel}
+          </Button>
+        )}
       </div>
     </div>
   );

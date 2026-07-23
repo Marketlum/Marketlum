@@ -10,6 +10,7 @@ import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { TensionFormDialog } from '../../components/tensions/tension-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { MarkdownContent } from '../../components/shared/markdown-editor';
 import { useAgents } from '../../hooks/use-agents';
 import { useUsers } from '../../hooks/use-users';
@@ -182,36 +183,38 @@ export function TensionDetailPage() {
             <Badge variant={stateBadgeVariant} className={stateBadgeClassName}>{stateLabel}</Badge>
             <Badge variant={scoreBadgeVariant}>{t('score')}: {tension.score}</Badge>
           </div>
-          <div className="flex gap-2 mt-2 flex-wrap">
-            {tension.state === 'alive' && (
-              <>
-                <Button size="sm" onClick={() => handleTransition('resolve')}>
-                  {t('resolve')}
+          <Can resource="tensions" action="write">
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {tension.state === 'alive' && (
+                <>
+                  <Button size="sm" onClick={() => handleTransition('resolve')}>
+                    {t('resolve')}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => handleTransition('drop')}>
+                    {t('drop')}
+                  </Button>
+                </>
+              )}
+              {tension.state === 'resolved' && (
+                <Button variant="outline" size="sm" onClick={() => handleTransition('reopen')}>
+                  {t('reopen')}
                 </Button>
-                <Button variant="secondary" size="sm" onClick={() => handleTransition('drop')}>
-                  {t('drop')}
+              )}
+              {tension.state === 'stale' && (
+                <Button variant="outline" size="sm" onClick={() => handleTransition('revive')}>
+                  {t('revive')}
                 </Button>
-              </>
-            )}
-            {tension.state === 'resolved' && (
-              <Button variant="outline" size="sm" onClick={() => handleTransition('reopen')}>
-                {t('reopen')}
+              )}
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
               </Button>
-            )}
-            {tension.state === 'stale' && (
-              <Button variant="outline" size="sm" onClick={() => handleTransition('revive')}>
-                {t('revive')}
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
               </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
-          </div>
+            </div>
+          </Can>
         </div>
       </div>
 

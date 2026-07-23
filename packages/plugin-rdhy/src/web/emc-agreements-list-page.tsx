@@ -8,6 +8,7 @@ import { Workflow } from 'lucide-react';
 import {
   api,
   Button,
+  Can,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -144,7 +145,9 @@ export function EmcAgreementsListPage() {
           </SelectContent>
         </Select>
         <div className="ml-auto">
-          <Button onClick={() => setCreateOpen(true)}>{t('list.create')}</Button>
+          <Can resource="rdhy.emc-agreements" action="write">
+            <Button onClick={() => setCreateOpen(true)}>{t('list.create')}</Button>
+          </Can>
         </div>
       </div>
 

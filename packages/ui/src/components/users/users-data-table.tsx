@@ -16,8 +16,10 @@ import { ColumnVisibilityDropdown } from '../shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { UserFormDialog } from './user-form-dialog';
 import { ChangePasswordDialog } from './change-password-dialog';
+import { ManageRolesDialog } from './manage-roles-dialog';
 import { getUserColumns } from './columns';
 import { ExportDropdown } from '../shared/export-dropdown';
 import type { FieldDef } from '../../lib/export-utils';
@@ -29,12 +31,15 @@ export function UsersDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('users', 'write');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<UserResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
   const [passwordUser, setPasswordUser] = useState<UserResponse | null>(null);
+  const [rolesUser, setRolesUser] = useState<UserResponse | null>(null);
   const [deleteUser, setDeleteUser] = useState<UserResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -156,26 +161,32 @@ export function UsersDataTable() {
     }
   };
 
-  const columns = getUserColumns({
+  const allColumns = getUserColumns({
     onEdit: (user) => setEditingUser(user),
     onChangePassword: (user) => setPasswordUser(user),
+    onManageRoles: (user) => setRolesUser(user),
     onDelete: (user) => setDeleteUser(user),
     onSort: pagination.setSort,
     translations: {
       avatar: t('avatar'),
       name: tc('name'),
       email: tc('email'),
+      roles: t('rolesColumn'),
+      noRoles: t('noRoles'),
       created: tc('created'),
       edit: tc('edit'),
       changePassword: t('changePassword'),
+      manageRoles: t('manageRoles'),
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'avatar', label: t('avatar') },
     { id: 'name', label: tc('name') },
     { id: 'email', label: tc('email') },
+    { id: 'roles', label: t('rolesColumn') },
     { id: 'createdAt', label: tc('created') },
   ];
 
@@ -206,8 +217,8 @@ export function UsersDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createUser')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createUser') : undefined}
       >
         <ColumnVisibilityDropdown
           columns={columnMeta}
@@ -286,6 +297,13 @@ export function UsersDataTable() {
         onSubmit={handleChangePassword}
         user={passwordUser}
         isSubmitting={isSubmitting}
+      />
+
+      <ManageRolesDialog
+        open={!!rolesUser}
+        onOpenChange={(open) => !open && setRolesUser(null)}
+        user={rolesUser}
+        onSaved={fetchData}
       />
 
       <ConfirmDeleteDialog

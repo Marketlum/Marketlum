@@ -12,6 +12,12 @@ export interface PluginNavItem {
   group?: string;
   /** Required only when introducing a NEW group; the next-intl key for its heading. */
   groupLabelKey?: string;
+  /**
+   * Permission resource gating this item (spec 021), e.g. 'rdhy.platforms'.
+   * The item is hidden without `<resource>:read`; items without a resource are
+   * always visible.
+   */
+  resource?: string;
 }
 
 /** Props passed to a plugin route component by the renderer. */

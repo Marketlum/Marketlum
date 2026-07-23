@@ -11,6 +11,7 @@ import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { ValueInstanceFormDialog } from '../../components/value-instances/value-instance-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { Button } from '../../components/ui/button';
 import { CodeBadge } from '../../components/shared/code-badge';
 import {
@@ -153,16 +154,18 @@ export function ValueInstanceDetailPage() {
             <h1 className="text-2xl md:text-3xl font-bold truncate">{item.name}</h1>
             <CodeBadge code={item.code} />
           </div>
-          <div className="flex gap-2 mt-2">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
-          </div>
+          <Can resource="value-instances" action="write">
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
+              </Button>
+            </div>
+          </Can>
         </div>
       </div>
 

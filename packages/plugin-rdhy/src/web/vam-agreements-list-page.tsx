@@ -8,6 +8,7 @@ import { FileSpreadsheet } from 'lucide-react';
 import {
   api,
   Button,
+  Can,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -160,7 +161,9 @@ export function VamAgreementsListPage() {
           </SelectContent>
         </Select>
         <div className="ml-auto">
-          <Button onClick={() => setCreateOpen(true)}>{t('list.create')}</Button>
+          <Can resource="rdhy.vam-agreements" action="write">
+            <Button onClick={() => setCreateOpen(true)}>{t('list.create')}</Button>
+          </Can>
         </div>
       </div>
 

@@ -21,6 +21,7 @@ import { ColumnVisibilityDropdown } from '../shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { AgentFormDialog } from './agent-form-dialog';
 import { getAgentColumns } from './columns';
 import {
@@ -58,6 +59,8 @@ export function AgentsDataTable() {
   const tp = useTranslations('perspectives');
   const tam = useTranslations('agentsMap');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('agents', 'write');
   const { tree } = useTaxonomyTree();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
@@ -186,7 +189,7 @@ export function AgentsDataTable() {
     typeLabels[agentType] = t(typeTranslationKeys[agentType]);
   }
 
-  const columns = getAgentColumns({
+  const allColumns = getAgentColumns({
     onEdit: (agent) => setEditingAgent(agent),
     onDelete: (agent) => setDeleteAgent(agent),
     onSort: pagination.setSort,
@@ -203,6 +206,7 @@ export function AgentsDataTable() {
       typeLabels,
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'image', label: t('image') },
@@ -280,8 +284,8 @@ export function AgentsDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createAgent')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createAgent') : undefined}
         primaryActions={
           <Link href="/admin/agents/map">
             <Button variant="outline" className="w-full sm:w-auto">

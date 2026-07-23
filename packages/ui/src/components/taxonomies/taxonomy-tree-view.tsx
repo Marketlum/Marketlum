@@ -19,6 +19,7 @@ import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 
 function RootDropZone({ children }: { children: React.ReactNode }) {
   const t = useTranslations('taxonomies');
@@ -37,6 +38,8 @@ function RootDropZone({ children }: { children: React.ReactNode }) {
 export function TaxonomyTreeView() {
   const t = useTranslations('taxonomies');
   const tc = useTranslations('common');
+  const { can } = usePermissions();
+  const canWrite = can('taxonomies', 'write');
   const [tree, setTree] = useState<TaxonomyTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingRoot, setAddingRoot] = useState(false);
@@ -264,6 +267,7 @@ export function TaxonomyTreeView() {
         </div>
       ) : (
         <>
+          {canWrite && (
           <div className="mb-4">
             {addingRoot ? (
               <div className="flex flex-col gap-2">
@@ -327,6 +331,7 @@ export function TaxonomyTreeView() {
               </Button>
             )}
           </div>
+          )}
 
           {tree.length === 0 && !addingRoot ? (
             <div className="flex h-24 items-center justify-center text-muted-foreground">
@@ -341,6 +346,7 @@ export function TaxonomyTreeView() {
                       key={node.id}
                       node={node}
                       depth={0}
+                      canWrite={canWrite}
                       onCreateChild={handleCreateChild}
                       onUpdate={handleUpdate}
                       onDelete={(id, name) => setDeleteTarget({ id, name })}

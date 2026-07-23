@@ -8,6 +8,7 @@ import type { SystemSettingsPresentationCurrencyResponse } from '@marketlum/shar
 import { api } from '../../lib/api-client';
 import { ValueCombobox } from '../shared/value-combobox';
 import { useValues } from '../../hooks/use-values';
+import { usePermissions } from '../../permissions/permissions-context';
 
 interface PresentationCurrencyPickerProps {
   onChange?: () => void;
@@ -15,6 +16,8 @@ interface PresentationCurrencyPickerProps {
 
 export function PresentationCurrencyPicker({ onChange }: PresentationCurrencyPickerProps) {
   const t = useTranslations('exchangeRates');
+  const { can } = usePermissions();
+  const canWrite = can('system-settings', 'write');
   const { values } = useValues();
   const [setting, setSetting] = useState<SystemSettingsPresentationCurrencyResponse | null>(
     null,
@@ -57,7 +60,7 @@ export function PresentationCurrencyPicker({ onChange }: PresentationCurrencyPic
 
   if (!setting) return null;
 
-  const locked = setting.snapshotsExist;
+  const locked = setting.snapshotsExist || !canWrite;
 
   return (
     <div className="flex flex-col gap-2 rounded-md border p-3 md:flex-row md:items-center md:justify-between">
@@ -76,7 +79,7 @@ export function PresentationCurrencyPicker({ onChange }: PresentationCurrencyPic
           />
         </div>
       </div>
-      {locked && (
+      {setting.snapshotsExist && (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Lock className="h-3.5 w-3.5" />
           {t('baseValueLocked')}

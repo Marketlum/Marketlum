@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { Can } from '../../permissions/can';
 
 interface AgreementTemplateTreeNodeProps {
   node: AgreementTemplateTreeNode;
@@ -61,13 +62,15 @@ export function AgreementTemplateTreeNodeComponent({
         className={`group flex items-start gap-1 rounded-md px-1 py-1 hover:bg-secondary/50 ${isDragging ? 'opacity-50' : ''}`}
         style={{ paddingLeft: depth * (isMobile ? 16 : 24) + 4 }}
       >
-        <button
-          className="mt-0.5 flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
+        <Can resource="agreement-templates" action="write">
+          <button
+            className="mt-0.5 flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        </Can>
 
         <button
           className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
@@ -105,45 +108,47 @@ export function AgreementTemplateTreeNodeComponent({
             )}
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
-            onClick={() => {
-              onAddChild(node.id);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <Can resource="agreement-templates" action="write">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
+              onClick={() => {
+                onAddChild(node.id);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onAddChild(node.id)}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('addChild')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(node)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                {tc('edit')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDelete(node.id, node.name)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {tc('delete')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onAddChild(node.id)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('addChild')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(node)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {tc('edit')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onDelete(node.id, node.name)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {tc('delete')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </Can>
         </div>
       </div>
 

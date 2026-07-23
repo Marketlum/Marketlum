@@ -9,6 +9,8 @@ import type { ChannelTreeNode, CreateChannelInput, ChannelResponse } from '@mark
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ChannelTreeNodeComponent } from './channel-tree-node';
 import { ChannelFormDialog } from './channel-form-dialog';
 
@@ -29,6 +31,8 @@ function RootDropZone({ children }: { children: React.ReactNode }) {
 export function ChannelTreeView() {
   const t = useTranslations('channels');
   const tc = useTranslations('common');
+  const { can } = usePermissions();
+  const canWrite = can('channels', 'write');
   const [tree, setTree] = useState<ChannelTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -153,10 +157,12 @@ export function ChannelTreeView() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-end">
-        <Button onClick={handleOpenCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addRoot')}
-        </Button>
+        <Can resource="channels" action="write">
+          <Button onClick={handleOpenCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('addRoot')}
+          </Button>
+        </Can>
       </div>
 
       {tree.length === 0 ? (
@@ -172,6 +178,7 @@ export function ChannelTreeView() {
                   key={node.id}
                   node={node}
                   depth={0}
+                  canWrite={canWrite}
                   onEdit={handleOpenEdit}
                   onAddChild={handleOpenAddChild}
                   onDelete={(id, name) => setDeleteTarget({ id, name })}

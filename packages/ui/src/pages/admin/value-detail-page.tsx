@@ -11,6 +11,7 @@ import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { ValueFormDialog } from '../../components/values/value-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { ValueTypeBadge } from '../../components/values/value-type-badge';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -169,16 +170,18 @@ export function ValueDetailPage() {
             <CodeBadge code={value.code} />
             <ValueTypeBadge type={value.type} label={t(typeTranslationKeys[value.type])} />
           </div>
-          <div className="flex gap-2 mt-2">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
-          </div>
+          <Can resource="values" action="write">
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
+              </Button>
+            </div>
+          </Can>
         </div>
       </div>
 

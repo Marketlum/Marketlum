@@ -7,6 +7,7 @@ import { Network } from 'lucide-react';
 import {
   api,
   Button,
+  Can,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -77,7 +78,9 @@ export function PlatformsListPage() {
       <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{t('description')}</p>
 
       <div className="mb-4 flex justify-end">
-        <Button onClick={() => setCreateOpen(true)}>{t('create')}</Button>
+        <Can resource="rdhy.platforms" action="write">
+          <Button onClick={() => setCreateOpen(true)}>{t('create')}</Button>
+        </Can>
       </div>
 
       {loading ? (

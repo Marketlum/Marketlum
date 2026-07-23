@@ -7,6 +7,7 @@ import { Plus, ArrowRightLeft } from 'lucide-react';
 import type { CreateValueInput, CreateExchangeInput } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { toast } from 'sonner';
+import { Can } from '../../permissions/can';
 import { ValueFormDialog } from '../../components/values/value-form-dialog';
 import { ExchangeFormDialog } from '../../components/exchanges/exchange-form-dialog';
 import { Button } from '../../components/ui/button';
@@ -53,14 +54,18 @@ export function ValueStreamDetailPage() {
     <div className="space-y-6">
       {/* Quick actions */}
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" onClick={() => setCreateValueOpen(true)}>
-          <Plus className="mr-1.5 h-3.5 w-3.5" />
-          {t('createValue')}
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => setCreateExchangeOpen(true)}>
-          <ArrowRightLeft className="mr-1.5 h-3.5 w-3.5" />
-          {t('createExchange')}
-        </Button>
+        <Can resource="values" action="write">
+          <Button size="sm" onClick={() => setCreateValueOpen(true)}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            {t('createValue')}
+          </Button>
+        </Can>
+        <Can resource="exchanges" action="write">
+          <Button size="sm" variant="outline" onClick={() => setCreateExchangeOpen(true)}>
+            <ArrowRightLeft className="mr-1.5 h-3.5 w-3.5" />
+            {t('createExchange')}
+          </Button>
+        </Can>
       </div>
 
       {/* Dialogs */}

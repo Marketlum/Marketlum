@@ -21,6 +21,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ChannelFormDialog } from './channel-form-dialog';
 import { getChannelColumns } from './columns';
 import { Button } from '../ui/button';
@@ -41,6 +42,8 @@ export function ChannelsDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('channels', 'write');
   const { agents } = useAgents();
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
@@ -173,7 +176,7 @@ export function ChannelsDataTable() {
     }
   };
 
-  const columns = getChannelColumns({
+  const allColumns = getChannelColumns({
     onEdit: handleOpenEdit,
     onDelete: (channel) => setDeleteTarget(channel),
     onAddChild: handleOpenAddChild,
@@ -191,6 +194,7 @@ export function ChannelsDataTable() {
       addChild: t('addChild'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -252,8 +256,8 @@ export function ChannelsDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={handleOpenCreate}
-        createLabel={t('createChannel')}
+        onCreateClick={canWrite ? handleOpenCreate : undefined}
+        createLabel={canWrite ? t('createChannel') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

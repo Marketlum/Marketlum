@@ -53,6 +53,12 @@ export class RolesController {
     return this.rolesService.findAll();
   }
 
+  @Get('permission-catalog')
+  @ApiOperation({ summary: 'List every grantable permission resource (core + plugins)' })
+  async permissionCatalog() {
+    return { resources: [...this.rolesService.permissionResourceCatalog()].sort() };
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a role' })

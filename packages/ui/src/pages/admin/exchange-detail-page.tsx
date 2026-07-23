@@ -13,6 +13,7 @@ import { ExchangeFormDialog } from '../../components/exchanges/exchange-form-dia
 import { ExchangeFlowsPanel } from '../../components/exchanges/exchange-flows-panel';
 import { ValueTypeBadge } from '../../components/values/value-type-badge';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import {
@@ -202,21 +203,23 @@ export function ExchangeDetailPage() {
             <p className="text-muted-foreground mb-2">{exchange.purpose}</p>
           )}
           <div className="flex gap-2 mt-2">
-            {exchange.state === 'open' && (
-              <>
-                <Button variant="secondary" size="sm" onClick={() => handleTransition('close')}>
-                  {t('close')}
+            <Can resource="exchanges" action="write">
+              {exchange.state === 'open' && (
+                <>
+                  <Button variant="secondary" size="sm" onClick={() => handleTransition('close')}>
+                    {t('close')}
+                  </Button>
+                  <Button size="sm" onClick={() => handleTransition('complete')}>
+                    {t('complete')}
+                  </Button>
+                </>
+              )}
+              {exchange.state === 'closed' && (
+                <Button variant="outline" size="sm" onClick={() => handleTransition('reopen')}>
+                  {t('reopen')}
                 </Button>
-                <Button size="sm" onClick={() => handleTransition('complete')}>
-                  {t('complete')}
-                </Button>
-              </>
-            )}
-            {exchange.state === 'closed' && (
-              <Button variant="outline" size="sm" onClick={() => handleTransition('reopen')}>
-                {t('reopen')}
-              </Button>
-            )}
+              )}
+            </Can>
             <Button variant="outline" size="sm" onClick={() => setFlowsOpen(true)}>
               {t('flows')}
             </Button>
@@ -224,14 +227,16 @@ export function ExchangeDetailPage() {
               <Download className="mr-1.5 h-3.5 w-3.5" />
               {t('downloadPdf')}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
+            <Can resource="exchanges" action="write">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
+              </Button>
+            </Can>
           </div>
         </div>
       </div>

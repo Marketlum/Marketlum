@@ -17,6 +17,7 @@ import { useIsMobile } from '../../hooks/use-mobile';
 interface ChannelTreeNodeProps {
   node: ChannelTreeNode;
   depth: number;
+  canWrite: boolean;
   onEdit: (node: ChannelTreeNode) => void;
   onAddChild: (parentId: string) => void;
   onDelete: (id: string, name: string) => void;
@@ -25,6 +26,7 @@ interface ChannelTreeNodeProps {
 export function ChannelTreeNodeComponent({
   node,
   depth,
+  canWrite,
   onEdit,
   onAddChild,
   onDelete,
@@ -39,6 +41,7 @@ export function ChannelTreeNodeComponent({
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: node.id,
     data: { name: node.name },
+    disabled: !canWrite,
   });
 
   const { setNodeRef: setDropRef, isOver } = useDroppable({
@@ -53,13 +56,15 @@ export function ChannelTreeNodeComponent({
         className={`group flex items-center gap-1 rounded-md px-1 py-1 hover:bg-secondary/50 ${isDragging ? 'opacity-50' : ''}`}
         style={{ paddingLeft: depth * (isMobile ? 16 : 24) + 4 }}
       >
-        <button
-          className="flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
+        {canWrite && (
+          <button
+            className="flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        )}
 
         <button
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
@@ -97,6 +102,7 @@ export function ChannelTreeNodeComponent({
           )}
         </div>
 
+        {canWrite && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -125,6 +131,7 @@ export function ChannelTreeNodeComponent({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
       </div>
 
       {expanded && hasChildren && (
@@ -134,6 +141,7 @@ export function ChannelTreeNodeComponent({
               key={child.id}
               node={child}
               depth={depth + 1}
+              canWrite={canWrite}
               onEdit={onEdit}
               onAddChild={onAddChild}
               onDelete={onDelete}

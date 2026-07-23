@@ -21,6 +21,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { AgreementTemplateFormDialog } from './agreement-template-form-dialog';
 import { getAgreementTemplateColumns } from './columns';
 import { Button } from '../ui/button';
@@ -51,6 +52,8 @@ export function AgreementTemplatesDataTable({
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('agreement-templates', 'write');
   const { valueStreams } = useValueStreams();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
@@ -201,7 +204,7 @@ export function AgreementTemplatesDataTable({
     }
   };
 
-  const columns = getAgreementTemplateColumns({
+  const allColumns = getAgreementTemplateColumns({
     onEdit: handleOpenEdit,
     onDelete: (template) => setDeleteTarget(template),
     onAddChild: handleOpenAddChild,
@@ -221,6 +224,7 @@ export function AgreementTemplatesDataTable({
     },
     typeLabels,
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -305,8 +309,8 @@ export function AgreementTemplatesDataTable({
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={handleOpenCreate}
-        createLabel={t('createTemplate')}
+        onCreateClick={canWrite ? handleOpenCreate : undefined}
+        createLabel={canWrite ? t('createTemplate') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

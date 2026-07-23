@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
   Textarea,
+  usePermissions,
 } from '@marketlum/ui';
 import type { ApiFieldError, PluginRouteComponentProps } from '@marketlum/ui';
 import type { EmcCanvasInput, RdhyEmcAgreementDocument } from '../shared/emc-schemas';
@@ -45,6 +46,8 @@ export function EmcAgreementDetailPage({ params }: PluginRouteComponentProps) {
   const t = useTranslations('plugin.rdhy.emc.detail');
   const te = useTranslations('plugin.rdhy.emc.editor');
   const router = useRouter();
+  const { can } = usePermissions();
+  const canWrite = can('rdhy.emc-agreements', 'write');
 
   const [document, setDocument] = useState<RdhyEmcAgreementDocument | null>(null);
   const [editing, setEditing] = useState(false);
@@ -304,7 +307,7 @@ export function EmcAgreementDetailPage({ params }: PluginRouteComponentProps) {
           {document.title}
           <EmcStatusBadge status={document.status} />
         </h1>
-        {!editing && (
+        {!editing && canWrite && (
           <div className="flex gap-2">
             {document.status === 'DRAFT' && (
               <>

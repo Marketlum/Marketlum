@@ -27,6 +27,7 @@ import {
 } from '../ui/dropdown-menu';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { usePermissions } from '../../permissions/permissions-context';
 import { FileImagePreview } from '../shared/file-image-preview';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -50,6 +51,7 @@ interface FolderNodeProps {
   onDelete: (id: string, name: string) => void;
   onFileDrop: (fileId: string, folderId: string) => void;
   isMobile: boolean;
+  canWrite: boolean;
 }
 
 function FolderNode({
@@ -62,6 +64,7 @@ function FolderNode({
   onDelete,
   onFileDrop,
   isMobile,
+  canWrite,
 }: FolderNodeProps) {
   const t = useTranslations('files');
   const tc = useTranslations('common');
@@ -163,45 +166,47 @@ function FolderNode({
           <span className="mx-1 flex-1 truncate text-sm">{node.name}</span>
         )}
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MoreHorizontal className="h-3.5 w-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => {
-                setAddingChild(true);
-                setExpanded(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {t('addChildFolder')}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                setEditName(node.name);
-                setEditing(true);
-              }}
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              {t('rename')}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(node.id, node.name)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {tc('delete')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {canWrite && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setAddingChild(true);
+                  setExpanded(true);
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t('addChildFolder')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setEditName(node.name);
+                  setEditing(true);
+                }}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                {t('rename')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onDelete(node.id, node.name)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {tc('delete')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {expanded && hasChildren && (
@@ -218,6 +223,7 @@ function FolderNode({
               onDelete={onDelete}
               onFileDrop={onFileDrop}
               isMobile={isMobile}
+              canWrite={canWrite}
             />
           ))}
         </div>
@@ -258,6 +264,8 @@ export function FilesManager() {
   const t = useTranslations('files');
   const tc = useTranslations('common');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('files', 'write');
 
   const [tree, setTree] = useState<FolderTreeNode[]>([]);
   const [files, setFiles] = useState<PaginatedResponse<FileResponse> | null>(null);
@@ -521,14 +529,16 @@ export function FilesManager() {
         <div className="rounded-md border p-2">
           <div className="mb-2 flex items-center justify-between px-1">
             <span className="text-sm font-medium">{t('folders')}</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7"
-              onClick={() => setAddingRootFolder(true)}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
+            {canWrite && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7"
+                onClick={() => setAddingRootFolder(true)}
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
 
           {/* "All files" option */}
@@ -559,13 +569,13 @@ export function FilesManager() {
               setShowAllFiles(false);
             }}
             onDragOver={(e) => {
-              if (e.dataTransfer.types.includes('application/x-file-id')) {
+              if (canWrite && e.dataTransfer.types.includes('application/x-file-id')) {
                 e.preventDefault();
                 setRootDropOver(true);
               }
             }}
             onDragEnter={(e) => {
-              if (e.dataTransfer.types.includes('application/x-file-id')) {
+              if (canWrite && e.dataTransfer.types.includes('application/x-file-id')) {
                 e.preventDefault();
                 setRootDropOver(true);
               }
@@ -616,6 +626,7 @@ export function FilesManager() {
               onDelete={(id, name) => setDeleteFolderTarget({ id, name })}
               onFileDrop={handleMoveFileToFolder}
               isMobile={isMobile}
+              canWrite={canWrite}
             />
           ))}
         </div>
@@ -624,10 +635,10 @@ export function FilesManager() {
       {/* File list */}
       <div
         className="flex-1 min-w-0 relative"
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
+        onDragEnter={canWrite ? handleDragEnter : undefined}
+        onDragLeave={canWrite ? handleDragLeave : undefined}
+        onDragOver={canWrite ? handleDragOver : undefined}
+        onDrop={canWrite ? handleDrop : undefined}
       >
         {/* Drop overlay */}
         {dragging && (
@@ -639,18 +650,20 @@ export function FilesManager() {
           </div>
         )}
 
-        <div className="mb-3 flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={handleUpload}
-          />
-          <Button onClick={() => fileInputRef.current?.click()}>
-            <Upload className="mr-2 h-4 w-4" />
-            {t('upload')}
-          </Button>
-        </div>
+        {canWrite && (
+          <div className="mb-3 flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleUpload}
+            />
+            <Button onClick={() => fileInputRef.current?.click()}>
+              <Upload className="mr-2 h-4 w-4" />
+              {t('upload')}
+            </Button>
+          </div>
+        )}
 
         {files && files.data.length > 0 ? (
           <>
@@ -660,7 +673,7 @@ export function FilesManager() {
                   <div
                     key={file.id}
                     className="group relative flex flex-col rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
-                    draggable
+                    draggable={canWrite}
                     onDragStart={(e) => {
                       e.dataTransfer.setData('application/x-file-id', file.id);
                       e.dataTransfer.effectAllowed = 'move';
@@ -689,22 +702,26 @@ export function FilesManager() {
                               <Download className="mr-2 h-4 w-4" />
                               {t('download')}
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setRenamingFileId(file.id);
-                                setRenameValue(file.originalName);
-                              }}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              {t('rename')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setDeleteFileTarget({ id: file.id, name: file.originalName })}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              {tc('delete')}
-                            </DropdownMenuItem>
+                            {canWrite && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setRenamingFileId(file.id);
+                                    setRenameValue(file.originalName);
+                                  }}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  {t('rename')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteFileTarget({ id: file.id, name: file.originalName })}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  {tc('delete')}
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

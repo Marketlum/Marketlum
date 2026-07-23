@@ -4,11 +4,14 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart, KeyRound } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart, KeyRound, ShieldCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { canPermission, type AuthMeResponse } from '@marketlum/shared';
 import { getMe, logout } from '../lib/auth';
+import { PermissionsProvider } from '../permissions/permissions-context';
 import { usePlugins } from '../plugins/plugin-registry';
 import { mergePluginNav } from '../plugins/plugin-nav';
+import { AccessDeniedPanel } from '../components/shared/access-denied-panel';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Sheet, SheetContent, SheetTitle } from '../components/ui/sheet';
@@ -17,7 +20,6 @@ import { ThemeSwitcher } from '../components/shared/theme-switcher';
 import { FileImagePreview } from '../components/shared/file-image-preview';
 import { GlobalSearchInput } from '../components/search/global-search-input';
 import { ValueStreamSwitcher } from '../components/value-streams/value-stream-switcher';
-import type { UserResponse } from '@marketlum/shared';
 
 const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
 
@@ -27,7 +29,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('nav');
   const tRoot = useTranslations();
   const plugins = usePlugins();
-  const [user, setUser] = useState<UserResponse | null>(null);
+  const [user, setUser] = useState<AuthMeResponse | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -48,6 +50,18 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     });
   }, [router]);
 
+  const refreshPermissions = useCallback(async () => {
+    const u = await getMe();
+    if (u) setUser(u);
+  }, []);
+
+  // Sidebar filtering and the route guard read permissions directly from the
+  // fetched user; components below consume them via PermissionsProvider.
+  const allowed = useCallback(
+    (resource?: string) => !resource || canPermission(user?.permissions ?? [], resource, 'read'),
+    [user],
+  );
+
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
@@ -63,43 +77,57 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   const coreGroups = [
     { key: 'home', label: '', items: [
-      { href: '/admin/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+      { href: '/admin/dashboard', label: t('dashboard'), icon: LayoutDashboard, resource: 'dashboard' },
     ]},
     { key: 'create', label: t('groupCreate'), items: [
-      { href: '/admin/values', label: t('values'), icon: Gem },
-      { href: '/admin/value-instances', label: t('valueInstances'), icon: Layers },
+      { href: '/admin/values', label: t('values'), icon: Gem, resource: 'values' },
+      { href: '/admin/value-instances', label: t('valueInstances'), icon: Layers, resource: 'value-instances' },
     ]},
     { key: 'exchange', label: t('groupExchange'), items: [
-      { href: '/admin/tensions', label: t('tensions'), icon: Flame },
-      { href: '/admin/agents', label: t('agents'), icon: Bot },
-      { href: '/admin/agreements', label: t('agreements'), icon: Handshake },
-      { href: '/admin/offerings', label: t('offerings'), icon: Package },
-      { href: '/admin/exchanges', label: t('exchanges'), icon: ArrowRightLeft },
-      { href: '/admin/orders', label: t('orders'), icon: ShoppingCart },
-      { href: '/admin/invoices', label: t('invoices'), icon: FileText },
+      { href: '/admin/tensions', label: t('tensions'), icon: Flame, resource: 'tensions' },
+      { href: '/admin/agents', label: t('agents'), icon: Bot, resource: 'agents' },
+      { href: '/admin/agreements', label: t('agreements'), icon: Handshake, resource: 'agreements' },
+      { href: '/admin/offerings', label: t('offerings'), icon: Package, resource: 'offerings' },
+      { href: '/admin/exchanges', label: t('exchanges'), icon: ArrowRightLeft, resource: 'exchanges' },
+      { href: '/admin/orders', label: t('orders'), icon: ShoppingCart, resource: 'orders' },
+      { href: '/admin/invoices', label: t('invoices'), icon: FileText, resource: 'invoices' },
     ]},
     { key: 'ledger', label: t('groupLedger'), items: [
-      { href: '/admin/accounts', label: t('accounts'), icon: Wallet },
-      { href: '/admin/transactions', label: t('transactions'), icon: ArrowLeftRight },
+      { href: '/admin/accounts', label: t('accounts'), icon: Wallet, resource: 'accounts' },
+      { href: '/admin/transactions', label: t('transactions'), icon: ArrowLeftRight, resource: 'transactions' },
     ]},
     { key: 'system', label: t('groupSystem'), items: [
-      { href: '/admin/users', label: t('users'), icon: Users },
-      { href: '/admin/taxonomies', label: t('taxonomies'), icon: FolderTree },
-      { href: '/admin/archetypes', label: t('archetypes'), icon: Shapes },
-      { href: '/admin/pipelines', label: t('pipelines'), icon: GitBranch },
-      { href: '/admin/channels', label: t('channels'), icon: Hash },
-      { href: '/admin/geographies', label: t('geographies'), icon: Globe },
-      { href: '/admin/value-streams', label: t('valueStreams'), icon: Workflow },
-      { href: '/admin/agreement-templates', label: t('agreementTemplates'), icon: ClipboardList },
-      { href: '/admin/exchange-rates', label: t('exchangeRates'), icon: ArrowRightLeft },
-      { href: '/admin/locales', label: t('locales'), icon: Languages },
-      { href: '/admin/files', label: t('files'), icon: FileIcon },
-      { href: '/admin/plugins', label: t('plugins'), icon: Puzzle },
+      { href: '/admin/users', label: t('users'), icon: Users, resource: 'users' },
+      { href: '/admin/roles', label: t('roles'), icon: ShieldCheck, resource: 'roles' },
+      { href: '/admin/taxonomies', label: t('taxonomies'), icon: FolderTree, resource: 'taxonomies' },
+      { href: '/admin/archetypes', label: t('archetypes'), icon: Shapes, resource: 'archetypes' },
+      { href: '/admin/pipelines', label: t('pipelines'), icon: GitBranch, resource: 'pipelines' },
+      { href: '/admin/channels', label: t('channels'), icon: Hash, resource: 'channels' },
+      { href: '/admin/geographies', label: t('geographies'), icon: Globe, resource: 'geographies' },
+      { href: '/admin/value-streams', label: t('valueStreams'), icon: Workflow, resource: 'value-streams' },
+      { href: '/admin/agreement-templates', label: t('agreementTemplates'), icon: ClipboardList, resource: 'agreement-templates' },
+      { href: '/admin/exchange-rates', label: t('exchangeRates'), icon: ArrowRightLeft, resource: 'exchange-rates' },
+      { href: '/admin/locales', label: t('locales'), icon: Languages, resource: 'locales' },
+      { href: '/admin/files', label: t('files'), icon: FileIcon, resource: 'files' },
+      { href: '/admin/plugins', label: t('plugins'), icon: Puzzle, resource: 'plugins' },
       { href: '/admin/api-keys', label: t('apiKeys'), icon: KeyRound },
     ]},
   ];
 
-  const navGroups = mergePluginNav(coreGroups, plugins, tRoot);
+  // Unfiltered merge is kept for the route guard: a hidden item must still map
+  // its route to the missing permission for the access-denied panel.
+  const mergedGroups = mergePluginNav(coreGroups, plugins, tRoot);
+
+  const navGroups = mergedGroups
+    .map((group) => ({ ...group, items: group.items.filter((item) => allowed(item.resource)) }))
+    .filter((group) => group.items.length > 0);
+
+  const routeItem = mergedGroups
+    .flatMap((group) => group.items)
+    .filter((item) => pathname.startsWith(item.href))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+  const deniedResource =
+    routeItem?.resource && !allowed(routeItem.resource) ? routeItem.resource : null;
 
   const filteredGroups = menuFilter
     ? navGroups
@@ -115,6 +143,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!user) return null;
 
   return (
+    <PermissionsProvider user={user} refresh={refreshPermissions}>
     <TooltipProvider delayDuration={0}>
       <div className="flex h-screen flex-col md:flex-row">
         {/* Mobile header */}
@@ -129,9 +158,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               Marketlum
             </span>
           </Link>
-          <div className="flex-1 px-2">
-            <GlobalSearchInput />
-          </div>
+          {allowed('search') && (
+            <div className="flex-1 px-2">
+              <GlobalSearchInput />
+            </div>
+          )}
         </header>
 
         {/* Mobile sheet drawer */}
@@ -408,14 +439,19 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </aside>
         <div className="flex flex-1 flex-col">
           <header className="hidden md:flex h-14 items-center gap-3 border-b px-6">
-            <ValueStreamSwitcher />
-            <div className="w-full max-w-md">
-              <GlobalSearchInput />
-            </div>
+            {allowed('value-streams') && <ValueStreamSwitcher />}
+            {allowed('search') && (
+              <div className="w-full max-w-md">
+                <GlobalSearchInput />
+              </div>
+            )}
           </header>
-          <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+          <main className="flex-1 overflow-auto p-4 md:p-6">
+            {deniedResource ? <AccessDeniedPanel resource={deniedResource} /> : children}
+          </main>
         </div>
       </div>
     </TooltipProvider>
+    </PermissionsProvider>
   );
 }

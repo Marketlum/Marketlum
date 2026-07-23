@@ -37,8 +37,13 @@ export const roleSummarySchema = z.object({
   code: z.string(),
 });
 
+export const permissionCatalogResponseSchema = z.object({
+  resources: z.array(z.string()),
+});
+
 export type CreateRoleInput = z.infer<typeof createRoleSchema>;
 export type UpdateRoleInput = z.infer<typeof updateRoleSchema>;
 export type AssignUserRolesInput = z.infer<typeof assignUserRolesSchema>;
 export type RoleResponse = z.infer<typeof roleResponseSchema>;
 export type RoleSummary = z.infer<typeof roleSummarySchema>;
+export type PermissionCatalogResponse = z.infer<typeof permissionCatalogResponseSchema>;

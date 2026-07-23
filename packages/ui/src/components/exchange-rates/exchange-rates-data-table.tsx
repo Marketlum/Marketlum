@@ -16,6 +16,8 @@ import { getMobileColumnVisibility } from '../../lib/column-visibility';
 import { DataTable } from '../shared/data-table';
 import { DataTablePagination } from '../shared/data-table-pagination';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
+import { usePermissions } from '../../permissions/permissions-context';
 import { Button } from '../ui/button';
 import { getExchangeRateColumns } from './columns';
 import { ExchangeRateFormDialog } from './exchange-rate-form-dialog';
@@ -26,6 +28,8 @@ export function ExchangeRatesDataTable() {
   const t = useTranslations('exchangeRates');
   const tc = useTranslations('common');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('exchange-rates', 'write');
   const [data, setData] = useState<PaginatedResponse<ExchangeRateResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -91,7 +95,7 @@ export function ExchangeRatesDataTable() {
     }
   };
 
-  const columns = getExchangeRateColumns({
+  const allColumns = getExchangeRateColumns({
     onEdit: (rate) => {
       setEditing(rate);
       setFormOpen(true);
@@ -108,6 +112,7 @@ export function ExchangeRatesDataTable() {
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
 
@@ -116,15 +121,17 @@ export function ExchangeRatesDataTable() {
       <PresentationCurrencyPicker onChange={fetchData} />
 
       <div className="flex justify-end">
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          {t('createRate')}
-        </Button>
+        <Can resource="exchange-rates" action="write">
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t('createRate')}
+          </Button>
+        </Can>
       </div>
 
       {loading ? (

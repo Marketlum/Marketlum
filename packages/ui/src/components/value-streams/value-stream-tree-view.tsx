@@ -8,6 +8,8 @@ import type { ValueStreamTreeNode, CreateValueStreamInput, ValueStreamResponse }
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Can } from '../../permissions/can';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
 import { ValueStreamTreeNodeComponent } from './value-stream-tree-node';
 import { ValueStreamFormDialog } from './value-stream-form-dialog';
@@ -34,6 +36,8 @@ function filterTree(nodes: ValueStreamTreeNode[], term: string): ValueStreamTree
 export function ValueStreamTreeView() {
   const t = useTranslations('valueStreams');
   const tc = useTranslations('common');
+  const { can } = usePermissions();
+  const canWrite = can('value-streams', 'write');
   const [viewMode, setViewMode] = useState<'tree' | 'circles'>('tree');
   const [tree, setTree] = useState<ValueStreamTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -167,10 +171,12 @@ export function ValueStreamTreeView() {
             <CircleDot className="h-4 w-4" />
           </button>
         </div>
-        <Button onClick={handleOpenCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addRoot')}
-        </Button>
+        <Can resource="value-streams" action="write">
+          <Button onClick={handleOpenCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('addRoot')}
+          </Button>
+        </Can>
       </div>
 
       {viewMode === 'circles' ? (
@@ -191,6 +197,7 @@ export function ValueStreamTreeView() {
               onDelete={(id, name) => setDeleteTarget({ id, name })}
               searchTerm={isSearching ? debouncedSearch : undefined}
               forceExpanded={isSearching}
+              canWrite={canWrite}
             />
           ))}
         </div>

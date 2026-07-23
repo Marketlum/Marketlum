@@ -23,6 +23,7 @@ interface ValueStreamTreeNodeProps {
   onDelete: (id: string, name: string) => void;
   searchTerm?: string;
   forceExpanded?: boolean;
+  canWrite: boolean;
 }
 
 export function ValueStreamTreeNodeComponent({
@@ -33,6 +34,7 @@ export function ValueStreamTreeNodeComponent({
   onDelete,
   searchTerm,
   forceExpanded,
+  canWrite,
 }: ValueStreamTreeNodeProps) {
   const t = useTranslations('valueStreams');
   const tc = useTranslations('common');
@@ -106,34 +108,36 @@ export function ValueStreamTreeNodeComponent({
             )}
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onAddChild(node.id)}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('addChild')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(node)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                {tc('edit')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDelete(node.id, node.name)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {tc('delete')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {canWrite && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0 md:opacity-0 md:group-hover:opacity-100"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onAddChild(node.id)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('addChild')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(node)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {tc('edit')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onDelete(node.id, node.name)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {tc('delete')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
@@ -149,6 +153,7 @@ export function ValueStreamTreeNodeComponent({
               onDelete={onDelete}
               searchTerm={searchTerm}
               forceExpanded={forceExpanded}
+              canWrite={canWrite}
             />
           ))}
         </div>

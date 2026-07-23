@@ -13,6 +13,7 @@ import type {
 } from '@marketlum/shared';
 import { OrderState } from '@marketlum/shared';
 import { api, ApiError } from '../../lib/api-client';
+import { usePermissions } from '../../permissions/permissions-context';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -88,6 +89,9 @@ export function OrderDetailPage() {
   const router = useRouter();
   const t = useTranslations('orders');
   const tc = useTranslations('common');
+  const { can } = usePermissions();
+  const canWrite = can('orders', 'write');
+  const canWriteInvoices = can('invoices', 'write');
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -299,7 +303,7 @@ export function OrderDetailPage() {
             {order.fromAgent?.name ?? '—'} → {order.toAgent?.name ?? '—'}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {transitions.map((transition) => (
+            {canWrite && transitions.map((transition) => (
               <Button
                 key={transition.action}
                 size="sm"
@@ -309,7 +313,7 @@ export function OrderDetailPage() {
                 {t(transition.labelKey)}
               </Button>
             ))}
-            {linkable && (
+            {linkable && canWrite && (
               <Button
                 variant="outline"
                 size="sm"
@@ -320,13 +324,13 @@ export function OrderDetailPage() {
                 {t('generateInvoice')}
               </Button>
             )}
-            {isDraft && (
+            {isDraft && canWrite && (
               <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" />
                 {tc('edit')}
               </Button>
             )}
-            {deletable && (
+            {deletable && canWrite && (
               <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                 {tc('delete')}
@@ -363,14 +367,14 @@ export function OrderDetailPage() {
             <OrderAddressCard
               title={t('shippingAddress')}
               address={order.shippingAddress}
-              editable={isDraft}
+              editable={isDraft && canWrite}
               copyFromAgentId={order.toAgent?.id}
               onSave={(address) => handleSaveAddress('shippingAddress', address)}
             />
             <OrderAddressCard
               title={t('billingAddress')}
               address={order.billingAddress}
-              editable={isDraft}
+              editable={isDraft && canWrite}
               copyFromAgentId={order.toAgent?.id}
               onSave={(address) => handleSaveAddress('billingAddress', address)}
             />
@@ -379,7 +383,7 @@ export function OrderDetailPage() {
           <OrderItemsEditor
             items={order.items}
             total={order.total}
-            editable={isDraft}
+            editable={isDraft && canWrite}
             onSave={handleSaveItems}
           />
         </TabsContent>
@@ -388,7 +392,7 @@ export function OrderDetailPage() {
           <OrderInvoicesTab
             orderId={order.id}
             orderCurrencyId={order.currency?.id ?? null}
-            linkable={linkable}
+            linkable={linkable && canWriteInvoices}
             onChanged={fetchOrder}
           />
         </TabsContent>

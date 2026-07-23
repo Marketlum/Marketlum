@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
   Textarea,
+  usePermissions,
 } from '@marketlum/ui';
 import type { ApiFieldError, PluginRouteComponentProps } from '@marketlum/ui';
 import {
@@ -60,6 +61,8 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
   const tk = useTranslations('plugin.rdhy.vam.kinds');
   const tl = useTranslations('plugin.rdhy.vam.list');
   const router = useRouter();
+  const { can } = usePermissions();
+  const canWrite = can('rdhy.vam-agreements', 'write');
 
   const [document, setDocument] = useState<RdhyVamAgreementDocument | null>(null);
   const [editing, setEditing] = useState(false);
@@ -238,7 +241,7 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
           {document.title}
           <VamStatusBadge status={document.status} />
         </h1>
-        {!editing && (
+        {!editing && canWrite && (
           <div className="flex gap-2">
             {document.status === 'DRAFT' && (
               <>

@@ -22,6 +22,7 @@ import { ColumnVisibilityDropdown } from '../shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ValueInstanceFormDialog } from './value-instance-form-dialog';
 import { getValueInstanceColumns } from './columns';
 import {
@@ -47,6 +48,8 @@ export function ValueInstancesDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('value-instances', 'write');
   const { values } = useValues();
   const { agents } = useAgents();
   const [valueFilter, setValueFilter] = useState<string>('all');
@@ -186,7 +189,7 @@ export function ValueInstancesDataTable() {
     [ValueType.CURRENCY]: tv('typeCurrency'),
   };
 
-  const columns = getValueInstanceColumns({
+  const allColumns = getValueInstanceColumns({
     onEdit: (vi) => setEditingItem(vi),
     onDelete: (vi) => setDeleteItem(vi),
     onSort: pagination.setSort,
@@ -206,6 +209,7 @@ export function ValueInstancesDataTable() {
       valueTypeLabels,
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'image', label: t('image') },
@@ -301,8 +305,8 @@ export function ValueInstancesDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createValueInstance')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createValueInstance') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

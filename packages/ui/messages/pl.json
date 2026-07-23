@@ -30,7 +30,10 @@
     "duplicate": "Duplikuj",
     "all": "Wszystkie",
     "validationFailed": "Walidacja nie powiodła się",
-    "done": "Gotowe"
+    "done": "Gotowe",
+    "accessDeniedTitle": "Brak dostępu",
+    "accessDeniedDescription": "Nie masz uprawnień do wyświetlenia tej strony. Wymagane uprawnienie:",
+    "goBack": "Wróć"
   },
   "nav": {
     "users": "Użytkownicy",
@@ -70,7 +73,8 @@
     "exchangeRates": "Kursy wymiany",
     "plugins": "Wtyczki",
     "orders": "Zamówienia",
-    "apiKeys": "Klucze API"
+    "apiKeys": "Klucze API",
+    "roles": "Role"
   },
   "plugins": {
     "title": "Wtyczki",
@@ -114,7 +118,14 @@
     "selectAvatarDescription": "Wybierz awatar z biblioteki plików.",
     "removeAvatar": "Usuń",
     "failedToUploadAvatar": "Nie udało się przesłać awataru",
-    "updatedAt": "Zaktualizowano"
+    "updatedAt": "Zaktualizowano",
+    "rolesColumn": "Role",
+    "noRoles": "Brak ról",
+    "manageRoles": "Zarządzaj rolami",
+    "manageRolesDescription": "Wybierz role dla „{name}”. Zapis zastępuje cały zestaw.",
+    "rolesUpdated": "Role zaktualizowane",
+    "failedToLoadRoles": "Nie udało się wczytać ról",
+    "failedToUpdateRoles": "Nie udało się zaktualizować ról"
   },
   "agents": {
     "title": "Agenci",
@@ -1254,5 +1265,32 @@
     "failedToLoad": "Nie udało się wczytać kluczy API",
     "failedToCreate": "Nie udało się utworzyć klucza API",
     "failedToDelete": "Nie udało się usunąć klucza API"
+  },
+  "roles": {
+    "title": "Role",
+    "description": "Role nadają uprawnienia odczytu/zapisu per zasób i dziedziczą uprawnienia ról podrzędnych.",
+    "createRole": "Utwórz rolę",
+    "editRole": "Edytuj rolę",
+    "deleteRole": "Usuń rolę",
+    "formDescription": "Rola dziedziczy wszystko, co nadają jej role podrzędne.",
+    "systemRoleHint": "Rola systemowa — jej uprawnień nie można zmieniać.",
+    "parent": "Rola nadrzędna",
+    "permissions": "Uprawnienia",
+    "resource": "Zasób",
+    "read": "Odczyt",
+    "write": "Zapis",
+    "grantEverything": "Nadaj wszystko (*)",
+    "grantsEverything": "Ta rola nadaje wszystko (*).",
+    "everything": "Wszystko",
+    "permissionCount": "{count} uprawnień",
+    "inherited": "Odziedziczone z roli podrzędnej",
+    "inheritedHint": "Wyłączone pola są odziedziczone z ról podrzędnych i nie można ich tutaj odebrać.",
+    "created": "Rola utworzona",
+    "updated": "Rola zaktualizowana",
+    "deleted": "Rola usunięta",
+    "failedToLoad": "Nie udało się wczytać ról",
+    "failedToCreate": "Nie udało się utworzyć roli",
+    "failedToUpdate": "Nie udało się zaktualizować roli",
+    "failedToDelete": "Nie udało się usunąć roli"
   }
 }

@@ -23,6 +23,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { OfferingFormDialog } from './offering-form-dialog';
 import { getOfferingColumns } from './columns';
 import { Button } from '../ui/button';
@@ -54,6 +55,8 @@ export function OfferingsDataTable({
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('offerings', 'write');
   const { agents } = useAgents();
   const { valueStreams } = useValueStreams();
   const [stateFilter, setStateFilter] = useState<string>('all');
@@ -189,7 +192,7 @@ export function OfferingsDataTable({
     }
   };
 
-  const columns = getOfferingColumns({
+  const allColumns = getOfferingColumns({
     onEdit: handleOpenEdit,
     onDelete: (offering) => setDeleteTarget(offering),
     onSort: pagination.setSort,
@@ -207,6 +210,7 @@ export function OfferingsDataTable({
       stateLive: t('stateLive'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -297,8 +301,8 @@ export function OfferingsDataTable({
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={handleOpenCreate}
-        createLabel={t('createOffering')}
+        onCreateClick={canWrite ? handleOpenCreate : undefined}
+        createLabel={canWrite ? t('createOffering') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

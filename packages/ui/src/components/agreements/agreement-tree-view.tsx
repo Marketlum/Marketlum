@@ -9,6 +9,7 @@ import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { AgreementTreeNodeComponent } from './agreement-tree-node';
 import { AgreementFormDialog } from './agreement-form-dialog';
 import { useDebounce } from '../../hooks/use-debounce';
@@ -145,10 +146,12 @@ export function AgreementTreeView() {
             className="pl-8"
           />
         </div>
-        <Button onClick={handleOpenCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addRoot')}
-        </Button>
+        <Can resource="agreements" action="write">
+          <Button onClick={handleOpenCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('addRoot')}
+          </Button>
+        </Can>
       </div>
 
       {filteredTree.length === 0 ? (

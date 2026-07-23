@@ -8,6 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 import {
   api,
   Button,
+  Can,
   ConfirmDeleteDialog,
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ import {
   TableHeader,
   TableRow,
   Textarea,
+  usePermissions,
 } from '@marketlum/ui';
 import type { PluginRouteComponentProps } from '@marketlum/ui';
 import type { RdhyPlatformDetailResponse } from '../shared/schemas';
@@ -41,6 +43,8 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
   const tp = useTranslations('plugin.rdhy.platforms');
   const tv = useTranslations('plugin.rdhy.vam.platformSection');
   const router = useRouter();
+  const { can } = usePermissions();
+  const canWriteAgents = can('rdhy.agents', 'write');
 
   const [platform, setPlatform] = useState<RdhyPlatformDetailResponse | null>(null);
   const [sponsored, setSponsored] = useState<RdhyVamAgreementSummary[]>([]);
@@ -177,14 +181,16 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
             ({platform.code})
           </span>
         </h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            {t('edit')}
-          </Button>
-          <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-            {t('delete')}
-          </Button>
-        </div>
+        <Can resource="rdhy.platforms" action="write">
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              {t('edit')}
+            </Button>
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              {t('delete')}
+            </Button>
+          </div>
+        </Can>
       </div>
       {platform.description && (
         <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{platform.description}</p>
@@ -208,14 +214,16 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
                 <TableCell>{member.name}</TableCell>
                 <TableCell className="text-muted-foreground">{member.type}</TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => detach(member.id)}
-                    disabled={busy}
-                  >
-                    {t('remove')}
-                  </Button>
+                  {canWriteAgents && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => detach(member.id)}
+                      disabled={busy}
+                    >
+                      {t('remove')}
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -223,30 +231,32 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
         </Table>
       )}
 
-      <div className="mt-4 max-w-md space-y-1">
-        <Label htmlFor="rdhy-add-member">{t('addLabel')}</Label>
-        <Input
-          id="rdhy-add-member"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('addPlaceholder')}
-        />
-        {query.trim() &&
-          (candidates.length === 0 ? (
-            <p className="pt-1 text-sm text-muted-foreground">{t('noMatches')}</p>
-          ) : (
-            <ul className="divide-y rounded-md border">
-              {candidates.map((option) => (
-                <li key={option.id} className="flex items-center justify-between gap-2 p-2">
-                  <span className="text-sm">{option.label}</span>
-                  <Button size="sm" onClick={() => assign(option.id)} disabled={busy}>
-                    {t('add')}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ))}
-      </div>
+      {canWriteAgents && (
+        <div className="mt-4 max-w-md space-y-1">
+          <Label htmlFor="rdhy-add-member">{t('addLabel')}</Label>
+          <Input
+            id="rdhy-add-member"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('addPlaceholder')}
+          />
+          {query.trim() &&
+            (candidates.length === 0 ? (
+              <p className="pt-1 text-sm text-muted-foreground">{t('noMatches')}</p>
+            ) : (
+              <ul className="divide-y rounded-md border">
+                {candidates.map((option) => (
+                  <li key={option.id} className="flex items-center justify-between gap-2 p-2">
+                    <span className="text-sm">{option.label}</span>
+                    <Button size="sm" onClick={() => assign(option.id)} disabled={busy}>
+                      {t('add')}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ))}
+        </div>
+      )}
 
       <h2 className="mb-2 mt-8 text-lg font-semibold">{tv('title')}</h2>
       {sponsored.length === 0 ? (

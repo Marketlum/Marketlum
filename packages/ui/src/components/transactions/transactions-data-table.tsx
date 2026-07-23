@@ -19,6 +19,7 @@ import { ColumnVisibilityDropdown } from '../shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { TransactionFormDialog } from './transaction-form-dialog';
 import { getTransactionColumns } from './columns';
 import {
@@ -41,6 +42,8 @@ export function TransactionsDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('transactions', 'write');
   const { accounts } = useAccounts();
   const [fromAccountFilter, setFromAccountFilter] = useState<string>('all');
   const [toAccountFilter, setToAccountFilter] = useState<string>('all');
@@ -164,7 +167,7 @@ export function TransactionsDataTable() {
     }
   };
 
-  const columns = getTransactionColumns({
+  const allColumns = getTransactionColumns({
     onEdit: (tx) => setEditingItem(tx),
     onDelete: (tx) => setDeleteItem(tx),
     onSort: pagination.setSort,
@@ -179,6 +182,7 @@ export function TransactionsDataTable() {
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'fromAccount', label: t('fromAccount') },
@@ -251,8 +255,8 @@ export function TransactionsDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createTransaction')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createTransaction') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

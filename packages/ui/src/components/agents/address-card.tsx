@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { Can } from '../../permissions/can';
 
 interface AddressCardProps {
   address: AddressResponse;
@@ -42,22 +43,24 @@ export function AddressCard({ address, onEdit, onDelete, onMakePrimary }: Addres
         </div>
         <div className="text-sm text-muted-foreground">{address.country.name}</div>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onEdit}>{tc('edit')}</DropdownMenuItem>
-          {!address.isPrimary && (
-            <DropdownMenuItem onClick={onMakePrimary}>{t('setAsPrimary')}</DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={onDelete} className="text-destructive">
-            {tc('delete')}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Can resource="agents" action="write">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>{tc('edit')}</DropdownMenuItem>
+            {!address.isPrimary && (
+              <DropdownMenuItem onClick={onMakePrimary}>{t('setAsPrimary')}</DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={onDelete} className="text-destructive">
+              {tc('delete')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Can>
     </div>
   );
 }

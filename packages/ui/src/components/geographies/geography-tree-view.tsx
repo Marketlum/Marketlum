@@ -11,6 +11,7 @@ import { api, ApiError } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
+import { usePermissions } from '../../permissions/permissions-context';
 import { GeographyTreeNodeComponent } from './geography-tree-node';
 
 function RootDropZone({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,8 @@ function RootDropZone({ children }: { children: React.ReactNode }) {
 export function GeographyTreeView() {
   const t = useTranslations('geographies');
   const tc = useTranslations('common');
+  const { can } = usePermissions();
+  const canWrite = can('geographies', 'write');
   const [tree, setTree] = useState<GeographyTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingRoot, setAddingRoot] = useState(false);
@@ -160,6 +163,7 @@ export function GeographyTreeView() {
 
   return (
     <div>
+      {canWrite && (
       <div className="mb-4">
         {addingRoot ? (
           <div className="flex flex-col gap-2">
@@ -200,6 +204,7 @@ export function GeographyTreeView() {
           </Button>
         )}
       </div>
+      )}
 
       {tree.length === 0 && !addingRoot ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">
@@ -214,6 +219,7 @@ export function GeographyTreeView() {
                   key={node.id}
                   node={node}
                   depth={0}
+                  canWrite={canWrite}
                   onCreateChild={handleCreateChild}
                   onUpdate={handleUpdate}
                   onDelete={(id, name) => setDeleteTarget({ id, name })}

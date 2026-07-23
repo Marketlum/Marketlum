@@ -23,6 +23,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { TensionFormDialog } from './tension-form-dialog';
 import { getTensionColumns } from './columns';
 import { Button } from '../ui/button';
@@ -44,6 +45,8 @@ export function TensionsDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('tensions', 'write');
   const { agents, refresh: refreshAgents } = useAgents();
   const { users } = useUsers();
   const [agentFilter, setAgentFilter] = useState<string>('all');
@@ -174,7 +177,7 @@ export function TensionsDataTable() {
     }
   };
 
-  const columns = getTensionColumns({
+  const allColumns = getTensionColumns({
     onEdit: handleOpenEdit,
     onDelete: (tension) => setDeleteTarget(tension),
     onSort: pagination.setSort,
@@ -193,6 +196,7 @@ export function TensionsDataTable() {
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -279,8 +283,8 @@ export function TensionsDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={handleOpenCreate}
-        createLabel={t('createTension')}
+        onCreateClick={canWrite ? handleOpenCreate : undefined}
+        createLabel={canWrite ? t('createTension') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

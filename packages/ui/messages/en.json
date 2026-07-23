@@ -31,7 +31,10 @@
     "duplicate": "Duplicate",
     "all": "All",
     "validationFailed": "Validation failed",
-    "done": "Done"
+    "done": "Done",
+    "accessDeniedTitle": "Access denied",
+    "accessDeniedDescription": "You do not have permission to view this page. Required permission:",
+    "goBack": "Go back"
   },
   "nav": {
     "users": "Users",
@@ -71,7 +74,8 @@
     "exchangeRates": "Exchange Rates",
     "plugins": "Plugins",
     "orders": "Orders",
-    "apiKeys": "API Keys"
+    "apiKeys": "API Keys",
+    "roles": "Roles"
   },
   "plugins": {
     "title": "Plugins",
@@ -115,7 +119,14 @@
     "selectAvatarDescription": "Select an avatar from your file library.",
     "removeAvatar": "Remove",
     "failedToUploadAvatar": "Failed to upload avatar",
-    "updatedAt": "Updated"
+    "updatedAt": "Updated",
+    "rolesColumn": "Roles",
+    "noRoles": "No roles",
+    "manageRoles": "Manage roles",
+    "manageRolesDescription": "Select the roles for \"{name}\". Saving replaces the full set.",
+    "rolesUpdated": "Roles updated",
+    "failedToLoadRoles": "Failed to load roles",
+    "failedToUpdateRoles": "Failed to update roles"
   },
   "agents": {
     "title": "Agents",
@@ -1255,5 +1266,32 @@
     "failedToLoad": "Failed to load API keys",
     "failedToCreate": "Failed to create API key",
     "failedToDelete": "Failed to delete API key"
+  },
+  "roles": {
+    "title": "Roles",
+    "description": "Roles grant read/write permissions per resource and inherit the grants of their child roles.",
+    "createRole": "Create role",
+    "editRole": "Edit role",
+    "deleteRole": "Delete role",
+    "formDescription": "A role inherits everything its child roles grant.",
+    "systemRoleHint": "System role — its grants cannot be changed.",
+    "parent": "Parent role",
+    "permissions": "Permissions",
+    "resource": "Resource",
+    "read": "Read",
+    "write": "Write",
+    "grantEverything": "Grant everything (*)",
+    "grantsEverything": "This role grants everything (*).",
+    "everything": "Everything",
+    "permissionCount": "{count} permissions",
+    "inherited": "Inherited from a child role",
+    "inheritedHint": "Disabled checkboxes are inherited from child roles and cannot be revoked here.",
+    "created": "Role created",
+    "updated": "Role updated",
+    "deleted": "Role deleted",
+    "failedToLoad": "Failed to load roles",
+    "failedToCreate": "Failed to create role",
+    "failedToUpdate": "Failed to update role",
+    "failedToDelete": "Failed to delete role"
   }
 }

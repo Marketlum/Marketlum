@@ -9,6 +9,7 @@ import type { AgreementTemplateTreeNode, CreateAgreementTemplateInput, Agreement
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { AgreementTemplateTreeNodeComponent } from './agreement-template-tree-node';
 import { AgreementTemplateFormDialog } from './agreement-template-form-dialog';
 
@@ -152,12 +153,14 @@ export function AgreementTemplateTreeView() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end">
-        <Button onClick={handleOpenCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addRoot')}
-        </Button>
-      </div>
+      <Can resource="agreement-templates" action="write">
+        <div className="mb-4 flex items-center justify-end">
+          <Button onClick={handleOpenCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('addRoot')}
+          </Button>
+        </div>
+      </Can>
 
       {tree.length === 0 ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">

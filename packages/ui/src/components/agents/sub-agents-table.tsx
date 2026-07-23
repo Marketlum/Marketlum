@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table';
+import { Can } from '../../permissions/can';
 import { AgentTypeBadge } from './agent-type-badge';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { AgentFormDialog } from './agent-form-dialog';
@@ -73,12 +74,14 @@ export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addSubAgent')}
-        </Button>
-      </div>
+      <Can resource="agents" action="write">
+        <div className="mb-4 flex justify-end">
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('addSubAgent')}
+          </Button>
+        </div>
+      </Can>
 
       {loading ? (
         <div className="flex h-24 items-center justify-center text-muted-foreground">

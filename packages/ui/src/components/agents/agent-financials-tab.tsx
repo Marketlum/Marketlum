@@ -6,6 +6,7 @@ import { Settings2 } from 'lucide-react';
 import type { AgentFinancialsResponse } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
+import { Can } from '../../permissions/can';
 import { YearSelector } from '../financials/year-selector';
 import { FinancialsSummaryCards } from '../financials/financials-summary-cards';
 import { FinancialsBreakdownTable } from '../financials/financials-breakdown-table';
@@ -78,10 +79,12 @@ export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTa
           title: t('noCurrencyTitle'),
           body: t('noCurrencyBody'),
           action: (
-            <Button variant="outline" size="sm" onClick={onSetCurrency}>
-              <Settings2 className="mr-1 h-3.5 w-3.5" />
-              {t('noCurrencyAction')}
-            </Button>
+            <Can resource="agents" action="write">
+              <Button variant="outline" size="sm" onClick={onSetCurrency}>
+                <Settings2 className="mr-1 h-3.5 w-3.5" />
+                {t('noCurrencyAction')}
+              </Button>
+            </Can>
           ),
         }}
         noInvoices={{

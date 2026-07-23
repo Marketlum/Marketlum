@@ -10,6 +10,7 @@ import { AddressCard } from './address-card';
 import { AddressFormSheet } from './address-form-sheet';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
 import { api } from '../../lib/api-client';
+import { Can } from '../../permissions/can';
 
 interface AddressesListProps {
   agentId: string;
@@ -81,12 +82,14 @@ export function AddressesList({ agentId, addresses, onChanged }: AddressesListPr
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={handleAdd}>
-          <Plus className="mr-1.5 h-3.5 w-3.5" />
-          {t('addAddress')}
-        </Button>
-      </div>
+      <Can resource="agents" action="write">
+        <div className="flex justify-end">
+          <Button size="sm" onClick={handleAdd}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            {t('addAddress')}
+          </Button>
+        </div>
+      </Can>
 
       {addresses.length === 0 ? (
         <div className="rounded-md border border-dashed p-10 text-center text-muted-foreground">

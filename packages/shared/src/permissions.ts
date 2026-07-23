@@ -54,3 +54,12 @@ export function permissionResourceOf(permission: string): string | null {
   if (permission === WILDCARD_PERMISSION) return null;
   return permission.split(':')[0];
 }
+
+export function canPermission(
+  permissions: Iterable<string>,
+  resource: string,
+  action: PermissionAction,
+): boolean {
+  const set = permissions instanceof Set ? (permissions as Set<string>) : new Set(permissions);
+  return set.has(WILDCARD_PERMISSION) || set.has(permissionFor(resource, action));
+}

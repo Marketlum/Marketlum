@@ -9,6 +9,8 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility } from '../../lib/column-visibility';
+import { Can } from '../../permissions/can';
+import { usePermissions } from '../../permissions/permissions-context';
 import { DataTable } from '../shared/data-table';
 import { DataTablePagination } from '../shared/data-table-pagination';
 import { ConfirmDeleteDialog } from '../shared/confirm-delete-dialog';
@@ -21,6 +23,8 @@ export function LocalesDataTable() {
   const t = useTranslations('locales');
   const tc = useTranslations('common');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('locales', 'write');
   const [data, setData] = useState<PaginatedResponse<LocaleResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -73,7 +77,7 @@ export function LocalesDataTable() {
     }
   };
 
-  const columns = getLocaleColumns({
+  const allColumns = getLocaleColumns({
     onDelete: (locale) => setDeleteLocale(locale),
     onSort: pagination.setSort,
     translations: {
@@ -83,16 +87,19 @@ export function LocalesDataTable() {
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
 
   return (
     <div>
       <div className="flex justify-end py-4">
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('createLocale')}
-        </Button>
+        <Can resource="locales" action="write">
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('createLocale')}
+          </Button>
+        </Can>
       </div>
 
       {loading ? (

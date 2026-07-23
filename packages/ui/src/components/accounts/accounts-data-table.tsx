@@ -20,6 +20,7 @@ import { ColumnVisibilityDropdown } from '../shared/column-visibility-dropdown';
 import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { AccountFormDialog } from './account-form-dialog';
 import { getAccountColumns } from './columns';
 import {
@@ -43,6 +44,8 @@ export function AccountsDataTable() {
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('accounts', 'write');
   const { values } = useValues();
   const { agents } = useAgents();
   const [valueFilter, setValueFilter] = useState<string>('all');
@@ -167,7 +170,7 @@ export function AccountsDataTable() {
     }
   };
 
-  const columns = getAccountColumns({
+  const allColumns = getAccountColumns({
     onEdit: (acc) => setEditingItem(acc),
     onDelete: (acc) => setDeleteItem(acc),
     onSort: pagination.setSort,
@@ -182,6 +185,7 @@ export function AccountsDataTable() {
       delete: tc('delete'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -254,8 +258,8 @@ export function AccountsDataTable() {
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={() => setFormOpen(true)}
-        createLabel={t('createAccount')}
+        onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
+        createLabel={canWrite ? t('createAccount') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

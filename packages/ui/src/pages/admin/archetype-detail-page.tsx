@@ -10,6 +10,7 @@ import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { ArchetypeFormDialog } from '../../components/archetypes/archetype-form-dialog';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
+import { Can } from '../../permissions/can';
 import { MarkdownContent } from '../../components/shared/markdown-editor';
 import { FileImagePreview } from '../../components/shared/file-image-preview';
 import { Button } from '../../components/ui/button';
@@ -160,16 +161,18 @@ export function ArchetypeDetailPage() {
               <MarkdownContent content={archetype.purpose} />
             </div>
           )}
-          <div className="flex gap-2 mt-2">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {tc('edit')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {tc('delete')}
-            </Button>
-          </div>
+          <Can resource="archetypes" action="write">
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {tc('edit')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {tc('delete')}
+              </Button>
+            </div>
+          </Can>
         </div>
       </div>
 

@@ -26,6 +26,7 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { ExportDropdown } from '../shared/export-dropdown';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
+import { usePermissions } from '../../permissions/permissions-context';
 import { ExchangeFormDialog } from './exchange-form-dialog';
 import { ExchangeFlowsPanel } from './exchange-flows-panel';
 import { getExchangeColumns } from './columns';
@@ -76,6 +77,8 @@ export function ExchangesDataTable({
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
   const isMobile = useIsMobile();
+  const { can } = usePermissions();
+  const canWrite = can('exchanges', 'write');
   const { agents } = useAgents();
   const { valueStreams } = useValueStreams();
   const { pipelines } = usePipelines();
@@ -242,7 +245,7 @@ export function ExchangesDataTable({
     }
   };
 
-  const columns = getExchangeColumns({
+  const allColumns = getExchangeColumns({
     onEdit: handleOpenEdit,
     onDelete: (exchange) => setDeleteTarget(exchange),
     onFlows: handleOpenFlows,
@@ -264,6 +267,7 @@ export function ExchangesDataTable({
       flows: t('flows'),
     },
   });
+  const columns = canWrite ? allColumns : allColumns.filter((c) => c.id !== 'actions');
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
@@ -398,8 +402,8 @@ export function ExchangesDataTable({
       <DataTableToolbar
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
-        onCreateClick={handleOpenCreate}
-        createLabel={t('createExchange')}
+        onCreateClick={canWrite ? handleOpenCreate : undefined}
+        createLabel={canWrite ? t('createExchange') : undefined}
         filterButton={
           <Button variant="outline" size="sm" onClick={() => setFilterSheetOpen(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" />

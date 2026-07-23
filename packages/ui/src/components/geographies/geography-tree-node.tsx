@@ -59,6 +59,7 @@ const TYPE_LABEL_KEYS: Record<GeographyType, string> = {
 interface GeographyTreeNodeProps {
   node: GeographyTreeNode;
   depth: number;
+  canWrite: boolean;
   onCreateChild: (
     parentId: string,
     data: { name: string; code: string; type: GeographyType },
@@ -70,6 +71,7 @@ interface GeographyTreeNodeProps {
 export function GeographyTreeNodeComponent({
   node,
   depth,
+  canWrite,
   onCreateChild,
   onUpdate,
   onDelete,
@@ -93,6 +95,7 @@ export function GeographyTreeNodeComponent({
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: node.id,
     data: { name: node.name },
+    disabled: !canWrite,
   });
 
   const { setNodeRef: setDropRef, isOver } = useDroppable({
@@ -152,13 +155,15 @@ export function GeographyTreeNodeComponent({
         className={`group flex items-start gap-1 rounded-md px-1 py-1 hover:bg-secondary/50 ${isDragging ? 'opacity-50' : ''}`}
         style={{ paddingLeft: depth * (isMobile ? 16 : 24) + 4 }}
       >
-        <button
-          className="mt-0.5 flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
+        {canWrite && (
+          <button
+            className="mt-0.5 flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded-sm text-muted-foreground/50 hover:text-muted-foreground md:opacity-0 md:group-hover:opacity-100"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        )}
 
         <button
           className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm hover:bg-secondary"
@@ -221,6 +226,7 @@ export function GeographyTreeNodeComponent({
               </div>
             </div>
 
+            {canWrite && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -262,6 +268,7 @@ export function GeographyTreeNodeComponent({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            )}
           </div>
         )}
       </div>
@@ -273,6 +280,7 @@ export function GeographyTreeNodeComponent({
               key={child.id}
               node={child}
               depth={depth + 1}
+              canWrite={canWrite}
               onCreateChild={onCreateChild}
               onUpdate={onUpdate}
               onDelete={onDelete}
