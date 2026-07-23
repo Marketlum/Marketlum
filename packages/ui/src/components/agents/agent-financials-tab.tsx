@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { Can } from '../../permissions/can';
 import { YearSelector } from '../financials/year-selector';
 import { FinancialsSummaryCards } from '../financials/financials-summary-cards';
+import { FinancialsChart } from '../financials/financials-chart';
 import { FinancialsBreakdownTable } from '../financials/financials-breakdown-table';
 import { FinancialsEmptyStates } from '../financials/financials-empty-states';
 import type { FinancialsView } from '../financials/financials-view';
@@ -99,6 +100,7 @@ export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTa
       {view.currencyName !== null && (
         <>
           <FinancialsSummaryCards financials={view} />
+          <FinancialsChart financials={view} />
           <FinancialsBreakdownTable financials={view} />
         </>
       )}

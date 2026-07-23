@@ -32,3 +32,9 @@ export function cellClass(value: string | null): string {
 export function fmt(value: string | null): string {
   return value ?? '—';
 }
+
+/** Column/axis labels for the fixed 12-month financials breakdown. */
+export const MONTH_LABELS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];

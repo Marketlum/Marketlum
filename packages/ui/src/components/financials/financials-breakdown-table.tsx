@@ -13,17 +13,12 @@ import {
   TableRow,
 } from '../ui/table';
 import { cn } from '../../lib/utils';
-import { cellClass, fmt } from '../../lib/figures';
+import { cellClass, fmt, MONTH_LABELS } from '../../lib/figures';
 import type { FinancialsView } from './financials-view';
 
 interface Props {
   financials: FinancialsView;
 }
-
-const MONTH_LABELS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
 
 export function FinancialsBreakdownTable({ financials }: Props) {
   const t = useTranslations('financials');
