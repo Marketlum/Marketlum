@@ -17,6 +17,9 @@ const itemsFeature = loadFeature(path.join(featuresDir, 'order-items.feature'));
 const addressesFeature = loadFeature(path.join(featuresDir, 'order-addresses.feature'));
 const searchFeature = loadFeature(path.join(featuresDir, 'search-orders.feature'));
 const invoicesFeature = loadFeature(path.join(featuresDir, 'order-invoices.feature'));
+const generateInvoiceFeature = loadFeature(
+  path.join(featuresDir, 'order-generate-invoice.feature'),
+);
 const eventsFeature = loadFeature(path.join(featuresDir, 'order-events.feature'));
 
 const ORDER_NUMBER_FORMAT = /^ORD-\d{5,}$/;
@@ -1050,6 +1053,151 @@ defineFeature(invoicesFeature, (test) => {
     });
     registerStatus(then);
     registerReferencesNoOrder(and);
+  });
+});
+
+// --- GENERATE INVOICE FROM ORDER ---
+defineFeature(generateInvoiceFeature, (test) => {
+  beforeAll(async () => {
+    await bootstrapApp();
+  });
+  beforeEach(async () => {
+    await cleanDatabase();
+    Object.assign(ctx, makeCtx());
+  });
+  afterAll(async () => {
+    await teardownApp();
+  });
+
+  function registerBackground(given: StepFn, and: StepFn) {
+    registerAuth(given);
+    registerAgentExists(and);
+    registerAgentExists(and);
+    registerCurrencyExists(and);
+    registerValueExists(and);
+    registerOrderExists(and);
+  }
+
+  function registerGenerateWhen(when: StepFn) {
+    when(/^I generate an invoice for the order$/, async () => {
+      ctx.response = await authedPost(`/orders/${currentOrderId()}/invoices`).send({});
+    });
+  }
+
+  function registerNumberSuffix(step: StepFn) {
+    step(
+      /^the generated invoice number is the order number suffixed with "(.*)"$/,
+      (suffix: string) => {
+        const orderNumber = ctx.orderNumbers[ctx.orderNumbers.length - 1];
+        expect(ctx.response.body.number).toBe(`${orderNumber}${suffix}`);
+      },
+    );
+  }
+
+  function registerItemCount(step: StepFn) {
+    step(/^the response should contain (\d+) items$/, (count: string) => {
+      expect(ctx.response.body.items).toHaveLength(Number(count));
+    });
+  }
+
+  test("Generate an invoice copying the order's header and items", ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    registerBackground(given, and);
+    given('the order has items:', async (table: ItemRow[]) => {
+      const res = await updateOrder({ items: itemsFromTable(table) });
+      expect(res.status).toBe(200);
+    });
+    registerGenerateWhen(when);
+    registerStatus(then);
+    and(/^the invoice response should reference the order$/, () => {
+      expect(ctx.response.body.order).toBeTruthy();
+      expect(ctx.response.body.order.id).toBe(currentOrderId());
+    });
+    registerNumberSuffix(and);
+    and(/^the response should contain a fromAgent with name "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.fromAgent.name).toBe(name);
+    });
+    and(/^the response should contain a toAgent with name "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.toAgent.name).toBe(name);
+    });
+    and(/^the response should contain a currency with name "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.currency.name).toBe(name);
+    });
+    registerItemCount(and);
+    and(/^the invoice total should be "(.*)"$/, (total: string) => {
+      expect(ctx.response.body.total).toBe(total);
+    });
+  });
+
+  test('Generating again increments the invoice number suffix', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    registerBackground(given, and);
+    given(/^an invoice has been generated for the order$/, async () => {
+      const res = await authedPost(`/orders/${currentOrderId()}/invoices`).send({});
+      expect(res.status).toBe(201);
+    });
+    registerGenerateWhen(when);
+    registerStatus(then);
+    registerNumberSuffix(and);
+  });
+
+  test('Generating for an order without items yields an empty invoice', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    registerBackground(given, and);
+    registerGenerateWhen(when);
+    registerStatus(then);
+    registerItemCount(and);
+    and(/^the invoice total should be "(.*)"$/, (total: string) => {
+      expect(ctx.response.body.total).toBe(total);
+    });
+  });
+
+  test('Generating for a completed order is rejected', ({ given, and, when, then }) => {
+    registerBackground(given, and);
+    registerOrderTransitioned(given, 'placed', 'place');
+    registerOrderTransitioned(and, 'started', 'start');
+    registerOrderTransitioned(and, 'completed', 'complete');
+    registerGenerateWhen(when);
+    registerStatus(then);
+  });
+
+  test('Generating for a cancelled order is rejected', ({ given, and, when, then }) => {
+    registerBackground(given, and);
+    registerOrderTransitioned(given, 'cancelled', 'cancel');
+    registerGenerateWhen(when);
+    registerStatus(then);
+  });
+
+  test('Generating for a non-existent order returns 404', ({ given, and, when, then }) => {
+    registerBackground(given, and);
+    when(/^I generate an invoice for the order with ID "(.*)"$/, async (id: string) => {
+      ctx.response = await authedPost(`/orders/${id}/invoices`).send({});
+    });
+    registerStatus(then);
+  });
+
+  test('Generating an invoice publishes marketlum.invoice.created', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    registerBackground(given, and);
+    registerGenerateWhen(when);
+    registerStatus(then);
+    registerEventWithId(and);
   });
 });
 

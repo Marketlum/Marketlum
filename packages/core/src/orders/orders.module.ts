@@ -8,6 +8,8 @@ import { ValueInstance } from '../value-instances/entities/value-instance.entity
 import { Channel } from '../channels/channel.entity';
 import { Pipeline } from '../pipelines/entities/pipeline.entity';
 import { Locale } from '../locales/locale.entity';
+import { Invoice } from '../invoices/entities/invoice.entity';
+import { InvoicesModule } from '../invoices/invoices.module';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 
@@ -22,7 +24,9 @@ import { OrdersController } from './orders.controller';
       Channel,
       Pipeline,
       Locale,
+      Invoice,
     ]),
+    InvoicesModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

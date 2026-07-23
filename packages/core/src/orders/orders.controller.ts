@@ -134,6 +134,17 @@ export class OrdersController {
     await this.ordersService.remove(id);
   }
 
+  @Post(':id/invoices')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Generate an invoice from the order's header and items" })
+  @ApiParam({ name: 'id', type: String, description: 'Order UUID' })
+  @ApiCreatedResponse({ description: 'The generated invoice, linked to the order' })
+  @ApiNotFoundResponse({ description: 'Order not found' })
+  @ApiConflictResponse({ description: 'Order is completed or cancelled' })
+  async generateInvoice(@Param('id') id: string) {
+    return this.ordersService.generateInvoice(id);
+  }
+
   @Post(':id/place')
   @ApiOperation({ summary: 'Place a draft order' })
   @ApiParam({ name: 'id', type: String, description: 'Order UUID' })

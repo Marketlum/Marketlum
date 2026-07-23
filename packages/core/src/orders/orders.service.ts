@@ -12,6 +12,7 @@ import {
   UpdateOrderInput,
   OrderAddressInput,
   PaginationQuery,
+  InvoiceMarket,
   OrderState,
   OrderTransitionAction,
   ValueType,
@@ -26,6 +27,8 @@ import { ValueInstance } from '../value-instances/entities/value-instance.entity
 import { Channel } from '../channels/channel.entity';
 import { Pipeline } from '../pipelines/entities/pipeline.entity';
 import { Locale } from '../locales/locale.entity';
+import { Invoice } from '../invoices/entities/invoice.entity';
+import { InvoicesService } from '../invoices/invoices.service';
 
 type AddressPrefix = 'shipping' | 'billing';
 
@@ -48,6 +51,9 @@ export class OrdersService {
     private readonly pipelineRepository: Repository<Pipeline>,
     @InjectRepository(Locale)
     private readonly localeRepository: Repository<Locale>,
+    @InjectRepository(Invoice)
+    private readonly invoiceRepository: Repository<Invoice>,
+    private readonly invoicesService: InvoicesService,
   ) {}
 
   private async generateNumber(): Promise<string> {
@@ -350,6 +356,63 @@ export class OrdersService {
     await this.orderRepository.save(order);
 
     return this.findOne(id);
+  }
+
+  async generateInvoice(id: string): Promise<Invoice> {
+    const order = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['items'],
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    if (order.state === OrderState.COMPLETED || order.state === OrderState.CANCELLED) {
+      throw new ConflictException(
+        'Cannot generate an invoice for a completed or cancelled order',
+      );
+    }
+
+    // Number: order number + per-order suffix, bumped past any (fromAgent,
+    // number) collision so retries after manual renames still succeed.
+    const linkedCount = await this.invoiceRepository.count({ where: { orderId: id } });
+    let suffix = linkedCount + 1;
+    let number = `${order.number}/${suffix}`;
+    while (
+      await this.invoiceRepository.findOne({
+        where: { fromAgentId: order.fromAgentId, number },
+      })
+    ) {
+      suffix++;
+      number = `${order.number}/${suffix}`;
+    }
+
+    const issuedAt = new Date();
+    const dueAt = new Date(issuedAt);
+    dueAt.setDate(dueAt.getDate() + 30);
+
+    const items = [...(order.items ?? [])]
+      .sort((a, b) => a.position - b.position)
+      .map((item) => ({
+        valueId: item.valueId,
+        valueInstanceId: item.valueInstanceId,
+        quantity: Number(item.quantity).toFixed(2),
+        unitPrice: Number(item.unitPrice).toFixed(2),
+        total: Number(item.total).toFixed(2),
+      }));
+
+    return this.invoicesService.create({
+      number,
+      fromAgentId: order.fromAgentId,
+      toAgentId: order.toAgentId,
+      currencyId: order.currencyId,
+      channelId: order.channelId,
+      orderId: order.id,
+      issuedAt: issuedAt.toISOString(),
+      dueAt: dueAt.toISOString(),
+      market: InvoiceMarket.EXTERNAL,
+      paid: false,
+      ...(items.length > 0 ? { items } : {}),
+    });
   }
 
   async remove(id: string): Promise<void> {

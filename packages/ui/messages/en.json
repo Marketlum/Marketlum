@@ -868,7 +868,11 @@
     "failedToDelete": "Failed to delete the order",
     "notFound": "Order not found",
     "notFoundDescription": "The order does not exist or has been deleted.",
-    "backToOrders": "Back to orders"
+    "backToOrders": "Back to orders",
+    "generateInvoice": "Generate invoice",
+    "invoiceGenerated": "Invoice generated from the order",
+    "generateInvoiceConflict": "Invoices cannot be generated for a completed or cancelled order",
+    "failedToGenerateInvoice": "Failed to generate the invoice"
   },
   "exchanges": {
     "title": "Exchanges",

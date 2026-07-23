@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { ArrowLeft, Pencil, ShoppingCart, Trash2 } from 'lucide-react';
+import { ArrowLeft, FilePlus2, Pencil, ShoppingCart, Trash2 } from 'lucide-react';
 import type {
   CreateOrderInput,
   CreateOrderItemInput,
@@ -165,6 +165,24 @@ export function OrderDetailPage() {
     }
   };
 
+  const handleGenerateInvoice = async () => {
+    if (!order) return;
+    setIsSubmitting(true);
+    try {
+      const invoice = await api.post<{ id: string }>(`/orders/${order.id}/invoices`, {});
+      toast.success(t('invoiceGenerated'));
+      router.push(`/admin/invoices/${invoice.id}`);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        toast.error(t('generateInvoiceConflict'));
+      } else {
+        toast.error(t('failedToGenerateInvoice'));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!order) return;
     setIsSubmitting(true);
@@ -291,6 +309,17 @@ export function OrderDetailPage() {
                 {t(transition.labelKey)}
               </Button>
             ))}
+            {linkable && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isSubmitting}
+                onClick={handleGenerateInvoice}
+              >
+                <FilePlus2 className="mr-1.5 h-3.5 w-3.5" />
+                {t('generateInvoice')}
+              </Button>
+            )}
             {isDraft && (
               <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" />

@@ -867,7 +867,11 @@
     "failedToDelete": "Nie udało się usunąć zamówienia",
     "notFound": "Nie znaleziono zamówienia",
     "notFoundDescription": "Zamówienie nie istnieje lub zostało usunięte.",
-    "backToOrders": "Powrót do zamówień"
+    "backToOrders": "Powrót do zamówień",
+    "generateInvoice": "Wygeneruj fakturę",
+    "invoiceGenerated": "Faktura wygenerowana z zamówienia",
+    "generateInvoiceConflict": "Nie można generować faktur dla zakończonego lub anulowanego zamówienia",
+    "failedToGenerateInvoice": "Nie udało się wygenerować faktury"
   },
   "exchanges": {
     "title": "Wymiany",
