@@ -16,6 +16,7 @@ export const nbpPlugin: MarketlumApiPlugin = {
     schema: nbpSettingsSchema,
     defaults: nbpSettingsDefaults,
   },
+  permissionResources: ['nbp.refresh'],
 };
 
 export { NbpModule } from './nbp.module';

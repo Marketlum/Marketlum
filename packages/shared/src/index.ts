@@ -417,7 +417,33 @@ export type {
   ExchangeRateCreatedEvent, ExchangeRateUpdatedEvent, ExchangeRateDeletedEvent,
   SystemSettingCreatedEvent, SystemSettingUpdatedEvent, SystemSettingDeletedEvent,
   ApiKeyCreatedEvent, ApiKeyDeletedEvent,
+  RoleCreatedEvent, RoleUpdatedEvent, RoleDeletedEvent,
 } from './events';
+
+export {
+  PERMISSION_ACTIONS,
+  PERMISSION_RESOURCES,
+  WILDCARD_PERMISSION,
+  PERMISSION_PATTERN,
+  permissionSchema,
+  permissionFor,
+  permissionResourceOf,
+  type PermissionAction,
+  type PermissionResource,
+} from './permissions';
+
+export {
+  createRoleSchema,
+  updateRoleSchema,
+  assignUserRolesSchema,
+  roleResponseSchema,
+  roleSummarySchema,
+  type CreateRoleInput,
+  type UpdateRoleInput,
+  type AssignUserRolesInput,
+  type RoleResponse,
+  type RoleSummary,
+} from './schemas/role.schema';
 
 export {
   createApiKeySchema,

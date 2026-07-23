@@ -56,6 +56,12 @@ export const rdhyPlugin: MarketlumApiPlugin = {
     RdhyAgentCentric1700000000103,
   ],
   primaryEntities: [RdhyPlatform, RdhyVamAgreement, RdhyEmcAgreement],
+  permissionResources: [
+    'rdhy.platforms',
+    'rdhy.agents',
+    'rdhy.vam-agreements',
+    'rdhy.emc-agreements',
+  ],
   seed: seedRdhy,
 };
 

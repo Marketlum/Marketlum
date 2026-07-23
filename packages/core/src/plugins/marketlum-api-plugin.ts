@@ -31,6 +31,13 @@ export interface MarketlumApiPlugin {
   /** Settings contract; surfaced in the admin UI and read via PluginSettingsService. */
   settings?: PluginSettingsContract;
 
+  /**
+   * Permission resources this plugin's routes are gated by (spec 020), e.g.
+   * "rdhy.vam-agreements" for `/plugins/rdhy/vam-agreements`. Grants naming
+   * these resources validate in RolesService alongside PERMISSION_RESOURCES.
+   */
+  permissionResources?: string[];
+
   /** Optional sample-data hook, invoked by `pnpm seed:sample` when the plugin is active. */
   seed?: (dataSource: DataSource) => Promise<void>;
 }

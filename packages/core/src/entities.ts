@@ -31,6 +31,7 @@ import { Address } from './agents/addresses/entities/address.entity';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
 import { ApiKey } from './api-keys/entities/api-key.entity';
+import { Role, RolePermission } from './roles/entities/role.entity';
 
 export const ALL_ENTITIES = [
   User,
@@ -66,4 +67,6 @@ export const ALL_ENTITIES = [
   SystemSetting,
   Address,
   ApiKey,
+  Role,
+  RolePermission,
 ];

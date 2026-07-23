@@ -72,6 +72,7 @@ export { AgreementTemplate } from './agreement-templates/entities/agreement-temp
 export { Pipeline } from './pipelines/entities/pipeline.entity';
 export { Tension } from './tensions/entities/tension.entity';
 export { ApiKey } from './api-keys/entities/api-key.entity';
+export { Role, RolePermission } from './roles/entities/role.entity';
 
 // Services
 export { UsersService } from './users/users.service';
@@ -100,6 +101,8 @@ export { ArchetypesService } from './archetypes/archetypes.service';
 export { AgreementTemplatesService } from './agreement-templates/agreement-templates.service';
 export { TensionsService } from './tensions/tensions.service';
 export { ApiKeysService } from './api-keys/api-keys.service';
+export { RolesService } from './roles/roles.service';
+export { PermissionsService } from './roles/permissions.service';
 export { AuthService } from './auth/auth.service';
 
 // Auth
@@ -107,6 +110,19 @@ export { AdminGuard } from './auth/guards/admin.guard';
 export { SessionGuard } from './auth/guards/session.guard';
 export { LocalAuthGuard } from './auth/guards/local-auth.guard';
 export { CurrentUser } from './auth/decorators/current-user.decorator';
+export {
+  RequirePermission,
+  REQUIRE_PERMISSION_KEY,
+} from './auth/decorators/require-permission.decorator';
+export {
+  AllowAuthenticated,
+  ALLOW_AUTHENTICATED_KEY,
+} from './auth/decorators/allow-authenticated.decorator';
+export {
+  PermissionCheckService,
+  inferResource,
+  inferAction,
+} from './auth/permission-check.service';
 
 // Common
 export { CsrfProtectionGuard } from './common/guards/csrf-protection.guard';

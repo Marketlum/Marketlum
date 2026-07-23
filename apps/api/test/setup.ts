@@ -11,7 +11,7 @@ import request from 'supertest';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { TestAppModule } from './test-app.module';
 import { DataSource } from 'typeorm';
-import { UsersService } from '@marketlum/core';
+import { UsersService, RolesService } from '@marketlum/core';
 import { NbpClient } from '@marketlum/plugin-nbp';
 import { EventRecorder } from './event-recorder';
 import { FakeNbpClient } from './plugins/nbp/fake-nbp-client';
@@ -132,16 +132,13 @@ TestProto.send = function (body: unknown) {
   return originalSend.call(this, body);
 };
 
-export async function createAuthenticatedUser(
-  email: string,
-  password: string,
-  name = 'Admin',
-): Promise<string> {
-  // Create user directly via service to avoid auth chicken-and-egg
-  const usersService = app.get(UsersService);
-  await usersService.create({ email, password, name });
+// cleanDatabase() truncates roles too, so the migration-seeded Admin role does
+// not survive between scenarios — recreate it on demand (spec 020).
+export async function ensureAdminRole() {
+  return app.get(RolesService).ensureAdminRole();
+}
 
-  // Login to get token cookie
+async function login(email: string, password: string): Promise<string> {
   const loginRes = await request(getApp().getHttpServer())
     .post('/auth/login')
     .set('X-CSRF-Protection', '1')
@@ -154,4 +151,63 @@ export async function createAuthenticatedUser(
     c.startsWith('token='),
   );
   return tokenCookie || '';
+}
+
+export async function createAuthenticatedUser(
+  email: string,
+  password: string,
+  name = 'Admin',
+): Promise<string> {
+  // Create user directly via service to avoid auth chicken-and-egg; assign the
+  // wildcard Admin role so existing scenarios keep meaning "an admin can…".
+  const usersService = app.get(UsersService);
+  const user = await usersService.create({ email, password, name });
+  const adminRole = await ensureAdminRole();
+  await usersService.assignRoles(user.id, [adminRole.id]);
+
+  return login(email, password);
+}
+
+export interface TestRoleSpec {
+  code: string;
+  permissions: string[];
+  name?: string;
+  parentCode?: string;
+}
+
+export async function createUserWithRoles(
+  email: string,
+  password: string,
+  roleSpecs: TestRoleSpec[],
+): Promise<{ cookie: string; userId: string }> {
+  const usersService = app.get(UsersService);
+  const rolesService = app.get(RolesService);
+
+  const roleIds: string[] = [];
+  for (const spec of roleSpecs) {
+    const existing = await rolesService.findByCode(spec.code);
+    if (existing) {
+      roleIds.push(existing.id);
+      continue;
+    }
+    let parentId: string | null = null;
+    if (spec.parentCode) {
+      const parent = await rolesService.findByCode(spec.parentCode);
+      parentId = parent?.id ?? null;
+    }
+    const created = await rolesService.create({
+      name: spec.name ?? spec.code,
+      code: spec.code,
+      parentId,
+      permissions: spec.permissions,
+    });
+    roleIds.push(created.id);
+  }
+
+  const user = await usersService.create({ email, password, name: email });
+  if (roleIds.length > 0) {
+    await usersService.assignRoles(user.id, roleIds);
+  }
+
+  return { cookie: await login(email, password), userId: user.id };
 }

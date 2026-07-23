@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Put,
   Delete,
   Body,
   Param,
@@ -23,6 +24,7 @@ import {
   ApiNoContentResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
+  ApiConflictResponse,
   ApiUnauthorizedResponse,
   ApiExtraModels,
 } from '@nestjs/swagger';
@@ -34,10 +36,12 @@ import {
   createUserSchema,
   updateUserSchema,
   changeUserPasswordSchema,
+  assignUserRolesSchema,
   paginationQuerySchema,
   CreateUserInput,
   UpdateUserInput,
   ChangeUserPasswordInput,
+  AssignUserRolesInput,
   PaginationQuery,
 } from '@marketlum/shared';
 import {
@@ -121,6 +125,20 @@ export class UsersController {
   ) {
     const user = await this.usersService.changePassword(id, body.password);
     return this.usersService.stripPassword(user);
+  }
+
+  @Put(':id/roles')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: "Replace a user's roles (idempotent full set)" })
+  @ApiParam({ name: 'id', type: String, description: 'User UUID' })
+  @ApiOkResponse({ type: UserResponseDto })
+  @ApiNotFoundResponse({ description: 'User or role not found' })
+  @ApiConflictResponse({ description: 'Would remove the last wildcard-holding user' })
+  async assignRoles(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(assignUserRolesSchema)) body: AssignUserRolesInput,
+  ) {
+    return this.usersService.assignRoles(id, body.roleIds);
   }
 
   @Delete(':id')

@@ -1,14 +1,18 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AdminGuard } from '../auth/guards/admin.guard';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { PluginRegistryService } from './plugin-registry.service';
 import { PluginSettingsService } from './plugin-settings.service';
 
 @ApiTags('plugins')
 @ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
+// RequirePermission('plugins'): without it, `/plugins/:id/settings` would be
+// inferred as a plugin feature route (`<id>.settings`) instead of management.
 @Controller('plugins')
 @UseGuards(AdminGuard)
+@RequirePermission('plugins')
 export class PluginsController {
   constructor(
     private readonly registry: PluginRegistryService,

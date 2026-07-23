@@ -4,10 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository, ILike, In } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { File } from '../files/entities/file.entity';
+import { Role } from '../roles/entities/role.entity';
+import { PermissionsService } from '../roles/permissions.service';
 import { CreateUserInput, UpdateUserInput, PaginationQuery } from '@marketlum/shared';
 
 @Injectable()
@@ -17,6 +19,9 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
   async create(input: CreateUserInput): Promise<User> {
@@ -67,7 +72,7 @@ export class UsersService {
 
     const [data, total] = await this.usersRepository.findAndCount({
       where: where.length > 0 ? where : undefined,
-      relations: ['avatar'],
+      relations: ['avatar', 'roles'],
       order,
       skip,
       take: limit,
@@ -97,6 +102,55 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async findOneWithRoles(id: string): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['avatar', 'roles'],
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  async assignRoles(id: string, roleIds: string[]): Promise<Omit<User, 'password'>> {
+    const user = await this.findOneWithRoles(id);
+
+    const uniqueIds = [...new Set(roleIds)];
+    const roles = uniqueIds.length
+      ? await this.roleRepository.find({ where: { id: In(uniqueIds) } })
+      : [];
+    if (roles.length !== uniqueIds.length) {
+      throw new NotFoundException('One or more roles not found');
+    }
+
+    await this.assertNotLastWildcardHolder(user, roles);
+
+    user.roles = roles;
+    await this.usersRepository.save(user);
+    return this.stripPassword(await this.findOneWithRoles(id));
+  }
+
+  // Lockout guard (spec 020 Q3.5): refuse a change that would leave the system
+  // with no user holding a wildcard-granting role.
+  private async assertNotLastWildcardHolder(user: User, nextRoles: Role[]): Promise<void> {
+    const wildcardRoles = await this.permissionsService.wildcardRoleIds();
+    if (wildcardRoles.size === 0) return;
+
+    const holdsNow = (user.roles ?? []).some((r) => wildcardRoles.has(r.id));
+    const keepsWildcard = nextRoles.some((r) => wildcardRoles.has(r.id));
+    if (!holdsNow || keepsWildcard) return;
+
+    const others: { count: string }[] = await this.usersRepository.query(
+      `SELECT COUNT(DISTINCT "userId")::text AS count FROM "users_roles"
+       WHERE "roleId" = ANY($1) AND "userId" != $2`,
+      [[...wildcardRoles], user.id],
+    );
+    if (parseInt(others[0].count, 10) === 0) {
+      throw new ConflictException('Cannot remove the last user holding a wildcard role');
+    }
   }
 
   async update(id: string, input: UpdateUserInput): Promise<User> {

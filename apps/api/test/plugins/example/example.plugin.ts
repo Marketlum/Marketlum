@@ -31,4 +31,5 @@ export const examplePlugin: MarketlumApiPlugin = {
     schema: exampleSettingsSchema,
     defaults: exampleSettingsDefaults,
   },
+  permissionResources: ['example.ping', 'example.widgets'],
 };

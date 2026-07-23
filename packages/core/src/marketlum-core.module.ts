@@ -6,6 +6,8 @@ import { buildDataSourceOptions } from './config/build-data-source-options';
 import { CsrfProtectionGuard } from './common/guards/csrf-protection.guard';
 import { AuthModule } from './auth/auth.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
+import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './roles/permissions.module';
 import { UsersModule } from './users/users.module';
 import { AgentsModule } from './agents/agents.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
@@ -39,8 +41,10 @@ import { validatePlugins } from './plugins/validate-plugins';
 import { MarketlumApiPlugin, MarketlumCoreOptions } from './plugins/marketlum-api-plugin';
 
 const CORE_FEATURE_MODULES = [
+  PermissionsModule,
   AuthModule,
   ApiKeysModule,
+  RolesModule,
   UsersModule,
   AgentsModule,
   TaxonomiesModule,
@@ -71,8 +75,10 @@ const CORE_FEATURE_MODULES = [
 ];
 
 const CORE_EXPORTED_MODULES = [
+  PermissionsModule,
   AuthModule,
   ApiKeysModule,
+  RolesModule,
   UsersModule,
   AgentsModule,
   TaxonomiesModule,

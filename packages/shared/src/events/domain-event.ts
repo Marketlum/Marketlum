@@ -110,6 +110,10 @@ export type SystemSettingDeletedEvent<T = unknown> = DomainEventEnvelope<'market
 export type ApiKeyCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.api_key.created', T>;
 export type ApiKeyDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.api_key.deleted', T>;
 
+export type RoleCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.role.created', T>;
+export type RoleUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.role.updated', T>;
+export type RoleDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.role.deleted', T>;
+
 export type DomainEvent =
   | UserCreatedEvent | UserUpdatedEvent | UserDeletedEvent
   | AgentCreatedEvent | AgentUpdatedEvent | AgentDeletedEvent
@@ -135,4 +139,5 @@ export type DomainEvent =
   | TensionCreatedEvent | TensionUpdatedEvent | TensionDeletedEvent
   | ExchangeRateCreatedEvent | ExchangeRateUpdatedEvent | ExchangeRateDeletedEvent
   | SystemSettingCreatedEvent | SystemSettingUpdatedEvent | SystemSettingDeletedEvent
-  | ApiKeyCreatedEvent | ApiKeyDeletedEvent;
+  | ApiKeyCreatedEvent | ApiKeyDeletedEvent
+  | RoleCreatedEvent | RoleUpdatedEvent | RoleDeletedEvent;

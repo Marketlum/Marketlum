@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { ApiKeysService } from './api-keys.service';
 import { SessionGuard } from '../auth/guards/session.guard';
+import { AllowAuthenticated } from '../auth/decorators/allow-authenticated.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
@@ -35,8 +36,11 @@ import { CreateApiKeyDto, ApiKeySummaryDto, ApiKeyCreatedDto } from './api-key.d
 @ApiTags('api-keys')
 @ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie (API keys not accepted here)' })
+// AllowAuthenticated: keys are self-service credentials — a key acts as its
+// owner, so a role-less user minting one gains nothing (spec 020 Q2.4).
 @Controller('api-keys')
 @UseGuards(SessionGuard)
+@AllowAuthenticated()
 export class ApiKeysController {
   constructor(private readonly apiKeysService: ApiKeysService) {}
 

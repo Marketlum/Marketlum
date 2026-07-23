@@ -5,9 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  ManyToMany,
   JoinColumn,
+  JoinTable,
 } from 'typeorm';
 import { File } from '../../files/entities/file.entity';
+import { Role } from '../../roles/entities/role.entity';
 
 @Entity('users')
 export class User {
@@ -29,6 +32,14 @@ export class User {
 
   @Column({ type: 'uuid', nullable: true })
   avatarId: string | null;
+
+  @ManyToMany(() => Role)
+  @JoinTable({
+    name: 'users_roles',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'roleId', referencedColumnName: 'id' },
+  })
+  roles: Role[];
 
   @CreateDateColumn()
   createdAt: Date;

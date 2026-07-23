@@ -24,6 +24,8 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { AllowAuthenticated } from './decorators/allow-authenticated.decorator';
+import { PermissionsService } from '../roles/permissions.service';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { LoginDto, UserResponseDto } from './auth.dto';
@@ -34,6 +36,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
   @Throttle({ default: { ttl: 60000, limit: 5 } })
@@ -63,6 +66,7 @@ export class AuthController {
   }
 
   @UseGuards(AdminGuard)
+  @AllowAuthenticated()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiCookieAuth('access_token')
@@ -82,12 +86,19 @@ export class AuthController {
   }
 
   @UseGuards(AdminGuard)
+  @AllowAuthenticated()
   @Get('me')
   @ApiCookieAuth('access_token')
-  @ApiOperation({ summary: 'Get current authenticated user' })
+  @ApiOperation({ summary: 'Get current authenticated user with roles and effective permissions' })
   @ApiOkResponse({ type: UserResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
   async me(@CurrentUser() user: User) {
-    return this.usersService.stripPassword(user);
+    const withRoles = await this.usersService.findOneWithRoles(user.id);
+    const permissions = await this.permissionsService.getEffectivePermissions(user.id);
+    return {
+      ...this.usersService.stripPassword(withRoles),
+      roles: (withRoles.roles ?? []).map((r) => ({ id: r.id, name: r.name, code: r.code })),
+      permissions: [...permissions].sort(),
+    };
   }
 }
