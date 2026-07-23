@@ -416,7 +416,17 @@ export type {
   TensionCreatedEvent, TensionUpdatedEvent, TensionDeletedEvent,
   ExchangeRateCreatedEvent, ExchangeRateUpdatedEvent, ExchangeRateDeletedEvent,
   SystemSettingCreatedEvent, SystemSettingUpdatedEvent, SystemSettingDeletedEvent,
+  ApiKeyCreatedEvent, ApiKeyDeletedEvent,
 } from './events';
+
+export {
+  createApiKeySchema,
+  apiKeySummarySchema,
+  apiKeyCreatedSchema,
+  type CreateApiKeyInput,
+  type ApiKeySummary,
+  type ApiKeyCreated,
+} from './schemas/api-key.schema';
 
 // Plugins
 export {

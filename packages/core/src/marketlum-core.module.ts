@@ -5,6 +5,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { buildDataSourceOptions } from './config/build-data-source-options';
 import { CsrfProtectionGuard } from './common/guards/csrf-protection.guard';
 import { AuthModule } from './auth/auth.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 import { UsersModule } from './users/users.module';
 import { AgentsModule } from './agents/agents.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
@@ -39,6 +40,7 @@ import { MarketlumApiPlugin, MarketlumCoreOptions } from './plugins/marketlum-ap
 
 const CORE_FEATURE_MODULES = [
   AuthModule,
+  ApiKeysModule,
   UsersModule,
   AgentsModule,
   TaxonomiesModule,
@@ -70,6 +72,7 @@ const CORE_FEATURE_MODULES = [
 
 const CORE_EXPORTED_MODULES = [
   AuthModule,
+  ApiKeysModule,
   UsersModule,
   AgentsModule,
   TaxonomiesModule,

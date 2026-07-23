@@ -105,6 +105,11 @@ export type SystemSettingCreatedEvent<T = unknown> = DomainEventEnvelope<'market
 export type SystemSettingUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.system_setting.updated', T>;
 export type SystemSettingDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.system_setting.deleted', T>;
 
+// API keys are immutable after creation, so no `updated` event exists.
+// Payloads never carry the key hash (stripped by the domain-event subscriber).
+export type ApiKeyCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.api_key.created', T>;
+export type ApiKeyDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.api_key.deleted', T>;
+
 export type DomainEvent =
   | UserCreatedEvent | UserUpdatedEvent | UserDeletedEvent
   | AgentCreatedEvent | AgentUpdatedEvent | AgentDeletedEvent
@@ -129,4 +134,5 @@ export type DomainEvent =
   | PipelineCreatedEvent | PipelineUpdatedEvent | PipelineDeletedEvent
   | TensionCreatedEvent | TensionUpdatedEvent | TensionDeletedEvent
   | ExchangeRateCreatedEvent | ExchangeRateUpdatedEvent | ExchangeRateDeletedEvent
-  | SystemSettingCreatedEvent | SystemSettingUpdatedEvent | SystemSettingDeletedEvent;
+  | SystemSettingCreatedEvent | SystemSettingUpdatedEvent | SystemSettingDeletedEvent
+  | ApiKeyCreatedEvent | ApiKeyDeletedEvent;

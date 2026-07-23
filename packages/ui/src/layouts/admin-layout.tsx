@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart } from 'lucide-react';
+import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart, KeyRound } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { getMe, logout } from '../lib/auth';
 import { usePlugins } from '../plugins/plugin-registry';
@@ -95,6 +95,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/locales', label: t('locales'), icon: Languages },
       { href: '/admin/files', label: t('files'), icon: FileIcon },
       { href: '/admin/plugins', label: t('plugins'), icon: Puzzle },
+      { href: '/admin/api-keys', label: t('apiKeys'), icon: KeyRound },
     ]},
   ];
 

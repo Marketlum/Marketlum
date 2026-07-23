@@ -30,7 +30,8 @@
     "none": "None",
     "duplicate": "Duplicate",
     "all": "All",
-    "validationFailed": "Validation failed"
+    "validationFailed": "Validation failed",
+    "done": "Done"
   },
   "nav": {
     "users": "Users",
@@ -69,7 +70,8 @@
     "recurringFlows": "Recurring Flows",
     "exchangeRates": "Exchange Rates",
     "plugins": "Plugins",
-    "orders": "Orders"
+    "orders": "Orders",
+    "apiKeys": "API Keys"
   },
   "plugins": {
     "title": "Plugins",
@@ -1226,5 +1228,32 @@
     "viewQuarters": "Quarters",
     "previousYear": "Previous year",
     "nextYear": "Next year"
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "description": "Personal keys for programmatic access to the API. Each key acts with your permissions.",
+    "createKey": "Create API key",
+    "createDescription": "Name the key after the integration that will use it. The key is shown only once, right after creation.",
+    "deleteKey": "Delete API key",
+    "confirmDelete": "Are you sure you want to delete \"{name}\"? Requests using this key will fail immediately.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Zapier integration",
+    "key": "Key",
+    "lastUsed": "Last used",
+    "expires": "Expires",
+    "createdColumn": "Created",
+    "never": "Never",
+    "expired": "Expired",
+    "expiresLabel": "Expiration date (optional)",
+    "presetDays": "{days} days",
+    "keyCreatedTitle": "API key created",
+    "keyCreatedDescription": "Copy your new API key now.",
+    "keyCreatedWarning": "This is the only time the full key is shown. Store it somewhere safe.",
+    "copied": "Key copied to clipboard",
+    "empty": "No API keys yet. Create one to access the API programmatically.",
+    "deleted": "API key deleted",
+    "failedToLoad": "Failed to load API keys",
+    "failedToCreate": "Failed to create API key",
+    "failedToDelete": "Failed to delete API key"
   }
 }

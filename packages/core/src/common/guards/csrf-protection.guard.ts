@@ -11,6 +11,12 @@ export class CsrfProtectionGuard implements CanActivate {
       return true;
     }
 
+    // Requests carrying an Authorization header (API keys) are immune to CSRF:
+    // a cross-site form or fetch cannot attach one, unlike an ambient cookie.
+    if (request.headers.authorization) {
+      return true;
+    }
+
     if (!request.headers['x-csrf-protection']) {
       throw new ForbiddenException('CSRF validation failed: missing X-CSRF-Protection header');
     }

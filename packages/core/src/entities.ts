@@ -30,6 +30,7 @@ import { SystemSetting } from './system-settings/entities/system-setting.entity'
 import { Address } from './agents/addresses/entities/address.entity';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
+import { ApiKey } from './api-keys/entities/api-key.entity';
 
 export const ALL_ENTITIES = [
   User,
@@ -64,4 +65,5 @@ export const ALL_ENTITIES = [
   ExchangeRate,
   SystemSetting,
   Address,
+  ApiKey,
 ];

@@ -29,7 +29,8 @@
     "rowsPerPage": "Wierszy na stronę",
     "duplicate": "Duplikuj",
     "all": "Wszystkie",
-    "validationFailed": "Walidacja nie powiodła się"
+    "validationFailed": "Walidacja nie powiodła się",
+    "done": "Gotowe"
   },
   "nav": {
     "users": "Użytkownicy",
@@ -68,7 +69,8 @@
     "recurringFlows": "Przepływy cykliczne",
     "exchangeRates": "Kursy wymiany",
     "plugins": "Wtyczki",
-    "orders": "Zamówienia"
+    "orders": "Zamówienia",
+    "apiKeys": "Klucze API"
   },
   "plugins": {
     "title": "Wtyczki",
@@ -1225,5 +1227,32 @@
     "viewQuarters": "Kwartały",
     "previousYear": "Poprzedni rok",
     "nextYear": "Następny rok"
+  },
+  "apiKeys": {
+    "title": "Klucze API",
+    "description": "Osobiste klucze do programistycznego dostępu do API. Każdy klucz działa z Twoimi uprawnieniami.",
+    "createKey": "Utwórz klucz API",
+    "createDescription": "Nazwij klucz od integracji, która będzie go używać. Klucz zostanie pokazany tylko raz, zaraz po utworzeniu.",
+    "deleteKey": "Usuń klucz API",
+    "confirmDelete": "Czy na pewno chcesz usunąć „{name}”? Zapytania używające tego klucza natychmiast przestaną działać.",
+    "name": "Nazwa",
+    "namePlaceholder": "np. Integracja Zapier",
+    "key": "Klucz",
+    "lastUsed": "Ostatnio użyty",
+    "expires": "Wygasa",
+    "createdColumn": "Utworzony",
+    "never": "Nigdy",
+    "expired": "Wygasł",
+    "expiresLabel": "Data wygaśnięcia (opcjonalnie)",
+    "presetDays": "{days} dni",
+    "keyCreatedTitle": "Klucz API utworzony",
+    "keyCreatedDescription": "Skopiuj teraz swój nowy klucz API.",
+    "keyCreatedWarning": "Pełny klucz jest widoczny tylko teraz. Zapisz go w bezpiecznym miejscu.",
+    "copied": "Klucz skopiowany do schowka",
+    "empty": "Brak kluczy API. Utwórz klucz, aby korzystać z API programistycznie.",
+    "deleted": "Klucz API usunięty",
+    "failedToLoad": "Nie udało się wczytać kluczy API",
+    "failedToCreate": "Nie udało się utworzyć klucza API",
+    "failedToDelete": "Nie udało się usunąć klucza API"
   }
 }

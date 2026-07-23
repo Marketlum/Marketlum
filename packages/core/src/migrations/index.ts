@@ -55,6 +55,7 @@ import { RemoveRecurringFlows1700000000053 } from './1700000000053-RemoveRecurri
 import { AddInvoiceMarket1700000000054 } from './1700000000054-AddInvoiceMarket';
 import { RemoveValueStreamAgent1700000000055 } from './1700000000055-RemoveValueStreamAgent';
 import { AddOrders1700000000056 } from './1700000000056-AddOrders';
+import { AddApiKeys1700000000057 } from './1700000000057-AddApiKeys';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -114,4 +115,5 @@ export const ALL_MIGRATIONS = [
   AddInvoiceMarket1700000000054,
   RemoveValueStreamAgent1700000000055,
   AddOrders1700000000056,
+  AddApiKeys1700000000057,
 ];
