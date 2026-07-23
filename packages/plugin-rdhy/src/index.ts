@@ -70,6 +70,7 @@ export { RdhyVamCostEntry } from './vam/rdhy-vam-cost-entry.entity';
 export { RdhyVamInvestmentEntry } from './vam/rdhy-vam-investment-entry.entity';
 export { RdhyVamTerminationCondition } from './vam/rdhy-vam-termination-condition.entity';
 export { VamAgreementsService } from './vam/vam-agreements.service';
+export { VamPerformanceService } from './vam/vam-performance.service';
 export { RdhyEmcAgreement } from './emc/rdhy-emc-agreement.entity';
 export { RdhyEmcNode } from './emc/rdhy-emc-node.entity';
 export { RdhyEmcExposedService } from './emc/rdhy-emc-exposed-service.entity';

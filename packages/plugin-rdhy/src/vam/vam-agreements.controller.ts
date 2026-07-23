@@ -23,11 +23,15 @@ import {
   TerminateVamAgreementInput,
 } from '../shared/vam-schemas';
 import { VamAgreementsService } from './vam-agreements.service';
+import { VamPerformanceService } from './vam-performance.service';
 
 @Controller('plugins/rdhy/vam-agreements')
 @UseGuards(AdminGuard)
 export class VamAgreementsController {
-  constructor(private readonly vamAgreements: VamAgreementsService) {}
+  constructor(
+    private readonly vamAgreements: VamAgreementsService,
+    private readonly vamPerformance: VamPerformanceService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -45,6 +49,11 @@ export class VamAgreementsController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.vamAgreements.findOne(id);
+  }
+
+  @Get(':id/performance')
+  async performance(@Param('id') id: string) {
+    return this.vamPerformance.forAgreement(id);
   }
 
   @Patch(':id')

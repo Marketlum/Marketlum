@@ -76,6 +76,7 @@ export async function createVamAgreement(
   agentName: string,
   platformCode: string,
   horizonMonths = 12,
+  currencyId?: string,
 ): Promise<request.Response> {
   const res = await request(server())
     .post('/plugins/rdhy/vam-agreements')
@@ -86,6 +87,7 @@ export async function createVamAgreement(
       agentId: ctx.agents.get(agentName),
       platformId: ctx.platforms.get(platformCode),
       horizonMonths,
+      ...(currencyId ? { currencyId } : {}),
     });
   if (res.status === 201) ctx.agreements.set(title, res.body.id);
   return res;

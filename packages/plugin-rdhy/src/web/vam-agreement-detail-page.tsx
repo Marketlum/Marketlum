@@ -38,6 +38,7 @@ import {
 } from '../shared/vam-schemas';
 import { VamStatusBadge } from './vam-status-badge';
 import { VamCanvasEditor } from './vam-canvas-editor';
+import { VamPerformanceSection } from './vam-performance-section';
 
 function formatAmount(amount: string, currencyCode: string | null): string {
   const value = Number(amount);
@@ -289,7 +290,10 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
           serverErrors={serverErrors}
         />
       ) : !hasCanvas ? (
-        <p className="text-sm text-muted-foreground">{t('emptyCanvas')}</p>
+        <div className="space-y-8">
+          <p className="text-sm text-muted-foreground">{t('emptyCanvas')}</p>
+          {document.status !== 'DRAFT' && <VamPerformanceSection agreementId={document.id} />}
+        </div>
       ) : (
         <div className="space-y-8">
           {canvas.milestones.length > 0 && (
@@ -336,6 +340,8 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
               </div>
             </section>
           )}
+
+          {document.status !== 'DRAFT' && <VamPerformanceSection agreementId={document.id} />}
 
           <div className="grid gap-8 md:grid-cols-2">
             <section>

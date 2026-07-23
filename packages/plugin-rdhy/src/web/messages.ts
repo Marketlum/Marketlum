@@ -255,6 +255,44 @@ export const rdhyMessages = {
         title: 'Sponsored VAM agreements',
         empty: 'No sponsored VAM agreements.',
       },
+      performance: {
+        title: 'Performance',
+        loading: 'Loading performance…',
+        failed: 'Loading the performance view failed',
+        targetToDate: 'Target to date',
+        actualToDate: 'Actual to date',
+        attainment: 'Attainment',
+        overallStatus: 'Status',
+        excludedInvoices:
+          '{count, plural, one {# invoice excluded — no currency snapshot} other {# invoices excluded — no currency snapshot}}',
+        milestone: 'Milestone',
+        dueDate: 'Due',
+        target: 'Target',
+        actual: 'Actual',
+        progress: 'Progress',
+        statusCol: 'Status',
+        unmeasured: 'Unmeasured',
+        chartPlan: 'Plan',
+        chartActual: 'Actual',
+        actualsInCurrency: 'Actuals shown in {currency}',
+        comparabilityBanner: {
+          CURRENCY_MISMATCH:
+            "The agreement currency differs from the agent's functional currency — actuals cannot be judged against the plan.",
+          NO_AGREEMENT_CURRENCY:
+            'The agreement has no currency, so its targets cannot be compared with actual revenue.',
+          NO_AGENT_CURRENCY:
+            'The agent has no functional currency, so actual revenue cannot be computed.',
+          NO_MEASURABLE_TARGETS:
+            'The canvas has no direct-value amounts, so there is nothing to measure against.',
+        },
+        statuses: {
+          ACHIEVED: 'Achieved',
+          MISSED: 'Missed',
+          ON_TRACK: 'On track',
+          BEHIND: 'Behind',
+          UPCOMING: 'Upcoming',
+        },
+      },
     },
     platforms: {
       title: 'Platforms',
@@ -540,6 +578,44 @@ export const rdhyMessages = {
       platformSection: {
         title: 'Sponsorowane umowy VAM',
         empty: 'Brak sponsorowanych umów VAM.',
+      },
+      performance: {
+        title: 'Wyniki',
+        loading: 'Wczytywanie wyników…',
+        failed: 'Nie udało się wczytać widoku wyników',
+        targetToDate: 'Cel do dziś',
+        actualToDate: 'Wykonanie do dziś',
+        attainment: 'Realizacja',
+        overallStatus: 'Status',
+        excludedInvoices:
+          '{count, plural, one {# faktura pominięta — brak przeliczenia waluty} few {# faktury pominięte — brak przeliczenia waluty} other {# faktur pominiętych — brak przeliczenia waluty}}',
+        milestone: 'Kamień milowy',
+        dueDate: 'Termin',
+        target: 'Cel',
+        actual: 'Wykonanie',
+        progress: 'Postęp',
+        statusCol: 'Status',
+        unmeasured: 'Niemierzalne',
+        chartPlan: 'Plan',
+        chartActual: 'Wykonanie',
+        actualsInCurrency: 'Wykonanie w walucie {currency}',
+        comparabilityBanner: {
+          CURRENCY_MISMATCH:
+            'Waluta umowy różni się od waluty funkcjonalnej agenta — wykonania nie można ocenić względem planu.',
+          NO_AGREEMENT_CURRENCY:
+            'Umowa nie ma waluty, więc celów nie można porównać z rzeczywistym przychodem.',
+          NO_AGENT_CURRENCY:
+            'Agent nie ma waluty funkcjonalnej, więc nie można obliczyć rzeczywistego przychodu.',
+          NO_MEASURABLE_TARGETS:
+            'Kanwa nie zawiera kwot wartości bezpośredniej, więc nie ma czego mierzyć.',
+        },
+        statuses: {
+          ACHIEVED: 'Osiągnięty',
+          MISSED: 'Nieosiągnięty',
+          ON_TRACK: 'Na dobrej drodze',
+          BEHIND: 'Opóźnienie',
+          UPCOMING: 'Nadchodzący',
+        },
       },
     },
     platforms: {

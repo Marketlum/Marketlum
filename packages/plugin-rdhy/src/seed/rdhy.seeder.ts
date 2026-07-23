@@ -1,5 +1,6 @@
-import { DataSource } from 'typeorm';
-import { Agent, Value } from '@marketlum/core';
+import { DataSource, Not } from 'typeorm';
+import { Agent, Invoice, InvoiceItem, Value } from '@marketlum/core';
+import { addMonths } from '../shared/vam-performance';
 import { RdhyPlatform } from '../platforms/rdhy-platform.entity';
 import { RdhyPlatformAgent } from '../platforms/rdhy-platform-agent.entity';
 import { RdhyVamAgreement } from '../vam/rdhy-vam-agreement.entity';
@@ -35,6 +36,19 @@ const ASSIGNMENT_TARGET = 4;
 
 const VAM_TITLE = 'Web 3 Consulting HUB';
 const VAM_DRAFT_TITLE = 'Web 3 Consulting HUB — renewal';
+
+/** The ACTIVE sample agreement starts in the past so the performance view
+ * (spec 018) has judged milestones to show. */
+const VAM_START_MONTHS_AGO = 7;
+
+/** Demo revenue against the month-6 $500K goal: 430K spread over months 1-5
+ * lands at 86% attainment — a visibly BEHIND-but-close state. */
+const VAM_DEMO_INVOICES: Array<{ monthsAfterStart: number; amount: number }> = [
+  { monthsAfterStart: 1, amount: 120000 },
+  { monthsAfterStart: 2, amount: 90000 },
+  { monthsAfterStart: 4, amount: 150000 },
+  { monthsAfterStart: 5, amount: 70000 },
+];
 
 /** The sample canvas, adapted from the source VAM Canvas PDF (spec 014 §8). */
 const VAM_MILESTONES: Array<{
@@ -324,7 +338,7 @@ async function seedVamAgreements(
         horizonMonths: 12,
         currencyId: currency?.id ?? null,
         status: 'ACTIVE',
-        startedAt: new Date(),
+        startedAt: addMonths(new Date(), -VAM_START_MONTHS_AGO),
       }),
     );
 
@@ -399,6 +413,75 @@ async function seedVamAgreements(
         horizonMonths: 12,
         currencyId: currency?.id ?? null,
         status: 'DRAFT',
+      }),
+    );
+  }
+
+  await seedVamPerformanceInvoices(dataSource, active, agent, currency);
+}
+
+/** Demo revenue for the ACTIVE agreement's performance view (spec 018 Q18).
+ * Skipped unless the sample usd currency exists, the agent's functional
+ * currency is usd (so identity snapshots are honest) and a counterparty
+ * agent exists. Idempotent via the deterministic invoice numbers. */
+async function seedVamPerformanceInvoices(
+  dataSource: DataSource,
+  agreement: RdhyVamAgreement,
+  agent: Agent,
+  currency: Value | null,
+): Promise<void> {
+  if (!currency || agent.functionalCurrencyId !== currency.id) return;
+  if (!agreement.startedAt) return;
+
+  const invoiceRepository = dataSource.getRepository(Invoice);
+  const existing = await invoiceRepository.findOne({
+    where: { fromAgentId: agent.id, number: 'VAM-DEMO-0001' },
+  });
+  if (existing) return;
+
+  const counterparty = await dataSource
+    .getRepository(Agent)
+    .findOne({ where: { id: Not(agent.id) }, order: { name: 'ASC' } });
+  if (!counterparty) return;
+
+  const presentationRows: Array<{ value: string }> = await dataSource.query(
+    `SELECT value FROM system_settings WHERE key = 'presentation_currency_id'`,
+  );
+  const presentationMatches = presentationRows[0]?.value === currency.id;
+  const counterpartyMatches = counterparty.functionalCurrencyId === currency.id;
+
+  const itemRepository = dataSource.getRepository(InvoiceItem);
+  const now = new Date();
+  for (const [index, demo] of VAM_DEMO_INVOICES.entries()) {
+    const issuedAt = addMonths(agreement.startedAt, demo.monthsAfterStart);
+    if (issuedAt.getTime() > now.getTime()) continue;
+    const amount = demo.amount.toFixed(2);
+    const invoice = await invoiceRepository.save(
+      invoiceRepository.create({
+        number: `VAM-DEMO-${String(index + 1).padStart(4, '0')}`,
+        fromAgentId: agent.id,
+        toAgentId: counterparty.id,
+        currencyId: currency.id,
+        issuedAt,
+        dueAt: addMonths(issuedAt, 1),
+        paid: true,
+        total: amount,
+      }),
+    );
+    // Identity snapshots (rate 1) are only valid where the target currency
+    // equals the invoice currency; anything else stays NULL (spec 010).
+    await itemRepository.save(
+      itemRepository.create({
+        invoiceId: invoice.id,
+        quantity: '1.00',
+        unitPrice: amount,
+        total: amount,
+        fromAgentRate: '1',
+        fromAgentAmount: amount,
+        toAgentRate: counterpartyMatches ? '1' : null,
+        toAgentAmount: counterpartyMatches ? amount : null,
+        presentationRate: presentationMatches ? '1' : null,
+        presentationAmount: presentationMatches ? amount : null,
       }),
     );
   }
