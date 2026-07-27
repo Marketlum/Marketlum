@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { ValueCombobox } from '../shared/value-combobox';
 import { ConversionPreview } from '../shared/conversion-preview';
 import { AgentFormDialog } from '../agents/agent-form-dialog';
@@ -309,6 +310,28 @@ export function InvoiceFormDialog({
           )}
 
           <div className="space-y-2">
+            <Label>{t('market')}</Label>
+            <Tabs
+              value={watchedMarket ?? InvoiceMarket.EXTERNAL}
+              onValueChange={(v) => {
+                setFormValue('market', v as InvoiceMarket);
+                if (v !== InvoiceMarket.EXTERNAL) {
+                  setFormValue('onBehalfOfAgentId', null);
+                }
+              }}
+            >
+              <TabsList>
+                <TabsTrigger value={InvoiceMarket.EXTERNAL}>
+                  {t('marketExternal')}
+                </TabsTrigger>
+                <TabsTrigger value={InvoiceMarket.INTERNAL}>
+                  {t('marketInternal')}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="inv-number">{t('number')}</Label>
             <Input id="inv-number" {...register('number')} />
             {errors.number && <p className="text-sm text-destructive">{errors.number.message}</p>}
@@ -489,26 +512,6 @@ export function InvoiceFormDialog({
                   .reduce((sum, it) => sum + (Number(it.total) || 0), 0)
                   .toFixed(2)}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('market')}</Label>
-              <Select
-                value={watch('market') ?? InvoiceMarket.EXTERNAL}
-                onValueChange={(v) => {
-                  setFormValue('market', v as InvoiceMarket);
-                  if (v !== InvoiceMarket.EXTERNAL) {
-                    setFormValue('onBehalfOfAgentId', null);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={InvoiceMarket.EXTERNAL}>{t('marketExternal')}</SelectItem>
-                  <SelectItem value={InvoiceMarket.INTERNAL}>{t('marketInternal')}</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-2">
               <Label>{t('paid')}</Label>
