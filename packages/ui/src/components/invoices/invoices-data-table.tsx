@@ -321,7 +321,6 @@ export function InvoicesDataTable({
       marketInternal: t('marketInternal'),
       marketExternal: t('marketExternal'),
       mirrorBadge: t('mirrorBadge'),
-      channel: t('channel'),
       order: t('order'),
       link: t('link'),
       edit: tc('edit'),
@@ -340,7 +339,6 @@ export function InvoicesDataTable({
     { id: 'total', label: t('total') },
     { id: 'paid', label: t('paid') },
     { id: 'market', label: t('market') },
-    { id: 'channel', label: t('channel') },
     { id: 'order', label: t('order') },
     { id: 'link', label: t('link') },
   ];
@@ -363,10 +361,6 @@ export function InvoicesDataTable({
     }},
     { key: 'total', label: t('total'), extract: (r) => String(r.total ?? '0.00') },
     { key: 'paid', label: t('paid'), extract: (r) => r.paid ? t('paidYes') : t('paidNo') },
-    { key: 'channel', label: t('channel'), extract: (r) => {
-      const ch = r.channel as { name: string } | null;
-      return ch?.name ?? '';
-    }},
     { key: 'order', label: t('order'), extract: (r) => {
       const o = r.order as { number: string } | null;
       return o?.number ?? '';

@@ -51,7 +51,6 @@ interface InvoiceColumnsTranslations {
   marketInternal: string;
   marketExternal: string;
   mirrorBadge: string;
-  channel: string;
   order: string;
   link: string;
   edit: string;
@@ -163,12 +162,6 @@ export function getInvoiceColumns({
           )}
         </span>
       ),
-    },
-    {
-      id: 'channel',
-      header: translations.channel,
-      meta: { hideOnMobile: true },
-      cell: ({ row }) => row.original.channel?.name ?? '\u2014',
     },
     {
       id: 'link',
