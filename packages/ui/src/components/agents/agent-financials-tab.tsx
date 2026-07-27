@@ -21,11 +21,15 @@ interface AgentFinancialsTabProps {
 }
 
 /** Agent P&L (spec 016): issued invoices as revenue, received as expense,
- * in the agent's functional currency. */
+ * in the agent's functional currency. With the consolidated toggle (spec
+ * 022) the whole subtree is included and intercompany internal invoices are
+ * eliminated. */
 export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTabProps) {
   const t = useTranslations('agents.financials');
   const tc = useTranslations('common');
   const [year, setYear] = useState(() => new Date().getUTCFullYear());
+  const [consolidated, setConsolidated] = useState(false);
+  const [hasDescendants, setHasDescendants] = useState(false);
   const [financials, setFinancials] = useState<AgentFinancialsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +37,7 @@ export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTa
     setLoading(true);
     try {
       const result = await api.get<AgentFinancialsResponse>(
-        `/agents/${agentId}/financials?year=${year}`,
+        `/agents/${agentId}/financials?year=${year}${consolidated ? '&consolidated=true' : ''}`,
       );
       setFinancials(result);
     } catch {
@@ -41,11 +45,19 @@ export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTa
     } finally {
       setLoading(false);
     }
-  }, [agentId, year]);
+  }, [agentId, year, consolidated]);
 
   useEffect(() => {
     fetchFinancials();
   }, [fetchFinancials]);
+
+  // The consolidated toggle only makes sense for agents with sub-agents.
+  useEffect(() => {
+    api
+      .get<unknown[]>(`/agents/${agentId}/children`)
+      .then((children) => setHasDescendants(children.length > 0))
+      .catch(() => setHasDescendants(false));
+  }, [agentId]);
 
   if (loading && !financials) {
     return (
@@ -71,7 +83,23 @@ export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTa
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-4">
+        {hasDescendants && (
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={consolidated}
+              onChange={(e) => setConsolidated(e.target.checked)}
+              className="h-4 w-4 accent-primary"
+            />
+            <span>{t('consolidated')}</span>
+            {consolidated && (
+              <span className="text-xs text-muted-foreground">
+                ({t('consolidatedHint')})
+              </span>
+            )}
+          </label>
+        )}
         <YearSelector year={year} onYearChange={setYear} />
       </div>
       <FinancialsEmptyStates

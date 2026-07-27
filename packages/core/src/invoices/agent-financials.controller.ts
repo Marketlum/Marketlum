@@ -28,6 +28,13 @@ export class AgentFinancialsController {
   })
   @ApiParam({ name: 'agentId', type: String })
   @ApiQuery({ name: 'year', required: false, type: Number })
+  @ApiQuery({
+    name: 'consolidated',
+    required: false,
+    type: Boolean,
+    description:
+      'Include the whole subtree, eliminating internal invoices between subtree members',
+  })
   @ApiNotFoundResponse({ description: 'Agent not found' })
   async financials(
     @Param('agentId') agentId: string,

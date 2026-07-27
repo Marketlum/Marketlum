@@ -171,6 +171,7 @@ export function InvoiceDetailPage() {
     );
   }
 
+  const isMirror = !!invoice.sourceInvoice;
   const invoiceCurrency = invoice.currency;
   const fromCurrency = fromAgent?.functionalCurrency ?? null;
   const toCurrency = toAgent?.functionalCurrency ?? null;
@@ -238,18 +239,35 @@ export function InvoiceDetailPage() {
               <Printer className="mr-1.5 h-3.5 w-3.5" />
               {t('print')}
             </Button>
-            <Can resource="invoices" action="write">
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-                <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                {tc('edit')}
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                {tc('delete')}
-              </Button>
-            </Can>
+            {!isMirror && (
+              <Can resource="invoices" action="write">
+                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                  <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                  {tc('edit')}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                  {tc('delete')}
+                </Button>
+              </Can>
+            )}
           </div>
         </div>
+
+        {isMirror && invoice.sourceInvoice && (
+          <div className="mt-4 rounded-md border border-blue-300 bg-blue-50 p-3 text-sm dark:border-blue-800 dark:bg-blue-950">
+            {t('mirrorBanner', {
+              number: invoice.sourceInvoice.number,
+              agent: invoice.sourceInvoice.fromAgent.name,
+            })}{' '}
+            <Link
+              href={`/admin/invoices/${invoice.sourceInvoice.id}`}
+              className="font-medium underline underline-offset-2"
+            >
+              {t('viewSource')}
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Invoice paper */}
@@ -271,6 +289,7 @@ export function InvoiceDetailPage() {
                 <Badge variant="outline">
                   {invoice.market === 'internal' ? t('marketInternal') : t('marketExternal')}
                 </Badge>
+                {isMirror && <Badge variant="secondary">{t('mirrorBadge')}</Badge>}
               </div>
             </div>
             <div className="text-sm">
@@ -279,6 +298,32 @@ export function InvoiceDetailPage() {
                 <span className="text-right">{formatDate(invoice.issuedAt)}</span>
                 <span className="text-muted-foreground">{t('dueAt')}</span>
                 <span className="text-right">{formatDate(invoice.dueAt)}</span>
+                {invoice.onBehalfOfAgent && (
+                  <>
+                    <span className="text-muted-foreground">{t('onBehalfOf')}</span>
+                    <span className="text-right">
+                      <Link
+                        href={`/admin/agents/${invoice.onBehalfOfAgent.id}`}
+                        className="hover:underline print:no-underline"
+                      >
+                        {invoice.onBehalfOfAgent.name}
+                      </Link>
+                    </span>
+                  </>
+                )}
+                {invoice.mirrorInvoice && (
+                  <>
+                    <span className="text-muted-foreground">{t('mirrorInvoiceLabel')}</span>
+                    <span className="text-right">
+                      <Link
+                        href={`/admin/invoices/${invoice.mirrorInvoice.id}`}
+                        className="font-mono hover:underline print:no-underline"
+                      >
+                        {invoice.mirrorInvoice.number}
+                      </Link>
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -44,6 +44,7 @@ export const createInvoiceSchema = z.object({
   dueAt: z.string(),
   currencyId: z.string().uuid(),
   market: z.nativeEnum(InvoiceMarket).default(InvoiceMarket.EXTERNAL),
+  onBehalfOfAgentId: z.string().uuid().nullable().optional(),
   paid: z.boolean().default(false),
   link: z.string().optional(),
   fileId: z.string().uuid().nullable().optional(),
@@ -60,6 +61,7 @@ export const updateInvoiceSchema = z.object({
   dueAt: z.string().optional(),
   currencyId: z.string().uuid().optional(),
   market: z.nativeEnum(InvoiceMarket).optional(),
+  onBehalfOfAgentId: z.string().uuid().nullable().optional(),
   paid: z.boolean().optional(),
   link: z.string().nullable().optional(),
   fileId: z.string().uuid().nullable().optional(),
@@ -92,6 +94,17 @@ export const invoiceResponseSchema = z.object({
   dueAt: z.string(),
   currency: valueSummarySchema,
   market: z.nativeEnum(InvoiceMarket),
+  onBehalfOfAgent: agentSummarySchema.nullable(),
+  mirrorInvoice: z
+    .object({ id: z.string().uuid(), number: z.string() })
+    .nullable(),
+  sourceInvoice: z
+    .object({
+      id: z.string().uuid(),
+      number: z.string(),
+      fromAgent: z.object({ id: z.string().uuid(), name: z.string() }),
+    })
+    .nullable(),
   paid: z.boolean(),
   link: z.string().nullable(),
   file: z.any().nullable(),

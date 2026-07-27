@@ -214,7 +214,9 @@
       "noInvoicesBody": "Tutaj pojawią się faktury wystawione przez tego agenta lub dla niego.",
       "notConvertedTitle": "{count} faktur(y) bez przeliczonej kwoty",
       "notConvertedBody": "Te faktury są pominięte w danych, ponieważ brak kursu wymiany na walutę funkcjonalną agenta.",
-      "failedToLoad": "Nie udało się wczytać finansów"
+      "failedToLoad": "Nie udało się wczytać finansów",
+      "consolidated": "Skonsolidowane",
+      "consolidatedHint": "Z pod-agentami, po eliminacji rozliczeń wewnątrzgrupowych"
     },
     "ordersTab": "Zamówienia"
   },
@@ -797,7 +799,19 @@
     "marketExternal": "Zewnętrzny",
     "allMarkets": "Wszystkie rynki",
     "order": "Zamówienie",
-    "selectOrder": "Wybierz zamówienie"
+    "selectOrder": "Wybierz zamówienie",
+    "onBehalfOf": "W imieniu",
+    "onBehalfOfNone": "— (we własnym imieniu)",
+    "onBehalfOfHint": "Zostanie wygenerowana wewnętrzna faktura lustrzana od tego pod-agenta do wystawcy.",
+    "notLegalEntityHint": "nie jest podmiotem prawnym — wystaw przez agenta nadrzędnego",
+    "mirrorBadge": "Lustrzana",
+    "mirrorFilter": "Faktury lustrzane",
+    "mirrorAll": "Wszystkie faktury",
+    "mirrorExclude": "Ukryj lustrzane",
+    "mirrorOnly": "Tylko lustrzane",
+    "mirrorBanner": "Faktura lustrzana wygenerowana systemowo dla {number} ({agent}) — zmiany wprowadza się na fakturze źródłowej.",
+    "viewSource": "Zobacz fakturę źródłową",
+    "mirrorInvoiceLabel": "Faktura lustrzana"
   },
   "orders": {
     "title": "Zamówienia",

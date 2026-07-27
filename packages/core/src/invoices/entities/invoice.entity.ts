@@ -57,6 +57,23 @@ export class Invoice {
   @Column({ type: 'enum', enum: InvoiceMarket, default: InvoiceMarket.EXTERNAL })
   market: InvoiceMarket;
 
+  @ManyToOne(() => Agent, { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'onBehalfOfAgentId' })
+  onBehalfOfAgent: Agent | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  onBehalfOfAgentId: string | null;
+
+  @ManyToOne(() => Invoice, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'mirrorInvoiceId' })
+  mirrorInvoice: Invoice | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  mirrorInvoiceId: string | null;
+
+  /** Not a column: reverse join populated on read — set when this invoice IS a mirror. */
+  sourceInvoice?: Invoice | null;
+
   @Column({ type: 'boolean', default: false })
   paid: boolean;
 

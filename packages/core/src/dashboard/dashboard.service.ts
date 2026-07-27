@@ -121,7 +121,13 @@ export class DashboardService {
     fromDate?: string,
     toDate?: string,
   ): Promise<{ period: string; amount: string; count: string }[]> {
-    const conditions = [agentCondition];
+    // Mirror invoices (spec 022) are intra-group bookkeeping — excluding
+    // them keeps on-behalf deals counted exactly once. Genuine internal
+    // invoices remain included.
+    const conditions = [
+      agentCondition,
+      `NOT EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = i.id)`,
+    ];
     const params = [...agentParams];
     let paramIndex = params.length + 1;
 
@@ -163,7 +169,10 @@ export class DashboardService {
 
   async getNotConvertedCount(query: DashboardQuery): Promise<number> {
     const { agentId, channelId, fromDate, toDate } = query;
-    const conditions: string[] = [`ii."presentationAmount" IS NULL`];
+    const conditions: string[] = [
+      `ii."presentationAmount" IS NULL`,
+      `NOT EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = i.id)`,
+    ];
     const params: string[] = [];
     let paramIndex = 1;
 

@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Plus, UserPlus, X } from 'lucide-react';
 import {
+  AgentType,
   InvoiceMarket,
   ValueType,
   createInvoiceSchema,
@@ -62,6 +63,7 @@ interface InvoiceData {
   dueAt: string;
   currency: { id: string; name: string } | null;
   market: InvoiceMarket;
+  onBehalfOfAgent?: { id: string; name: string } | null;
   paid: boolean;
   link: string | null;
   file: unknown;
@@ -103,6 +105,7 @@ export function InvoiceFormDialog({
   const { channels } = useChannels(open);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [orders, setOrders] = useState<OrderOption[]>([]);
+  const [virtualDescendants, setVirtualDescendants] = useState<AgentResponse[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -153,6 +156,25 @@ export function InvoiceFormDialog({
     resolver: zodResolver(schema),
   });
 
+  const watchedFromAgentId = watch('fromAgentId');
+  const watchedMarket = watch('market');
+  const isExternal = (watchedMarket ?? InvoiceMarket.EXTERNAL) === InvoiceMarket.EXTERNAL;
+
+  // On-behalf-of (spec 022) is only offered on external invoices whose
+  // issuer has virtual (non-legal-entity) descendants.
+  useEffect(() => {
+    if (open && watchedFromAgentId && isExternal) {
+      api
+        .get<AgentResponse[]>(`/agents/${watchedFromAgentId}/descendants`)
+        .then((list) =>
+          setVirtualDescendants(list.filter((a) => a.type === AgentType.VIRTUAL)),
+        )
+        .catch(() => setVirtualDescendants([]));
+    } else {
+      setVirtualDescendants([]);
+    }
+  }, [open, watchedFromAgentId, isExternal]);
+
   useEffect(() => {
     if (open) {
       if (invoice) {
@@ -164,6 +186,7 @@ export function InvoiceFormDialog({
           dueAt: invoice.dueAt ? invoice.dueAt.slice(0, 16) : '',
           currencyId: invoice.currency?.id ?? '',
           market: invoice.market,
+          onBehalfOfAgentId: invoice.onBehalfOfAgent?.id ?? null,
           paid: invoice.paid,
           link: invoice.link ?? '',
           channelId: invoice.channel?.id ?? null,
@@ -191,6 +214,7 @@ export function InvoiceFormDialog({
             : '',
           currencyId: prefill.extracted.currency.id ?? '',
           market: InvoiceMarket.EXTERNAL,
+          onBehalfOfAgentId: null,
           paid: false,
           link: '',
           fileId: prefill.fileId,
@@ -215,6 +239,7 @@ export function InvoiceFormDialog({
           dueAt: '',
           currencyId: '',
           market: InvoiceMarket.EXTERNAL,
+          onBehalfOfAgentId: null,
           paid: false,
           link: '',
           channelId: null,
@@ -295,7 +320,10 @@ export function InvoiceFormDialog({
               <div className="flex gap-2">
                 <Select
                   value={watch('fromAgentId') || '__none__'}
-                  onValueChange={(v) => setFormValue('fromAgentId', v === '__none__' ? '' : v)}
+                  onValueChange={(v) => {
+                    setFormValue('fromAgentId', v === '__none__' ? '' : v);
+                    setFormValue('onBehalfOfAgentId', null);
+                  }}
                 >
                   <SelectTrigger className="flex-1">
                     <SelectValue
@@ -308,11 +336,24 @@ export function InvoiceFormDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </SelectItem>
-                    ))}
+                    {agents.map((agent) => {
+                      const illegalIssuer =
+                        isExternal && agent.type === AgentType.VIRTUAL;
+                      return (
+                        <SelectItem
+                          key={agent.id}
+                          value={agent.id}
+                          disabled={illegalIssuer}
+                        >
+                          {agent.name}
+                          {illegalIssuer && (
+                            <span className="ml-1 text-xs text-muted-foreground">
+                              ({t('notLegalEntityHint')})
+                            </span>
+                          )}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <Button
@@ -386,6 +427,33 @@ export function InvoiceFormDialog({
             </div>
           </div>
 
+          {isExternal && virtualDescendants.length > 0 && (
+            <div className="space-y-2">
+              <Label>{t('onBehalfOf')}</Label>
+              <Select
+                value={watch('onBehalfOfAgentId') ?? '__none__'}
+                onValueChange={(v) =>
+                  setFormValue('onBehalfOfAgentId', v === '__none__' ? null : v)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('onBehalfOfNone')}</SelectItem>
+                  {virtualDescendants.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {watch('onBehalfOfAgentId') && (
+                <p className="text-xs text-muted-foreground">{t('onBehalfOfHint')}</p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="inv-issuedAt">{t('issuedAt')}</Label>
@@ -426,7 +494,12 @@ export function InvoiceFormDialog({
               <Label>{t('market')}</Label>
               <Select
                 value={watch('market') ?? InvoiceMarket.EXTERNAL}
-                onValueChange={(v) => setFormValue('market', v as InvoiceMarket)}
+                onValueChange={(v) => {
+                  setFormValue('market', v as InvoiceMarket);
+                  if (v !== InvoiceMarket.EXTERNAL) {
+                    setFormValue('onBehalfOfAgentId', null);
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />

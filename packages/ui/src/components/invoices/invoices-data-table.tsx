@@ -65,6 +65,9 @@ interface InvoiceRow {
   dueAt: string;
   currency: { id: string; name: string } | null;
   market: InvoiceMarket;
+  onBehalfOfAgent?: { id: string; name: string } | null;
+  mirrorInvoice?: { id: string; number: string } | null;
+  sourceInvoice?: { id: string; number: string; fromAgent: { id: string; name: string } } | null;
   total?: string;
   presentationTotal?: string | null;
   paid: boolean;
@@ -100,6 +103,7 @@ export function InvoicesDataTable({
   const [fromAgentFilter, setFromAgentFilter] = useState<string>('all');
   const [toAgentFilter, setToAgentFilter] = useState<string>('all');
   const [marketFilter, setMarketFilter] = useState<string>('all');
+  const [mirrorFilter, setMirrorFilter] = useState<string>('all');
   const [paidFilter, setPaidFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
@@ -121,6 +125,7 @@ export function InvoicesDataTable({
     setFromAgentFilter(config.filters?.fromAgentId ?? 'all');
     setToAgentFilter(config.filters?.toAgentId ?? 'all');
     setMarketFilter(config.filters?.market ?? 'all');
+    setMirrorFilter(config.filters?.mirror ?? 'all');
     setPaidFilter(config.filters?.paid ?? 'all');
     setCurrencyFilter(config.filters?.currencyId ?? 'all');
     setChannelFilter(config.filters?.channelId ?? 'all');
@@ -161,12 +166,13 @@ export function InvoicesDataTable({
       ...(fromAgentFilter !== 'all' ? { fromAgentId: fromAgentFilter } : {}),
       ...(toAgentFilter !== 'all' ? { toAgentId: toAgentFilter } : {}),
       ...(marketFilter !== 'all' ? { market: marketFilter } : {}),
+      ...(mirrorFilter !== 'all' ? { mirror: mirrorFilter } : {}),
       ...(paidFilter !== 'all' ? { paid: paidFilter } : {}),
       ...(currencyFilter !== 'all' ? { currencyId: currencyFilter } : {}),
       ...(channelFilter !== 'all' ? { channelId: channelFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, fromAgentFilter, toAgentFilter, marketFilter, paidFilter, currencyFilter, channelFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -175,8 +181,8 @@ export function InvoicesDataTable({
       if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
       if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
       if (marketFilter && marketFilter !== 'all') qs += `&market=${marketFilter}`;
-      if (marketFilter && marketFilter !== 'all') qs += `&market=${marketFilter}`;
-    if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
+      if (mirrorFilter && mirrorFilter !== 'all') qs += `&mirror=${mirrorFilter}`;
+      if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
       if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
       if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
       if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
@@ -187,11 +193,11 @@ export function InvoicesDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, marketFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
+  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromAgentFilter, toAgentFilter, marketFilter, paidFilter, currencyFilter, channelFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingInvoice(null);
@@ -314,6 +320,7 @@ export function InvoicesDataTable({
       market: t('market'),
       marketInternal: t('marketInternal'),
       marketExternal: t('marketExternal'),
+      mirrorBadge: t('mirrorBadge'),
       channel: t('channel'),
       order: t('order'),
       link: t('link'),
@@ -378,13 +385,14 @@ export function InvoicesDataTable({
     if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
     if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
     if (marketFilter && marketFilter !== 'all') qs += `&market=${marketFilter}`;
+    if (mirrorFilter && mirrorFilter !== 'all') qs += `&mirror=${mirrorFilter}`;
     if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
     if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
     if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
     const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, marketFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -417,6 +425,14 @@ export function InvoicesDataTable({
         onClear: () => setMarketFilter('all'),
       });
     }
+    if (mirrorFilter !== 'all') {
+      filters.push({
+        key: 'mirror',
+        label: t('mirrorFilter'),
+        displayValue: mirrorFilter === 'exclude' ? t('mirrorExclude') : t('mirrorOnly'),
+        onClear: () => setMirrorFilter('all'),
+      });
+    }
     if (paidFilter !== 'all') {
       filters.push({
         key: 'paid',
@@ -444,7 +460,7 @@ export function InvoicesDataTable({
       });
     }
     return filters;
-  }, [fromAgentFilter, toAgentFilter, marketFilter, paidFilter, currencyFilter, channelFilter, agents, values, channels, t]);
+  }, [fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, agents, values, channels, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -565,6 +581,19 @@ export function InvoicesDataTable({
               <SelectItem value="all">{t('allMarkets')}</SelectItem>
               <SelectItem value="internal">{t('marketInternal')}</SelectItem>
               <SelectItem value="external">{t('marketExternal')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t('mirrorFilter')}</label>
+          <Select value={mirrorFilter} onValueChange={setMirrorFilter}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('mirrorAll')}</SelectItem>
+              <SelectItem value="exclude">{t('mirrorExclude')}</SelectItem>
+              <SelectItem value="only">{t('mirrorOnly')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -215,7 +215,9 @@
       "noInvoicesBody": "Invoices issued by or to this agent will appear here.",
       "notConvertedTitle": "{count} invoice(s) without a converted amount",
       "notConvertedBody": "These invoices are excluded from the figures because no exchange rate to the agent's functional currency was available.",
-      "failedToLoad": "Failed to load financials"
+      "failedToLoad": "Failed to load financials",
+      "consolidated": "Consolidated",
+      "consolidatedHint": "Incl. sub-agents, intercompany eliminated"
     },
     "ordersTab": "Orders"
   },
@@ -798,7 +800,19 @@
     "marketExternal": "External",
     "allMarkets": "All markets",
     "order": "Order",
-    "selectOrder": "Select order"
+    "selectOrder": "Select order",
+    "onBehalfOf": "On behalf of",
+    "onBehalfOfNone": "— (issued in own name)",
+    "onBehalfOfHint": "An internal mirror invoice will be generated from this sub-agent to the issuer.",
+    "notLegalEntityHint": "not a legal entity — issue via a parent",
+    "mirrorBadge": "Mirror",
+    "mirrorFilter": "Mirrors",
+    "mirrorAll": "All invoices",
+    "mirrorExclude": "Hide mirrors",
+    "mirrorOnly": "Only mirrors",
+    "mirrorBanner": "System-generated mirror of {number} ({agent}) — edits happen on the source invoice.",
+    "viewSource": "View source invoice",
+    "mirrorInvoiceLabel": "Mirror invoice"
   },
   "orders": {
     "title": "Orders",

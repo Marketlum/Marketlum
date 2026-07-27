@@ -57,6 +57,7 @@ import { RemoveValueStreamAgent1700000000055 } from './1700000000055-RemoveValue
 import { AddOrders1700000000056 } from './1700000000056-AddOrders';
 import { AddApiKeys1700000000057 } from './1700000000057-AddApiKeys';
 import { AddRoles1700000000058 } from './1700000000058-AddRoles';
+import { AddOnBehalfInvoicing1700000000059 } from './1700000000059-AddOnBehalfInvoicing';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -118,4 +119,5 @@ export const ALL_MIGRATIONS = [
   AddOrders1700000000056,
   AddApiKeys1700000000057,
   AddRoles1700000000058,
+  AddOnBehalfInvoicing1700000000059,
 ];

@@ -1,4 +1,4 @@
-import { InvoiceMarket } from '@marketlum/shared';
+import { AgentType, InvoiceMarket } from '@marketlum/shared';
 import { faker } from '@faker-js/faker';
 import { InvoicesService } from '../../invoices/invoices.service';
 
@@ -8,7 +8,7 @@ interface ValueRef {
 }
 
 interface InvoiceDeps {
-  agents: Array<{ id: string; name: string }>;
+  agents: Array<{ id: string; name: string; type: AgentType }>;
   values: ValueRef[];
 }
 
@@ -31,7 +31,18 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
   const invoices: Array<{ id: string; number: string; currencyId: string }> = [];
 
   for (let i = 0; i < NUM_INVOICES; i++) {
-    const fromAgent = faker.helpers.arrayElement(deps.agents);
+    // Mostly external counterparty trade, with some internal-market invoices.
+    const market = faker.helpers.weightedArrayElement([
+      { weight: 7, value: InvoiceMarket.EXTERNAL },
+      { weight: 3, value: InvoiceMarket.INTERNAL },
+    ]);
+
+    // Only legal entities may issue external invoices (spec 022).
+    const issuerChoices =
+      market === InvoiceMarket.EXTERNAL
+        ? deps.agents.filter((a) => a.type !== AgentType.VIRTUAL)
+        : deps.agents;
+    const fromAgent = faker.helpers.arrayElement(issuerChoices);
     const toAgentChoices = deps.agents.filter((a) => a.id !== fromAgent.id);
     const toAgent = faker.helpers.arrayElement(toAgentChoices);
     const currency = faker.helpers.arrayElement(currencies);
@@ -54,12 +65,6 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
       };
     });
 
-    // Mostly external counterparty trade, with some internal-market invoices.
-    const market = faker.helpers.weightedArrayElement([
-      { weight: 7, value: InvoiceMarket.EXTERNAL },
-      { weight: 3, value: InvoiceMarket.INTERNAL },
-    ]);
-
     const number = `INV-2026-${String(i + 1).padStart(4, '0')}`;
     const invoice = await service.create({
       number,
@@ -73,6 +78,41 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
       items,
     });
     invoices.push({ id: invoice.id, number, currencyId: currency.id });
+  }
+
+  // On-behalf example (spec 022): TechNova Solutions invoices a customer for
+  // work done by its virtual Support Desk team — the service auto-generates
+  // the internal mirror invoice (MIR-…) from the team to TechNova.
+  const technova = deps.agents.find((a) => a.name === 'TechNova Solutions');
+  const supportDesk = deps.agents.find((a) => a.name === 'TechNova Support Desk');
+  const customer = deps.agents.find((a) => a.name === 'Acme Corp');
+  if (technova && supportDesk && customer && lineValues.length > 0) {
+    const issuedAt = new Date(Date.UTC(2026, 2, 12));
+    const dueAt = new Date(Date.UTC(2026, 3, 11));
+    const onBehalf = await service.create({
+      number: 'INV-2026-OBH-0001',
+      fromAgentId: technova.id,
+      toAgentId: customer.id,
+      currencyId: currencies[0].id,
+      market: InvoiceMarket.EXTERNAL,
+      onBehalfOfAgentId: supportDesk.id,
+      issuedAt: issuedAt.toISOString(),
+      dueAt: dueAt.toISOString(),
+      paid: false,
+      items: [
+        {
+          valueId: lineValues[0].id,
+          quantity: '1.00',
+          unitPrice: '4800.00',
+          total: '4800.00',
+        },
+      ],
+    });
+    invoices.push({
+      id: onBehalf.id,
+      number: onBehalf.number,
+      currencyId: currencies[0].id,
+    });
   }
 
   return invoices;

@@ -21,6 +21,9 @@ interface InvoiceRow {
   dueAt: string;
   currency: { id: string; name: string } | null;
   market: InvoiceMarket;
+  onBehalfOfAgent?: { id: string; name: string } | null;
+  mirrorInvoice?: { id: string; number: string } | null;
+  sourceInvoice?: { id: string; number: string; fromAgent: { id: string; name: string } } | null;
   total?: string;
   presentationTotal?: string | null;
   paid: boolean;
@@ -47,6 +50,7 @@ interface InvoiceColumnsTranslations {
   market: string;
   marketInternal: string;
   marketExternal: string;
+  mirrorBadge: string;
   channel: string;
   order: string;
   link: string;
@@ -148,11 +152,16 @@ export function getInvoiceColumns({
       ),
       meta: { hideOnMobile: true },
       cell: ({ row }) => (
-        <Badge variant="outline">
-          {row.original.market === InvoiceMarket.INTERNAL
-            ? translations.marketInternal
-            : translations.marketExternal}
-        </Badge>
+        <span className="inline-flex gap-1">
+          <Badge variant="outline">
+            {row.original.market === InvoiceMarket.INTERNAL
+              ? translations.marketInternal
+              : translations.marketExternal}
+          </Badge>
+          {row.original.sourceInvoice && (
+            <Badge variant="secondary">{translations.mirrorBadge}</Badge>
+          )}
+        </span>
       ),
     },
     {

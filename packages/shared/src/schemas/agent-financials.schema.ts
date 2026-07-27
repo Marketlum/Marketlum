@@ -18,6 +18,11 @@ export const agentFinancialsQuerySchema = z.object({
     .min(1900)
     .max(2100)
     .default(() => new Date().getUTCFullYear()),
+  // Not z.coerce.boolean(): that would turn the query string "false" into true.
+  consolidated: z
+    .union([z.boolean(), z.string()])
+    .default(false)
+    .transform((v) => v === true || v === 'true'),
 });
 
 /** Agent P&L: invoices the agent issued are revenue, invoices it received
@@ -27,6 +32,7 @@ export const agentFinancialsQuerySchema = z.object({
 export const agentFinancialsResponseSchema = z.object({
   agentId: z.string().uuid(),
   year: z.number().int(),
+  consolidated: z.boolean(),
   functionalCurrency: valueSummarySchema.nullable(),
   summary: financialsSummarySchema,
   byMonth: z.array(financialsMonthRowSchema).length(12),

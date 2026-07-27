@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -18,6 +19,8 @@ import {
   UpdateInvoiceInput,
   PaginationQuery,
   OrderState,
+  AgentType,
+  InvoiceMarket,
   convertAmount,
   formatPresentationAmount,
   IDENTITY_RATE,
@@ -118,6 +121,130 @@ export class InvoicesService {
     return agent?.functionalCurrencyId ?? null;
   }
 
+  /** I1 (spec 022): only legal entities (non-VIRTUAL agents) issue external invoices. */
+  private assertLegalIssuer(fromAgentType: AgentType, market: InvoiceMarket): void {
+    if (market === InvoiceMarket.EXTERNAL && fromAgentType === AgentType.VIRTUAL) {
+      throw new UnprocessableEntityException(
+        'Only legal entities can issue external invoices',
+      );
+    }
+  }
+
+  /** I2–I4 (spec 022): on-behalf-of is external-only, targets a VIRTUAL strict descendant. */
+  private async validateOnBehalf(
+    fromAgentId: string,
+    onBehalfOfAgentId: string,
+    market: InvoiceMarket,
+  ): Promise<void> {
+    if (market !== InvoiceMarket.EXTERNAL) {
+      throw new UnprocessableEntityException(
+        'On-behalf-of is only allowed on external invoices',
+      );
+    }
+    const agent = await this.agentRepository.findOne({
+      where: { id: onBehalfOfAgentId },
+    });
+    if (!agent) throw new NotFoundException('On-behalf-of agent not found');
+    if (agent.type !== AgentType.VIRTUAL) {
+      throw new UnprocessableEntityException(
+        'On-behalf-of agent must not be a legal entity',
+      );
+    }
+    const rows: unknown[] = await this.invoiceRepository.query(
+      `SELECT 1 FROM "agents_closure"
+       WHERE "id_ancestor" = $1 AND "id_descendant" = $2 AND "id_ancestor" <> "id_descendant"`,
+      [fromAgentId, onBehalfOfAgentId],
+    );
+    if (rows.length === 0) {
+      throw new UnprocessableEntityException(
+        'On-behalf-of agent must be a descendant of the issuing agent',
+      );
+    }
+  }
+
+  /** The invoice that owns `invoiceId` as its mirror — non-null means `invoiceId` IS a mirror. */
+  private async findSourceOf(invoiceId: string): Promise<Invoice | null> {
+    return this.invoiceRepository.findOne({
+      where: { mirrorInvoiceId: invoiceId },
+      relations: ['fromAgent'],
+    });
+  }
+
+  private mirrorNumberFor(sourceNumber: string): string {
+    return `MIR-${sourceNumber}`;
+  }
+
+  /**
+   * Q9 (spec 022): the mirror is system-owned and regenerated wholesale.
+   * Deletes the previous mirror (if any), then — when on-behalf is set —
+   * creates a fresh INTERNAL invoice from the on-behalf agent to the issuer
+   * copying dates, currency, paid and items; document/workflow fields stay
+   * on the source. Item snapshots run through the normal replaceItems path,
+   * so the mirror's per-agent amounts land in the sub-agent's functional
+   * currency.
+   */
+  private async regenerateMirror(sourceId: string): Promise<void> {
+    const source = await this.invoiceRepository.findOne({
+      where: { id: sourceId },
+      relations: ['items'],
+    });
+    if (!source) throw new NotFoundException('Invoice not found');
+
+    if (source.onBehalfOfAgentId) {
+      const mirrorNumber = this.mirrorNumberFor(source.number);
+      const collision = await this.invoiceRepository.findOne({
+        where: { fromAgentId: source.onBehalfOfAgentId, number: mirrorNumber },
+      });
+      if (collision && collision.id !== source.mirrorInvoiceId) {
+        throw new ConflictException('Invoice number already exists for this agent');
+      }
+    }
+
+    if (source.mirrorInvoiceId) {
+      const oldMirror = await this.invoiceRepository.findOne({
+        where: { id: source.mirrorInvoiceId },
+      });
+      // FK is ON DELETE SET NULL, so removing the mirror clears the pointer.
+      if (oldMirror) await this.invoiceRepository.remove(oldMirror);
+    }
+
+    if (!source.onBehalfOfAgentId) return;
+
+    const mirror = this.invoiceRepository.create({
+      number: this.mirrorNumberFor(source.number),
+      fromAgentId: source.onBehalfOfAgentId,
+      toAgentId: source.fromAgentId,
+      market: InvoiceMarket.INTERNAL,
+      issuedAt: source.issuedAt,
+      dueAt: source.dueAt,
+      currencyId: source.currencyId,
+      paid: source.paid,
+      link: null,
+      fileId: null,
+      channelId: null,
+      orderId: null,
+    });
+    const savedMirror = await this.invoiceRepository.save(mirror);
+
+    if (source.items && source.items.length > 0) {
+      await this.replaceItems(
+        savedMirror.id,
+        source.items.map((item) => ({
+          valueId: item.valueId,
+          valueInstanceId: item.valueInstanceId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.total,
+        })),
+        source.currencyId,
+      );
+    }
+
+    await this.invoiceRepository.update(source.id, {
+      mirrorInvoiceId: savedMirror.id,
+    });
+  }
+
   private async validateOrderLink(
     orderId: string,
     invoiceCurrencyId: string,
@@ -142,6 +269,7 @@ export class InvoicesService {
       fileId,
       channelId,
       orderId,
+      onBehalfOfAgentId,
       items,
       ...rest
     } = input;
@@ -151,6 +279,23 @@ export class InvoicesService {
       where: { id: fromAgentId },
     });
     if (!fromAgent) throw new NotFoundException('From agent not found');
+
+    this.assertLegalIssuer(fromAgent.type, rest.market);
+
+    if (onBehalfOfAgentId) {
+      await this.validateOnBehalf(fromAgentId, onBehalfOfAgentId, rest.market);
+      // Reject the whole create up front if the mirror number is taken, so a
+      // 409 never leaves a mirror-less on-behalf invoice behind.
+      const mirrorCollision = await this.invoiceRepository.findOne({
+        where: {
+          fromAgentId: onBehalfOfAgentId,
+          number: this.mirrorNumberFor(rest.number),
+        },
+      });
+      if (mirrorCollision) {
+        throw new ConflictException('Invoice number already exists for this agent');
+      }
+    }
 
     // Validate toAgent
     const toAgent = await this.agentRepository.findOne({
@@ -198,6 +343,7 @@ export class InvoicesService {
       fromAgentId,
       toAgentId,
       currencyId,
+      onBehalfOfAgentId: onBehalfOfAgentId ?? null,
       issuedAt: new Date(rest.issuedAt),
       dueAt: new Date(rest.dueAt),
       link: rest.link ?? null,
@@ -210,6 +356,10 @@ export class InvoicesService {
 
     if (items && items.length > 0) {
       await this.replaceItems(saved.id, items, currencyId);
+    }
+
+    if (onBehalfOfAgentId) {
+      await this.regenerateMirror(saved.id);
     }
 
     return this.findOne(saved.id);
@@ -225,6 +375,7 @@ export class InvoicesService {
       currencyId?: string;
       channelId?: string;
       orderId?: string;
+      mirror?: string;
     },
   ) {
     const {
@@ -241,6 +392,7 @@ export class InvoicesService {
       currencyId,
       channelId,
       orderId,
+      mirror,
     } = query;
     const skip = (page - 1) * limit;
 
@@ -252,6 +404,7 @@ export class InvoicesService {
     qb.leftJoinAndSelect('invoice.file', 'file');
     qb.leftJoinAndSelect('invoice.channel', 'channel');
     qb.leftJoinAndSelect('invoice.order', 'order');
+    qb.leftJoinAndSelect('invoice.onBehalfOfAgent', 'onBehalfOfAgent');
 
     // Per-perspective totals (presentation / from-agent / to-agent) are
     // still computed at read time. NULL when any item is missing a snapshot
@@ -301,6 +454,16 @@ export class InvoicesService {
       qb.andWhere('invoice.orderId = :orderId', { orderId });
     }
 
+    if (mirror === 'exclude') {
+      qb.andWhere(
+        'NOT EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = invoice.id)',
+      );
+    } else if (mirror === 'only') {
+      qb.andWhere(
+        'EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = invoice.id)',
+      );
+    }
+
     if (search) {
       qb.andWhere(
         '(invoice.number ILIKE :search OR fromAgent.name ILIKE :search OR toAgent.name ILIKE :search)',
@@ -329,6 +492,44 @@ export class InvoicesService {
       entities[i].presentationTotal = formatNullable(raw[i].invoice_presentation_total);
       entities[i].fromAgentTotal = formatNullable(raw[i].invoice_from_agent_total);
       entities[i].toAgentTotal = formatNullable(raw[i].invoice_to_agent_total);
+    }
+
+    // Mirror/source links, trimmed to summaries (same shapes as findOne).
+    const pageIds = entities.map((e) => e.id);
+    const mirrorIds = entities
+      .map((e) => e.mirrorInvoiceId)
+      .filter((v): v is string => v !== null);
+    const [sources, mirrors] = await Promise.all([
+      pageIds.length > 0
+        ? this.invoiceRepository.find({
+            where: { mirrorInvoiceId: In(pageIds) },
+            relations: ['fromAgent'],
+          })
+        : Promise.resolve([] as Invoice[]),
+      mirrorIds.length > 0
+        ? this.invoiceRepository.find({
+            where: { id: In(mirrorIds) },
+            select: ['id', 'number'],
+          })
+        : Promise.resolve([] as Invoice[]),
+    ]);
+    const sourceByMirrorId = new Map(sources.map((s) => [s.mirrorInvoiceId, s]));
+    const mirrorById = new Map(mirrors.map((m) => [m.id, m]));
+    for (const entity of entities) {
+      const source = sourceByMirrorId.get(entity.id);
+      entity.sourceInvoice = source
+        ? ({
+            id: source.id,
+            number: source.number,
+            fromAgent: { id: source.fromAgent.id, name: source.fromAgent.name },
+          } as Invoice)
+        : null;
+      const mirrorInvoice = entity.mirrorInvoiceId
+        ? mirrorById.get(entity.mirrorInvoiceId)
+        : undefined;
+      entity.mirrorInvoice = mirrorInvoice
+        ? ({ id: mirrorInvoice.id, number: mirrorInvoice.number } as Invoice)
+        : null;
     }
 
     // Get total count
@@ -362,6 +563,15 @@ export class InvoicesService {
     if (orderId) {
       countQb.andWhere('invoice.orderId = :orderId', { orderId });
     }
+    if (mirror === 'exclude') {
+      countQb.andWhere(
+        'NOT EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = invoice.id)',
+      );
+    } else if (mirror === 'only') {
+      countQb.andWhere(
+        'EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = invoice.id)',
+      );
+    }
     if (search) {
       countQb.andWhere(
         '(invoice.number ILIKE :search OR fromAgent.name ILIKE :search OR toAgent.name ILIKE :search)',
@@ -392,6 +602,7 @@ export class InvoicesService {
         'file',
         'channel',
         'order',
+        'onBehalfOfAgent',
         'items',
         'items.value',
         'items.valueInstance',
@@ -400,6 +611,29 @@ export class InvoicesService {
     if (!invoice) {
       throw new NotFoundException('Invoice not found');
     }
+
+    // Mirror link (source side) and source link (mirror side), trimmed to
+    // summaries — returning full invoice entities here would nest the whole
+    // counterpart document into every response.
+    if (invoice.mirrorInvoiceId) {
+      const mirror = await this.invoiceRepository.findOne({
+        where: { id: invoice.mirrorInvoiceId },
+        select: ['id', 'number'],
+      });
+      invoice.mirrorInvoice = mirror
+        ? ({ id: mirror.id, number: mirror.number } as Invoice)
+        : null;
+    } else {
+      invoice.mirrorInvoice = null;
+    }
+    const source = await this.findSourceOf(id);
+    invoice.sourceInvoice = source
+      ? ({
+          id: source.id,
+          number: source.number,
+          fromAgent: { id: source.fromAgent.id, name: source.fromAgent.name },
+        } as Invoice)
+      : null;
 
     // The base `total` is denormalised on the invoice row. Per-perspective
     // totals still depend on item snapshots and are computed here.
@@ -438,6 +672,14 @@ export class InvoicesService {
 
   async update(id: string, input: UpdateInvoiceInput): Promise<Invoice> {
     const invoice = await this.findOne(id);
+
+    // I6 (spec 022): mirrors are system-managed.
+    if (await this.findSourceOf(id)) {
+      throw new UnprocessableEntityException(
+        'Mirror invoices are system-managed; edit the source invoice',
+      );
+    }
+
     const {
       fromAgentId,
       toAgentId,
@@ -445,6 +687,7 @@ export class InvoicesService {
       fileId,
       channelId,
       orderId,
+      onBehalfOfAgentId,
       items,
       ...rest
     } = input;
@@ -457,12 +700,44 @@ export class InvoicesService {
     if (rest.paid !== undefined) invoice.paid = rest.paid;
     if (rest.link !== undefined) invoice.link = rest.link ?? null;
 
+    let effectiveFromAgentType = invoice.fromAgent.type;
     if (fromAgentId !== undefined) {
       const agent = await this.agentRepository.findOne({
         where: { id: fromAgentId },
       });
       if (!agent) throw new NotFoundException('From agent not found');
       invoice.fromAgentId = fromAgentId;
+      effectiveFromAgentType = agent.type;
+    }
+
+    // I1 (spec 022) is re-checked only when the update touches issuer or
+    // market — legacy violating rows stay untouched until then (Q19).
+    if (rest.market !== undefined || fromAgentId !== undefined) {
+      this.assertLegalIssuer(effectiveFromAgentType, invoice.market);
+    }
+
+    const effectiveOnBehalfId =
+      onBehalfOfAgentId !== undefined
+        ? onBehalfOfAgentId
+        : invoice.onBehalfOfAgentId;
+    if (effectiveOnBehalfId) {
+      await this.validateOnBehalf(
+        invoice.fromAgentId,
+        effectiveOnBehalfId,
+        invoice.market,
+      );
+      const mirrorCollision = await this.invoiceRepository.findOne({
+        where: {
+          fromAgentId: effectiveOnBehalfId,
+          number: this.mirrorNumberFor(invoice.number),
+        },
+      });
+      if (mirrorCollision && mirrorCollision.id !== invoice.mirrorInvoiceId) {
+        throw new ConflictException('Invoice number already exists for this agent');
+      }
+    }
+    if (onBehalfOfAgentId !== undefined) {
+      invoice.onBehalfOfAgentId = onBehalfOfAgentId ?? null;
     }
 
     if (toAgentId !== undefined) {
@@ -537,6 +812,9 @@ export class InvoicesService {
     delete (invoice as any).file;
     delete (invoice as any).channel;
     delete (invoice as any).order;
+    delete (invoice as any).onBehalfOfAgent;
+    delete (invoice as any).mirrorInvoice;
+    delete (invoice as any).sourceInvoice;
     delete (invoice as any).total;
     await this.invoiceRepository.save(invoice);
 
@@ -547,6 +825,12 @@ export class InvoicesService {
       await this.resnapshotItems(id, invoice.currencyId);
     }
 
+    // Q9 (spec 022): any source change regenerates the mirror wholesale;
+    // clearing on-behalf (or having had a mirror) removes the stale one.
+    if (effectiveOnBehalfId || invoice.mirrorInvoiceId) {
+      await this.regenerateMirror(id);
+    }
+
     return this.findOne(id);
   }
 
@@ -554,6 +838,22 @@ export class InvoicesService {
     const invoice = await this.invoiceRepository.findOne({ where: { id } });
     if (!invoice) {
       throw new NotFoundException('Invoice not found');
+    }
+
+    // I6 (spec 022): mirrors are system-managed.
+    if (await this.findSourceOf(id)) {
+      throw new UnprocessableEntityException(
+        'Mirror invoices are system-managed; edit the source invoice',
+      );
+    }
+
+    // Deleting a source removes its mirror too. The mirror goes first — its
+    // FK from the source is ON DELETE SET NULL, so order is safe either way.
+    if (invoice.mirrorInvoiceId) {
+      const mirror = await this.invoiceRepository.findOne({
+        where: { id: invoice.mirrorInvoiceId },
+      });
+      if (mirror) await this.invoiceRepository.remove(mirror);
     }
     await this.invoiceRepository.remove(invoice);
   }
