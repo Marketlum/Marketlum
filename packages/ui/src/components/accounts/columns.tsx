@@ -42,12 +42,12 @@ export function getAccountColumns({ onEdit, onDelete, onSort, translations }: Ac
     {
       id: 'value',
       header: translations.value,
-      cell: ({ row }) => row.original.value?.name ?? '-',
+      cell: ({ row }) => row.original.value?.name ?? '—',
     },
     {
       id: 'agent',
       header: translations.agent,
-      cell: ({ row }) => row.original.agent?.name ?? '-',
+      cell: ({ row }) => row.original.agent?.name ?? '—',
     },
     {
       accessorKey: 'balance',

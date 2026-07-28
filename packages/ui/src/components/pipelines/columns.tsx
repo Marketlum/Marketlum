@@ -72,7 +72,7 @@ export function getPipelineColumns({ onEdit, onDelete, onDuplicate, onSort, tran
       id: 'valueStream',
       meta: { hideOnMobile: true },
       header: translations.valueStream,
-      cell: ({ row }) => row.original.valueStream?.name ?? '-',
+      cell: ({ row }) => row.original.valueStream?.name ?? '—',
     },
     {
       accessorKey: 'createdAt',

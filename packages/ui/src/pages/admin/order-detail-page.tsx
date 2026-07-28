@@ -31,7 +31,7 @@ import { OrderFormDialog } from '../../components/orders/order-form-dialog';
 import { OrderAddressCard } from '../../components/orders/order-address-card';
 import { OrderItemsEditor } from '../../components/orders/order-items-editor';
 import { OrderInvoicesTab } from '../../components/orders/order-invoices-tab';
-import { orderStateBadgeVariant } from '../../components/orders/columns';
+import { orderStateBadgeVariant, orderStateBadgeClass } from '../../components/orders/columns';
 
 interface OrderAddress {
   countryCode: string;
@@ -295,7 +295,10 @@ export function OrderDetailPage() {
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-3">
             <h1 className="truncate text-2xl font-bold md:text-3xl">{order.number}</h1>
-            <Badge variant={orderStateBadgeVariant(order.state)}>
+            <Badge
+              variant={orderStateBadgeVariant(order.state)}
+              className={orderStateBadgeClass(order.state)}
+            >
               {stateLabels[order.state]}
             </Badge>
           </div>

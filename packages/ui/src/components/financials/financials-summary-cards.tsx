@@ -34,10 +34,17 @@ export function FinancialsSummaryCards({ financials }: Props) {
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-xs text-muted-foreground">{t('expense')}</span>
-              <span className="text-red-600 font-medium tabular-nums">
+              <span
+                className={cn(
+                  'font-medium tabular-nums',
+                  Number(financials.summary.expense[period]) > 0 && 'text-red-600',
+                )}
+              >
                 {financials.summary.expense[period] === null
                   ? '—'
-                  : `−${financials.summary.expense[period]} ${currency}`}
+                  : Number(financials.summary.expense[period]) > 0
+                    ? `−${formatFigure(financials.summary.expense[period], currency)}`
+                    : formatFigure(financials.summary.expense[period], currency)}
               </span>
             </div>
             <div className="flex items-baseline justify-between border-t pt-1.5">

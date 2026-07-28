@@ -18,7 +18,7 @@ import { Sheet, SheetContent, SheetTitle } from '../components/ui/sheet';
 import { LocaleSwitcher } from '../components/shared/locale-switcher';
 import { ThemeSwitcher } from '../components/shared/theme-switcher';
 import { FileImagePreview } from '../components/shared/file-image-preview';
-import { GlobalSearchInput } from '../components/search/global-search-input';
+import { CommandPalette } from '../components/search/command-palette';
 import { ValueStreamSwitcher } from '../components/value-streams/value-stream-switcher';
 
 const SIDEBAR_KEY = 'marketlum-sidebar-collapsed';
@@ -27,17 +27,30 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const tSearch = useTranslations('search');
   const tRoot = useTranslations();
   const plugins = usePlugins();
   const [user, setUser] = useState<AuthMeResponse | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [menuFilter, setMenuFilter] = useState('');
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     setCollapsed(localStorage.getItem(SIDEBAR_KEY) === 'true');
     setMounted(true);
+  }, []);
+
+  // ⌘K / Ctrl+K opens the command palette from anywhere in the admin.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
   useEffect(() => {
@@ -129,17 +142,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const deniedResource =
     routeItem?.resource && !allowed(routeItem.resource) ? routeItem.resource : null;
 
-  const filteredGroups = menuFilter
-    ? navGroups
-        .map((group) => ({
-          ...group,
-          items: group.items.filter((item) =>
-            item.label.toLowerCase().includes(menuFilter.toLowerCase()),
-          ),
-        }))
-        .filter((group) => group.items.length > 0)
-    : navGroups;
-
   if (!user) return null;
 
   return (
@@ -158,11 +160,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               Marketlum
             </span>
           </Link>
-          {allowed('search') && (
-            <div className="flex-1 px-2">
-              <GlobalSearchInput />
-            </div>
-          )}
+          <div className="flex flex-1 justify-end px-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-sidebar-foreground"
+              onClick={() => setPaletteOpen(true)}
+            >
+              <Search className="h-5 w-5" />
+              <span className="sr-only">{t('searchMenu')}</span>
+            </Button>
+          </div>
         </header>
 
         {/* Mobile sheet drawer */}
@@ -179,20 +187,21 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="px-3 pt-3">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-muted-foreground" />
-                <input
-                  type="text"
-                  value={menuFilter}
-                  onChange={(e) => setMenuFilter(e.target.value)}
-                  placeholder={t('searchMenu')}
-                  className="h-8 w-full rounded-md border-0 bg-sidebar-secondary pl-8 pr-3 text-xs text-sidebar-foreground placeholder:text-sidebar-muted-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-primary"
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSheetOpen(false);
+                  setPaletteOpen(true);
+                }}
+                className="flex h-8 w-full items-center gap-2 rounded-md bg-sidebar-secondary px-2.5 text-xs text-sidebar-muted-foreground"
+              >
+                <Search className="h-3.5 w-3.5 shrink-0" />
+                <span className="flex-1 text-left">{t('searchMenu')}</span>
+              </button>
             </div>
 
             <nav className="flex-1 overflow-y-auto p-2">
-              {filteredGroups.map((group) => (
+              {navGroups.map((group) => (
                 <div key={group.label || '_top'}>
                   {group.label && (
                     <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
@@ -206,7 +215,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                       <Link
                         key={item.href}
                         href={item.href}
-                        onClick={() => { setSheetOpen(false); setMenuFilter(''); }}
+                        onClick={() => setSheetOpen(false)}
                         className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                           isActive
                             ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
@@ -280,16 +289,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
           {!collapsed && (
             <div className="px-3 pt-3">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-muted-foreground" />
-                <input
-                  type="text"
-                  value={menuFilter}
-                  onChange={(e) => setMenuFilter(e.target.value)}
-                  placeholder={t('searchMenu')}
-                  className="h-8 w-full rounded-md border-0 bg-sidebar-secondary pl-8 pr-3 text-xs text-sidebar-foreground placeholder:text-sidebar-muted-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-primary"
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(true)}
+                className="flex h-8 w-full items-center gap-2 rounded-md bg-sidebar-secondary px-2.5 text-xs text-sidebar-muted-foreground transition-colors hover:text-sidebar-foreground"
+              >
+                <Search className="h-3.5 w-3.5 shrink-0" />
+                <span className="flex-1 text-left">{t('searchMenu')}</span>
+                <kbd className="rounded border border-sidebar-border px-1 font-mono text-[10px]">
+                  ⌘K
+                </kbd>
+              </button>
             </div>
           )}
 
@@ -321,7 +331,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     })}
                   </div>
                 ))
-              : filteredGroups.map((group) => (
+              : navGroups.map((group) => (
                   <div key={group.label || '_top'}>
                     {group.label && (
                       <div className="text-[10px] uppercase tracking-wider font-semibold text-sidebar-muted-foreground px-3 pt-3 pb-1">
@@ -335,7 +345,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                         <Link
                           key={item.href}
                           href={item.href}
-                          onClick={() => setMenuFilter('')}
                           className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                             isActive
                               ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
@@ -395,62 +404,92 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               </div>
             )}
             {collapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">{t('logout')}</TooltipContent>
-              </Tooltip>
-            ) : (
-              <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                {t('logout')}
-              </Button>
-            )}
-
-            <div className="mt-1">
-              <LocaleSwitcher collapsed={collapsed} />
-            </div>
-
-            <div className="mt-1">
-              <ThemeSwitcher collapsed={collapsed} />
-            </div>
-
-            <div className="mt-1">
-              {collapsed ? (
+              <>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={toggleCollapsed}>
-                      <PanelLeftOpen className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={handleLogout}>
+                      <LogOut className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{t('expandSidebar')}</TooltipContent>
+                  <TooltipContent side="right">{t('logout')}</TooltipContent>
                 </Tooltip>
-              ) : (
-                <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={toggleCollapsed}>
-                  <PanelLeftClose className="mr-2 h-4 w-4" />
-                  {t('collapse')}
-                </Button>
-              )}
-            </div>
-          </div>
-        </aside>
-        <div className="flex flex-1 flex-col">
-          <header className="hidden md:flex h-14 items-center gap-3 border-b px-6">
-            {allowed('value-streams') && <ValueStreamSwitcher />}
-            {allowed('search') && (
-              <div className="w-full max-w-md">
-                <GlobalSearchInput />
+                <div className="mt-1">
+                  <LocaleSwitcher collapsed />
+                </div>
+                <div className="mt-1">
+                  <ThemeSwitcher collapsed />
+                </div>
+                <div className="mt-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={toggleCollapsed}>
+                        <PanelLeftOpen className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">{t('expandSidebar')}</TooltipContent>
+                  </Tooltip>
+                </div>
+              </>
+            ) : (
+              /* One compact icon row instead of four stacked rows, so the
+                 nav above keeps enough height to show every group. */
+              <div className="flex items-center gap-1">
+                <div className="flex-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={handleLogout}>
+                        <LogOut className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{t('logout')}</TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="flex-1">
+                  <LocaleSwitcher collapsed />
+                </div>
+                <div className="flex-1">
+                  <ThemeSwitcher collapsed />
+                </div>
+                <div className="flex-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="w-full text-sidebar-muted-foreground hover:text-sidebar-foreground" onClick={toggleCollapsed}>
+                        <PanelLeftClose className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{t('collapse')}</TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
             )}
+          </div>
+        </aside>
+        {/* min-w-0 lets wide tables scroll inside <main> instead of
+            stretching the whole page past the viewport. */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="hidden md:flex h-14 items-center gap-3 border-b px-6">
+            {allowed('value-streams') && <ValueStreamSwitcher />}
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="flex h-8 w-full max-w-md items-center gap-2 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground transition-colors hover:bg-accent"
+            >
+              <Search className="h-3.5 w-3.5 shrink-0" />
+              <span className="flex-1 text-left">{tSearch('placeholder')}</span>
+              <kbd className="rounded border bg-muted px-1.5 font-mono text-[10px]">⌘K</kbd>
+            </button>
           </header>
           <main className="flex-1 overflow-auto p-4 md:p-6">
             {deniedResource ? <AccessDeniedPanel resource={deniedResource} /> : children}
           </main>
         </div>
       </div>
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        navGroups={navGroups}
+        canSearchEntities={allowed('search')}
+      />
     </TooltipProvider>
     </PermissionsProvider>
   );

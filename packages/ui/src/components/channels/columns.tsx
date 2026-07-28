@@ -100,7 +100,7 @@ export function getChannelColumns({
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
         const agent = row.original.agent;
-        return agent ? agent.name : '-';
+        return agent ? agent.name : '—';
       },
     },
     {

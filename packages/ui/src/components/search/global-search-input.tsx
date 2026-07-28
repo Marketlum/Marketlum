@@ -3,42 +3,14 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Gem, Bot, User, Layers, Workflow, Flame, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { api } from '../../lib/api-client';
 import type { SearchResponse, SearchResult } from '@marketlum/shared';
-
-const typeConfig: Record<
-  SearchResult['type'],
-  { icon: typeof Gem; variant: 'default' | 'secondary' | 'outline' }
-> = {
-  value: { icon: Gem, variant: 'default' },
-  agent: { icon: Bot, variant: 'secondary' },
-  user: { icon: User, variant: 'outline' },
-  value_instance: { icon: Layers, variant: 'secondary' },
-  value_stream: { icon: Workflow, variant: 'secondary' },
-  tension: { icon: Flame, variant: 'default' },
-};
-
-function resultHref(result: SearchResult): string {
-  switch (result.type) {
-    case 'value':
-      return `/admin/values/${result.id}`;
-    case 'agent':
-      return `/admin/agents/${result.id}`;
-    case 'user':
-      return '/admin/users';
-    case 'value_instance':
-      return `/admin/value-instances/${result.id}`;
-    case 'tension':
-      return `/admin/tensions/${result.id}`;
-    case 'value_stream':
-      return '/admin/value-streams';
-  }
-}
+import { typeConfig, resultHref } from './search-result-meta';
 
 export function GlobalSearchInput() {
   const router = useRouter();

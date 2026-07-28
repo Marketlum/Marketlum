@@ -105,7 +105,7 @@ export function getAgreementTemplateColumns({
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
         const vs = row.original.valueStream;
-        return vs ? vs.name : '-';
+        return vs ? vs.name : '—';
       },
     },
     {
@@ -114,7 +114,7 @@ export function getAgreementTemplateColumns({
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
         const agent = row.original.agent;
-        return agent ? agent.name : '-';
+        return agent ? agent.name : '—';
       },
     },
     {

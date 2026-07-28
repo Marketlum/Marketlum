@@ -34,12 +34,12 @@ export function getTransactionColumns({ onEdit, onDelete, onSort, translations }
     {
       id: 'fromAccount',
       header: translations.fromAccount,
-      cell: ({ row }) => row.original.fromAccount?.name ?? '-',
+      cell: ({ row }) => row.original.fromAccount?.name ?? '—',
     },
     {
       id: 'toAccount',
       header: translations.toAccount,
-      cell: ({ row }) => row.original.toAccount?.name ?? '-',
+      cell: ({ row }) => row.original.toAccount?.name ?? '—',
     },
     {
       accessorKey: 'amount',

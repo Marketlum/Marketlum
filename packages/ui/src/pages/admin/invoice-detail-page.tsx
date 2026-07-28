@@ -35,13 +35,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
+import { formatDay, formatMoney } from '../../lib/format';
 
 interface AddressBlockProps {
   agent: AgentResponse;
@@ -284,7 +278,7 @@ export function InvoiceDetailPage() {
               </div>
               <div className="mt-3 flex gap-1.5">
                 <Badge variant={invoice.paid ? 'default' : 'secondary'}>
-                  {invoice.paid ? t('paidYes') : t('paidNo')}
+                  {invoice.paid ? t('paidBadge') : t('unpaidBadge')}
                 </Badge>
                 <Badge variant="outline">
                   {invoice.market === 'internal' ? t('marketInternal') : t('marketExternal')}
@@ -295,9 +289,9 @@ export function InvoiceDetailPage() {
             <div className="text-sm">
               <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
                 <span className="text-muted-foreground">{t('issuedAt')}</span>
-                <span className="text-right">{formatDate(invoice.issuedAt)}</span>
+                <span className="text-right">{formatDay(invoice.issuedAt)}</span>
                 <span className="text-muted-foreground">{t('dueAt')}</span>
-                <span className="text-right">{formatDate(invoice.dueAt)}</span>
+                <span className="text-right">{formatDay(invoice.dueAt)}</span>
                 {invoice.onBehalfOfAgent && (
                   <>
                     <span className="text-muted-foreground">{t('onBehalfOf')}</span>
@@ -406,7 +400,7 @@ export function InvoiceDetailPage() {
                     {showCrossCurrencyColumns && (
                       <TableCell className="text-right tabular-nums text-muted-foreground">
                         {item.presentationAmount != null ? (
-                          <>≈ {item.presentationAmount}</>
+                          <>≈ {formatMoney(item.presentationAmount)}</>
                         ) : (
                           <span className="italic" title={t('noRate')}>
                             —
@@ -428,7 +422,7 @@ export function InvoiceDetailPage() {
                   {t('total')}
                 </dt>
                 <dd className="text-lg font-semibold tabular-nums">
-                  {invoice.total} {invoiceCurrency.name}
+                  {formatMoney(invoice.total, invoiceCurrency.name)}
                 </dd>
               </div>
               {subtotals.map((row) => (
@@ -439,9 +433,7 @@ export function InvoiceDetailPage() {
                   <dt>{row.label}</dt>
                   <dd className="tabular-nums">
                     {row.amount != null ? (
-                      <>
-                        ≈ {row.amount} {row.currencyName}
-                      </>
+                      <>≈ {formatMoney(row.amount, row.currencyName)}</>
                     ) : (
                       <span
                         className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-900"

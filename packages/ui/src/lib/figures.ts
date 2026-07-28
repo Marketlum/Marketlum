@@ -4,10 +4,12 @@
  * identically.
  */
 
-/** `"1234.00"` + currency → `"1234.00 EUR"`; null → em dash. */
+import { formatMoney } from './format';
+
+/** `"1234.00"` + currency → `"1 234.00 EUR"` (locale grouping); null → em dash. */
 export function formatFigure(value: string | null, currency: string): string {
   if (value === null) return '—';
-  return `${value} ${currency}`;
+  return formatMoney(value, currency);
 }
 
 /** Sign-based colour class for a net/summary figure (null → neutral). */
@@ -28,9 +30,10 @@ export function cellClass(value: string | null): string {
   return '';
 }
 
-/** Raw figure or em dash when null. */
+/** Grouped figure (no currency suffix) or em dash when null. */
 export function fmt(value: string | null): string {
-  return value ?? '—';
+  if (value === null) return '—';
+  return formatMoney(value);
 }
 
 /** Column/axis labels for the fixed 12-month financials breakdown. */

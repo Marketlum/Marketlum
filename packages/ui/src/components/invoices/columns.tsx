@@ -3,6 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { InvoiceMarket } from '@marketlum/shared';
 import { MoreHorizontal, ArrowUpDown, ExternalLink } from 'lucide-react';
+import { formatDay, formatMoney } from '../../lib/format';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import {
@@ -42,11 +43,10 @@ interface InvoiceColumnsTranslations {
   to: string;
   issuedAt: string;
   dueAt: string;
-  currency: string;
   total: string;
   paid: string;
-  paidYes: string;
-  paidNo: string;
+  paidBadge: string;
+  unpaidBadge: string;
   market: string;
   marketInternal: string;
   marketExternal: string;
@@ -83,13 +83,27 @@ export function getInvoiceColumns({
     {
       id: 'fromAgent',
       header: translations.from,
-      cell: ({ row }) => row.original.fromAgent?.name ?? '\u2014',
+      cell: ({ row }) => (
+        <span
+          className="block max-w-[10rem] truncate"
+          title={row.original.fromAgent?.name ?? undefined}
+        >
+          {row.original.fromAgent?.name ?? '\u2014'}
+        </span>
+      ),
     },
     {
       id: 'toAgent',
       header: translations.to,
       meta: { hideOnMobile: true },
-      cell: ({ row }) => row.original.toAgent?.name ?? '\u2014',
+      cell: ({ row }) => (
+        <span
+          className="block max-w-[10rem] truncate"
+          title={row.original.toAgent?.name ?? undefined}
+        >
+          {row.original.toAgent?.name ?? '\u2014'}
+        </span>
+      ),
     },
     {
       accessorKey: 'issuedAt',
@@ -99,7 +113,7 @@ export function getInvoiceColumns({
         </Button>
       ),
       meta: { hideOnMobile: true },
-      cell: ({ row }) => new Date(row.getValue('issuedAt')).toLocaleDateString(),
+      cell: ({ row }) => formatDay(row.getValue('issuedAt')),
     },
     {
       accessorKey: 'dueAt',
@@ -109,13 +123,7 @@ export function getInvoiceColumns({
         </Button>
       ),
       meta: { hideOnMobile: true },
-      cell: ({ row }) => new Date(row.getValue('dueAt')).toLocaleDateString(),
-    },
-    {
-      id: 'currency',
-      header: translations.currency,
-      meta: { hideOnMobile: true },
-      cell: ({ row }) => row.original.currency?.name ?? '\u2014',
+      cell: ({ row }) => formatDay(row.getValue('dueAt')),
     },
     {
       id: 'total',
@@ -124,7 +132,11 @@ export function getInvoiceColumns({
           {translations.total} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => row.original.total ?? '0.00',
+      cell: ({ row }) => (
+        <span className="tabular-nums whitespace-nowrap">
+          {formatMoney(row.original.total ?? '0.00', row.original.currency?.name)}
+        </span>
+      ),
     },
     {
       accessorKey: 'paid',
@@ -137,7 +149,7 @@ export function getInvoiceColumns({
         const paid = row.original.paid;
         return (
           <Badge variant={paid ? 'default' : 'secondary'}>
-            {paid ? translations.paidYes : translations.paidNo}
+            {paid ? translations.paidBadge : translations.unpaidBadge}
           </Badge>
         );
       },

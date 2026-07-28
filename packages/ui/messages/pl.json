@@ -25,6 +25,7 @@
     "codeHint": "Małe litery, cyfry i znaki podkreślenia. Wypełniane automatycznie z nazwy; możesz nadpisać przed zapisaniem.",
     "codeImmutable": "Kodów nie można zmieniać po utworzeniu.",
     "filters": "Filtry",
+    "moreActions": "Więcej akcji",
     "filtersDescription": "Zawęź wyniki za pomocą poniższych filtrów.",
     "rowsPerPage": "Wierszy na stronę",
     "duplicate": "Duplikuj",
@@ -88,8 +89,10 @@
     "signInToAccount": "Zaloguj się do swojego konta",
     "invalidCredentials": "Nieprawidłowy email lub hasło",
     "emailLabel": "Email",
-    "emailPlaceholder": "admin@marketlum.com",
-    "passwordLabel": "Hasło"
+    "emailPlaceholder": "ty@przyklad.pl",
+    "passwordLabel": "Hasło",
+    "showPassword": "Pokaż hasło",
+    "hidePassword": "Ukryj hasło"
   },
   "users": {
     "title": "Użytkownicy",
@@ -232,7 +235,8 @@
     "filterCountry": "Kraj",
     "allTypes": "Wszystkie typy",
     "allTaxonomies": "Wszystkie taksonomie",
-    "allCountries": "Wszystkie kraje"
+    "allCountries": "Wszystkie kraje",
+    "legendCluster": "Zgrupowani agenci — kliknij, aby przybliżyć"
   },
   "addresses": {
     "addAddress": "Dodaj adres",
@@ -556,7 +560,9 @@
       "value_instance": "Instancja",
       "value_stream": "Strumień"
     },
-    "viewAll": "Zobacz wszystkie wyniki"
+    "viewAll": "Zobacz wszystkie wyniki",
+    "palettePlaceholder": "Szukaj stron, agentów, wartości…",
+    "resultsSection": "Wyniki"
   },
   "accounts": {
     "title": "Konta",
@@ -760,6 +766,8 @@
     "paid": "Opłacona",
     "paidYes": "Tak",
     "paidNo": "Nie",
+    "paidBadge": "Opłacona",
+    "unpaidBadge": "Nieopłacona",
     "allPaidStatuses": "Wszystkie",
     "link": "Link",
     "selectAgent": "Wybierz agenta",

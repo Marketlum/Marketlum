@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { useTheme } from 'next-themes';
+import { useTranslations } from 'next-intl';
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import type { AgentResponse } from '@marketlum/shared';
@@ -11,6 +13,21 @@ interface AgentsMapProps {
   agents: AgentResponse[];
   viewAgentLabel: string;
 }
+
+// CARTO basemaps in both schemes so the map matches the app theme instead
+// of clashing bright-blue OSM tiles against the dark UI.
+const TILES = {
+  light: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  },
+} as const;
 
 interface PlottableAgent {
   agent: AgentResponse;
@@ -115,6 +132,11 @@ function MarkerCluster({ agents, viewAgentLabel }: AgentsMapProps) {
 }
 
 export function AgentsMap({ agents, viewAgentLabel }: AgentsMapProps) {
+  const { resolvedTheme } = useTheme();
+  const t = useTranslations('agents');
+  const tm = useTranslations('agentsMap');
+  const tiles = resolvedTheme === 'dark' ? TILES.dark : TILES.light;
+
   const initialCenter = useMemo(() => {
     const pins = plottable(agents);
     if (pins.length === 0) return [20, 0] as [number, number];
@@ -122,17 +144,40 @@ export function AgentsMap({ agents, viewAgentLabel }: AgentsMapProps) {
   }, [agents]);
 
   return (
-    <MapContainer
-      center={initialCenter}
-      zoom={2}
-      scrollWheelZoom
-      className="agents-map-container"
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MarkerCluster agents={agents} viewAgentLabel={viewAgentLabel} />
-    </MapContainer>
+    <div className="relative">
+      <MapContainer
+        center={initialCenter}
+        zoom={2}
+        scrollWheelZoom
+        className="agents-map-container"
+      >
+        <TileLayer
+          key={resolvedTheme}
+          attribution={tiles.attribution}
+          url={tiles.url}
+        />
+        <MarkerCluster agents={agents} viewAgentLabel={viewAgentLabel} />
+      </MapContainer>
+      <div className="absolute bottom-3 left-3 z-[1000] space-y-1 rounded-md border bg-background/90 px-3 py-2 text-xs backdrop-blur-sm">
+        <div className="flex items-center gap-1.5">
+          <span className="agent-map-marker type-organization inline-block shrink-0 !h-3.5 !w-3.5" />
+          <span>{t('typeOrganization')}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="agent-map-marker type-individual inline-block shrink-0 !h-3.5 !w-3.5" />
+          <span>{t('typeIndividual')}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="agent-map-marker type-virtual inline-block shrink-0 !h-3.5 !w-3.5" />
+          <span>{t('typeVirtual')}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/80 text-[9px] font-semibold text-white">
+            n
+          </span>
+          <span>{tm('legendCluster')}</span>
+        </div>
+      </div>
+    </div>
   );
 }

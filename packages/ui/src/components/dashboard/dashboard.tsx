@@ -2,12 +2,23 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import type { DashboardSummaryResponse } from '@marketlum/shared';
+import type {
+  DashboardSummaryResponse,
+  SystemSettingsPresentationCurrencyResponse,
+} from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { useAgents } from '../../hooks/use-agents';
 import { useChannels } from '../../hooks/use-channels';
 import { RevenueExpensesChart } from './revenue-expenses-chart';
 import { formatDate, getPresetRange } from '../../lib/date-range-presets';
+import { formatMoney } from '../../lib/format';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 export function Dashboard() {
   const t = useTranslations('dashboard');
@@ -21,7 +32,17 @@ export function Dashboard() {
   const [preset, setPreset] = useState('all');
 
   const [data, setData] = useState<DashboardSummaryResponse | null>(null);
+  const [currencyName, setCurrencyName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<SystemSettingsPresentationCurrencyResponse>(
+        '/system-settings/presentation-currency',
+      )
+      .then((res) => setCurrencyName(res.presentationCurrency?.name ?? null))
+      .catch(() => setCurrencyName(null));
+  }, []);
 
   const presetOptions = useMemo(() => [
     { key: 'all', label: t('presetAll') },
@@ -79,35 +100,44 @@ export function Dashboard() {
     <div className="space-y-6">
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <select
-          value={agentId}
-          onChange={(e) => setAgentId(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+        <Select
+          value={agentId || '__all__'}
+          onValueChange={(v) => setAgentId(v === '__all__' ? '' : v)}
         >
-          <option value="">{t('allAgents')}</option>
-          {agents.map((a) => (
-            <option key={a.id} value={a.id}>{a.name}</option>
-          ))}
-        </select>
-        <select
-          value={channelId}
-          onChange={(e) => setChannelId(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+          <SelectTrigger className="w-auto min-w-[10rem]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">{t('allAgents')}</SelectItem>
+            {agents.map((a) => (
+              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={channelId || '__all__'}
+          onValueChange={(v) => setChannelId(v === '__all__' ? '' : v)}
         >
-          <option value="">{t('allChannels')}</option>
-          {channels.map((ch) => (
-            <option key={ch.id} value={ch.id}>{ch.name}</option>
-          ))}
-        </select>
-        <select
-          value={preset}
-          onChange={(e) => handlePresetChange(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          {presetOptions.map((o) => (
-            <option key={o.key} value={o.key}>{o.label}</option>
-          ))}
-        </select>
+          <SelectTrigger className="w-auto min-w-[10rem]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">{t('allChannels')}</SelectItem>
+            {channels.map((ch) => (
+              <SelectItem key={ch.id} value={ch.id}>{ch.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={preset} onValueChange={handlePresetChange}>
+          <SelectTrigger className="w-auto min-w-[8rem]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {presetOptions.map((o) => (
+              <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {preset === 'custom' && (
           <>
             <input
@@ -139,16 +169,32 @@ export function Dashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-lg border p-4">
               <div className="text-xs text-muted-foreground">{t('totalRevenue')}</div>
-              <div className="text-2xl font-bold text-emerald-600">{data.totalRevenue}</div>
+              <div
+                className={`text-2xl font-bold ${parseFloat(data.totalRevenue) > 0 ? 'text-emerald-600' : ''}`}
+              >
+                {formatMoney(data.totalRevenue, currencyName)}
+              </div>
             </div>
             <div className="rounded-lg border p-4">
               <div className="text-xs text-muted-foreground">{t('totalExpenses')}</div>
-              <div className="text-2xl font-bold text-rose-600">{data.totalExpenses}</div>
+              <div
+                className={`text-2xl font-bold ${parseFloat(data.totalExpenses) > 0 ? 'text-rose-600' : ''}`}
+              >
+                {formatMoney(data.totalExpenses, currencyName)}
+              </div>
             </div>
             <div className="rounded-lg border p-4">
               <div className="text-xs text-muted-foreground">{t('net')}</div>
-              <div className={`text-2xl font-bold ${parseFloat(net) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {net}
+              <div
+                className={`text-2xl font-bold ${
+                  parseFloat(net) > 0
+                    ? 'text-emerald-600'
+                    : parseFloat(net) < 0
+                      ? 'text-rose-600'
+                      : ''
+                }`}
+              >
+                {formatMoney(net, currencyName)}
               </div>
             </div>
             <div className="rounded-lg border p-4">

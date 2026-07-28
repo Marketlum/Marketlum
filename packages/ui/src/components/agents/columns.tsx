@@ -81,7 +81,7 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
       header: translations.taxonomy,
       cell: ({ row }) => {
         const mainTaxonomy = row.original.mainTaxonomy;
-        return mainTaxonomy ? <Badge variant="outline">{mainTaxonomy.name}</Badge> : '-';
+        return mainTaxonomy ? <Badge variant="outline">{mainTaxonomy.name}</Badge> : '—';
       },
     },
     {
@@ -90,7 +90,7 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
         const parent = row.original.parent;
-        return parent ? parent.name : '-';
+        return parent ? parent.name : '—';
       },
     },
     {

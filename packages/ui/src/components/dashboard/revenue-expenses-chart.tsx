@@ -1,20 +1,62 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import * as d3 from 'd3';
 import type { DashboardTimeSeriesPoint } from '@marketlum/shared';
 import { Card } from '../ui/card';
+import { formatMoney } from '../../lib/format';
+import { MONTH_LABELS } from '../../lib/figures';
 
 interface Props {
   data: DashboardTimeSeriesPoint[];
 }
 
-export function RevenueExpensesChart({ data }: Props) {
+/**
+ * The API only returns periods that have invoices; a bar chart that skips
+ * empty months misrepresents the time axis, so fill the gaps with zeros
+ * across the min..max "YYYY-MM" range.
+ */
+const YEAR_MONTH = /^\d{4}-\d{2}$/;
+
+function fillMonthGaps(data: DashboardTimeSeriesPoint[]): DashboardTimeSeriesPoint[] {
+  // The financials tabs feed this chart pre-filled 12-month series with
+  // plain month-name periods — only fill genuine "YYYY-MM" series.
+  if (data.length < 2 || !data.every((d) => YEAR_MONTH.test(d.period))) return data;
+  const byPeriod = new Map(data.map((d) => [d.period, d]));
+  const parse = (p: string) => {
+    const [y, m] = p.split('-').map(Number);
+    return { y, m };
+  };
+  const first = parse(data[0].period);
+  const last = parse(data[data.length - 1].period);
+  const filled: DashboardTimeSeriesPoint[] = [];
+  for (let y = first.y, m = first.m; y < last.y || (y === last.y && m <= last.m); ) {
+    const period = `${y}-${String(m).padStart(2, '0')}`;
+    filled.push(byPeriod.get(period) ?? { period, revenue: '0.00', expenses: '0.00' });
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+  }
+  return filled;
+}
+
+/** "2026-03" → "Mar" (single-year range) or "Mar 26" (multi-year range). */
+function periodLabel(period: string, multiYear: boolean): string {
+  if (!YEAR_MONTH.test(period)) return period;
+  const [y, m] = period.split('-');
+  const label = MONTH_LABELS[Number(m) - 1] ?? period;
+  return multiYear ? `${label} ${y.slice(2)}` : label;
+}
+
+export function RevenueExpensesChart({ data: sparseData }: Props) {
   const t = useTranslations('dashboard');
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [svgWidth, setSvgWidth] = useState(0);
+  const data = useMemo(() => fillMonthGaps(sparseData), [sparseData]);
 
   // Track container width via ResizeObserver
   useEffect(() => {
@@ -83,13 +125,32 @@ export function RevenueExpensesChart({ data }: Props) {
       .attr('stroke-opacity', 0.5);
     g.select('.grid .domain').remove();
 
-    // X axis
-    g.append('g')
+    // X axis — abbreviated month labels; when bands get narrow (mobile),
+    // thin the ticks and rotate so labels never collide.
+    const multiYear = new Set(periods.map((p) => p.slice(0, 4))).size > 1;
+    const bandWidth = x0.step();
+    const every = bandWidth >= 44 ? 1 : bandWidth >= 24 ? 2 : 3;
+    const xAxis = g
+      .append('g')
       .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(x0).tickSizeOuter(0))
+      .call(
+        d3
+          .axisBottom(x0)
+          .tickSizeOuter(0)
+          .tickValues(periods.filter((_, i) => i % every === 0))
+          .tickFormat((p) => periodLabel(p as string, multiYear)),
+      );
+    const xText = xAxis
       .selectAll('text')
       .attr('fill', 'hsl(var(--foreground))')
       .attr('font-size', '11px');
+    if (bandWidth < 44) {
+      xText
+        .attr('transform', 'rotate(-40)')
+        .attr('text-anchor', 'end')
+        .attr('dx', '-0.5em')
+        .attr('dy', '0.6em');
+    }
 
     // Y axis
     g.append('g')
@@ -154,8 +215,8 @@ export function RevenueExpensesChart({ data }: Props) {
       tooltip.style.top = `${event.clientY - 12}px`;
       tooltip.innerHTML = `
         <div class="font-semibold">${d.period}</div>
-        <div class="text-xs"><span style="color:${colors.revenue}">${t('revenue')}:</span> ${d.revenue}</div>
-        <div class="text-xs"><span style="color:${colors.expenses}">${t('expenses')}:</span> ${d.expenses}</div>
+        <div class="text-xs"><span style="color:${colors.revenue}">${t('revenue')}:</span> ${formatMoney(d.revenue)}</div>
+        <div class="text-xs"><span style="color:${colors.expenses}">${t('expenses')}:</span> ${formatMoney(d.expenses)}</div>
       `;
     }
 

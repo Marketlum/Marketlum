@@ -257,7 +257,9 @@ export function ValuesNetworkGraph() {
       )
       .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collide', d3.forceCollide().radius(50));
+      // Radius covers the label below each node, not just the circle, so
+      // neighbouring node titles stop overlapping.
+      .force('collide', d3.forceCollide().radius(70));
 
     // Links
     const linkGroup = g
@@ -389,6 +391,33 @@ export function ValuesNetworkGraph() {
         .attr('y', (d) => ((d.source as GraphNode).y! + (d.target as GraphNode).y!) / 2 - 6);
 
       nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+    });
+
+    // Once the layout settles, zoom so the whole graph is in view — nodes
+    // otherwise drift outside the canvas on larger datasets. Only on the
+    // first settle: drag interactions re-trigger 'end' and must not yank
+    // the user's viewport back.
+    let didFit = false;
+    simulation.on('end', () => {
+      if (didFit || nodes.length === 0) return;
+      didFit = true;
+      const xs = nodes.map((n) => n.x ?? 0);
+      const ys = nodes.map((n) => n.y ?? 0);
+      const pad = 70;
+      const minX = Math.min(...xs) - pad;
+      const maxX = Math.max(...xs) + pad;
+      const minY = Math.min(...ys) - pad;
+      const maxY = Math.max(...ys) + pad;
+      const w = maxX - minX;
+      const h = maxY - minY;
+      if (w <= 0 || h <= 0) return;
+      const scale = Math.min(1.5, 0.95 * Math.min(width / w, height / h));
+      const tx = width / 2 - (scale * (minX + maxX)) / 2;
+      const ty = height / 2 - (scale * (minY + maxY)) / 2;
+      svg
+        .transition()
+        .duration(400)
+        .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
     });
 
     const resizeObserver = new ResizeObserver((entries) => {

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
+import { Eye, EyeOff } from 'lucide-react';
 import { loginSchema, type LoginInput } from '@marketlum/shared';
 import { login } from '../../lib/auth';
 import { Button } from '../ui/button';
@@ -17,6 +18,7 @@ export function LoginForm() {
   const router = useRouter();
   const t = useTranslations('auth');
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -63,7 +65,23 @@ export function LoginForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">{t('passwordLabel')}</Label>
-            <Input id="password" type="password" {...register('password')} />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                className="pr-9"
+                {...register('password')}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? t('hidePassword') : t('showPassword')}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}

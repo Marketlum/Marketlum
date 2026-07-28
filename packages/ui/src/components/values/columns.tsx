@@ -100,7 +100,7 @@ export function getValueColumns({ onEdit, onDuplicate, onDelete, onSort, transla
       header: translations.taxonomy,
       cell: ({ row }) => {
         const mainTaxonomy = row.original.mainTaxonomy;
-        return mainTaxonomy ? <Badge variant="outline">{mainTaxonomy.name}</Badge> : '-';
+        return mainTaxonomy ? <Badge variant="outline">{mainTaxonomy.name}</Badge> : '—';
       },
     },
     {
@@ -108,7 +108,7 @@ export function getValueColumns({ onEdit, onDuplicate, onDelete, onSort, transla
       header: translations.agent,
       cell: ({ row }) => {
         const agent = row.original.agent;
-        return agent ? agent.name : '-';
+        return agent ? agent.name : '—';
       },
     },
     {
@@ -141,7 +141,7 @@ export function getValueColumns({ onEdit, onDuplicate, onDelete, onSort, transla
       accessorKey: 'abstract',
       header: translations.abstract,
       cell: ({ row }) => {
-        return row.original.abstract ? <Check className="h-4 w-4 text-muted-foreground" /> : '-';
+        return row.original.abstract ? <Check className="h-4 w-4 text-muted-foreground" /> : '—';
       },
     },
     {

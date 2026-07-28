@@ -99,12 +99,12 @@ export function getValueInstanceColumns({ onEdit, onDelete, onSort, translations
     {
       id: 'fromAgent',
       header: translations.fromAgent,
-      cell: ({ row }) => row.original.fromAgent?.name ?? '-',
+      cell: ({ row }) => row.original.fromAgent?.name ?? '—',
     },
     {
       id: 'toAgent',
       header: translations.toAgent,
-      cell: ({ row }) => row.original.toAgent?.name ?? '-',
+      cell: ({ row }) => row.original.toAgent?.name ?? '—',
     },
     {
       accessorKey: 'version',
@@ -124,7 +124,7 @@ export function getValueInstanceColumns({ onEdit, onDelete, onSort, translations
       header: translations.expiresAt,
       cell: ({ row }) => {
         const val = row.getValue('expiresAt') as string | null;
-        return val ? new Date(val).toLocaleDateString() : '-';
+        return val ? new Date(val).toLocaleDateString() : '—';
       },
     },
     {

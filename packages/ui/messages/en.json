@@ -25,6 +25,7 @@
     "codeHint": "Lowercase letters, digits, underscores. Auto-filled from name; you can override before saving.",
     "codeImmutable": "Codes cannot be changed after creation.",
     "filters": "Filters",
+    "moreActions": "More actions",
     "filtersDescription": "Narrow down results using the filters below.",
     "rowsPerPage": "Rows per page",
     "none": "None",
@@ -89,8 +90,10 @@
     "signInToAccount": "Sign in to your account",
     "invalidCredentials": "Invalid email or password",
     "emailLabel": "Email",
-    "emailPlaceholder": "admin@marketlum.com",
-    "passwordLabel": "Password"
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "users": {
     "title": "Users",
@@ -233,7 +236,8 @@
     "filterCountry": "Country",
     "allTypes": "All types",
     "allTaxonomies": "All taxonomies",
-    "allCountries": "All countries"
+    "allCountries": "All countries",
+    "legendCluster": "Grouped agents — click to zoom in"
   },
   "addresses": {
     "addAddress": "Add address",
@@ -557,7 +561,9 @@
       "value_instance": "Instance",
       "value_stream": "Stream"
     },
-    "viewAll": "View all results"
+    "viewAll": "View all results",
+    "palettePlaceholder": "Search pages, agents, values…",
+    "resultsSection": "Results"
   },
   "accounts": {
     "title": "Accounts",
@@ -761,6 +767,8 @@
     "paid": "Paid",
     "paidYes": "Yes",
     "paidNo": "No",
+    "paidBadge": "Paid",
+    "unpaidBadge": "Unpaid",
     "allPaidStatuses": "All",
     "link": "Link",
     "selectAgent": "Select agent",

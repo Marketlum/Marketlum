@@ -183,8 +183,8 @@ export function InvoiceFormDialog({
           number: invoice.number,
           fromAgentId: invoice.fromAgent?.id ?? '',
           toAgentId: invoice.toAgent?.id ?? '',
-          issuedAt: invoice.issuedAt ? invoice.issuedAt.slice(0, 16) : '',
-          dueAt: invoice.dueAt ? invoice.dueAt.slice(0, 16) : '',
+          issuedAt: invoice.issuedAt ? invoice.issuedAt.slice(0, 10) : '',
+          dueAt: invoice.dueAt ? invoice.dueAt.slice(0, 10) : '',
           currencyId: invoice.currency?.id ?? '',
           market: invoice.market,
           onBehalfOfAgentId: invoice.onBehalfOfAgent?.id ?? null,
@@ -207,12 +207,8 @@ export function InvoiceFormDialog({
           number: prefill.extracted.number ?? '',
           fromAgentId: prefill.extracted.fromAgent.id ?? '',
           toAgentId: prefill.extracted.toAgent.id ?? '',
-          issuedAt: prefill.extracted.issuedAt
-            ? `${prefill.extracted.issuedAt}T00:00`
-            : '',
-          dueAt: prefill.extracted.dueAt
-            ? `${prefill.extracted.dueAt}T00:00`
-            : '',
+          issuedAt: prefill.extracted.issuedAt ?? '',
+          dueAt: prefill.extracted.dueAt ?? '',
           currencyId: prefill.extracted.currency.id ?? '',
           market: InvoiceMarket.EXTERNAL,
           onBehalfOfAgentId: null,
@@ -263,6 +259,15 @@ export function InvoiceFormDialog({
     setItems((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: value };
+      // Keep the total in sync with quantity × unit price; it stays
+      // directly editable for rounding overrides.
+      if (field === 'quantity' || field === 'unitPrice') {
+        const qty = Number(next[index].quantity);
+        const unitPrice = Number(next[index].unitPrice);
+        if (Number.isFinite(qty) && Number.isFinite(unitPrice) && next[index].quantity && next[index].unitPrice) {
+          next[index].total = (qty * unitPrice).toFixed(2);
+        }
+      }
       return next;
     });
   };
@@ -332,14 +337,18 @@ export function InvoiceFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="inv-number">{t('number')}</Label>
+            <Label htmlFor="inv-number">
+              {t('number')} <span className="text-destructive">*</span>
+            </Label>
             <Input id="inv-number" {...register('number')} />
             {errors.number && <p className="text-sm text-destructive">{errors.number.message}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t('from')}</Label>
+              <Label>
+                {t('from')} <span className="text-destructive">*</span>
+              </Label>
               <div className="flex gap-2">
                 <Select
                   value={watch('fromAgentId') || '__none__'}
@@ -402,7 +411,9 @@ export function InvoiceFormDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label>{t('to')}</Label>
+              <Label>
+                {t('to')} <span className="text-destructive">*</span>
+              </Label>
               <div className="flex gap-2">
                 <Select
                   value={watch('toAgentId') || '__none__'}
@@ -479,18 +490,24 @@ export function InvoiceFormDialog({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="inv-issuedAt">{t('issuedAt')}</Label>
-              <Input id="inv-issuedAt" type="datetime-local" {...register('issuedAt')} />
+              <Label htmlFor="inv-issuedAt">
+                {t('issuedAt')} <span className="text-destructive">*</span>
+              </Label>
+              <Input id="inv-issuedAt" type="date" {...register('issuedAt')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="inv-dueAt">{t('dueAt')}</Label>
-              <Input id="inv-dueAt" type="datetime-local" {...register('dueAt')} />
+              <Label htmlFor="inv-dueAt">
+                {t('dueAt')} <span className="text-destructive">*</span>
+              </Label>
+              <Input id="inv-dueAt" type="date" {...register('dueAt')} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t('currency')}</Label>
+              <Label>
+                {t('currency')} <span className="text-destructive">*</span>
+              </Label>
               <ValueCombobox
                 values={currencyOptions}
                 value={watch('currencyId') || null}
@@ -514,19 +531,20 @@ export function InvoiceFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>{t('paid')}</Label>
-              <Select
-                value={watch('paid') ? 'true' : 'false'}
-                onValueChange={(v) => setFormValue('paid', v === 'true')}
+              <Label htmlFor="inv-paid">{t('paid')}</Label>
+              <label
+                htmlFor="inv-paid"
+                className="flex h-9 cursor-pointer items-center gap-2 text-sm"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="false">{t('paidNo')}</SelectItem>
-                  <SelectItem value="true">{t('paidYes')}</SelectItem>
-                </SelectContent>
-              </Select>
+                <input
+                  id="inv-paid"
+                  type="checkbox"
+                  checked={!!watch('paid')}
+                  onChange={(e) => setFormValue('paid', e.target.checked)}
+                  className="h-4 w-4 accent-primary"
+                />
+                <span>{watch('paid') ? t('paidBadge') : t('unpaidBadge')}</span>
+              </label>
             </div>
           </div>
 

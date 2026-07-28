@@ -107,7 +107,10 @@ export function InvoicesDataTable({
   const [paidFilter, setPaidFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
+  // The link column is icon-only and rarely useful — hidden unless opted in.
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    link: false,
+  });
   const [data, setData] = useState<PaginatedResponse<InvoiceRow> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -312,11 +315,10 @@ export function InvoicesDataTable({
       to: t('to'),
       issuedAt: t('issuedAt'),
       dueAt: t('dueAt'),
-      currency: t('currency'),
       total: t('total'),
       paid: t('paid'),
-      paidYes: t('paidYes'),
-      paidNo: t('paidNo'),
+      paidBadge: t('paidBadge'),
+      unpaidBadge: t('unpaidBadge'),
       market: t('market'),
       marketInternal: t('marketInternal'),
       marketExternal: t('marketExternal'),
@@ -335,7 +337,6 @@ export function InvoicesDataTable({
     { id: 'toAgent', label: t('to') },
     { id: 'issuedAt', label: t('issuedAt') },
     { id: 'dueAt', label: t('dueAt') },
-    { id: 'currency', label: t('currency') },
     { id: 'total', label: t('total') },
     { id: 'paid', label: t('paid') },
     { id: 'market', label: t('market') },

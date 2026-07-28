@@ -5,6 +5,7 @@ import { OrderState } from '@marketlum/shared';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { formatDay, formatMoney } from '../../lib/format';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,13 @@ export function orderStateBadgeVariant(
     case OrderState.CANCELLED:
       return 'destructive';
   }
+}
+
+/** In-progress states get a distinct hue so PROCESSING never reads as COMPLETED. */
+export function orderStateBadgeClass(state: OrderState): string | undefined {
+  return state === OrderState.PROCESSING
+    ? 'border-transparent bg-sky-600 text-white hover:bg-sky-600'
+    : undefined;
 }
 
 interface OrderColumnsTranslations {
@@ -93,7 +101,10 @@ export function getOrderColumns({
         </Button>
       ),
       cell: ({ row }) => (
-        <Badge variant={orderStateBadgeVariant(row.original.state)}>
+        <Badge
+          variant={orderStateBadgeVariant(row.original.state)}
+          className={orderStateBadgeClass(row.original.state)}
+        >
           {translations.stateLabels[row.original.state]}
         </Badge>
       ),
@@ -119,11 +130,11 @@ export function getOrderColumns({
     {
       id: 'total',
       header: translations.total,
-      cell: ({ row }) => {
-        const total = row.original.total ?? '0.00';
-        const currency = row.original.currency?.name;
-        return currency ? `${total} ${currency}` : total;
-      },
+      cell: ({ row }) => (
+        <span className="tabular-nums whitespace-nowrap">
+          {formatMoney(row.original.total ?? '0.00', row.original.currency?.name)}
+        </span>
+      ),
       meta: { hideOnMobile: true },
     },
     {
@@ -145,10 +156,7 @@ export function getOrderColumns({
           {translations.placedAt} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) =>
-        row.original.placedAt
-          ? new Date(row.original.placedAt).toLocaleDateString()
-          : '—',
+      cell: ({ row }) => formatDay(row.original.placedAt),
       meta: { hideOnMobile: true },
     },
     {
