@@ -25,6 +25,7 @@ const NODE_COLORS: Record<string, { fill: string; stroke: string }> = {
   organization: { fill: '#93c5fd', stroke: '#60a5fa' },
   individual: { fill: '#86efac', stroke: '#4ade80' },
   virtual: { fill: '#d8b4fe', stroke: '#c084fc' },
+  agent: { fill: '#67e8f9', stroke: '#22d3ee' },
 };
 
 function clamp(min: number, val: number, max: number) {
@@ -349,9 +350,13 @@ export function NetworkGraph() {
             <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#86efac' }} />
             <span>{ta('typeIndividual')}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
             <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#d8b4fe' }} />
             <span>{ta('typeVirtual')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#67e8f9' }} />
+            <span>{ta('typeAgent')}</span>
           </div>
         </div>
       </Card>

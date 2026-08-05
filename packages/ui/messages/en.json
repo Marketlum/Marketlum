@@ -145,6 +145,7 @@
     "typeOrganization": "Organization",
     "typeIndividual": "Individual",
     "typeVirtual": "Virtual",
+    "typeAgent": "Agent",
     "created": "Actor created",
     "updated": "Actor updated",
     "deleted": "Actor deleted",

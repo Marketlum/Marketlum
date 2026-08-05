@@ -11,6 +11,7 @@ const typeTranslationKeys: Record<string, string> = {
   [ActorType.ORGANIZATION]: 'typeOrganization',
   [ActorType.INDIVIDUAL]: 'typeIndividual',
   [ActorType.VIRTUAL]: 'typeVirtual',
+  [ActorType.AGENT]: 'typeAgent',
 };
 
 /** Read-only forest rendering of GET /actors/tree (moves happen on the

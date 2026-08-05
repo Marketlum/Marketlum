@@ -1,4 +1,4 @@
-import { Gem, Bot, User, Layers, Workflow, Flame } from 'lucide-react';
+import { Gem, Drama, User, Layers, Workflow, Flame } from 'lucide-react';
 import type { SearchResult } from '@marketlum/shared';
 
 export const typeConfig: Record<
@@ -6,7 +6,7 @@ export const typeConfig: Record<
   { icon: typeof Gem; variant: 'default' | 'secondary' | 'outline' }
 > = {
   value: { icon: Gem, variant: 'default' },
-  actor: { icon: Bot, variant: 'secondary' },
+  actor: { icon: Drama, variant: 'secondary' },
   user: { icon: User, variant: 'outline' },
   value_instance: { icon: Layers, variant: 'secondary' },
   value_stream: { icon: Workflow, variant: 'secondary' },

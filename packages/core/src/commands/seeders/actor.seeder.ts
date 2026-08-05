@@ -41,6 +41,8 @@ const ACTORS: Array<{
   { name: 'TechNova Onboarding Bots', type: ActorType.VIRTUAL, purpose: 'Automated tenant provisioning workflows', parentName: 'TechNova Solutions' },
   // --- Other virtual actors ---
   { name: 'AutoFlow Bot', type: ActorType.VIRTUAL, purpose: 'Automated order processing actor', parentName: 'Acme Corp' },
+  { name: 'Acme Pricing Agent', type: ActorType.AGENT, purpose: 'AI agent that negotiates and quotes prices', parentName: 'Acme Corp' },
+  { name: 'TechNova Procurement Agent', type: ActorType.AGENT, purpose: 'AI agent sourcing cloud capacity on the market', parentName: 'TechNova Solutions' },
   { name: 'GreenLeaf Audit Team', type: ActorType.VIRTUAL, purpose: 'Supplier sustainability scoring team', parentName: 'GreenLeaf Partners' },
   { name: 'Meridian Freight Analytics', type: ActorType.VIRTUAL, purpose: 'Route and load optimization models', parentName: 'Meridian Logistics Group' },
   { name: 'Helios Grid Watch', type: ActorType.VIRTUAL, purpose: 'Production and grid balancing telemetry', parentName: 'Helios Energy Cooperative' },

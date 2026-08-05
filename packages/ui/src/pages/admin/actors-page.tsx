@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bot } from 'lucide-react';
+import { Drama } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { ActorsDataTable } from '../../components/actors/actors-data-table';
 import { ActorTreeView } from '../../components/actors/actor-tree-view';
@@ -34,7 +34,7 @@ export function ActorsPage() {
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="mb-1 flex items-center gap-2 md:gap-3 text-2xl md:text-3xl font-bold">
-        <Bot className="h-6 w-6 md:h-8 md:w-8" />
+        <Drama className="h-6 w-6 md:h-8 md:w-8" />
         {t('actors.title')}
       </h1>
       <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{t('actors.description')}</p>

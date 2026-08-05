@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { Bot, Plus } from 'lucide-react';
+import { Drama, Plus } from 'lucide-react';
 import type { ActorResponse, CreateActorInput } from '@marketlum/shared';
 import { ActorType } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
@@ -117,7 +117,7 @@ export function SubActorsTable({ actorId }: SubActorsTableProps) {
                         imgClassName="h-full w-full object-cover"
                       />
                     ) : (
-                      <Bot className="h-4 w-4 text-muted-foreground/50" />
+                      <Drama className="h-4 w-4 text-muted-foreground/50" />
                     )}
                   </div>
                 </TableCell>

@@ -13,6 +13,7 @@ Actors are the participants in your market. Every entity that creates, exchanges
 | **Organization** | A company, team, or institution | Acme Corp, Finance Department |
 | **Individual** | A person acting in their own capacity | Freelancer, consultant |
 | **Virtual** | An automated or software-based actor | Payment processor, chatbot |
+| **Agent** | An AI agent acting autonomously in the market | Pricing agent, procurement agent |
 
 ## Properties
 

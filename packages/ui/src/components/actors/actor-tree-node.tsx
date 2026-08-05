@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Bot } from 'lucide-react';
+import { ChevronRight, Drama } from 'lucide-react';
 import type { ActorTreeNode } from '@marketlum/shared';
 import { ActorTypeBadge } from './actor-type-badge';
 import { FileImagePreview } from '../shared/file-image-preview';
@@ -50,7 +50,7 @@ export function ActorTreeNodeComponent({ node, depth, typeLabels }: ActorTreeNod
               imgClassName="h-full w-full object-cover"
             />
           ) : (
-            <Bot className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <Drama className="h-3.5 w-3.5 text-muted-foreground/50" />
           )}
         </div>
 

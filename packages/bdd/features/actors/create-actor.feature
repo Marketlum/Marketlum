@@ -9,6 +9,15 @@ Feature: Create Actor
     And the response should contain an actor with name "Actor One"
     And the response should contain an actor with type "organization"
 
+  Scenario: Successfully create an AI agent actor
+    Given I am authenticated as "admin@marketlum.com"
+    When I create an actor with:
+      | name         | type  | purpose                     |
+      | Pricing Bot  | agent | An AI agent pricing actor   |
+    Then the response status should be 201
+    And the response should contain an actor with name "Pricing Bot"
+    And the response should contain an actor with type "agent"
+
   Scenario: Creating an actor with invalid data fails
     Given I am authenticated as "admin@marketlum.com"
     When I create an actor with:

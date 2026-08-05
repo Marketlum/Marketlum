@@ -53,6 +53,7 @@ function typeClass(type: string): string {
     case ActorType.ORGANIZATION: return 'organization';
     case ActorType.INDIVIDUAL: return 'individual';
     case ActorType.VIRTUAL: return 'virtual';
+    case ActorType.AGENT: return 'agent';
     default: return 'organization';
   }
 }
@@ -170,6 +171,10 @@ export function ActorsMap({ actors, viewActorLabel }: ActorsMapProps) {
         <div className="flex items-center gap-1.5">
           <span className="actor-map-marker type-virtual inline-block shrink-0 !h-3.5 !w-3.5" />
           <span>{t('typeVirtual')}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="actor-map-marker type-agent inline-block shrink-0 !h-3.5 !w-3.5" />
+          <span>{t('typeAgent')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/80 text-[9px] font-semibold text-white">

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Gem, Bot, User, Layers, Workflow, Flame, Loader2 } from 'lucide-react';
+import { Search, Gem, Drama, User, Layers, Workflow, Flame, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { api } from '../../lib/api-client';
 import { Input } from '../../components/ui/input';
@@ -23,7 +23,7 @@ const typeConfig: Record<
   { icon: typeof Gem; variant: 'default' | 'secondary' | 'outline' }
 > = {
   value: { icon: Gem, variant: 'default' },
-  actor: { icon: Bot, variant: 'secondary' },
+  actor: { icon: Drama, variant: 'secondary' },
   user: { icon: User, variant: 'outline' },
   value_instance: { icon: Layers, variant: 'secondary' },
   value_stream: { icon: Workflow, variant: 'secondary' },

@@ -144,6 +144,7 @@
     "typeOrganization": "Organizacja",
     "typeIndividual": "Osoba",
     "typeVirtual": "Wirtualny",
+    "typeAgent": "Agent",
     "created": "Aktor utworzony",
     "updated": "Aktor zaktualizowany",
     "deleted": "Aktor usunięty",

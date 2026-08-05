@@ -25,6 +25,7 @@
 .actor-map-marker.type-organization { background: #4f46e5; }
 .actor-map-marker.type-individual { background: #059669; }
 .actor-map-marker.type-virtual { background: #d97706; }
+.actor-map-marker.type-agent { background: #0891b2; }
 
 .actor-map-popup .actor-name { font-weight: 600; font-size: 0.95rem; margin: 0 0 0.25rem 0; }
 .actor-map-popup .actor-type-badge {

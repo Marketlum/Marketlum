@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Bot, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart, KeyRound, ShieldCheck } from 'lucide-react';
+import { Users, Drama, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart, KeyRound, ShieldCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { canPermission, type AuthMeResponse } from '@marketlum/shared';
 import { getMe, logout } from '../lib/auth';
@@ -98,7 +98,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     ]},
     { key: 'exchange', label: t('groupExchange'), items: [
       { href: '/admin/tensions', label: t('tensions'), icon: Flame, resource: 'tensions' },
-      { href: '/admin/actors', label: t('actors'), icon: Bot, resource: 'actors' },
+      { href: '/admin/actors', label: t('actors'), icon: Drama, resource: 'actors' },
       { href: '/admin/agreements', label: t('agreements'), icon: Handshake, resource: 'agreements' },
       { href: '/admin/offerings', label: t('offerings'), icon: Package, resource: 'offerings' },
       { href: '/admin/exchanges', label: t('exchanges'), icon: ArrowRightLeft, resource: 'exchanges' },

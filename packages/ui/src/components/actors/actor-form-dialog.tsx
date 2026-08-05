@@ -48,6 +48,7 @@ const typeTranslationKeys: Record<string, string> = {
   [ActorType.ORGANIZATION]: 'typeOrganization',
   [ActorType.INDIVIDUAL]: 'typeIndividual',
   [ActorType.VIRTUAL]: 'typeVirtual',
+  [ActorType.AGENT]: 'typeAgent',
 };
 
 interface ActorFormDialogProps {

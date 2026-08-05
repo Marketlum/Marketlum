@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, User, Bot } from 'lucide-react';
+import { Building2, User, Bot, Ghost } from 'lucide-react';
 import { Badge } from '../ui/badge';
 
 const actorTypeConfig: Record<string, { icon: typeof Building2; className: string }> = {
@@ -13,8 +13,12 @@ const actorTypeConfig: Record<string, { icon: typeof Building2; className: strin
     className: 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300',
   },
   virtual: {
-    icon: Bot,
+    icon: Ghost,
     className: 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300',
+  },
+  agent: {
+    icon: Bot,
+    className: 'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950 dark:text-cyan-300',
   },
 };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Bot } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Drama } from 'lucide-react';
 import type { TensionResponse } from '@marketlum/shared';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -70,7 +70,7 @@ export function getTensionColumns({
                   imgClassName="h-full w-full object-cover"
                 />
               ) : (
-                <Bot className="h-3 w-3 text-muted-foreground/50" />
+                <Drama className="h-3 w-3 text-muted-foreground/50" />
               )}
             </div>
             <span>{actor.name}</span>

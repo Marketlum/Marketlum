@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Bot, Pencil, Trash2, ArrowLeft, FolderTree } from 'lucide-react';
+import { Drama, Pencil, Trash2, ArrowLeft, FolderTree } from 'lucide-react';
 import type { ActorResponse, CreateActorInput } from '@marketlum/shared';
 import { useActors } from '../../hooks/use-actors';
 import { api, ApiError } from '../../lib/api-client';
@@ -62,6 +62,7 @@ const typeTranslationKeys: Record<string, string> = {
   organization: 'typeOrganization',
   individual: 'typeIndividual',
   virtual: 'typeVirtual',
+  agent: 'typeAgent',
 };
 
 export function ActorDetailPage() {
@@ -227,7 +228,7 @@ export function ActorDetailPage() {
               imgClassName="h-full w-full object-cover"
             />
           ) : (
-            <Bot className="h-12 w-12 text-muted-foreground/50" />
+            <Drama className="h-12 w-12 text-muted-foreground/50" />
           )}
         </div>
         <div className="flex-1 min-w-0">
