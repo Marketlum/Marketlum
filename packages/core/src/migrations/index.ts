@@ -58,6 +58,7 @@ import { AddOrders1700000000056 } from './1700000000056-AddOrders';
 import { AddApiKeys1700000000057 } from './1700000000057-AddApiKeys';
 import { AddRoles1700000000058 } from './1700000000058-AddRoles';
 import { AddOnBehalfInvoicing1700000000059 } from './1700000000059-AddOnBehalfInvoicing';
+import { RenameAgentsToActors1700000000060 } from './1700000000060-RenameAgentsToActors';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -120,4 +121,5 @@ export const ALL_MIGRATIONS = [
   AddApiKeys1700000000057,
   AddRoles1700000000058,
   AddOnBehalfInvoicing1700000000059,
+  RenameAgentsToActors1700000000060,
 ];
