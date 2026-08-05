@@ -17,7 +17,7 @@ marketlum.<entity_snake_case>.<verb>
 - `<verb>` is one of `created`, `updated`, `deleted`.
 - `<entity_snake_case>` is the lowercase, snake_case form of the entity class (`value`, `value_stream`, `exchange_rate`, &hellip;).
 
-So when an admin creates a value through the UI or API, `marketlum.value.created` fires; when they delete an agent, `marketlum.agent.deleted` fires.
+So when an admin creates a value through the UI or API, `marketlum.value.created` fires; when they delete an actor, `marketlum.actor.deleted` fires.
 
 ## Event envelope
 
@@ -44,7 +44,7 @@ import type {
   ValueCreatedEvent,
   ValueUpdatedEvent,
   ValueDeletedEvent,
-  AgentCreatedEvent,
+  ActorCreatedEvent,
   // ...
 } from '@marketlum/shared';
 ```
@@ -109,7 +109,7 @@ The bus emits for these 24 primary entities. Each row contributes three event na
 | Entity              | Event prefix                          |
 |---------------------|---------------------------------------|
 | `User`              | `marketlum.user.*`                    |
-| `Agent`             | `marketlum.agent.*`                   |
+| `Actor`             | `marketlum.actor.*`                   |
 | `Taxonomy`          | `marketlum.taxonomy.*`                |
 | `File`              | `marketlum.file.*`                    |
 | `Value`             | `marketlum.value.*`                   |
@@ -144,7 +144,7 @@ Some tables are modelled as children of a primary entity and do **not** emit the
 | `ExchangeFlow`        | `Exchange`  |
 | `InvoiceItem`         | `Invoice`   |
 | `OfferingComponent`   | `Offering`  |
-| `Address`             | `Agent`     |
+| `Address`             | `Actor`     |
 | `Folder`              | `File`      |
 
 So if you add a line item to an invoice, you&apos;ll see `marketlum.invoice.updated` &mdash; not `marketlum.invoice_item.created`. Subscribe at the parent boundary.

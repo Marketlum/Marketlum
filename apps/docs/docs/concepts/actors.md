@@ -2,9 +2,9 @@
 sidebar_position: 2
 ---
 
-# Agents
+# Actors
 
-Agents are the participants in your market. Every entity that creates, exchanges, or consumes value is modeled as an agent.
+Actors are the participants in your market. Every entity that creates, exchanges, or consumes value is modeled as an actor.
 
 ## Types
 
@@ -16,14 +16,14 @@ Agents are the participants in your market. Every entity that creates, exchanges
 
 ## Properties
 
-- **Name** &mdash; the agent's display name
-- **Purpose** &mdash; what this agent does in the market
+- **Name** &mdash; the actor's display name
+- **Purpose** &mdash; what this actor does in the market
 - **Taxonomies** &mdash; classification categories (main taxonomy + additional)
 - **Image** &mdash; optional visual identifier
 
 ## Relationships
 
-Agents appear throughout the system:
+Actors appear throughout the system:
 
 - As **parties** in exchanges
 - As **issuers** and **recipients** of invoices

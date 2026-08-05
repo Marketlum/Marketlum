@@ -25,5 +25,5 @@ Each component references a value and specifies:
 
 ## Relationships
 
-- **Agent** &mdash; the provider of the offering
+- **Actor** &mdash; the provider of the offering
 - **Value stream** &mdash; the stream this offering belongs to

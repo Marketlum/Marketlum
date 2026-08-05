@@ -40,7 +40,7 @@ This Docusaurus site. Markdown lives in `apps/docs/docs/`, sidebar config in `ap
 
 ### `@marketlum/core`
 
-The bulk of the framework. NestJS modules (auth, users, agents, values, taxonomies, exchanges, etc.), TypeORM entities, services, controllers, CLI seed commands, and database migrations all live here. Public exports are listed in `packages/core/src/index.ts`.
+The bulk of the framework. NestJS modules (auth, users, actors, values, taxonomies, exchanges, etc.), TypeORM entities, services, controllers, CLI seed commands, and database migrations all live here. Public exports are listed in `packages/core/src/index.ts`.
 
 When designing a new feature, default to putting it here unless it&apos;s genuinely UI-only or schema-only.
 

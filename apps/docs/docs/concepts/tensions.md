@@ -14,7 +14,7 @@ A tension captures:
 - **Current context** &mdash; what the situation looks like today
 - **Potential future** &mdash; what could be achieved
 - **Score** &mdash; urgency/importance rating from 1 to 10
-- **Agent** &mdash; the entity experiencing the tension
+- **Actor** &mdash; the entity experiencing the tension
 - **Lead user** &mdash; the person responsible for addressing it
 
 ## Purpose

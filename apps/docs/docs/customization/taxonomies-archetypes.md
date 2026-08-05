@@ -4,14 +4,14 @@ sidebar_position: 9
 
 # Taxonomies & Archetypes
 
-Most domain customization in Marketlum is **configuration, not code**. Taxonomies and archetypes let you reshape the meaning of values, agents, and value streams without writing TypeScript or running migrations. Everything in this page is editable from the admin UI by an authenticated admin user.
+Most domain customization in Marketlum is **configuration, not code**. Taxonomies and archetypes let you reshape the meaning of values, actors, and value streams without writing TypeScript or running migrations. Everything in this page is editable from the admin UI by an authenticated admin user.
 
 ## When to use config vs. code
 
 | Need | Approach |
 |------|----------|
 | Categorize values into product / service / right / relationship | Taxonomy |
-| Group agents by role or segment | Taxonomy |
+| Group actors by role or segment | Taxonomy |
 | Define a recurring shape for values (e.g. &quot;SaaS subscription&quot;) | Archetype |
 | Add a structured field to every value of a kind | Archetype (custom property) |
 | Add an entirely new entity type | Code &mdash; see [Extending the API](/customization/extending-api) |
@@ -21,7 +21,7 @@ If your need fits in the top half of the table, prefer the admin UI. You avoid m
 
 ## Taxonomies
 
-A taxonomy is a labeled tree. Each node can be attached to a value, agent, value stream, exchange, or other taggable entity. The framework ships with a small set of starter taxonomies; you can add your own from the **Taxonomies** admin page.
+A taxonomy is a labeled tree. Each node can be attached to a value, actor, value stream, exchange, or other taggable entity. The framework ships with a small set of starter taxonomies; you can add your own from the **Taxonomies** admin page.
 
 Typical taxonomies a market might define:
 
@@ -52,7 +52,7 @@ Manage archetypes from the **Archetypes** admin page.
 
 ## Locales
 
-Domain-content translations (names and descriptions of values, agents, etc.) live in the database as `Locale` rows. They are separate from UI strings (see [Translations & Locales](/customization/translations)).
+Domain-content translations (names and descriptions of values, actors, etc.) live in the database as `Locale` rows. They are separate from UI strings (see [Translations & Locales](/customization/translations)).
 
 Add or remove locales from the **Locales** admin page. Every translatable record carries a per-locale name and description; the active locale at request time determines what the user sees.
 

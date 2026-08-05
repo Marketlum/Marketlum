@@ -10,7 +10,7 @@ Exchanges represent transactions between market participants. They are the prima
 
 An exchange consists of:
 
-- **Parties** &mdash; two or more agents involved, each with a role (e.g., Seller, Buyer)
+- **Parties** &mdash; two or more actors involved, each with a role (e.g., Seller, Buyer)
 - **Flows** &mdash; the directional movement of values between parties
 - **State** &mdash; the current status of the exchange
 
@@ -27,7 +27,7 @@ Exchanges follow a state machine: **Open** &rarr; **Completed** or **Closed**.
 
 Each flow represents a directional transfer of value:
 
-- **From agent** &rarr; **To agent**
+- **From actor** &rarr; **To actor**
 - References a specific **value** or **value instance**
 - Includes a **quantity**
 

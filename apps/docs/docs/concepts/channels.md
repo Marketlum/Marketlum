@@ -12,7 +12,7 @@ A channel has:
 
 - **Name** and **purpose**
 - **Color** &mdash; for visual identification
-- **Agent** &mdash; optional owner or operator of the channel
+- **Actor** &mdash; optional owner or operator of the channel
 
 ## Hierarchy
 

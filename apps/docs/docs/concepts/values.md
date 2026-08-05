@@ -28,4 +28,4 @@ Each value has a lifecycle stage: **Idea**, **Alpha**, **Beta**, **Stable**, or 
 
 ## Value Instances
 
-A value instance is a concrete realization of a value &mdash; a specific license sold to a specific customer, a particular project engagement, etc. Instances track version, expiration, and the agents involved (from/to).
+A value instance is a concrete realization of a value &mdash; a specific license sold to a specific customer, a particular project engagement, etc. Instances track version, expiration, and the actors involved (from/to).

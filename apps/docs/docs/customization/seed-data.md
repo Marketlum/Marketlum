@@ -91,7 +91,7 @@ You can inject any service exported from `@marketlum/core`. Common ones for seed
 | Service | Purpose |
 |---------|---------|
 | `UsersService` | Create users (hashes passwords) |
-| `AgentsService` | Create organizations / people / virtual agents |
+| `ActorsService` | Create organizations / people / virtual actors |
 | `TaxonomiesService` | Create taxonomy trees |
 | `LocalesService` | Add languages to the database |
 | `GeographiesService` | Add country/region records |

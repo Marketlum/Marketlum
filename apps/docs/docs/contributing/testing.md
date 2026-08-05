@@ -23,7 +23,7 @@ This rebuilds `@marketlum/shared` and `@marketlum/core` first (because tests imp
 pnpm test:e2e -- --testPathPattern=auth
 
 # Single test file
-pnpm test:e2e -- apps/api/test/agents/agents.steps.ts
+pnpm test:e2e -- apps/api/test/actors/actors.steps.ts
 
 # Single scenario name
 pnpm test:e2e -- -t "Authenticated user creates"
@@ -86,12 +86,12 @@ import request from 'supertest';  // v7+ default export, not `* as`
 
 // GET with auth cookie
 await request(getApp().getHttpServer())
-  .get('/agents')
+  .get('/actors')
   .set('Cookie', cookie);
 
 // POST with CSRF header
 await request(getApp().getHttpServer())
-  .post('/agents')
+  .post('/actors')
   .set('Cookie', cookie)
   .set('X-CSRF-Protection', '1')
   .send({ name: 'Acme' });

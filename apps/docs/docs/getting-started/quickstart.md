@@ -14,7 +14,7 @@ After [installation](/getting-started/installation), populate the database with 
 pnpm seed:sample
 ```
 
-This creates interconnected data across all entity types: agents, value streams, values, exchanges, offerings, invoices, and more.
+This creates interconnected data across all entity types: actors, value streams, values, exchanges, offerings, invoices, and more.
 
 To start fresh, use the `--reset` flag to truncate all tables before seeding:
 
@@ -37,11 +37,11 @@ Navigate to [http://localhost:3000/login](http://localhost:3000/login) and log i
 | Page | What you'll find |
 |------|-----------------|
 | **Value Streams** | Hierarchical view of value flows, with circle packing visualization |
-| **Agents** | Market participants (organizations, individuals, virtual actors) |
+| **Actors** | Market participants (organizations, individuals, virtual actors) |
 | **Values** | Products, services, rights, and relationships with parent-child hierarchies |
-| **Exchanges** | Transactions between agents with flow graphs |
+| **Exchanges** | Transactions between actors with flow graphs |
 | **Offerings** | Bundled values with pricing components |
-| **Invoices** | Financial documents between agents |
+| **Invoices** | Financial documents between actors |
 | **Agreements** | Governance documents with templates |
 
 ## API Documentation

@@ -9,10 +9,10 @@ Marketlum is an open-source framework for building markets. It provides the foun
 
 ## What is Marketlum?
 
-Markets are complex systems where agents create, exchange, and consume value. Marketlum gives you a structured way to model these dynamics:
+Markets are complex systems where actors create, exchange, and consume value. Marketlum gives you a structured way to model these dynamics:
 
 - **Value Streams** organize how value flows through your market
-- **Agents** represent the participants (organizations, individuals, or virtual actors)
+- **Actors** represent the participants (organizations, individuals, or virtual actors)
 - **Values** define what is produced, traded, and consumed (products, services, rights, relationships)
 - **Exchanges** capture the actual transactions between parties
 - **Offerings** package values into purchasable bundles

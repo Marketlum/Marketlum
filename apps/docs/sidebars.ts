@@ -17,7 +17,7 @@ const sidebars: SidebarsConfig = {
       label: 'Concepts',
       items: [
         'concepts/value-streams',
-        'concepts/agents',
+        'concepts/actors',
         'concepts/values',
         'concepts/exchanges',
         'concepts/offerings',

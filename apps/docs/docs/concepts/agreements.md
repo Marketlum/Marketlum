@@ -11,7 +11,7 @@ Agreements formalize the rules, terms, and commitments between market participan
 An agreement consists of:
 
 - **Title** and optional **content** (rich text)
-- **Parties** &mdash; two or more agents bound by the agreement
+- **Parties** &mdash; two or more actors bound by the agreement
 - **Template** &mdash; optional reference to an agreement template
 - **File** &mdash; optional attached document
 
