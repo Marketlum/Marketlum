@@ -2,7 +2,7 @@ Feature: MCP Tool Listing
 
   Scenario: An administrator sees the full tool catalog
     Given I am authenticated as "admin@marketlum.com"
-    And I have created an API key named "Agent"
+    And I have created an API key named "Actor"
     When I list the MCP tools using the API key
     Then the MCP tool list should contain exactly 11 tools
 

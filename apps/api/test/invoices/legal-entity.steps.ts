@@ -16,7 +16,7 @@ const feature = loadFeature(
 interface Ctx {
   authCookie: string;
   valueIds: Map<string, string>;
-  agentIds: Map<string, string>;
+  actorIds: Map<string, string>;
   invoiceId: string;
   response: request.Response;
 }
@@ -25,7 +25,7 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     valueIds: new Map(),
-    agentIds: new Map(),
+    actorIds: new Map(),
     invoiceId: '',
     response: {} as request.Response,
   };
@@ -44,20 +44,20 @@ async function createValue(ctx: Ctx, name: string): Promise<void> {
   ctx.valueIds.set(name, res.body.id);
 }
 
-async function createAgent(
+async function createActor(
   ctx: Ctx,
   name: string,
   type: string,
   parentName?: string,
 ): Promise<void> {
   const body: Record<string, unknown> = { name, type };
-  if (parentName) body.parentId = ctx.agentIds.get(parentName);
+  if (parentName) body.parentId = ctx.actorIds.get(parentName);
   const res = await request(server())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send(body);
-  ctx.agentIds.set(name, res.body.id);
+  ctx.actorIds.set(name, res.body.id);
 }
 
 async function createInvoice(
@@ -73,8 +73,8 @@ async function createInvoice(
     .set('X-CSRF-Protection', '1')
     .send({
       number,
-      fromAgentId: ctx.agentIds.get(from),
-      toAgentId: ctx.agentIds.get(to),
+      fromActorId: ctx.actorIds.get(from),
+      toActorId: ctx.actorIds.get(to),
       currencyId: ctx.valueIds.get('USD'),
       issuedAt: '2026-01-15T00:00:00.000Z',
       dueAt: '2026-02-15T00:00:00.000Z',
@@ -93,17 +93,17 @@ function registerBackground(ctx: Ctx, given: StepFn, and: StepFn) {
   and(/^a currency value exists named "(.*)"$/, async (name: string) => {
     await createValue(ctx, name);
   });
-  and(/^an agent exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
-    await createAgent(ctx, name, type);
+  and(/^an actor exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
+    await createActor(ctx, name, type);
   });
   and(
-    /^an agent exists named "(.*)" of type "(.*)" under parent "(.*)"$/,
+    /^an actor exists named "(.*)" of type "(.*)" under parent "(.*)"$/,
     async (name: string, type: string, parent: string) => {
-      await createAgent(ctx, name, type, parent);
+      await createActor(ctx, name, type, parent);
     },
   );
-  and(/^an agent exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
-    await createAgent(ctx, name, type);
+  and(/^an actor exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
+    await createActor(ctx, name, type);
   });
 }
 
@@ -143,7 +143,7 @@ defineFeature(feature, (test) => {
     await teardownApp();
   });
 
-  test('A virtual agent cannot issue an external invoice', ({ given, and, when, then }) => {
+  test('A virtual actor cannot issue an external invoice', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     registerCreateWhen(ctx, when);
@@ -157,23 +157,23 @@ defineFeature(feature, (test) => {
     registerStatus(ctx, then);
   });
 
-  test('A virtual agent can issue an internal invoice', ({ given, and, when, then }) => {
+  test('A virtual actor can issue an internal invoice', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     registerCreateWhen(ctx, when);
     registerStatus(ctx, then);
   });
 
-  test("Updating an external invoice's issuer to a virtual agent is rejected", ({ given, and, when, then }) => {
+  test("Updating an external invoice's issuer to a virtual actor is rejected", ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     registerExistingInvoice(ctx, given);
-    when(/^I update the invoice's from agent to "(.*)"$/, async (name: string) => {
+    when(/^I update the invoice's from actor to "(.*)"$/, async (name: string) => {
       ctx.response = await request(server())
         .patch(`/invoices/${ctx.invoiceId}`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ fromAgentId: ctx.agentIds.get(name) });
+        .send({ fromActorId: ctx.actorIds.get(name) });
     });
     registerStatus(ctx, then);
   });

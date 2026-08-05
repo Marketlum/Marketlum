@@ -1,8 +1,8 @@
-Feature: Delete agent address
+Feature: Delete actor address
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent "Acme Corp" of type "organization" exists
+    And an actor "Acme Corp" of type "organization" exists
     And a country "Poland" with code "PL" exists
     And a country "Germany" with code "DE" exists
 

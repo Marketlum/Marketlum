@@ -2,7 +2,7 @@ Feature: Search Tensions
 
   Scenario: Full-text search finds tensions by name
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Search Corp"
+    And an actor exists with name "Search Corp"
     And a tension exists with name "Renewable Energy Gap"
     And a tension exists with name "Digital Transformation"
     When I search the global search for "Renewable Energy"
@@ -11,7 +11,7 @@ Feature: Search Tensions
 
   Scenario: Full-text search finds tensions by currentContext
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Context Corp"
+    And an actor exists with name "Context Corp"
     And a tension exists with name "Context Tension" with currentContext "blockchain distributed ledger technology"
     When I search the global search for "blockchain distributed"
     Then the response status should be 200

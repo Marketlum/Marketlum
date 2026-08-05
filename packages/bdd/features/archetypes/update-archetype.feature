@@ -22,7 +22,7 @@ Feature: Update Archetype
     And a taxonomy exists with name "Industry"
     And a taxonomy exists with name "Region"
     And a taxonomy exists with name "Size"
-    And an archetype exists with name "Typed Agent" and taxonomies "Industry,Region"
+    And an archetype exists with name "Typed Actor" and taxonomies "Industry,Region"
     When I replace the archetype taxonomies with "Region,Size"
     Then the response status should be 200
     And the response should contain 2 taxonomies
@@ -31,7 +31,7 @@ Feature: Update Archetype
   Scenario: Clear archetype taxonomies
     Given I am authenticated as "admin@marketlum.com"
     And a taxonomy exists with name "Industry"
-    And an archetype exists with name "Typed Agent" and taxonomies "Industry"
+    And an archetype exists with name "Typed Actor" and taxonomies "Industry"
     When I replace the archetype taxonomies with an empty list
     Then the response status should be 200
     And the response should contain 0 taxonomies

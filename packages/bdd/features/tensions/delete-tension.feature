@@ -2,15 +2,15 @@ Feature: Delete Tension
 
   Scenario: Delete tension
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Delete Agent"
+    And an actor exists with name "Delete Actor"
     And a tension exists with name "Deletable Tension"
     When I delete the tension "Deletable Tension"
     Then the response status should be 204
 
   Scenario: Exchanges referencing deleted tension get null tensionId
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Exchange Agent A"
-    And an agent exists with name "Exchange Agent B"
+    And an actor exists with name "Exchange Actor A"
+    And an actor exists with name "Exchange Actor B"
     And a tension exists with name "Linked Tension"
     And an exchange exists with name "Linked Exchange" referencing tension "Linked Tension"
     When I delete the tension "Linked Tension"

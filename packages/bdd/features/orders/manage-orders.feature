@@ -2,21 +2,21 @@ Feature: Manage Orders
 
   Scenario: Create a draft order with required references
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     When I create an order from "Seller Corp" to "Buyer Inc" in currency "USD"
     Then the response status should be 201
     And the response should contain an order with state "draft"
     And the order number matches the order number format
-    And the response should contain a fromAgent with name "Seller Corp"
-    And the response should contain a toAgent with name "Buyer Inc"
+    And the response should contain a fromActor with name "Seller Corp"
+    And the response should contain a toActor with name "Buyer Inc"
     And the response should contain a currency with name "USD"
 
   Scenario: Order numbers are generated and unique
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     When I create an order from "Seller Corp" to "Buyer Inc" in currency "USD"
     And I create another order from "Seller Corp" to "Buyer Inc" in currency "USD"
@@ -25,8 +25,8 @@ Feature: Manage Orders
 
   Scenario: Create an order with channel, pipeline and locale
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And a channel exists with name "Online Store"
     And a pipeline exists with name "Direct Sales"
@@ -37,17 +37,17 @@ Feature: Manage Orders
     And the response should contain a pipeline with name "Direct Sales"
     And the response should contain a locale with code "en"
 
-  Scenario: Reject an unknown fromAgent
+  Scenario: Reject an unknown fromActor
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
-    When I create an order with a non-existent fromAgent
+    When I create an order with a non-existent fromActor
     Then the response status should be 404
 
   Scenario: Reject a non-currency value as the order currency
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "Widget A"
     When I create an order from "Seller Corp" to "Buyer Inc" in currency "Widget A"
     Then the response status should be 400
@@ -59,8 +59,8 @@ Feature: Manage Orders
 
   Scenario: Update a draft order
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And a channel exists with name "Online Store"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
@@ -70,8 +70,8 @@ Feature: Manage Orders
 
   Scenario: Reject updating a placed order
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And a channel exists with name "Online Store"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
@@ -81,8 +81,8 @@ Feature: Manage Orders
 
   Scenario: Delete a draft order
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
     When I delete the order
@@ -90,8 +90,8 @@ Feature: Manage Orders
 
   Scenario: Reject deleting a placed order
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
     And the order is placed
@@ -100,8 +100,8 @@ Feature: Manage Orders
 
   Scenario: Delete a cancelled order
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
     And the order is cancelled

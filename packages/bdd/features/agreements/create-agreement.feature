@@ -2,8 +2,8 @@ Feature: Create Agreement
 
   Scenario: Successfully create a root agreement with parties
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     When I create an agreement with:
       | title              | content           |
       | Trade Agreement    | Agreement terms   |
@@ -14,8 +14,8 @@ Feature: Create Agreement
 
   Scenario: Successfully create a child agreement
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And a root agreement exists with title "Master Agreement"
     When I create a child agreement with parent "Master Agreement":
       | title              |
@@ -25,8 +25,8 @@ Feature: Create Agreement
 
   Scenario: Create agreement with file and link
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And a file exists with name "contract.pdf"
     When I create an agreement with file and link:
       | title              | link                    |
@@ -38,21 +38,21 @@ Feature: Create Agreement
 
   Scenario: Creating an agreement with empty title fails
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     When I create an agreement with empty title
     Then the response status should be 400
 
   Scenario: Creating an agreement with fewer than 2 parties fails
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
+    And an actor exists with name "Party A"
     When I create an agreement with 1 party
     Then the response status should be 400
 
   Scenario: Creating an agreement with non-existent parent fails
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     When I create an agreement with non-existent parent
     Then the response status should be 404
 

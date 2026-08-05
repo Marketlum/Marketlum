@@ -16,7 +16,7 @@ const feature = loadFeature(
 interface Ctx {
   authCookie: string;
   valueIds: Map<string, string>;
-  agentIds: Map<string, string>;
+  actorIds: Map<string, string>;
   sourceId: string;
   sourceBody: Record<string, any>;
   mirrorBody: Record<string, any> | null;
@@ -27,7 +27,7 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     valueIds: new Map(),
-    agentIds: new Map(),
+    actorIds: new Map(),
     sourceId: '',
     sourceBody: {},
     mirrorBody: null,
@@ -49,7 +49,7 @@ async function createValue(ctx: Ctx, name: string): Promise<void> {
   ctx.valueIds.set(name, res.body.id);
 }
 
-async function createAgent(
+async function createActor(
   ctx: Ctx,
   name: string,
   type: string,
@@ -61,13 +61,13 @@ async function createAgent(
     type,
     functionalCurrencyId: ctx.valueIds.get(currencyName),
   };
-  if (parentName) body.parentId = ctx.agentIds.get(parentName);
+  if (parentName) body.parentId = ctx.actorIds.get(parentName);
   const res = await request(server())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send(body);
-  ctx.agentIds.set(name, res.body.id);
+  ctx.actorIds.set(name, res.body.id);
 }
 
 async function createRate(
@@ -102,14 +102,14 @@ async function createInvoice(
 ): Promise<request.Response> {
   const body: Record<string, unknown> = {
     number: args.number,
-    fromAgentId: ctx.agentIds.get(args.from),
-    toAgentId: ctx.agentIds.get(args.to),
+    fromActorId: ctx.actorIds.get(args.from),
+    toActorId: ctx.actorIds.get(args.to),
     currencyId: ctx.valueIds.get('USD'),
     issuedAt: '2026-01-15T00:00:00.000Z',
     dueAt: '2026-02-15T00:00:00.000Z',
     market: args.market,
   };
-  if (args.onBehalfOf) body.onBehalfOfAgentId = ctx.agentIds.get(args.onBehalfOf);
+  if (args.onBehalfOf) body.onBehalfOfActorId = ctx.actorIds.get(args.onBehalfOf);
   if (args.itemTotal) {
     body.items = [{ quantity: '1.00', unitPrice: args.itemTotal, total: args.itemTotal }];
   }
@@ -152,21 +152,21 @@ function registerBackground(ctx: Ctx, given: StepFn, and: StepFn) {
     await createValue(ctx, name);
   });
   and(
-    /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
+    /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
     async (name: string, type: string, currency: string) => {
-      await createAgent(ctx, name, type, currency);
+      await createActor(ctx, name, type, currency);
     },
   );
   and(
-    /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
+    /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
     async (name: string, type: string, currency: string, parent: string) => {
-      await createAgent(ctx, name, type, currency, parent);
+      await createActor(ctx, name, type, currency, parent);
     },
   );
   and(
-    /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
+    /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
     async (name: string, type: string, currency: string) => {
-      await createAgent(ctx, name, type, currency);
+      await createActor(ctx, name, type, currency);
     },
   );
 }
@@ -246,9 +246,9 @@ defineFeature(feature, (test) => {
     registerBackground(ctx, given, and);
     registerCreateOnBehalfWithItem(ctx, when);
     registerStatus(ctx, then);
-    and(/^the response invoice on-behalf agent should be "(.*)"$/, (name: string) => {
-      expect(ctx.response.body.onBehalfOfAgent).not.toBeNull();
-      expect(ctx.response.body.onBehalfOfAgent.name).toBe(name);
+    and(/^the response invoice on-behalf actor should be "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.onBehalfOfActor).not.toBeNull();
+      expect(ctx.response.body.onBehalfOfActor.name).toBe(name);
     });
     and(/^the response invoice should link a mirror numbered "(.*)"$/, (number: string) => {
       expect(ctx.response.body.mirrorInvoice).not.toBeNull();
@@ -260,8 +260,8 @@ defineFeature(feature, (test) => {
         const mirror = await fetchMirror(ctx);
         expect(mirror).not.toBeNull();
         expect(mirror!.market).toBe('internal');
-        expect(mirror!.fromAgent.name).toBe(from);
-        expect(mirror!.toAgent.name).toBe(to);
+        expect(mirror!.fromActor.name).toBe(from);
+        expect(mirror!.toActor.name).toBe(to);
         expect(mirror!.sourceInvoice).not.toBeNull();
         expect(mirror!.sourceInvoice.id).toBe(ctx.sourceId);
       },
@@ -283,7 +283,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test("Mirror items are snapshotted in the sub-agent's functional currency", ({ given, and, when, then }) => {
+  test("Mirror items are snapshotted in the sub-actor's functional currency", ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     given(/^a currency value exists named "(.*)"$/, async (name: string) => {
@@ -296,17 +296,17 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
+      /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
       async (name: string, type: string, currency: string, parent: string) => {
-        await createAgent(ctx, name, type, currency, parent);
+        await createActor(ctx, name, type, currency, parent);
       },
     );
     registerCreateOnBehalfWithItem(ctx, when);
     registerStatus(ctx, then);
-    and(/^the mirror invoice from-agent total should be "(.*)"$/, async (total: string) => {
+    and(/^the mirror invoice from-actor total should be "(.*)"$/, async (total: string) => {
       const mirror = await fetchMirror(ctx);
       expect(mirror).not.toBeNull();
-      expect(mirror!.fromAgentTotal).toBe(total);
+      expect(mirror!.fromActorTotal).toBe(total);
     });
   });
 
@@ -328,13 +328,13 @@ defineFeature(feature, (test) => {
     registerStatus(ctx, then);
   });
 
-  test('The on-behalf agent must not be a legal entity', ({ given, and, when, then }) => {
+  test('The on-behalf actor must not be a legal entity', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     given(
-      /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
+      /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
       async (name: string, type: string, currency: string, parent: string) => {
-        await createAgent(ctx, name, type, currency, parent);
+        await createActor(ctx, name, type, currency, parent);
       },
     );
     when(
@@ -352,13 +352,13 @@ defineFeature(feature, (test) => {
     registerStatus(ctx, then);
   });
 
-  test('The on-behalf agent must be a descendant of the issuer', ({ given, and, when, then }) => {
+  test('The on-behalf actor must be a descendant of the issuer', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     given(
-      /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
+      /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
       async (name: string, type: string, currency: string) => {
-        await createAgent(ctx, name, type, currency);
+        await createActor(ctx, name, type, currency);
       },
     );
     when(
@@ -439,17 +439,17 @@ defineFeature(feature, (test) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     registerExistingOnBehalf(ctx, given);
-    when(/^I clear the invoice's on-behalf agent$/, async () => {
+    when(/^I clear the invoice's on-behalf actor$/, async () => {
       ctx.response = await request(server())
         .patch(`/invoices/${ctx.sourceId}`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ onBehalfOfAgentId: null });
+        .send({ onBehalfOfActorId: null });
     });
     registerStatus(ctx, then);
     and(/^the response invoice should have no mirror$/, () => {
       expect(ctx.response.body.mirrorInvoice).toBeNull();
-      expect(ctx.response.body.onBehalfOfAgent).toBeNull();
+      expect(ctx.response.body.onBehalfOfActor).toBeNull();
     });
     registerNoMirrorNumbered(ctx, and);
   });

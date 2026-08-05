@@ -1,17 +1,17 @@
-Feature: List agent addresses
+Feature: List actor addresses
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent "Acme Corp" of type "organization" exists
+    And an actor "Acme Corp" of type "organization" exists
     And a country "Poland" with code "PL" exists
     And a country "Germany" with code "DE" exists
 
-  Scenario: An agent with no addresses
+  Scenario: An actor with no addresses
     When I list addresses of "Acme Corp"
     Then the response status should be 200
     And the response should contain 0 addresses
 
-  Scenario: An agent with a single address
+  Scenario: An actor with a single address
     Given "Acme Corp" has an address "HQ" in "Poland" with line1 "ul. Marszałkowska 1"
     When I list addresses of "Acme Corp"
     Then the response status should be 200

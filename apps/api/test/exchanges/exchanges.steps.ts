@@ -55,7 +55,7 @@ const eventsFeature = loadFeature(
 );
 
 const exchangeIds = new Map<string, string>();
-const agentIds = new Map<string, string>();
+const actorIds = new Map<string, string>();
 const valueIds = new Map<string, string>();
 const valueInstanceIds = new Map<string, string>();
 const valueStreamIds = new Map<string, string>();
@@ -64,13 +64,13 @@ const pipelineIds = new Map<string, string>();
 const userIds = new Map<string, string>();
 const flowIds = new Map<string, string>();
 
-async function createAgent(authCookie: string, name: string): Promise<string> {
+async function createActor(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  agentIds.set(name, res.body.id);
+  actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -150,9 +150,9 @@ async function createExchange(
     leadUserName?: string;
   } = {},
 ): Promise<request.Response> {
-  const partyNames = opts.partyNames || [...agentIds.keys()].slice(0, 2);
+  const partyNames = opts.partyNames || [...actorIds.keys()].slice(0, 2);
   const parties = partyNames.map((n, i) => ({
-    agentId: agentIds.get(n)!,
+    actorId: actorIds.get(n)!,
     role: i === 0 ? 'seller' : 'buyer',
   }));
   const body: Record<string, unknown> = {
@@ -197,15 +197,15 @@ async function createFlow(
   opts: {
     valueName?: string;
     valueInstanceName?: string;
-    fromAgentName: string;
-    toAgentName: string;
+    fromActorName: string;
+    toActorName: string;
     quantity: string;
   },
 ): Promise<request.Response> {
   const exchangeId = exchangeIds.get(exchangeName)!;
   const body: Record<string, unknown> = {
-    fromAgentId: agentIds.get(opts.fromAgentName)!,
-    toAgentId: agentIds.get(opts.toAgentName)!,
+    fromActorId: actorIds.get(opts.fromActorName)!,
+    toActorId: actorIds.get(opts.toActorName)!,
     quantity: opts.quantity,
   };
   if (opts.valueName) body.valueId = valueIds.get(opts.valueName)!;
@@ -224,7 +224,7 @@ async function createFlow(
 
 function clearMaps() {
   exchangeIds.clear();
-  agentIds.clear();
+  actorIds.clear();
   valueIds.clear();
   valueInstanceIds.clear();
   valueStreamIds.clear();
@@ -257,12 +257,12 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
@@ -281,7 +281,7 @@ defineFeature(createFeature, (test) => {
       'I create an exchange with:',
       async (table: { name: string; purpose: string; description: string; link: string }[]) => {
         const row = table[0];
-        const agentNames = [...agentIds.keys()];
+        const actorNames = [...actorIds.keys()];
         response = await request(getApp().getHttpServer())
           .post('/exchanges')
           .set('Cookie', [authCookie])
@@ -295,8 +295,8 @@ defineFeature(createFeature, (test) => {
             channelId: channelIds.values().next().value,
             leadUserId: userIds.values().next().value,
             parties: [
-              { agentId: agentIds.get(agentNames[0])!, role: 'seller' },
-              { agentId: agentIds.get(agentNames[1])!, role: 'buyer' },
+              { actorId: actorIds.get(actorNames[0])!, role: 'seller' },
+              { actorId: actorIds.get(actorNames[1])!, role: 'buyer' },
             ],
           });
       },
@@ -347,16 +347,16 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when(/^I create a minimal exchange with name "(.*)"$/, async (name: string) => {
-      const agentNames = [...agentIds.keys()];
+      const actorNames = [...actorIds.keys()];
       response = await request(getApp().getHttpServer())
         .post('/exchanges')
         .set('Cookie', [authCookie])
@@ -365,8 +365,8 @@ defineFeature(createFeature, (test) => {
           name,
           purpose: 'Minimal exchange',
           parties: [
-            { agentId: agentIds.get(agentNames[0])!, role: 'party1' },
-            { agentId: agentIds.get(agentNames[1])!, role: 'party2' },
+            { actorId: actorIds.get(actorNames[0])!, role: 'party1' },
+            { actorId: actorIds.get(actorNames[1])!, role: 'party2' },
           ],
         });
     });
@@ -393,12 +393,12 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when('I create an exchange with 1 party', async () => {
-      const agentName = [...agentIds.keys()][0];
+      const actorName = [...actorIds.keys()][0];
       response = await request(getApp().getHttpServer())
         .post('/exchanges')
         .set('Cookie', [authCookie])
@@ -406,7 +406,7 @@ defineFeature(createFeature, (test) => {
         .send({
           name: 'Test',
           purpose: 'Test',
-          parties: [{ agentId: agentIds.get(agentName)!, role: 'solo' }],
+          parties: [{ actorId: actorIds.get(actorName)!, role: 'solo' }],
         });
     });
 
@@ -420,16 +420,16 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when('I create an exchange with empty name', async () => {
-      const agentNames = [...agentIds.keys()];
+      const actorNames = [...actorIds.keys()];
       response = await request(getApp().getHttpServer())
         .post('/exchanges')
         .set('Cookie', [authCookie])
@@ -438,8 +438,8 @@ defineFeature(createFeature, (test) => {
           name: '',
           purpose: 'Test',
           parties: [
-            { agentId: agentIds.get(agentNames[0])!, role: 'a' },
-            { agentId: agentIds.get(agentNames[1])!, role: 'b' },
+            { actorId: actorIds.get(actorNames[0])!, role: 'a' },
+            { actorId: actorIds.get(actorNames[1])!, role: 'b' },
           ],
         });
     });
@@ -449,17 +449,17 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Reject non-existent agent in parties', ({ given, when, then, and }) => {
+  test('Reject non-existent actor in parties', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    when('I create an exchange with a non-existent party agent', async () => {
-      const realAgentId = agentIds.values().next().value;
+    when('I create an exchange with a non-existent party actor', async () => {
+      const realActorId = actorIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .post('/exchanges')
         .set('Cookie', [authCookie])
@@ -468,8 +468,8 @@ defineFeature(createFeature, (test) => {
           name: 'Test',
           purpose: 'Test',
           parties: [
-            { agentId: realAgentId, role: 'real' },
-            { agentId: '00000000-0000-0000-0000-000000000000', role: 'fake' },
+            { actorId: realActorId, role: 'real' },
+            { actorId: '00000000-0000-0000-0000-000000000000', role: 'fake' },
           ],
         });
     });
@@ -484,16 +484,16 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when('I create an exchange with a non-existent valueStream', async () => {
-      const agentNames = [...agentIds.keys()];
+      const actorNames = [...actorIds.keys()];
       response = await request(getApp().getHttpServer())
         .post('/exchanges')
         .set('Cookie', [authCookie])
@@ -503,8 +503,8 @@ defineFeature(createFeature, (test) => {
           purpose: 'Test',
           valueStreamId: '00000000-0000-0000-0000-000000000000',
           parties: [
-            { agentId: agentIds.get(agentNames[0])!, role: 'a' },
-            { agentId: agentIds.get(agentNames[1])!, role: 'b' },
+            { actorId: actorIds.get(actorNames[0])!, role: 'a' },
+            { actorId: actorIds.get(actorNames[1])!, role: 'b' },
           ],
         });
     });
@@ -514,17 +514,17 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Reject duplicate agent in parties', ({ given, when, then, and }) => {
+  test('Reject duplicate actor in parties', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    when('I create an exchange with duplicate agent in parties', async () => {
-      const agentId = agentIds.values().next().value;
+    when('I create an exchange with duplicate actor in parties', async () => {
+      const actorId = actorIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .post('/exchanges')
         .set('Cookie', [authCookie])
@@ -533,8 +533,8 @@ defineFeature(createFeature, (test) => {
           name: 'Test',
           purpose: 'Test',
           parties: [
-            { agentId, role: 'buyer' },
-            { agentId, role: 'seller' },
+            { actorId, role: 'buyer' },
+            { actorId, role: 'seller' },
           ],
         });
     });
@@ -549,19 +549,19 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when(
       /^I create an exchange with parties without roles and:$/,
       async (table: { name: string; purpose: string }[]) => {
         const row = table[0];
-        const agentNames = [...agentIds.keys()];
+        const actorNames = [...actorIds.keys()];
         response = await request(getApp().getHttpServer())
           .post('/exchanges')
           .set('Cookie', [authCookie])
@@ -570,8 +570,8 @@ defineFeature(createFeature, (test) => {
             name: row.name,
             purpose: row.purpose,
             parties: [
-              { agentId: agentIds.get(agentNames[0])! },
-              { agentId: agentIds.get(agentNames[1])! },
+              { actorId: actorIds.get(actorNames[0])! },
+              { actorId: actorIds.get(actorNames[1])! },
             ],
           });
       },
@@ -601,12 +601,12 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a pipeline exists with name "(.*)" and color "(.*)"$/, async (name: string, color: string) => {
@@ -617,7 +617,7 @@ defineFeature(createFeature, (test) => {
       /^I create an exchange with pipeline "(.*)" and:$/,
       async (pipelineName: string, table: { name: string; purpose: string }[]) => {
         const row = table[0];
-        const agentNames = [...agentIds.keys()];
+        const actorNames = [...actorIds.keys()];
         response = await request(getApp().getHttpServer())
           .post('/exchanges')
           .set('Cookie', [authCookie])
@@ -627,8 +627,8 @@ defineFeature(createFeature, (test) => {
             purpose: row.purpose,
             pipelineId: pipelineIds.get(pipelineName),
             parties: [
-              { agentId: agentIds.get(agentNames[0])!, role: 'seller' },
-              { agentId: agentIds.get(agentNames[1])!, role: 'buyer' },
+              { actorId: actorIds.get(actorNames[0])!, role: 'seller' },
+              { actorId: actorIds.get(actorNames[1])!, role: 'buyer' },
             ],
           });
       },
@@ -685,12 +685,12 @@ defineFeature(getFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -716,13 +716,13 @@ defineFeature(getFeature, (test) => {
       expect(response.body.parties).toHaveLength(parseInt(count));
     });
 
-    and(/^the response should contain a party with agent "(.*)"$/, (name: string) => {
-      const party = response.body.parties.find((p: any) => p.agent.name === name);
+    and(/^the response should contain a party with actor "(.*)"$/, (name: string) => {
+      const party = response.body.parties.find((p: any) => p.actor.name === name);
       expect(party).toBeDefined();
     });
 
-    and(/^the response should contain a party with agent "(.*)"$/, (name: string) => {
-      const party = response.body.parties.find((p: any) => p.agent.name === name);
+    and(/^the response should contain a party with actor "(.*)"$/, (name: string) => {
+      const party = response.body.parties.find((p: any) => p.actor.name === name);
       expect(party).toBeDefined();
     });
   });
@@ -777,12 +777,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -817,12 +817,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -866,12 +866,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -908,12 +908,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a channel exists with name "(.*)"$/, async (name: string) => {
@@ -952,12 +952,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
@@ -991,21 +991,21 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
-  test('Filter exchanges by partyAgentId', ({ given, when, then, and }) => {
+  test('Filter exchanges by partyActorId', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -1022,10 +1022,10 @@ defineFeature(searchFeature, (test) => {
       },
     );
 
-    when(/^I search exchanges with partyAgentId for "(.*)"$/, async (agentName: string) => {
-      const agentId = agentIds.get(agentName);
+    when(/^I search exchanges with partyActorId for "(.*)"$/, async (actorName: string) => {
+      const actorId = actorIds.get(actorName);
       response = await request(getApp().getHttpServer())
-        .get(`/exchanges/search?partyAgentId=${agentId}`)
+        .get(`/exchanges/search?partyActorId=${actorId}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -1043,12 +1043,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a user exists with name "(.*)"$/, async (name: string) => {
@@ -1087,12 +1087,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -1123,12 +1123,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -1178,12 +1178,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -1213,12 +1213,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
@@ -1265,20 +1265,20 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
-      await createExchange(authCookie, name, { partyNames: ['Agent A', 'Agent B'] });
+      await createExchange(authCookie, name, { partyNames: ['Actor A', 'Actor B'] });
     });
 
     when(
@@ -1291,8 +1291,8 @@ defineFeature(updateFeature, (test) => {
           .set('X-CSRF-Protection', '1')
           .send({
             parties: [
-              { agentId: agentIds.get(p1)!, role: 'new-seller' },
-              { agentId: agentIds.get(p2)!, role: 'new-buyer' },
+              { actorId: actorIds.get(p1)!, role: 'new-seller' },
+              { actorId: actorIds.get(p2)!, role: 'new-buyer' },
             ],
           });
       },
@@ -1306,13 +1306,13 @@ defineFeature(updateFeature, (test) => {
       expect(response.body.parties).toHaveLength(parseInt(count));
     });
 
-    and(/^the response should contain a party with agent "(.*)"$/, (name: string) => {
-      const party = response.body.parties.find((p: any) => p.agent.name === name);
+    and(/^the response should contain a party with actor "(.*)"$/, (name: string) => {
+      const party = response.body.parties.find((p: any) => p.actor.name === name);
       expect(party).toBeDefined();
     });
 
-    and(/^the response should contain a party with agent "(.*)"$/, (name: string) => {
-      const party = response.body.parties.find((p: any) => p.agent.name === name);
+    and(/^the response should contain a party with actor "(.*)"$/, (name: string) => {
+      const party = response.body.parties.find((p: any) => p.actor.name === name);
       expect(party).toBeDefined();
     });
   });
@@ -1322,12 +1322,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a pipeline exists with name "(.*)" and color "(.*)"$/, async (name: string, color: string) => {
@@ -1435,12 +1435,12 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -1470,12 +1470,12 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -1510,12 +1510,12 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -1548,12 +1548,12 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -1582,12 +1582,12 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -1672,12 +1672,12 @@ defineFeature(deleteFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -1750,12 +1750,12 @@ defineFeature(createFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1776,8 +1776,8 @@ defineFeature(createFlowFeature, (test) => {
           .set('X-CSRF-Protection', '1')
           .send({
             valueId: valueIds.get(valueName)!,
-            fromAgentId: agentIds.get(from)!,
-            toAgentId: agentIds.get(to)!,
+            fromActorId: actorIds.get(from)!,
+            toActorId: actorIds.get(to)!,
             quantity,
           });
       },
@@ -1796,14 +1796,14 @@ defineFeature(createFlowFeature, (test) => {
       expect(response.body.value.name).toBe(name);
     });
 
-    and(/^the response should contain a flow fromAgent "(.*)"$/, (name: string) => {
-      expect(response.body.fromAgent).toBeDefined();
-      expect(response.body.fromAgent.name).toBe(name);
+    and(/^the response should contain a flow fromActor "(.*)"$/, (name: string) => {
+      expect(response.body.fromActor).toBeDefined();
+      expect(response.body.fromActor.name).toBe(name);
     });
 
-    and(/^the response should contain a flow toAgent "(.*)"$/, (name: string) => {
-      expect(response.body.toAgent).toBeDefined();
-      expect(response.body.toAgent.name).toBe(name);
+    and(/^the response should contain a flow toActor "(.*)"$/, (name: string) => {
+      expect(response.body.toActor).toBeDefined();
+      expect(response.body.toActor.name).toBe(name);
     });
   });
 
@@ -1812,12 +1812,12 @@ defineFeature(createFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1846,8 +1846,8 @@ defineFeature(createFlowFeature, (test) => {
           .set('X-CSRF-Protection', '1')
           .send({
             valueInstanceId: valueInstanceIds.get(instanceName)!,
-            fromAgentId: agentIds.get(from)!,
-            toAgentId: agentIds.get(to)!,
+            fromActorId: actorIds.get(from)!,
+            toActorId: actorIds.get(to)!,
             quantity,
           });
       },
@@ -1867,21 +1867,21 @@ defineFeature(createFlowFeature, (test) => {
     });
   });
 
-  test('Reject non-party fromAgent', ({ given, when, then, and }) => {
+  test('Reject non-party fromActor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1889,7 +1889,7 @@ defineFeature(createFlowFeature, (test) => {
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
-      await createExchange(authCookie, name, { partyNames: ['Agent A', 'Agent B'] });
+      await createExchange(authCookie, name, { partyNames: ['Actor A', 'Actor B'] });
     });
 
     when(
@@ -1902,8 +1902,8 @@ defineFeature(createFlowFeature, (test) => {
           .set('X-CSRF-Protection', '1')
           .send({
             valueId: valueIds.get(valueName)!,
-            fromAgentId: agentIds.get(from)!,
-            toAgentId: agentIds.get(to)!,
+            fromActorId: actorIds.get(from)!,
+            toActorId: actorIds.get(to)!,
             quantity,
           });
       },
@@ -1914,21 +1914,21 @@ defineFeature(createFlowFeature, (test) => {
     });
   });
 
-  test('Reject non-party toAgent', ({ given, when, then, and }) => {
+  test('Reject non-party toActor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1936,7 +1936,7 @@ defineFeature(createFlowFeature, (test) => {
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
-      await createExchange(authCookie, name, { partyNames: ['Agent A', 'Agent B'] });
+      await createExchange(authCookie, name, { partyNames: ['Actor A', 'Actor B'] });
     });
 
     when(
@@ -1949,8 +1949,8 @@ defineFeature(createFlowFeature, (test) => {
           .set('X-CSRF-Protection', '1')
           .send({
             valueId: valueIds.get(valueName)!,
-            fromAgentId: agentIds.get(from)!,
-            toAgentId: agentIds.get(to)!,
+            fromActorId: actorIds.get(from)!,
+            toActorId: actorIds.get(to)!,
             quantity,
           });
       },
@@ -1966,12 +1966,12 @@ defineFeature(createFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1992,7 +1992,7 @@ defineFeature(createFlowFeature, (test) => {
 
     when('I create a flow with both value and valueInstance', async () => {
       const exchangeId = exchangeIds.values().next().value;
-      const agentNames = [...agentIds.keys()];
+      const actorNames = [...actorIds.keys()];
       response = await request(getApp().getHttpServer())
         .post(`/exchanges/${exchangeId}/flows`)
         .set('Cookie', [authCookie])
@@ -2000,8 +2000,8 @@ defineFeature(createFlowFeature, (test) => {
         .send({
           valueId: valueIds.values().next().value,
           valueInstanceId: valueInstanceIds.values().next().value,
-          fromAgentId: agentIds.get(agentNames[0])!,
-          toAgentId: agentIds.get(agentNames[1])!,
+          fromActorId: actorIds.get(actorNames[0])!,
+          toActorId: actorIds.get(actorNames[1])!,
           quantity: '1.00',
         });
     });
@@ -2016,12 +2016,12 @@ defineFeature(createFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -2030,14 +2030,14 @@ defineFeature(createFlowFeature, (test) => {
 
     when('I create a flow with neither value nor valueInstance', async () => {
       const exchangeId = exchangeIds.values().next().value;
-      const agentNames = [...agentIds.keys()];
+      const actorNames = [...actorIds.keys()];
       response = await request(getApp().getHttpServer())
         .post(`/exchanges/${exchangeId}/flows`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
-          fromAgentId: agentIds.get(agentNames[0])!,
-          toAgentId: agentIds.get(agentNames[1])!,
+          fromActorId: actorIds.get(actorNames[0])!,
+          toActorId: actorIds.get(actorNames[1])!,
           quantity: '1.00',
         });
     });
@@ -2087,12 +2087,12 @@ defineFeature(getFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -2108,8 +2108,8 @@ defineFeature(getFlowFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         const res = await createFlow(authCookie, 'Trade Deal', {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
         flowIds.set('main', res.body.id);
@@ -2143,12 +2143,12 @@ defineFeature(getFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -2205,12 +2205,12 @@ defineFeature(listFlowsFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -2230,8 +2230,8 @@ defineFeature(listFlowsFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         await createFlow(authCookie, 'Trade Deal', {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
       },
@@ -2242,8 +2242,8 @@ defineFeature(listFlowsFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         await createFlow(authCookie, 'Trade Deal', {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
       },
@@ -2270,12 +2270,12 @@ defineFeature(listFlowsFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -2322,12 +2322,12 @@ defineFeature(updateFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -2343,8 +2343,8 @@ defineFeature(updateFlowFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         const res = await createFlow(authCookie, 'Trade Deal', {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
         flowIds.set('main', res.body.id);
@@ -2370,17 +2370,17 @@ defineFeature(updateFlowFeature, (test) => {
     });
   });
 
-  test('Update flow agents (must be parties)', ({ given, when, then, and }) => {
+  test('Update flow actors (must be parties)', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -2396,15 +2396,15 @@ defineFeature(updateFlowFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         const res = await createFlow(authCookie, 'Trade Deal', {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
         flowIds.set('main', res.body.id);
       },
     );
 
-    when('I update the flow to swap from and to agents', async () => {
+    when('I update the flow to swap from and to actors', async () => {
       const exchangeId = exchangeIds.values().next().value;
       const flowId = flowIds.get('main')!;
       response = await request(getApp().getHttpServer())
@@ -2412,8 +2412,8 @@ defineFeature(updateFlowFeature, (test) => {
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
-          fromAgentId: agentIds.get('Agent B')!,
-          toAgentId: agentIds.get('Agent A')!,
+          fromActorId: actorIds.get('Actor B')!,
+          toActorId: actorIds.get('Actor A')!,
         });
     });
 
@@ -2421,30 +2421,30 @@ defineFeature(updateFlowFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should contain a flow fromAgent "(.*)"$/, (name: string) => {
-      expect(response.body.fromAgent.name).toBe(name);
+    and(/^the response should contain a flow fromActor "(.*)"$/, (name: string) => {
+      expect(response.body.fromActor.name).toBe(name);
     });
 
-    and(/^the response should contain a flow toAgent "(.*)"$/, (name: string) => {
-      expect(response.body.toAgent.name).toBe(name);
+    and(/^the response should contain a flow toActor "(.*)"$/, (name: string) => {
+      expect(response.body.toActor.name).toBe(name);
     });
   });
 
-  test('Reject non-party agent on update', ({ given, when, then, and }) => {
+  test('Reject non-party actor on update', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -2452,7 +2452,7 @@ defineFeature(updateFlowFeature, (test) => {
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
-      await createExchange(authCookie, name, { partyNames: ['Agent A', 'Agent B'] });
+      await createExchange(authCookie, name, { partyNames: ['Actor A', 'Actor B'] });
     });
 
     and(
@@ -2460,22 +2460,22 @@ defineFeature(updateFlowFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         const res = await createFlow(authCookie, 'Trade Deal', {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
         flowIds.set('main', res.body.id);
       },
     );
 
-    when(/^I update the flow's fromAgent to "(.*)"$/, async (agentName: string) => {
+    when(/^I update the flow's fromActor to "(.*)"$/, async (actorName: string) => {
       const exchangeId = exchangeIds.values().next().value;
       const flowId = flowIds.get('main')!;
       response = await request(getApp().getHttpServer())
         .patch(`/exchanges/${exchangeId}/flows/${flowId}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ fromAgentId: agentIds.get(agentName)! });
+        .send({ fromActorId: actorIds.get(actorName)! });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -2488,12 +2488,12 @@ defineFeature(updateFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -2554,12 +2554,12 @@ defineFeature(deleteFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -2575,8 +2575,8 @@ defineFeature(deleteFlowFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         const res = await createFlow(authCookie, 'Trade Deal', {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
         flowIds.set('main', res.body.id);
@@ -2602,12 +2602,12 @@ defineFeature(deleteFlowFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -2666,12 +2666,12 @@ defineFeature(flowGraphFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -2690,8 +2690,8 @@ defineFeature(flowGraphFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         await createFlow(authCookie, [...exchangeIds.keys()][0], {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
       },
@@ -2720,19 +2720,19 @@ defineFeature(flowGraphFeature, (test) => {
       }
     });
 
-    and('each flow should include fromAgent with id, name, and type', () => {
+    and('each flow should include fromActor with id, name, and type', () => {
       for (const flow of response.body) {
-        expect(flow.fromAgent).toHaveProperty('id');
-        expect(flow.fromAgent).toHaveProperty('name');
-        expect(flow.fromAgent).toHaveProperty('type');
+        expect(flow.fromActor).toHaveProperty('id');
+        expect(flow.fromActor).toHaveProperty('name');
+        expect(flow.fromActor).toHaveProperty('type');
       }
     });
 
-    and('each flow should include toAgent with id, name, and type', () => {
+    and('each flow should include toActor with id, name, and type', () => {
       for (const flow of response.body) {
-        expect(flow.toAgent).toHaveProperty('id');
-        expect(flow.toAgent).toHaveProperty('name');
-        expect(flow.toAgent).toHaveProperty('type');
+        expect(flow.toActor).toHaveProperty('id');
+        expect(flow.toActor).toHaveProperty('name');
+        expect(flow.toActor).toHaveProperty('type');
       }
     });
   });
@@ -2742,12 +2742,12 @@ defineFeature(flowGraphFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -2773,8 +2773,8 @@ defineFeature(flowGraphFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         await createFlow(authCookie, [...exchangeIds.keys()][0], {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
       },
@@ -2785,8 +2785,8 @@ defineFeature(flowGraphFeature, (test) => {
       async (valueName: string, from: string, to: string, quantity: string) => {
         await createFlow(authCookie, [...exchangeIds.keys()][0], {
           valueName,
-          fromAgentName: from,
-          toAgentName: to,
+          fromActorName: from,
+          toActorName: to,
           quantity,
         });
       },
@@ -2850,12 +2850,12 @@ defineFeature(downloadPdfFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^an exchange exists with name "(.*)"$/, async (name: string) => {
@@ -2949,8 +2949,8 @@ defineFeature(eventsFeature, (test) => {
   });
 
   async function seedExchangeFixtures(): Promise<{ sellerId: string; buyerId: string }> {
-    const sellerId = await createAgent(authCookie, 'Seller Corp');
-    const buyerId = await createAgent(authCookie, 'Buyer Inc');
+    const sellerId = await createActor(authCookie, 'Seller Corp');
+    const buyerId = await createActor(authCookie, 'Buyer Inc');
     return { sellerId, buyerId };
   }
 
@@ -2959,8 +2959,8 @@ defineFeature(eventsFeature, (test) => {
       name,
       purpose: 'Event recorder exchange',
       parties: [
-        { agentId: sellerId, role: 'seller' },
-        { agentId: buyerId, role: 'buyer' },
+        { actorId: sellerId, role: 'seller' },
+        { actorId: buyerId, role: 'buyer' },
       ],
     };
   }

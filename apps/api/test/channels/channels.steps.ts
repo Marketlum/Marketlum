@@ -32,18 +32,18 @@ const exportFeature = loadFeature(
 );
 
 const channelIds = new Map<string, string>();
-const agentIds = new Map<string, string>();
+const actorIds = new Map<string, string>();
 
-async function createAgent(
+async function createActor(
   authCookie: string,
   name: string,
 ): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  agentIds.set(name, res.body.id);
+  actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -53,12 +53,12 @@ async function createChannel(
   color: string,
   parentId?: string,
   purpose?: string,
-  agentId?: string,
+  actorId?: string,
 ): Promise<request.Response> {
   const body: Record<string, unknown> = { name, color };
   if (parentId) body.parentId = parentId;
   if (purpose) body.purpose = purpose;
-  if (agentId) body.agentId = agentId;
+  if (actorId) body.actorId = actorId;
   return request(getApp().getHttpServer())
     .post('/channels')
     .set('Cookie', [authCookie])
@@ -90,7 +90,7 @@ defineFeature(createFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     channelIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -123,21 +123,21 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Successfully create a root channel with purpose and agent', ({ given, when, then, and }) => {
+  test('Successfully create a root channel with purpose and actor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when(
-      'I create a channel with purpose and agent:',
+      'I create a channel with purpose and actor:',
       async (table: { name: string; color: string; purpose: string }[]) => {
         const row = table[0];
-        const agentId = agentIds.values().next().value;
-        response = await createChannel(authCookie, row.name, row.color, undefined, row.purpose, agentId);
+        const actorId = actorIds.values().next().value;
+        response = await createChannel(authCookie, row.name, row.color, undefined, row.purpose, actorId);
       },
     );
 
@@ -153,9 +153,9 @@ defineFeature(createFeature, (test) => {
       expect(response.body.purpose).toBe(purpose);
     });
 
-    and(/^the response should contain a channel with an agent named "(.*)"$/, (agentName: string) => {
-      expect(response.body.agent).toBeDefined();
-      expect(response.body.agent.name).toBe(agentName);
+    and(/^the response should contain a channel with an actor named "(.*)"$/, (actorName: string) => {
+      expect(response.body.actor).toBeDefined();
+      expect(response.body.actor.name).toBe(actorName);
     });
   });
 
@@ -236,7 +236,7 @@ defineFeature(readFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     channelIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -334,7 +334,7 @@ defineFeature(updateFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     channelIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -369,13 +369,13 @@ defineFeature(updateFeature, (test) => {
     });
   });
 
-  test('Successfully update purpose, color, and agentId', ({ given, when, then, and }) => {
+  test('Successfully update purpose, color, and actorId', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a root channel exists with name "(.*)"$/, async (name: string) => {
@@ -384,15 +384,15 @@ defineFeature(updateFeature, (test) => {
     });
 
     when(
-      /^I update the channel with purpose "(.*)" and color "(.*)" and agent "(.*)"$/,
-      async (purpose: string, color: string, agentName: string) => {
+      /^I update the channel with purpose "(.*)" and color "(.*)" and actor "(.*)"$/,
+      async (purpose: string, color: string, actorName: string) => {
         const id = channelIds.values().next().value;
-        const agentId = agentIds.get(agentName);
+        const actorId = actorIds.get(actorName);
         response = await request(getApp().getHttpServer())
           .patch(`/channels/${id}`)
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ purpose, color, agentId });
+          .send({ purpose, color, actorId });
       },
     );
 
@@ -408,9 +408,9 @@ defineFeature(updateFeature, (test) => {
       expect(response.body.color).toBe(color);
     });
 
-    and(/^the response should contain a channel with an agent named "(.*)"$/, (agentName: string) => {
-      expect(response.body.agent).toBeDefined();
-      expect(response.body.agent.name).toBe(agentName);
+    and(/^the response should contain a channel with an actor named "(.*)"$/, (actorName: string) => {
+      expect(response.body.actor).toBeDefined();
+      expect(response.body.actor.name).toBe(actorName);
     });
   });
 
@@ -419,26 +419,26 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
-      /^a root channel exists with name "(.*)" and purpose "(.*)" and agent "(.*)"$/,
-      async (name: string, purpose: string, agentName: string) => {
-        const agentId = agentIds.get(agentName);
-        const res = await createChannel(authCookie, name, '#000000', undefined, purpose, agentId);
+      /^a root channel exists with name "(.*)" and purpose "(.*)" and actor "(.*)"$/,
+      async (name: string, purpose: string, actorName: string) => {
+        const actorId = actorIds.get(actorName);
+        const res = await createChannel(authCookie, name, '#000000', undefined, purpose, actorId);
         channelIds.set(name, res.body.id);
       },
     );
 
-    when('I update the channel to clear purpose and agent', async () => {
+    when('I update the channel to clear purpose and actor', async () => {
       const id = channelIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .patch(`/channels/${id}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ purpose: null, agentId: null });
+        .send({ purpose: null, actorId: null });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -449,8 +449,8 @@ defineFeature(updateFeature, (test) => {
       expect(response.body.purpose).toBeNull();
     });
 
-    and('the response should contain a channel with null agent', () => {
-      expect(response.body.agent).toBeNull();
+    and('the response should contain a channel with null actor', () => {
+      expect(response.body.actor).toBeNull();
     });
   });
 
@@ -488,7 +488,7 @@ defineFeature(deleteFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     channelIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -589,7 +589,7 @@ defineFeature(moveFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     channelIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -709,7 +709,7 @@ defineFeature(searchFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     channelIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -815,52 +815,52 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
-  test('Filter channels by agentId', ({ given, when, then, and }) => {
+  test('Filter channels by actorId', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
-      /^a channel exists with name "(.*)" and agent "(.*)"$/,
-      async (channelName: string, agentName: string) => {
-        const agentId = agentIds.get(agentName);
-        const res = await createChannel(authCookie, channelName, '#000000', undefined, undefined, agentId);
+      /^a channel exists with name "(.*)" and actor "(.*)"$/,
+      async (channelName: string, actorName: string) => {
+        const actorId = actorIds.get(actorName);
+        const res = await createChannel(authCookie, channelName, '#000000', undefined, undefined, actorId);
         channelIds.set(channelName, res.body.id);
       },
     );
 
     and(
-      /^a channel exists with name "(.*)" and agent "(.*)"$/,
-      async (channelName: string, agentName: string) => {
-        const agentId = agentIds.get(agentName);
-        const res = await createChannel(authCookie, channelName, '#000000', undefined, undefined, agentId);
+      /^a channel exists with name "(.*)" and actor "(.*)"$/,
+      async (channelName: string, actorName: string) => {
+        const actorId = actorIds.get(actorName);
+        const res = await createChannel(authCookie, channelName, '#000000', undefined, undefined, actorId);
         channelIds.set(channelName, res.body.id);
       },
     );
 
     and(
-      /^a channel exists with name "(.*)" and agent "(.*)"$/,
-      async (channelName: string, agentName: string) => {
-        const agentId = agentIds.get(agentName);
-        const res = await createChannel(authCookie, channelName, '#000000', undefined, undefined, agentId);
+      /^a channel exists with name "(.*)" and actor "(.*)"$/,
+      async (channelName: string, actorName: string) => {
+        const actorId = actorIds.get(actorName);
+        const res = await createChannel(authCookie, channelName, '#000000', undefined, undefined, actorId);
         channelIds.set(channelName, res.body.id);
       },
     );
 
     when(
-      /^I request the list of channels with agentId for "(.*)"$/,
-      async (agentName: string) => {
-        const agentId = agentIds.get(agentName);
+      /^I request the list of channels with actorId for "(.*)"$/,
+      async (actorName: string) => {
+        const actorId = actorIds.get(actorName);
         response = await request(getApp().getHttpServer())
-          .get(`/channels/search?agentId=${agentId}`)
+          .get(`/channels/search?actorId=${actorId}`)
           .set('Cookie', [authCookie]);
       },
     );
@@ -936,7 +936,7 @@ defineFeature(exportFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     channelIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {

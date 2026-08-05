@@ -2,8 +2,8 @@ Feature: Transition Exchange
 
   Scenario: Close an open exchange
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Open Exchange"
     When I transition the exchange with action "close"
     Then the response status should be 200
@@ -11,8 +11,8 @@ Feature: Transition Exchange
 
   Scenario: Complete an open exchange
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Open Exchange"
     When I transition the exchange with action "complete"
     Then the response status should be 200
@@ -21,8 +21,8 @@ Feature: Transition Exchange
 
   Scenario: Reopen a closed exchange
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Closed Exchange" and state "closed"
     When I transition the exchange with action "reopen"
     Then the response status should be 200
@@ -30,16 +30,16 @@ Feature: Transition Exchange
 
   Scenario: Reject transition from completed state
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Done Exchange" and state "completed"
     When I transition the exchange with action "reopen"
     Then the response status should be 400
 
   Scenario: Reject transition from closed to completed
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Closed Exchange" and state "closed"
     When I transition the exchange with action "complete"
     Then the response status should be 400

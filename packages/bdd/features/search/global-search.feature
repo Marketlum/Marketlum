@@ -8,13 +8,13 @@ Feature: Global Search
     And the search results should contain 1 item
     And the search results should include a "value" named "Solar Panel"
 
-  Scenario: Search returns matching agents by name
+  Scenario: Search returns matching actors by name
     Given I am authenticated as "admin@marketlum.com"
-    And an agent named "Tesla Motors" exists
+    And an actor named "Tesla Motors" exists
     When I search for "Tesla"
     Then the response status should be 200
     And the search results should contain 1 item
-    And the search results should include an "agent" named "Tesla Motors"
+    And the search results should include an "actor" named "Tesla Motors"
 
   Scenario: Search returns matching users by name
     Given I am authenticated as "admin@marketlum.com"
@@ -35,12 +35,12 @@ Feature: Global Search
   Scenario: Search returns results from multiple entity types
     Given I am authenticated as "admin@marketlum.com"
     And a value named "Energy Credit" exists
-    And an agent named "Energy Corp" exists
+    And an actor named "Energy Corp" exists
     When I search for "Energy"
     Then the response status should be 200
     And the search results should contain 2 items
     And the search results should include a "value" named "Energy Credit"
-    And the search results should include an "agent" named "Energy Corp"
+    And the search results should include an "actor" named "Energy Corp"
 
   Scenario: Search with no matches returns empty results
     Given I am authenticated as "admin@marketlum.com"
@@ -51,7 +51,7 @@ Feature: Global Search
   Scenario: Search ranks name matches higher than purpose matches
     Given I am authenticated as "admin@marketlum.com"
     And a value named "Hydrogen Fuel" exists
-    And an agent named "Fuel Distributors" with purpose "Hydrogen supply chain" exists
+    And an actor named "Fuel Distributors" with purpose "Hydrogen supply chain" exists
     When I search for "Hydrogen"
     Then the response status should be 200
     And the search results should contain 2 items

@@ -1,17 +1,17 @@
-Feature: Update Agent
+Feature: Update Actor
 
-  Scenario: Successfully update an agent's name
+  Scenario: Successfully update an actor's name
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent One" and type "organization"
-    When I update the agent's name to "Agent Updated"
+    And an actor exists with name "Actor One" and type "organization"
+    When I update the actor's name to "Actor Updated"
     Then the response status should be 200
-    And the response should contain an agent with name "Agent Updated"
+    And the response should contain an actor with name "Actor Updated"
 
-  Scenario: Update a non-existent agent returns 404
+  Scenario: Update a non-existent actor returns 404
     Given I am authenticated as "admin@marketlum.com"
-    When I update the agent with ID "00000000-0000-0000-0000-000000000000" with name "Test"
+    When I update the actor with ID "00000000-0000-0000-0000-000000000000" with name "Test"
     Then the response status should be 404
 
   Scenario: Unauthenticated request is rejected
-    When I update the agent with ID "00000000-0000-0000-0000-000000000000" with name "Test"
+    When I update the actor with ID "00000000-0000-0000-0000-000000000000" with name "Test"
     Then the response status should be 401

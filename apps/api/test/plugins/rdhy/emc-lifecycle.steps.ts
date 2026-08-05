@@ -2,7 +2,7 @@ import { loadFeature, defineFeature } from 'jest-cucumber';
 import request from 'supertest';
 import * as path from 'path';
 import { bootstrapApp, cleanDatabase, teardownApp, getApp, createAuthenticatedUser } from '../../setup';
-import { createPlatform, createRdhyAgent } from './rdhy-helpers';
+import { createPlatform, createRdhyActor } from './rdhy-helpers';
 import {
   EmcCtx,
   makeEmcCtx,
@@ -46,16 +46,16 @@ defineFeature(feature, (test) => {
         await createPlatform(ctx, code, name);
       },
     );
-    const agentExists = (step: StepFn) =>
+    const actorExists = (step: StepFn) =>
       step(
-        /^an agent exists with name "(.*)"$/,
+        /^an actor exists with name "(.*)"$/,
         async (name: string) => {
-          await createRdhyAgent(ctx, name);
+          await createRdhyActor(ctx, name);
         },
       );
-    agentExists(and);
-    agentExists(and);
-    agentExists(and);
+    actorExists(and);
+    actorExists(and);
+    actorExists(and);
     registerAgreementExists(and);
   }
 
@@ -116,7 +116,7 @@ defineFeature(feature, (test) => {
     registerStatusWithDate(and, 'start');
   });
 
-  test('An agent may participate in several active EMCs', ({ given, and, when, then }) => {
+  test('An actor may participate in several active EMCs', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerCanvasReplacedGiven(given);
     registerActivatedGiven(and);

@@ -12,14 +12,14 @@ import {
 const feature = loadFeature(
   path.resolve(
     __dirname,
-    '../../../../packages/bdd/features/agents/consolidated-financials.feature',
+    '../../../../packages/bdd/features/actors/consolidated-financials.feature',
   ),
 );
 
 interface Ctx {
   authCookie: string;
   valueIds: Map<string, string>;
-  agentIds: Map<string, string>;
+  actorIds: Map<string, string>;
   response: request.Response;
 }
 
@@ -27,7 +27,7 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     valueIds: new Map(),
-    agentIds: new Map(),
+    actorIds: new Map(),
     response: {} as request.Response,
   };
 }
@@ -46,7 +46,7 @@ async function createValue(ctx: Ctx, name: string): Promise<void> {
   ctx.valueIds.set(name, res.body.id);
 }
 
-async function createAgent(
+async function createActor(
   ctx: Ctx,
   name: string,
   type: string,
@@ -58,13 +58,13 @@ async function createAgent(
     type,
     functionalCurrencyId: ctx.valueIds.get(currencyName),
   };
-  if (parentName) body.parentId = ctx.agentIds.get(parentName);
+  if (parentName) body.parentId = ctx.actorIds.get(parentName);
   const res = await request(server())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send(body);
-  ctx.agentIds.set(name, res.body.id);
+  ctx.actorIds.set(name, res.body.id);
 }
 
 async function createRate(
@@ -99,14 +99,14 @@ async function createInvoice(
 ): Promise<void> {
   const body: Record<string, unknown> = {
     number: args.number ?? `INV-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
-    fromAgentId: ctx.agentIds.get(args.from),
-    toAgentId: ctx.agentIds.get(args.to),
+    fromActorId: ctx.actorIds.get(args.from),
+    toActorId: ctx.actorIds.get(args.to),
     currencyId: ctx.valueIds.get('USD'),
     issuedAt: `${args.issuedAt}T00:00:00.000Z`,
     dueAt: `${args.issuedAt}T00:00:00.000Z`,
     items: [{ quantity: '1.00', unitPrice: args.amount, total: args.amount }],
   };
-  if (args.onBehalfOf) body.onBehalfOfAgentId = ctx.agentIds.get(args.onBehalfOf);
+  if (args.onBehalfOf) body.onBehalfOfActorId = ctx.actorIds.get(args.onBehalfOf);
   const res = await request(server())
     .post('/invoices')
     .set('Cookie', [ctx.authCookie])
@@ -125,24 +125,24 @@ function registerBackground(ctx: Ctx, given: StepFn, and: StepFn) {
     await createValue(ctx, name);
   });
   and(
-    /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
+    /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
     async (name: string, type: string, currency: string) => {
-      await createAgent(ctx, name, type, currency);
+      await createActor(ctx, name, type, currency);
     },
   );
-  const agentUnderParent = (step: StepFn) =>
+  const actorUnderParent = (step: StepFn) =>
     step(
-      /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
+      /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
       async (name: string, type: string, currency: string, parent: string) => {
-        await createAgent(ctx, name, type, currency, parent);
+        await createActor(ctx, name, type, currency, parent);
       },
     );
-  agentUnderParent(and);
-  agentUnderParent(and);
+  actorUnderParent(and);
+  actorUnderParent(and);
   and(
-    /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
+    /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)"$/,
     async (name: string, type: string, currency: string) => {
-      await createAgent(ctx, name, type, currency);
+      await createActor(ctx, name, type, currency);
     },
   );
 }
@@ -178,7 +178,7 @@ function registerRequests(ctx: Ctx, when: StepFn) {
     async (consolidated: string, name: string, year: string) => {
       const suffix = consolidated ? '&consolidated=true' : '';
       ctx.response = await request(server())
-        .get(`/agents/${ctx.agentIds.get(name)}/financials?year=${year}${suffix}`)
+        .get(`/actors/${ctx.actorIds.get(name)}/financials?year=${year}${suffix}`)
         .set('Cookie', [ctx.authCookie]);
     },
   );
@@ -191,13 +191,13 @@ function registerStatus(ctx: Ctx, then: StepFn) {
 }
 
 function registerAnnual(ctx: Ctx, step: StepFn, key: 'revenue' | 'expense' | 'net') {
-  step(new RegExp(`^the agent financials annual ${key} should be "(.*)"$`), (v: string) => {
+  step(new RegExp(`^the actor financials annual ${key} should be "(.*)"$`), (v: string) => {
     expect(ctx.response.body.summary[key].annual).toBe(v);
   });
 }
 
 function registerInvoiceCount(ctx: Ctx, step: StepFn) {
-  step(/^the agent financials invoiceCount should be (\d+)$/, (n: string) => {
+  step(/^the actor financials invoiceCount should be (\d+)$/, (n: string) => {
     expect(ctx.response.body.invoiceCount).toBe(parseInt(n));
   });
 }
@@ -269,22 +269,22 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^an agent exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
+      /^an actor exists named "(.*)" of type "(.*)" with functional currency "(.*)" under parent "(.*)"$/,
       async (name: string, type: string, currency: string, parent: string) => {
-        await createAgent(ctx, name, type, currency, parent);
+        await createActor(ctx, name, type, currency, parent);
       },
     );
     registerPlainInvoice(ctx, and);
     registerRequests(ctx, when);
     registerStatus(ctx, then);
     registerAnnual(ctx, and, 'revenue');
-    and(/^the agent financials notConvertedCount should be (\d+)$/, (n: string) => {
+    and(/^the actor financials notConvertedCount should be (\d+)$/, (n: string) => {
       expect(ctx.response.body.notConvertedCount).toBe(parseInt(n));
     });
     registerInvoiceCount(ctx, and);
   });
 
-  test('Consolidated financials of a leaf agent equal the standalone view', ({ given, and, when, then }) => {
+  test('Consolidated financials of a leaf actor equal the standalone view', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, given, and);
     registerPlainInvoice(ctx, given);

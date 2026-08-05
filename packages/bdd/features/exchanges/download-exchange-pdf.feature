@@ -2,8 +2,8 @@ Feature: Download Exchange PDF
 
   Scenario: Download PDF for an exchange
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Pricing Sync"
     When I download the exchange PDF
     Then the response status should be 200

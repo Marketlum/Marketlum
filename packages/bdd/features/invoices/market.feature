@@ -8,8 +8,8 @@ Feature: Invoice market
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
 
   Scenario: Create an internal market invoice

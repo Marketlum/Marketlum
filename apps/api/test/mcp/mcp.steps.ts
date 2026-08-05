@@ -33,7 +33,7 @@ interface Ctx {
   response: request.Response;
   adminCookie: string;
   apiKey: string;
-  agentIds: Map<string, string>;
+  actorIds: Map<string, string>;
   valueIds: Map<string, string>;
   invoiceIds: Map<string, string>;
   orderId: string;
@@ -44,7 +44,7 @@ const ctx: Ctx = {
   response: undefined as unknown as request.Response,
   adminCookie: '',
   apiKey: '',
-  agentIds: new Map(),
+  actorIds: new Map(),
   valueIds: new Map(),
   invoiceIds: new Map(),
   orderId: '',
@@ -56,7 +56,7 @@ function resetCtx() {
   ctx.response = undefined as unknown as request.Response;
   ctx.adminCookie = '';
   ctx.apiKey = '';
-  ctx.agentIds.clear();
+  ctx.actorIds.clear();
   ctx.valueIds.clear();
   ctx.invoiceIds.clear();
   ctx.orderId = '';
@@ -123,9 +123,9 @@ async function adminGet(pathname: string): Promise<request.Response> {
   return request(getApp().getHttpServer()).get(pathname).set('Cookie', [ctx.adminCookie]);
 }
 
-async function createAgentFixture(name: string): Promise<string> {
-  const res = await adminPost('/agents', { name, type: 'organization' });
-  ctx.agentIds.set(name, res.body.id);
+async function createActorFixture(name: string): Promise<string> {
+  const res = await adminPost('/actors', { name, type: 'organization' });
+  ctx.actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -136,13 +136,13 @@ async function createCurrencyValue(name: string): Promise<string> {
 }
 
 async function createInvoiceFixture(number: string, fromName: string, toName: string): Promise<void> {
-  const fromAgentId = ctx.agentIds.get(fromName) ?? (await createAgentFixture(fromName));
-  const toAgentId = ctx.agentIds.get(toName) ?? (await createAgentFixture(toName));
+  const fromActorId = ctx.actorIds.get(fromName) ?? (await createActorFixture(fromName));
+  const toActorId = ctx.actorIds.get(toName) ?? (await createActorFixture(toName));
   const currencyId = ctx.valueIds.get('USD') ?? (await createCurrencyValue('USD'));
   const res = await adminPost('/invoices', {
     number,
-    fromAgentId,
-    toAgentId,
+    fromActorId,
+    toActorId,
     issuedAt: '2025-01-15T00:00:00.000Z',
     dueAt: '2025-02-15T00:00:00.000Z',
     currencyId,
@@ -152,10 +152,10 @@ async function createInvoiceFixture(number: string, fromName: string, toName: st
 }
 
 async function createOrderFixture(fromName: string, toName: string): Promise<void> {
-  const fromAgentId = ctx.agentIds.get(fromName) ?? (await createAgentFixture(fromName));
-  const toAgentId = ctx.agentIds.get(toName) ?? (await createAgentFixture(toName));
+  const fromActorId = ctx.actorIds.get(fromName) ?? (await createActorFixture(fromName));
+  const toActorId = ctx.actorIds.get(toName) ?? (await createActorFixture(toName));
   const currencyId = ctx.valueIds.get('USD') ?? (await createCurrencyValue('USD'));
-  const res = await adminPost('/orders', { fromAgentId, toAgentId, currencyId });
+  const res = await adminPost('/orders', { fromActorId, toActorId, currencyId });
   expect(res.status).toBe(201);
   ctx.orderId = res.body.id;
 }
@@ -386,8 +386,8 @@ defineFeature(toolCallsFeature, (test) => {
 
   test('search_market returns the same payload as the REST search endpoint', ({ given, and, when, then }) => {
     authBackground(given, and);
-    given(/^an agent named "(.*)" exists$/, async (name: string) => {
-      await createAgentFixture(name);
+    given(/^an actor named "(.*)" exists$/, async (name: string) => {
+      await createActorFixture(name);
     });
     callToolWithDocstring(when);
     successStep(then);
@@ -396,13 +396,13 @@ defineFeature(toolCallsFeature, (test) => {
     });
   });
 
-  test('search_agents returns the same payload as the REST agents list', ({ given, and, when, then }) => {
+  test('search_actors returns the same payload as the REST actors list', ({ given, and, when, then }) => {
     authBackground(given, and);
-    given(/^an agent named "(.*)" exists$/, async (name: string) => {
-      await createAgentFixture(name);
+    given(/^an actor named "(.*)" exists$/, async (name: string) => {
+      await createActorFixture(name);
     });
-    and(/^an agent named "(.*)" exists$/, async (name: string) => {
-      await createAgentFixture(name);
+    and(/^an actor named "(.*)" exists$/, async (name: string) => {
+      await createActorFixture(name);
     });
     callToolWithDocstring(when);
     successStep(then);
@@ -411,31 +411,31 @@ defineFeature(toolCallsFeature, (test) => {
     });
   });
 
-  test('get_agent returns the same payload as the REST agent detail', ({ given, and, when, then }) => {
+  test('get_actor returns the same payload as the REST actor detail', ({ given, and, when, then }) => {
     authBackground(given, and);
-    given(/^an agent named "(.*)" exists$/, async (name: string) => {
-      await createAgentFixture(name);
+    given(/^an actor named "(.*)" exists$/, async (name: string) => {
+      await createActorFixture(name);
     });
-    when(/^I call the MCP tool "(.*)" with the id of agent "(.*)"$/, async (tool: string, agentName: string) => {
-      await callTool(tool, { id: ctx.agentIds.get(agentName)! });
+    when(/^I call the MCP tool "(.*)" with the id of actor "(.*)"$/, async (tool: string, actorName: string) => {
+      await callTool(tool, { id: ctx.actorIds.get(actorName)! });
     });
     successStep(then);
-    and(/^the tool result should equal the REST response for the detail of agent "(.*)"$/, async (agentName: string) => {
-      await expectToolResultEqualsRest(`/agents/${ctx.agentIds.get(agentName)!}`);
+    and(/^the tool result should equal the REST response for the detail of actor "(.*)"$/, async (actorName: string) => {
+      await expectToolResultEqualsRest(`/actors/${ctx.actorIds.get(actorName)!}`);
     });
   });
 
-  test('get_agent_financials returns the same payload as the REST agent financials', ({ given, and, when, then }) => {
+  test('get_actor_financials returns the same payload as the REST actor financials', ({ given, and, when, then }) => {
     authBackground(given, and);
-    given(/^an agent named "(.*)" exists$/, async (name: string) => {
-      await createAgentFixture(name);
+    given(/^an actor named "(.*)" exists$/, async (name: string) => {
+      await createActorFixture(name);
     });
-    when(/^I call the MCP tool "(.*)" for agent "(.*)" and year (\d+)$/, async (tool: string, agentName: string, year: string) => {
-      await callTool(tool, { agentId: ctx.agentIds.get(agentName)!, year: parseInt(year, 10) });
+    when(/^I call the MCP tool "(.*)" for actor "(.*)" and year (\d+)$/, async (tool: string, actorName: string, year: string) => {
+      await callTool(tool, { actorId: ctx.actorIds.get(actorName)!, year: parseInt(year, 10) });
     });
     successStep(then);
-    and(/^the tool result should equal the REST response for the (\d+) financials of agent "(.*)"$/, async (year: string, agentName: string) => {
-      await expectToolResultEqualsRest(`/agents/${ctx.agentIds.get(agentName)!}/financials?year=${year}`);
+    and(/^the tool result should equal the REST response for the (\d+) financials of actor "(.*)"$/, async (year: string, actorName: string) => {
+      await expectToolResultEqualsRest(`/actors/${ctx.actorIds.get(actorName)!}/financials?year=${year}`);
     });
   });
 

@@ -22,16 +22,16 @@ Feature: Export Data
     Then the response status should be 200
     And the response should contain 2 values
 
-  Scenario: Export all agents with high limit
+  Scenario: Export all actors with high limit
     Given I am authenticated as "admin@marketlum.com"
-    And the following agents exist:
+    And the following actors exist:
       | name        | type         | purpose         |
-      | Agent One   | organization | First org       |
-      | Agent Two   | individual   | First individual|
-      | Agent Three | virtual      | First virtual   |
-    When I request the list of agents with limit 10000
+      | Actor One   | organization | First org       |
+      | Actor Two   | individual   | First individual|
+      | Actor Three | virtual      | First virtual   |
+    When I request the list of actors with limit 10000
     Then the response status should be 200
-    And the response should contain 3 agents
+    And the response should contain 3 actors
 
   Scenario: Export all users with high limit
     Given I am authenticated as "admin@marketlum.com"

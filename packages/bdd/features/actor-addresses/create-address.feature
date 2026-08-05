@@ -1,11 +1,11 @@
-Feature: Create agent address
+Feature: Create actor address
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent "Acme Corp" of type "organization" exists
+    And an actor "Acme Corp" of type "organization" exists
     And a country "Poland" with code "PL" exists
 
-  Scenario: Successfully add an address to an agent
+  Scenario: Successfully add an address to an actor
     When I add an address to "Acme Corp" with:
       | label | line1                | line2 | city     | region | postalCode | country | isPrimary |
       | HQ    | ul. Marszałkowska 1  |       | Warszawa |        | 00-001     | Poland  | true      |
@@ -20,8 +20,8 @@ Feature: Create agent address
       | HQ    |       |       | Warszawa |        | 00-001     | Poland  |
     Then the response status should be 400
 
-  Scenario: Address creation fails when the agent does not exist
-    When I add an address to a nonexistent agent with:
+  Scenario: Address creation fails when the actor does not exist
+    When I add an address to a nonexistent actor with:
       | line1               | city     | postalCode | country |
       | ul. Marszałkowska 1 | Warszawa | 00-001     | Poland  |
     Then the response status should be 404

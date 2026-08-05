@@ -2,8 +2,8 @@ Feature: Get Agreement Tree
 
   Scenario: Get the full agreement tree
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |
@@ -17,8 +17,8 @@ Feature: Get Agreement Tree
 
   Scenario: Get root agreements only
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |
@@ -30,8 +30,8 @@ Feature: Get Agreement Tree
 
   Scenario: Get direct children of an agreement
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |
@@ -44,8 +44,8 @@ Feature: Get Agreement Tree
 
   Scenario: Get descendants tree of an agreement
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |

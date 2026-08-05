@@ -3,7 +3,7 @@ import request from 'supertest';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { bootstrapApp, cleanDatabase, teardownApp, getApp, createAuthenticatedUser } from '../../setup';
-import { createPlatform, createRdhyAgent } from './rdhy-helpers';
+import { createPlatform, createRdhyActor } from './rdhy-helpers';
 import {
   EmcCtx,
   makeEmcCtx,
@@ -48,16 +48,16 @@ defineFeature(feature, (test) => {
         await createPlatform(ctx, code, name);
       },
     );
-    const agentExists = (step: StepFn) =>
+    const actorExists = (step: StepFn) =>
       step(
-        /^an agent exists with name "(.*)"$/,
+        /^an actor exists with name "(.*)"$/,
         async (name: string) => {
-          await createRdhyAgent(ctx, name);
+          await createRdhyActor(ctx, name);
         },
       );
-    agentExists(and);
-    agentExists(and);
-    agentExists(and);
+    actorExists(and);
+    actorExists(and);
+    actorExists(and);
     and(
       /^an EMC agreement titled "(.*)" exists sponsored by "(.*)"$/,
       async (title: string, platformCode: string) => {
@@ -119,7 +119,7 @@ defineFeature(feature, (test) => {
     and(/^the EMC canvas micro-nodes are ordered "(.*)"$/, (codes: string) => {
       const expected = codes.split(',').map((c) => c.trim());
       const actual = ctx.response.body.canvas.nodes.map(
-        (n: { agent: { name: string } }) => n.agent.name,
+        (n: { actor: { name: string } }) => n.actor.name,
       );
       expect(actual).toEqual(expected);
     });
@@ -127,7 +127,7 @@ defineFeature(feature, (test) => {
       /^the EMC canvas micro-node "(.*)" is the leading node with a (\d+) percent share$/,
       (code: string, percent: string) => {
         const found = ctx.response.body.canvas.nodes.find(
-          (n: { agent: { name: string } }) => n.agent.name === code,
+          (n: { actor: { name: string } }) => n.actor.name === code,
         );
         expect(found).toBeDefined();
         expect(found.isLeading).toBe(true);
@@ -222,7 +222,7 @@ defineFeature(feature, (test) => {
     registerStatus(then);
   });
 
-  test('Duplicate micro-nodes for the same agent are rejected', ({
+  test('Duplicate micro-nodes for the same actor are rejected', ({
     given,
     and,
     when,
@@ -230,23 +230,23 @@ defineFeature(feature, (test) => {
   }) => {
     registerBackground(given, and);
     when(
-      /^I replace the canvas of the EMC agreement "(.*)" with a canvas containing the agent "(.*)" twice$/,
+      /^I replace the canvas of the EMC agreement "(.*)" with a canvas containing the actor "(.*)" twice$/,
       async (title: string, code: string) => {
         const canvas = sampleEmcCanvas(ctx);
-        canvas.nodes[1].agentId = ctx.agents.get(code);
+        canvas.nodes[1].actorId = ctx.actors.get(code);
         ctx.response = await putEmcCanvas(ctx, title, canvas);
       },
     );
     registerStatus(then);
   });
 
-  test('A micro-node for an unknown agent is rejected', ({ given, and, when, then }) => {
+  test('A micro-node for an unknown actor is rejected', ({ given, and, when, then }) => {
     registerBackground(given, and);
     when(
-      /^I replace the canvas of the EMC agreement "(.*)" with a canvas containing an unknown agent$/,
+      /^I replace the canvas of the EMC agreement "(.*)" with a canvas containing an unknown actor$/,
       async (title: string) => {
         const canvas = sampleEmcCanvas(ctx);
-        canvas.nodes[1].agentId = randomUUID();
+        canvas.nodes[1].actorId = randomUUID();
         ctx.response = await putEmcCanvas(ctx, title, canvas);
       },
     );
@@ -263,7 +263,7 @@ defineFeature(feature, (test) => {
     registerStatus(then);
   });
 
-  test('Deleting an agent through core removes its micro-node', ({
+  test('Deleting an actor through core removes its micro-node', ({
     given,
     and,
     when,
@@ -271,9 +271,9 @@ defineFeature(feature, (test) => {
   }) => {
     registerBackground(given, and);
     registerReplacedGiven(given);
-    when(/^I delete the agent "(.*)" through the core API$/, async (code: string) => {
+    when(/^I delete the actor "(.*)" through the core API$/, async (code: string) => {
       ctx.response = await request(getApp().getHttpServer())
-        .delete(`/agents/${ctx.agents.get(code)}`)
+        .delete(`/actors/${ctx.actors.get(code)}`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1');
       expect(ctx.response.status).toBe(204);

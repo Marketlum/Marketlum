@@ -2,7 +2,7 @@ Feature: Create Offering
 
   Scenario: Create offering with all fields
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Acme Corp"
+    And an actor exists with name "Acme Corp"
     And a value stream exists with name "Main Stream"
     When I create an offering with:
       | name           | purpose       | description      | link                     | state | activeFrom               | activeUntil              |
@@ -11,7 +11,7 @@ Feature: Create Offering
     And the response should contain an offering with name "Premium Plan"
     And the response should contain an offering with state "live"
     And the response should contain a valueStream with name "Main Stream"
-    And the response should contain an agent with name "Acme Corp"
+    And the response should contain an actor with name "Acme Corp"
 
   Scenario: Create offering with minimal fields
     Given I am authenticated as "admin@marketlum.com"
@@ -42,9 +42,9 @@ Feature: Create Offering
     When I create an offering with non-existent valueStreamId
     Then the response status should be 404
 
-  Scenario: Create offering with non-existent agentId fails
+  Scenario: Create offering with non-existent actorId fails
     Given I am authenticated as "admin@marketlum.com"
-    When I create an offering with non-existent agentId
+    When I create an offering with non-existent actorId
     Then the response status should be 404
 
   Scenario: Unauthenticated request is rejected

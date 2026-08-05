@@ -2,10 +2,10 @@ Feature: MCP Tool Calls
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And I have created an API key named "Agent"
+    And I have created an API key named "Actor"
 
   Scenario: search_market returns the same payload as the REST search endpoint
-    Given an agent named "Acme Corp" exists
+    Given an actor named "Acme Corp" exists
     When I call the MCP tool "search_market" with arguments:
       """
       { "q": "Acme" }
@@ -13,27 +13,27 @@ Feature: MCP Tool Calls
     Then the tool call should succeed
     And the tool result should equal the REST response for "/search?q=Acme"
 
-  Scenario: search_agents returns the same payload as the REST agents list
-    Given an agent named "Acme Corp" exists
-    And an agent named "Globex" exists
-    When I call the MCP tool "search_agents" with arguments:
+  Scenario: search_actors returns the same payload as the REST actors list
+    Given an actor named "Acme Corp" exists
+    And an actor named "Globex" exists
+    When I call the MCP tool "search_actors" with arguments:
       """
       { "limit": 50 }
       """
     Then the tool call should succeed
-    And the tool result should equal the REST response for "/agents?limit=50"
+    And the tool result should equal the REST response for "/actors?limit=50"
 
-  Scenario: get_agent returns the same payload as the REST agent detail
-    Given an agent named "Acme Corp" exists
-    When I call the MCP tool "get_agent" with the id of agent "Acme Corp"
+  Scenario: get_actor returns the same payload as the REST actor detail
+    Given an actor named "Acme Corp" exists
+    When I call the MCP tool "get_actor" with the id of actor "Acme Corp"
     Then the tool call should succeed
-    And the tool result should equal the REST response for the detail of agent "Acme Corp"
+    And the tool result should equal the REST response for the detail of actor "Acme Corp"
 
-  Scenario: get_agent_financials returns the same payload as the REST agent financials
-    Given an agent named "Acme Corp" exists
-    When I call the MCP tool "get_agent_financials" for agent "Acme Corp" and year 2025
+  Scenario: get_actor_financials returns the same payload as the REST actor financials
+    Given an actor named "Acme Corp" exists
+    When I call the MCP tool "get_actor_financials" for actor "Acme Corp" and year 2025
     Then the tool call should succeed
-    And the tool result should equal the REST response for the 2025 financials of agent "Acme Corp"
+    And the tool result should equal the REST response for the 2025 financials of actor "Acme Corp"
 
   Scenario: search_invoices returns the same payload as the REST invoice search
     Given an invoice "INV-001" from "Seller" to "Buyer" exists

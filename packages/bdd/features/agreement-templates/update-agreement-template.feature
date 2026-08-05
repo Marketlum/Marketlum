@@ -18,22 +18,22 @@ Feature: Update Agreement Template
     And the response should contain an agreement template with description "Full partnership desc"
     And the response should contain an agreement template with link "https://example.com/updated"
 
-  Scenario: Successfully set the agreement template's agent
+  Scenario: Successfully set the agreement template's actor
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Acme Corp"
+    And an actor exists with name "Acme Corp"
     And a root agreement template exists with name "Sales Agreement" and type "main_agreement"
-    When I update the agreement template's agent to "Acme Corp"
+    When I update the agreement template's actor to "Acme Corp"
     Then the response status should be 200
-    And the response should include agent "Acme Corp"
+    And the response should include actor "Acme Corp"
 
-  Scenario: Successfully clear the agreement template's agent
+  Scenario: Successfully clear the agreement template's actor
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Acme Corp"
+    And an actor exists with name "Acme Corp"
     And a root agreement template exists with name "Sales Agreement" and type "main_agreement"
-    And the agreement template "Sales Agreement" references agent "Acme Corp"
-    When I clear the agreement template's agent
+    And the agreement template "Sales Agreement" references actor "Acme Corp"
+    When I clear the agreement template's actor
     Then the response status should be 200
-    And the response should include no agent
+    And the response should include no actor
 
   Scenario: Updating to a duplicate name fails
     Given I am authenticated as "admin@marketlum.com"

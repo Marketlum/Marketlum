@@ -18,8 +18,8 @@ const updateFeature = loadFeature(
 const deleteFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/value-instances/delete-value-instance.feature'),
 );
-const agentsFeature = loadFeature(
-  path.resolve(__dirname, '../../../../packages/bdd/features/value-instances/assign-value-instance-agents.feature'),
+const actorsFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/value-instances/assign-value-instance-actors.feature'),
 );
 const imageFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/value-instances/assign-value-instance-image.feature'),
@@ -31,12 +31,12 @@ const valueFeature = loadFeature(
 // --- helpers ---
 function makeHelpers() {
   const valueIds: Record<string, string> = {};
-  const agentIds: Record<string, string> = {};
+  const actorIds: Record<string, string> = {};
   const fileIds: Record<string, string> = {};
 
   function clear() {
     for (const key of Object.keys(valueIds)) delete valueIds[key];
-    for (const key of Object.keys(agentIds)) delete agentIds[key];
+    for (const key of Object.keys(actorIds)) delete actorIds[key];
     for (const key of Object.keys(fileIds)) delete fileIds[key];
   }
 
@@ -50,13 +50,13 @@ function makeHelpers() {
     return res.body.id;
   }
 
-  async function createAgent(authCookie: string, name: string, type: string): Promise<string> {
+  async function createActor(authCookie: string, name: string, type: string): Promise<string> {
     const res = await request(getApp().getHttpServer())
-      .post('/agents')
+      .post('/actors')
       .set('Cookie', [authCookie])
       .set('X-CSRF-Protection', '1')
       .send({ name, type });
-    agentIds[name] = res.body.id;
+    actorIds[name] = res.body.id;
     return res.body.id;
   }
 
@@ -85,7 +85,7 @@ function makeHelpers() {
     return res.body.id;
   }
 
-  return { valueIds, agentIds, fileIds, clear, createValue, createAgent, createFile, createValueInstance };
+  return { valueIds, actorIds, fileIds, clear, createValue, createActor, createFile, createValueInstance };
 }
 
 // --- CREATE VALUE INSTANCE ---
@@ -306,7 +306,7 @@ defineFeature(listFeature, (test) => {
     });
   });
 
-  test('Filter value instances by fromAgentId', ({ given, and, when, then }) => {
+  test('Filter value instances by fromActorId', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -319,16 +319,16 @@ defineFeature(listFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^a value instance exists with name "(.*)" for value "(.*)" with fromAgent "(.*)"$/,
-      async (name: string, valueName: string, agentName: string) => {
-        await h.createValueInstance(authCookie, name, valueName, { fromAgentId: h.agentIds[agentName] });
+      /^a value instance exists with name "(.*)" for value "(.*)" with fromActor "(.*)"$/,
+      async (name: string, valueName: string, actorName: string) => {
+        await h.createValueInstance(authCookie, name, valueName, { fromActorId: h.actorIds[actorName] });
       },
     );
 
@@ -339,9 +339,9 @@ defineFeature(listFeature, (test) => {
       },
     );
 
-    when(/^I request the list of value instances with fromAgentId for "(.*)"$/, async (agentName: string) => {
+    when(/^I request the list of value instances with fromActorId for "(.*)"$/, async (actorName: string) => {
       response = await request(getApp().getHttpServer())
-        .get(`/value-instances?fromAgentId=${h.agentIds[agentName]}`)
+        .get(`/value-instances?fromActorId=${h.actorIds[actorName]}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -354,7 +354,7 @@ defineFeature(listFeature, (test) => {
     });
   });
 
-  test('Filter value instances by toAgentId', ({ given, and, when, then }) => {
+  test('Filter value instances by toActorId', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -367,16 +367,16 @@ defineFeature(listFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^a value instance exists with name "(.*)" for value "(.*)" with toAgent "(.*)"$/,
-      async (name: string, valueName: string, agentName: string) => {
-        await h.createValueInstance(authCookie, name, valueName, { toAgentId: h.agentIds[agentName] });
+      /^a value instance exists with name "(.*)" for value "(.*)" with toActor "(.*)"$/,
+      async (name: string, valueName: string, actorName: string) => {
+        await h.createValueInstance(authCookie, name, valueName, { toActorId: h.actorIds[actorName] });
       },
     );
 
@@ -387,9 +387,9 @@ defineFeature(listFeature, (test) => {
       },
     );
 
-    when(/^I request the list of value instances with toAgentId for "(.*)"$/, async (agentName: string) => {
+    when(/^I request the list of value instances with toActorId for "(.*)"$/, async (actorName: string) => {
       response = await request(getApp().getHttpServer())
-        .get(`/value-instances?toAgentId=${h.agentIds[agentName]}`)
+        .get(`/value-instances?toActorId=${h.actorIds[actorName]}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -691,8 +691,8 @@ defineFeature(deleteFeature, (test) => {
   });
 });
 
-// --- ASSIGN VALUE INSTANCE AGENTS ---
-defineFeature(agentsFeature, (test) => {
+// --- ASSIGN VALUE INSTANCE ACTORS ---
+defineFeature(actorsFeature, (test) => {
   let response: request.Response;
   let authCookie: string;
   let createdId: string;
@@ -702,7 +702,7 @@ defineFeature(agentsFeature, (test) => {
   beforeEach(async () => { await cleanDatabase(); h.clear(); });
   afterAll(async () => { await teardownApp(); });
 
-  test('Create value instance with fromAgent', ({ given, and, when, then }) => {
+  test('Create value instance with fromActor', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -715,15 +715,15 @@ defineFeature(agentsFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     when(
-      /^I create a value instance with fromAgent "(.*)" and:$/,
-      async (agentName: string, table: { name: string; purpose: string }[]) => {
+      /^I create a value instance with fromActor "(.*)" and:$/,
+      async (actorName: string, table: { name: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/value-instances')
@@ -733,7 +733,7 @@ defineFeature(agentsFeature, (test) => {
             name: row.name,
             purpose: row.purpose,
             valueId: h.valueIds['Solar Panel'],
-            fromAgentId: h.agentIds[agentName],
+            fromActorId: h.actorIds[actorName],
           });
       },
     );
@@ -742,13 +742,13 @@ defineFeature(agentsFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include fromAgent "(.*)"$/, (name: string) => {
-      expect(response.body.fromAgent).toBeTruthy();
-      expect(response.body.fromAgent.name).toBe(name);
+    and(/^the response should include fromActor "(.*)"$/, (name: string) => {
+      expect(response.body.fromActor).toBeTruthy();
+      expect(response.body.fromActor.name).toBe(name);
     });
   });
 
-  test('Create value instance with toAgent', ({ given, and, when, then }) => {
+  test('Create value instance with toActor', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -761,15 +761,15 @@ defineFeature(agentsFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     when(
-      /^I create a value instance with toAgent "(.*)" and:$/,
-      async (agentName: string, table: { name: string; purpose: string }[]) => {
+      /^I create a value instance with toActor "(.*)" and:$/,
+      async (actorName: string, table: { name: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/value-instances')
@@ -779,7 +779,7 @@ defineFeature(agentsFeature, (test) => {
             name: row.name,
             purpose: row.purpose,
             valueId: h.valueIds['Solar Panel'],
-            toAgentId: h.agentIds[agentName],
+            toActorId: h.actorIds[actorName],
           });
       },
     );
@@ -788,13 +788,13 @@ defineFeature(agentsFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include toAgent "(.*)"$/, (name: string) => {
-      expect(response.body.toAgent).toBeTruthy();
-      expect(response.body.toAgent.name).toBe(name);
+    and(/^the response should include toActor "(.*)"$/, (name: string) => {
+      expect(response.body.toActor).toBeTruthy();
+      expect(response.body.toActor.name).toBe(name);
     });
   });
 
-  test('Create value instance with both fromAgent and toAgent', ({ given, and, when, then }) => {
+  test('Create value instance with both fromActor and toActor', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -807,21 +807,21 @@ defineFeature(agentsFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     when(
-      /^I create a value instance with fromAgent "(.*)" and toAgent "(.*)" and:$/,
+      /^I create a value instance with fromActor "(.*)" and toActor "(.*)" and:$/,
       async (fromName: string, toName: string, table: { name: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
@@ -832,8 +832,8 @@ defineFeature(agentsFeature, (test) => {
             name: row.name,
             purpose: row.purpose,
             valueId: h.valueIds['Solar Panel'],
-            fromAgentId: h.agentIds[fromName],
-            toAgentId: h.agentIds[toName],
+            fromActorId: h.actorIds[fromName],
+            toActorId: h.actorIds[toName],
           });
       },
     );
@@ -842,18 +842,18 @@ defineFeature(agentsFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include fromAgent "(.*)"$/, (name: string) => {
-      expect(response.body.fromAgent).toBeTruthy();
-      expect(response.body.fromAgent.name).toBe(name);
+    and(/^the response should include fromActor "(.*)"$/, (name: string) => {
+      expect(response.body.fromActor).toBeTruthy();
+      expect(response.body.fromActor.name).toBe(name);
     });
 
-    and(/^the response should include toAgent "(.*)"$/, (name: string) => {
-      expect(response.body.toAgent).toBeTruthy();
-      expect(response.body.toAgent.name).toBe(name);
+    and(/^the response should include toActor "(.*)"$/, (name: string) => {
+      expect(response.body.toActor).toBeTruthy();
+      expect(response.body.toActor.name).toBe(name);
     });
   });
 
-  test("Update value instance's fromAgent", ({ given, and, when, then }) => {
+  test("Update value instance's fromActor", ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -866,45 +866,45 @@ defineFeature(agentsFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^a value instance exists with name "(.*)" for value "(.*)" with fromAgent "(.*)"$/,
-      async (name: string, valueName: string, agentName: string) => {
-        createdId = await h.createValueInstance(authCookie, name, valueName, { fromAgentId: h.agentIds[agentName] });
+      /^a value instance exists with name "(.*)" for value "(.*)" with fromActor "(.*)"$/,
+      async (name: string, valueName: string, actorName: string) => {
+        createdId = await h.createValueInstance(authCookie, name, valueName, { fromActorId: h.actorIds[actorName] });
       },
     );
 
-    when(/^I update the value instance's fromAgent to "(.*)"$/, async (agentName: string) => {
+    when(/^I update the value instance's fromActor to "(.*)"$/, async (actorName: string) => {
       response = await request(getApp().getHttpServer())
         .patch(`/value-instances/${createdId}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ fromAgentId: h.agentIds[agentName] });
+        .send({ fromActorId: h.actorIds[actorName] });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include fromAgent "(.*)"$/, (name: string) => {
-      expect(response.body.fromAgent).toBeTruthy();
-      expect(response.body.fromAgent.name).toBe(name);
+    and(/^the response should include fromActor "(.*)"$/, (name: string) => {
+      expect(response.body.fromActor).toBeTruthy();
+      expect(response.body.fromActor.name).toBe(name);
     });
   });
 
-  test("Remove value instance's fromAgent", ({ given, and, when, then }) => {
+  test("Remove value instance's fromActor", ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -917,37 +917,37 @@ defineFeature(agentsFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^a value instance exists with name "(.*)" for value "(.*)" with fromAgent "(.*)"$/,
-      async (name: string, valueName: string, agentName: string) => {
-        createdId = await h.createValueInstance(authCookie, name, valueName, { fromAgentId: h.agentIds[agentName] });
+      /^a value instance exists with name "(.*)" for value "(.*)" with fromActor "(.*)"$/,
+      async (name: string, valueName: string, actorName: string) => {
+        createdId = await h.createValueInstance(authCookie, name, valueName, { fromActorId: h.actorIds[actorName] });
       },
     );
 
-    when("I update the value instance's fromAgent to null", async () => {
+    when("I update the value instance's fromActor to null", async () => {
       response = await request(getApp().getHttpServer())
         .patch(`/value-instances/${createdId}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ fromAgentId: null });
+        .send({ fromActorId: null });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and('the response should have null fromAgent', () => {
-      expect(response.body.fromAgent).toBeNull();
+    and('the response should have null fromActor', () => {
+      expect(response.body.fromActor).toBeNull();
     });
   });
 
-  test('Create value instance with non-existent agent fails', ({ given, and, when, then }) => {
+  test('Create value instance with non-existent actor fails', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -960,7 +960,7 @@ defineFeature(agentsFeature, (test) => {
     );
 
     when(
-      /^I create a value instance with non-existent fromAgent and:$/,
+      /^I create a value instance with non-existent fromActor and:$/,
       async (table: { name: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
@@ -971,7 +971,7 @@ defineFeature(agentsFeature, (test) => {
             name: row.name,
             purpose: row.purpose,
             valueId: h.valueIds['Solar Panel'],
-            fromAgentId: '00000000-0000-0000-0000-000000000000',
+            fromActorId: '00000000-0000-0000-0000-000000000000',
           });
       },
     );

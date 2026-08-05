@@ -2,9 +2,9 @@ Feature: Search Orders
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
-    And an agent exists with name "Partner Ltd"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
+    And an actor exists with name "Partner Ltd"
     And a currency value exists with name "USD"
     And a pipeline exists with name "Direct Sales"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
@@ -21,13 +21,13 @@ Feature: Search Orders
     Then the response status should be 200
     And the search result should contain 1 orders
 
-  Scenario: Filter orders by fromAgent
-    When I search orders with fromAgent "Seller Corp"
+  Scenario: Filter orders by fromActor
+    When I search orders with fromActor "Seller Corp"
     Then the response status should be 200
     And the search result should contain 1 orders
 
-  Scenario: Filter orders by agent on either side
-    When I search orders involving agent "Buyer Inc"
+  Scenario: Filter orders by actor on either side
+    When I search orders involving actor "Buyer Inc"
     Then the response status should be 200
     And the search result should contain 2 orders
 

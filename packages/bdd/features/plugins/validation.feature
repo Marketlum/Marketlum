@@ -12,9 +12,9 @@ Feature: Plugin validation at registration
     Then configuration fails with an error mentioning a duplicate plugin id "dup"
 
   Scenario: A plugin id that collides with a reserved core name is rejected
-    Given a plugin declaring the reserved id "agents"
+    Given a plugin declaring the reserved id "actors"
     When the core module is configured with that plugin
-    Then configuration fails with an error mentioning a reserved plugin id "agents"
+    Then configuration fails with an error mentioning a reserved plugin id "actors"
 
   Scenario: An entity whose table is not namespaced is rejected
     Given a plugin "badns" with an entity mapped to the table "widgets"

@@ -13,14 +13,14 @@ import { ValueType } from '@marketlum/shared';
 const feature = loadFeature(
   path.resolve(
     __dirname,
-    '../../../../packages/bdd/features/agents/functional-currency.feature',
+    '../../../../packages/bdd/features/actors/functional-currency.feature',
   ),
 );
 
 interface Ctx {
   authCookie: string;
   values: Map<string, string>;
-  agents: Map<string, string>;
+  actors: Map<string, string>;
   response: request.Response;
 }
 
@@ -28,7 +28,7 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     values: new Map(),
-    agents: new Map(),
+    actors: new Map(),
     response: {} as request.Response,
   };
 }
@@ -44,7 +44,7 @@ async function ensureValue(ctx: Ctx, name: string, type: ValueType): Promise<str
   return res.body.id;
 }
 
-async function createAgent(
+async function createActor(
   ctx: Ctx,
   name: string,
   options: { functionalCurrencyName?: string | null } = {},
@@ -57,7 +57,7 @@ async function createAgent(
         : ctx.values.get(options.functionalCurrencyName);
   }
   return request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send(body);
@@ -92,48 +92,48 @@ defineFeature(feature, (test) => {
     });
   }
 
-  test('Creating an agent with a functional currency', ({ given, and, when, then }) => {
+  test('Creating an actor with a functional currency', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    when(/^I create an agent named "(.*)" with functional currency "(.*)"$/,
+    when(/^I create an actor named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        ctx.response = await createAgent(ctx, name, { functionalCurrencyName: currency });
+        ctx.response = await createActor(ctx, name, { functionalCurrencyName: currency });
       });
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the agent functional currency should be "(.*)"$/, (currency: string) => {
+    and(/^the actor functional currency should be "(.*)"$/, (currency: string) => {
       expect(ctx.response.body.functionalCurrency).not.toBeNull();
       expect(ctx.response.body.functionalCurrency.id).toBe(ctx.values.get(currency));
     });
   });
 
-  test('Creating an agent without a functional currency is allowed', ({ given, and, when, then }) => {
+  test('Creating an actor without a functional currency is allowed', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    when(/^I create an agent named "(.*)" without a functional currency$/, async (name: string) => {
-      ctx.response = await createAgent(ctx, name);
+    when(/^I create an actor named "(.*)" without a functional currency$/, async (name: string) => {
+      ctx.response = await createActor(ctx, name);
     });
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and('the agent functional currency should be null', () => {
+    and('the actor functional currency should be null', () => {
       expect(ctx.response.body.functionalCurrency).toBeNull();
     });
   });
 
-  test("Updating an agent's functional currency", ({ given, and, when, then }) => {
+  test("Updating an actor's functional currency", ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        const res = await createAgent(ctx, name, { functionalCurrencyName: currency });
-        ctx.agents.set(name, res.body.id);
+        const res = await createActor(ctx, name, { functionalCurrencyName: currency });
+        ctx.actors.set(name, res.body.id);
       });
-    when(/^I update that agent's functional currency to "(.*)"$/, async (currency: string) => {
-      const agentId = Array.from(ctx.agents.values())[0];
+    when(/^I update that actor's functional currency to "(.*)"$/, async (currency: string) => {
+      const actorId = Array.from(ctx.actors.values())[0];
       ctx.response = await request(getApp().getHttpServer())
-        .patch(`/agents/${agentId}`)
+        .patch(`/actors/${actorId}`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1')
         .send({ functionalCurrencyId: ctx.values.get(currency) });
@@ -141,23 +141,23 @@ defineFeature(feature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the agent functional currency should be "(.*)"$/, (currency: string) => {
+    and(/^the actor functional currency should be "(.*)"$/, (currency: string) => {
       expect(ctx.response.body.functionalCurrency.id).toBe(ctx.values.get(currency));
     });
   });
 
-  test("Clearing an agent's functional currency", ({ given, and, when, then }) => {
+  test("Clearing an actor's functional currency", ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        const res = await createAgent(ctx, name, { functionalCurrencyName: currency });
-        ctx.agents.set(name, res.body.id);
+        const res = await createActor(ctx, name, { functionalCurrencyName: currency });
+        ctx.actors.set(name, res.body.id);
       });
-    when("I clear that agent's functional currency", async () => {
-      const agentId = Array.from(ctx.agents.values())[0];
+    when("I clear that actor's functional currency", async () => {
+      const actorId = Array.from(ctx.actors.values())[0];
       ctx.response = await request(getApp().getHttpServer())
-        .patch(`/agents/${agentId}`)
+        .patch(`/actors/${actorId}`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1')
         .send({ functionalCurrencyId: null });
@@ -165,7 +165,7 @@ defineFeature(feature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and('the agent functional currency should be null', () => {
+    and('the actor functional currency should be null', () => {
       expect(ctx.response.body.functionalCurrency).toBeNull();
     });
   });
@@ -176,27 +176,27 @@ defineFeature(feature, (test) => {
     and(/^a product value exists named "(.*)"$/, async (name: string) => {
       await ensureValue(ctx, name, ValueType.PRODUCT);
     });
-    when(/^I create an agent named "(.*)" with functional currency "(.*)"$/,
+    when(/^I create an actor named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        ctx.response = await createAgent(ctx, name, { functionalCurrencyName: currency });
+        ctx.response = await createActor(ctx, name, { functionalCurrencyName: currency });
       });
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
   });
 
-  test('Snapshot references endpoint returns zero counts for an agent with no invoices', ({ given, and, when, then }) => {
+  test('Snapshot references endpoint returns zero counts for an actor with no invoices', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        const res = await createAgent(ctx, name, { functionalCurrencyName: currency });
-        ctx.agents.set(name, res.body.id);
+        const res = await createActor(ctx, name, { functionalCurrencyName: currency });
+        ctx.actors.set(name, res.body.id);
       });
     when(/^I fetch the snapshot references for "(.*)"$/, async (name: string) => {
-      const agentId = ctx.agents.get(name)!;
+      const actorId = ctx.actors.get(name)!;
       ctx.response = await request(getApp().getHttpServer())
-        .get(`/agents/${agentId}/snapshot-references`)
+        .get(`/actors/${actorId}/snapshot-references`)
         .set('Cookie', [ctx.authCookie]);
     });
     then(/^the response status should be (\d+)$/, (status: string) => {

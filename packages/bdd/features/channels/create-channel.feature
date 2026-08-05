@@ -9,16 +9,16 @@ Feature: Create Channel
     And the response should contain a channel with name "Sales Channel"
     And the response should contain a channel with color "#ff5733"
 
-  Scenario: Successfully create a root channel with purpose and agent
+  Scenario: Successfully create a root channel with purpose and actor
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Sales Team"
-    When I create a channel with purpose and agent:
+    And an actor exists with name "Sales Team"
+    When I create a channel with purpose and actor:
       | name            | color   | purpose              |
       | Support Channel | #33ff57 | Customer support hub |
     Then the response status should be 201
     And the response should contain a channel with name "Support Channel"
     And the response should contain a channel with purpose "Customer support hub"
-    And the response should contain a channel with an agent named "Sales Team"
+    And the response should contain a channel with an actor named "Sales Team"
 
   Scenario: Successfully create a child channel under parent
     Given I am authenticated as "admin@marketlum.com"

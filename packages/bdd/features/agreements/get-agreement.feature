@@ -2,8 +2,8 @@ Feature: Get Agreement
 
   Scenario: Get an existing agreement by ID
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And a root agreement exists with title "Trade Agreement"
     When I request the agreement by its ID
     Then the response status should be 200

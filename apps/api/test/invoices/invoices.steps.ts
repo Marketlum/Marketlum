@@ -30,18 +30,18 @@ const eventsFeature = loadFeature(
 );
 
 const invoiceIds = new Map<string, string>();
-const agentIds = new Map<string, string>();
+const actorIds = new Map<string, string>();
 const valueIds = new Map<string, string>();
 const valueInstanceIds = new Map<string, string>();
 const channelIds = new Map<string, string>();
 
-async function createAgent(authCookie: string, name: string): Promise<string> {
+async function createActor(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  agentIds.set(name, res.body.id);
+  actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -82,8 +82,8 @@ async function createChannel(authCookie: string, name: string): Promise<string> 
 async function createInvoice(
   authCookie: string,
   number: string,
-  fromAgentName: string,
-  toAgentName: string,
+  fromActorName: string,
+  toActorName: string,
   opts: {
     paid?: boolean;
     currencyName?: string;
@@ -91,13 +91,13 @@ async function createInvoice(
     channelId?: string;
   } = {},
 ): Promise<request.Response> {
-  const fromAgentId = agentIds.get(fromAgentName)!;
-  const toAgentId = agentIds.get(toAgentName)!;
+  const fromActorId = actorIds.get(fromActorName)!;
+  const toActorId = actorIds.get(toActorName)!;
   const currencyId = valueIds.get(opts.currencyName || 'USD')!;
   const body: Record<string, unknown> = {
     number,
-    fromAgentId,
-    toAgentId,
+    fromActorId,
+    toActorId,
     issuedAt: '2025-01-15T00:00:00.000Z',
     dueAt: '2025-02-15T00:00:00.000Z',
     currencyId,
@@ -114,7 +114,7 @@ async function createInvoice(
 
 function clearMaps() {
   invoiceIds.clear();
-  agentIds.clear();
+  actorIds.clear();
   valueIds.clear();
   valueInstanceIds.clear();
   channelIds.clear();
@@ -143,12 +143,12 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -159,8 +159,8 @@ defineFeature(createFeature, (test) => {
       'I create an invoice with:',
       async (table: { number: string; issuedAt: string; dueAt: string; paid: string; link: string }[]) => {
         const row = table[0];
-        const fromAgentId = agentIds.get('Seller Corp')!;
-        const toAgentId = agentIds.get('Buyer Inc')!;
+        const fromActorId = actorIds.get('Seller Corp')!;
+        const toActorId = actorIds.get('Buyer Inc')!;
         const currencyId = valueIds.get('USD')!;
         response = await request(getApp().getHttpServer())
           .post('/invoices')
@@ -168,8 +168,8 @@ defineFeature(createFeature, (test) => {
           .set('X-CSRF-Protection', '1')
           .send({
             number: row.number,
-            fromAgentId,
-            toAgentId,
+            fromActorId,
+            toActorId,
             issuedAt: row.issuedAt,
             dueAt: row.dueAt,
             currencyId,
@@ -187,14 +187,14 @@ defineFeature(createFeature, (test) => {
       expect(response.body.number).toBe(number);
     });
 
-    and(/^the response should contain a fromAgent with name "(.*)"$/, (name: string) => {
-      expect(response.body.fromAgent).toBeDefined();
-      expect(response.body.fromAgent.name).toBe(name);
+    and(/^the response should contain a fromActor with name "(.*)"$/, (name: string) => {
+      expect(response.body.fromActor).toBeDefined();
+      expect(response.body.fromActor.name).toBe(name);
     });
 
-    and(/^the response should contain a toAgent with name "(.*)"$/, (name: string) => {
-      expect(response.body.toAgent).toBeDefined();
-      expect(response.body.toAgent.name).toBe(name);
+    and(/^the response should contain a toActor with name "(.*)"$/, (name: string) => {
+      expect(response.body.toActor).toBeDefined();
+      expect(response.body.toActor.name).toBe(name);
     });
 
     and(/^the response should contain a currency with name "(.*)"$/, (name: string) => {
@@ -212,12 +212,12 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -268,17 +268,17 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Reject duplicate number for same fromAgent', ({ given, when, then, and }) => {
+  test('Reject duplicate number for same fromActor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -305,21 +305,21 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Allow same number for different fromAgents', ({ given, when, then, and }) => {
+  test('Allow same number for different fromActors', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -351,12 +351,12 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -410,20 +410,20 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Reject non-existent fromAgentId', ({ given, when, then }) => {
+  test('Reject non-existent fromActorId', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    when('I create an invoice with non-existent fromAgentId', async () => {
+    when('I create an invoice with non-existent fromActorId', async () => {
       response = await request(getApp().getHttpServer())
         .post('/invoices')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
           number: 'INV-001',
-          fromAgentId: '00000000-0000-0000-0000-000000000000',
-          toAgentId: '00000000-0000-0000-0000-000000000000',
+          fromActorId: '00000000-0000-0000-0000-000000000000',
+          toActorId: '00000000-0000-0000-0000-000000000000',
           issuedAt: '2025-01-01T00:00:00.000Z',
           dueAt: '2025-02-01T00:00:00.000Z',
           currencyId: '00000000-0000-0000-0000-000000000000',
@@ -473,12 +473,12 @@ defineFeature(getFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -508,12 +508,12 @@ defineFeature(getFeature, (test) => {
       expect(response.body.number).toBe(number);
     });
 
-    and(/^the response should contain a fromAgent with name "(.*)"$/, (name: string) => {
-      expect(response.body.fromAgent.name).toBe(name);
+    and(/^the response should contain a fromActor with name "(.*)"$/, (name: string) => {
+      expect(response.body.fromActor.name).toBe(name);
     });
 
-    and(/^the response should contain a toAgent with name "(.*)"$/, (name: string) => {
-      expect(response.body.toAgent.name).toBe(name);
+    and(/^the response should contain a toActor with name "(.*)"$/, (name: string) => {
+      expect(response.body.toActor.name).toBe(name);
     });
   });
 
@@ -522,12 +522,12 @@ defineFeature(getFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -577,12 +577,12 @@ defineFeature(getFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -673,12 +673,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -716,12 +716,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -759,12 +759,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -824,12 +824,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -873,12 +873,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -916,17 +916,17 @@ defineFeature(updateFeature, (test) => {
     });
   });
 
-  test('Reject duplicate number for same fromAgent on update', ({ given, when, then, and }) => {
+  test('Reject duplicate number for same fromActor on update', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1024,12 +1024,12 @@ defineFeature(deleteFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1062,12 +1062,12 @@ defineFeature(deleteFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1157,12 +1157,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1222,12 +1222,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1270,21 +1270,21 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
-  test('Filter by fromAgentId', ({ given, when, then, and }) => {
+  test('Filter by fromActorId', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1305,10 +1305,10 @@ defineFeature(searchFeature, (test) => {
       },
     );
 
-    when(/^I search invoices with fromAgentId for "(.*)"$/, async (agentName: string) => {
-      const agentId = agentIds.get(agentName);
+    when(/^I search invoices with fromActorId for "(.*)"$/, async (actorName: string) => {
+      const actorId = actorIds.get(actorName);
       response = await request(getApp().getHttpServer())
-        .get(`/invoices/search?fromAgentId=${agentId}`)
+        .get(`/invoices/search?fromActorId=${actorId}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -1321,21 +1321,21 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
-  test('Filter by toAgentId', ({ given, when, then, and }) => {
+  test('Filter by toActorId', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1356,10 +1356,10 @@ defineFeature(searchFeature, (test) => {
       },
     );
 
-    when(/^I search invoices with toAgentId for "(.*)"$/, async (agentName: string) => {
-      const agentId = agentIds.get(agentName);
+    when(/^I search invoices with toActorId for "(.*)"$/, async (actorName: string) => {
+      const actorId = actorIds.get(actorName);
       response = await request(getApp().getHttpServer())
-        .get(`/invoices/search?toAgentId=${agentId}`)
+        .get(`/invoices/search?toActorId=${actorId}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -1372,21 +1372,21 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
-  test('Filter by agentId matching either side', ({ given, when, then, and }) => {
+  test('Filter by actorId matching either side', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1414,10 +1414,10 @@ defineFeature(searchFeature, (test) => {
       },
     );
 
-    when(/^I search invoices with agentId for "(.*)"$/, async (agentName: string) => {
-      const agentId = agentIds.get(agentName);
+    when(/^I search invoices with actorId for "(.*)"$/, async (actorName: string) => {
+      const actorId = actorIds.get(actorName);
       response = await request(getApp().getHttpServer())
-        .get(`/invoices/search?agentId=${agentId}`)
+        .get(`/invoices/search?actorId=${actorId}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -1435,12 +1435,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1488,12 +1488,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1539,12 +1539,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1591,12 +1591,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1644,12 +1644,12 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -1724,14 +1724,14 @@ defineFeature(eventsFeature, (test) => {
   });
 
   async function seedInvoiceFixtures(): Promise<{
-    fromAgentId: string;
-    toAgentId: string;
+    fromActorId: string;
+    toActorId: string;
     currencyId: string;
   }> {
-    const fromAgentId = await createAgent(authCookie, 'Seller Corp');
-    const toAgentId = await createAgent(authCookie, 'Buyer Inc');
+    const fromActorId = await createActor(authCookie, 'Seller Corp');
+    const toActorId = await createActor(authCookie, 'Buyer Inc');
     const currencyId = await createValue(authCookie, 'USD');
-    return { fromAgentId, toAgentId, currencyId };
+    return { fromActorId, toActorId, currencyId };
   }
 
   test('Creating an invoice publishes marketlum.invoice.created and no item-level event', ({
@@ -1745,15 +1745,15 @@ defineFeature(eventsFeature, (test) => {
     });
 
     when(/^I create an invoice for the event recorder$/, async () => {
-      const { fromAgentId, toAgentId, currencyId } = await seedInvoiceFixtures();
+      const { fromActorId, toActorId, currencyId } = await seedInvoiceFixtures();
       response = await request(getApp().getHttpServer())
         .post('/invoices')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
           number: 'EVT-001',
-          fromAgentId,
-          toAgentId,
+          fromActorId,
+          toActorId,
           currencyId,
           direction: 'revenue',
           issuedAt: '2025-01-15T00:00:00.000Z',
@@ -1781,15 +1781,15 @@ defineFeature(eventsFeature, (test) => {
     });
 
     and(/^an invoice exists for the event recorder$/, async () => {
-      const { fromAgentId, toAgentId, currencyId } = await seedInvoiceFixtures();
+      const { fromActorId, toActorId, currencyId } = await seedInvoiceFixtures();
       const res = await request(getApp().getHttpServer())
         .post('/invoices')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
           number: 'EVT-002',
-          fromAgentId,
-          toAgentId,
+          fromActorId,
+          toActorId,
           currencyId,
           direction: 'revenue',
           issuedAt: '2025-01-15T00:00:00.000Z',
@@ -1821,15 +1821,15 @@ defineFeature(eventsFeature, (test) => {
     });
 
     and(/^an invoice exists for the event recorder$/, async () => {
-      const { fromAgentId, toAgentId, currencyId } = await seedInvoiceFixtures();
+      const { fromActorId, toActorId, currencyId } = await seedInvoiceFixtures();
       const res = await request(getApp().getHttpServer())
         .post('/invoices')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
           number: 'EVT-003',
-          fromAgentId,
-          toAgentId,
+          fromActorId,
+          toActorId,
           currencyId,
           direction: 'revenue',
           issuedAt: '2025-01-15T00:00:00.000Z',

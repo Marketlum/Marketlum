@@ -4,11 +4,11 @@ Feature: Create Archetype
     Given I am authenticated as "admin@marketlum.com"
     When I create an archetype with:
       | name           | purpose              | description              |
-      | Market Maker   | Facilitate trading   | Agents that make markets |
+      | Market Maker   | Facilitate trading   | Actors that make markets |
     Then the response status should be 201
     And the response should contain an archetype with name "Market Maker"
     And the response should contain an archetype with purpose "Facilitate trading"
-    And the response should contain an archetype with description "Agents that make markets"
+    And the response should contain an archetype with description "Actors that make markets"
 
   Scenario: Create archetype with only name
     Given I am authenticated as "admin@marketlum.com"
@@ -24,9 +24,9 @@ Feature: Create Archetype
     And a taxonomy exists with name "Region"
     When I create an archetype with taxonomies "Industry,Region" and:
       | name              |
-      | Classified Agent  |
+      | Classified Actor  |
     Then the response status should be 201
-    And the response should contain an archetype with name "Classified Agent"
+    And the response should contain an archetype with name "Classified Actor"
     And the response should contain 2 taxonomies
 
   Scenario: Create archetype with empty name fails

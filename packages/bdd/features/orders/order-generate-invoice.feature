@@ -2,8 +2,8 @@ Feature: Generate an invoice from an order
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And a value exists with name "Widget A"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
@@ -17,8 +17,8 @@ Feature: Generate an invoice from an order
     Then the response status should be 201
     And the invoice response should reference the order
     And the generated invoice number is the order number suffixed with "/1"
-    And the response should contain a fromAgent with name "Seller Corp"
-    And the response should contain a toAgent with name "Buyer Inc"
+    And the response should contain a fromActor with name "Seller Corp"
+    And the response should contain a toActor with name "Buyer Inc"
     And the response should contain a currency with name "USD"
     And the response should contain 2 items
     And the invoice total should be "350.00"

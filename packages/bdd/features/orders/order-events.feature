@@ -2,8 +2,8 @@ Feature: Order events
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
 
   Scenario: Creating an order publishes marketlum.order.created and no item-level event

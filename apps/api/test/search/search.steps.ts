@@ -10,7 +10,7 @@ import {
   createUserViaService,
   randomCode,
 } from '../setup';
-import { ValuesService, ValueInstancesService, AgentsService } from '@marketlum/core';
+import { ValuesService, ValueInstancesService, ActorsService } from '@marketlum/core';
 
 const feature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/search/global-search.feature'),
@@ -69,14 +69,14 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Search returns matching agents by name', ({ given, and, when, then }) => {
+  test('Search returns matching actors by name', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent named "(.*)" exists$/, async (name: string) => {
-      const agentsService = getApp().get(AgentsService);
-      await agentsService.create({ name, type: 'organization' as any });
+    and(/^an actor named "(.*)" exists$/, async (name: string) => {
+      const actorsService = getApp().get(ActorsService);
+      await actorsService.create({ name, type: 'organization' as any });
     });
 
     when(/^I search for "(.*)"$/, async (query: string) => {
@@ -191,9 +191,9 @@ defineFeature(feature, (test) => {
       await valuesService.create({ code: randomCode('search'), name, type: 'product' as any });
     });
 
-    and(/^an agent named "(.*)" exists$/, async (name: string) => {
-      const agentsService = getApp().get(AgentsService);
-      await agentsService.create({ name, type: 'organization' as any });
+    and(/^an actor named "(.*)" exists$/, async (name: string) => {
+      const actorsService = getApp().get(ActorsService);
+      await actorsService.create({ name, type: 'organization' as any });
     });
 
     when(/^I search for "(.*)"$/, async (query: string) => {
@@ -269,10 +269,10 @@ defineFeature(feature, (test) => {
     });
 
     and(
-      /^an agent named "(.*)" with purpose "(.*)" exists$/,
+      /^an actor named "(.*)" with purpose "(.*)" exists$/,
       async (name: string, purpose: string) => {
-        const agentsService = getApp().get(AgentsService);
-        await agentsService.create({
+        const actorsService = getApp().get(ActorsService);
+        await actorsService.create({
           name,
           type: 'organization' as any,
           purpose,

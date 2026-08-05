@@ -933,38 +933,38 @@ defineFeature(listFilterFeature, (test) => {
 defineFeature(deleteCountryWithAddressFeature, (test) => {
   let response: request.Response;
   let authCookie: string;
-  const agentIds = new Map<string, string>();
+  const actorIds = new Map<string, string>();
 
   beforeAll(async () => { await bootstrapApp(); });
   beforeEach(async () => {
     await cleanDatabase();
     geographyIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
   afterAll(async () => { await teardownApp(); });
 
-  test("Cannot delete a country referenced by an agent's address", ({ given, and, when, then }) => {
+  test("Cannot delete a country referenced by an actor's address", ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
     and('the following geographies exist:', async (table: { name: string; code: string; type: string; parent: string }[]) => {
       await buildTree(authCookie, table);
     });
-    and(/^an agent "(.*)" of type "(.*)" exists$/, async (name: string, type: string) => {
+    and(/^an actor "(.*)" of type "(.*)" exists$/, async (name: string, type: string) => {
       const res = await request(getApp().getHttpServer())
-        .post('/agents')
+        .post('/actors')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({ name, type, purpose: 'sample' });
-      agentIds.set(name, res.body.id);
+      actorIds.set(name, res.body.id);
     });
     and(
       /^"(.*)" has an address "(.*)" in "(.*)" with line1 "(.*)"$/,
-      async (agent: string, label: string, country: string, line1: string) => {
-        const agentId = agentIds.get(agent)!;
+      async (actor: string, label: string, country: string, line1: string) => {
+        const actorId = actorIds.get(actor)!;
         const countryId = geographyIds.get(country)!;
         await request(getApp().getHttpServer())
-          .post(`/agents/${agentId}/addresses`)
+          .post(`/actors/${actorId}/addresses`)
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
           .send({

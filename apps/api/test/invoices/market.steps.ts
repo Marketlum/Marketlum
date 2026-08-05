@@ -18,7 +18,7 @@ type StepFn = (regex: RegExp | string, fn: (...args: never[]) => unknown) => voi
 defineFeature(feature, (test) => {
   let response: request.Response;
   let authCookie: string;
-  const agentIds = new Map<string, string>();
+  const actorIds = new Map<string, string>();
   const valueIds = new Map<string, string>();
   const invoiceIds = new Map<string, string>();
 
@@ -28,7 +28,7 @@ defineFeature(feature, (test) => {
 
   beforeEach(async () => {
     await cleanDatabase();
-    agentIds.clear();
+    actorIds.clear();
     valueIds.clear();
     invoiceIds.clear();
   });
@@ -44,8 +44,8 @@ defineFeature(feature, (test) => {
   async function createInvoice(number: string, market?: string): Promise<request.Response> {
     const body: Record<string, unknown> = {
       number,
-      fromAgentId: agentIds.get('Seller Corp'),
-      toAgentId: agentIds.get('Buyer Inc'),
+      fromActorId: actorIds.get('Seller Corp'),
+      toActorId: actorIds.get('Buyer Inc'),
       currencyId: valueIds.get('USD'),
       issuedAt: '2026-01-15T00:00:00.000Z',
       dueAt: '2026-02-15T00:00:00.000Z',
@@ -64,17 +64,17 @@ defineFeature(feature, (test) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    const agentStep = (step: StepFn) =>
-      step(/^an agent exists with name "(.*)"$/, async (name: string) => {
+    const actorStep = (step: StepFn) =>
+      step(/^an actor exists with name "(.*)"$/, async (name: string) => {
         const res = await request(server())
-          .post('/agents')
+          .post('/actors')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
           .send({ name, type: 'organization' });
-        agentIds.set(name, res.body.id);
+        actorIds.set(name, res.body.id);
       });
-    agentStep(and);
-    agentStep(and);
+    actorStep(and);
+    actorStep(and);
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
       const res = await request(server())
         .post('/values')

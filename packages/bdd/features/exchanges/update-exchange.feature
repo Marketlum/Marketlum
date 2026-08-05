@@ -2,8 +2,8 @@ Feature: Update Exchange
 
   Scenario: Update exchange scalar fields
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Old Name"
     When I update the exchange's name to "New Name"
     Then the response status should be 200
@@ -11,8 +11,8 @@ Feature: Update Exchange
 
   Scenario: Update exchange relations
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And a value stream exists with name "New Stream"
     And a channel exists with name "New Channel"
     And an exchange exists with name "Linked Exchange"
@@ -23,20 +23,20 @@ Feature: Update Exchange
 
   Scenario: Replace exchange parties
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
-    And an agent exists with name "Agent C"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
+    And an actor exists with name "Actor C"
     And an exchange exists with name "Party Exchange"
-    When I replace the exchange parties with "Agent B" and "Agent C"
+    When I replace the exchange parties with "Actor B" and "Actor C"
     Then the response status should be 200
     And the response should contain 2 parties
-    And the response should contain a party with agent "Agent B"
-    And the response should contain a party with agent "Agent C"
+    And the response should contain a party with actor "Actor B"
+    And the response should contain a party with actor "Actor C"
 
   Scenario: Set and clear exchange pipeline
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And a pipeline exists with name "Sales Pipeline" and color "#3b82f6"
     And an exchange exists with name "Pipeline Exchange"
     When I update the exchange's pipeline to "Sales Pipeline"

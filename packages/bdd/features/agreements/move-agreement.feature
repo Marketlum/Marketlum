@@ -2,8 +2,8 @@ Feature: Move Agreement
 
   Scenario: Move an agreement to a different parent
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |
@@ -15,8 +15,8 @@ Feature: Move Agreement
 
   Scenario: Move an agreement to root
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |
@@ -27,8 +27,8 @@ Feature: Move Agreement
 
   Scenario: Move to a non-existent parent fails
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And a root agreement exists with title "Trade Agreement"
     When I move "Trade Agreement" to non-existent parent
     Then the response status should be 404

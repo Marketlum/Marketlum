@@ -20,7 +20,7 @@ const feature = loadFeature(
 interface Ctx {
   authCookie: string;
   values: Map<string, string>;
-  agents: Map<string, string>;
+  actors: Map<string, string>;
   response: request.Response;
 }
 
@@ -28,7 +28,7 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     values: new Map(),
-    agents: new Map(),
+    actors: new Map(),
     response: {} as request.Response,
   };
 }
@@ -44,14 +44,14 @@ async function ensureCurrencyValue(ctx: Ctx, name: string): Promise<string> {
   return res.body.id;
 }
 
-async function ensureAgent(ctx: Ctx, name: string): Promise<string> {
-  if (ctx.agents.has(name)) return ctx.agents.get(name)!;
+async function ensureActor(ctx: Ctx, name: string): Promise<string> {
+  if (ctx.actors.has(name)) return ctx.actors.get(name)!;
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  ctx.agents.set(name, res.body.id);
+  ctx.actors.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -84,8 +84,8 @@ async function createRate(
 
 async function createInvoice(
   ctx: Ctx,
-  fromAgentName: string,
-  toAgentName: string,
+  fromActorName: string,
+  toActorName: string,
   currencyName: string,
   total: string,
 ) {
@@ -95,8 +95,8 @@ async function createInvoice(
     .set('X-CSRF-Protection', '1')
     .send({
       number: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      fromAgentId: ctx.agents.get(fromAgentName),
-      toAgentId: ctx.agents.get(toAgentName),
+      fromActorId: ctx.actors.get(fromActorName),
+      toActorId: ctx.actors.get(toActorName),
       issuedAt: new Date().toISOString(),
       dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       currencyId: ctx.values.get(currencyName),
@@ -141,11 +141,11 @@ defineFeature(feature, (test) => {
         await createRate(ctx, from, to, rate, effectiveAt);
       },
     );
-    steps.and(/^an agent exists named "(.*)"$/, async (name: string) => {
-      await ensureAgent(ctx, name);
+    steps.and(/^an actor exists named "(.*)"$/, async (name: string) => {
+      await ensureActor(ctx, name);
     });
-    steps.and(/^an agent exists named "(.*)"$/, async (name: string) => {
-      await ensureAgent(ctx, name);
+    steps.and(/^an actor exists named "(.*)"$/, async (name: string) => {
+      await ensureActor(ctx, name);
     });
   }
 

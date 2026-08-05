@@ -2,8 +2,8 @@ Feature: Search Agreements
 
   Scenario: Search with default pagination
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |
@@ -16,8 +16,8 @@ Feature: Search Agreements
 
   Scenario: Search by title
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And the following agreement tree exists:
       | title              | parent             |
       | Master Agreement   |                    |
@@ -30,9 +30,9 @@ Feature: Search Agreements
 
   Scenario: Filter agreements by partyId
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
-    And an agent exists with name "Party C"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
+    And an actor exists with name "Party C"
     And an agreement exists with title "AB Agreement" and parties "Party A,Party B"
     And an agreement exists with title "BC Agreement" and parties "Party B,Party C"
     And an agreement exists with title "AC Agreement" and parties "Party A,Party C"

@@ -2,20 +2,20 @@ Feature: Get Invoice
 
   Scenario: Get an existing invoice by ID
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
     When I request the invoice by its ID
     Then the response status should be 200
     And the response should contain an invoice with number "INV-001"
-    And the response should contain a fromAgent with name "Seller Corp"
-    And the response should contain a toAgent with name "Buyer Inc"
+    And the response should contain a fromActor with name "Seller Corp"
+    And the response should contain a toActor with name "Buyer Inc"
 
   Scenario: Get invoice with items and computed total
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And a value exists with name "Widget A"
     And an invoice exists with number "INV-002" from "Seller Corp" to "Buyer Inc" with items
@@ -26,8 +26,8 @@ Feature: Get Invoice
 
   Scenario: Get invoice with channel
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And a channel exists with name "Online Store"
     And an invoice exists with number "INV-CH1" from "Seller Corp" to "Buyer Inc" with channel "Online Store"

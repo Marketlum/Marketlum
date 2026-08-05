@@ -7,24 +7,24 @@ Feature: Update Channel
     Then the response status should be 200
     And the response should contain a channel with name "New Channel"
 
-  Scenario: Successfully update purpose, color, and agentId
+  Scenario: Successfully update purpose, color, and actorId
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Support Agent"
+    And an actor exists with name "Support Actor"
     And a root channel exists with name "My Channel"
-    When I update the channel with purpose "Updated purpose" and color "#aabbcc" and agent "Support Agent"
+    When I update the channel with purpose "Updated purpose" and color "#aabbcc" and actor "Support Actor"
     Then the response status should be 200
     And the response should contain a channel with purpose "Updated purpose"
     And the response should contain a channel with color "#aabbcc"
-    And the response should contain a channel with an agent named "Support Agent"
+    And the response should contain a channel with an actor named "Support Actor"
 
   Scenario: Clear optional fields
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Old Agent"
-    And a root channel exists with name "Full Channel" and purpose "Some purpose" and agent "Old Agent"
-    When I update the channel to clear purpose and agent
+    And an actor exists with name "Old Actor"
+    And a root channel exists with name "Full Channel" and purpose "Some purpose" and actor "Old Actor"
+    When I update the channel to clear purpose and actor
     Then the response status should be 200
     And the response should contain a channel with null purpose
-    And the response should contain a channel with null agent
+    And the response should contain a channel with null actor
 
   Scenario: Update a non-existent channel returns 404
     Given I am authenticated as "admin@marketlum.com"

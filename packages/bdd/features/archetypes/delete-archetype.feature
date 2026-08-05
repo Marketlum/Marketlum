@@ -9,7 +9,7 @@ Feature: Delete Archetype
   Scenario: Delete archetype with taxonomies removes join records
     Given I am authenticated as "admin@marketlum.com"
     And a taxonomy exists with name "Industry"
-    And an archetype exists with name "Typed Agent" and taxonomies "Industry"
+    And an archetype exists with name "Typed Actor" and taxonomies "Industry"
     When I delete the archetype
     Then the response status should be 204
 
@@ -17,7 +17,7 @@ Feature: Delete Archetype
     Given I am authenticated as "admin@marketlum.com"
     And a taxonomy exists with name "Industry"
     And a taxonomy exists with name "Region"
-    And an archetype exists with name "Typed Agent" and taxonomies "Industry,Region"
+    And an archetype exists with name "Typed Actor" and taxonomies "Industry,Region"
     When I delete the taxonomy "Industry"
     And I request the archetype by its ID
     Then the response status should be 200

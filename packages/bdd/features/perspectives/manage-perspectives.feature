@@ -13,7 +13,7 @@ Feature: Manage Perspectives
 
   Scenario: Create a perspective with full config
     Given I am authenticated as "admin@marketlum.com"
-    When I create a perspective with name "Full Config" for table "agents" and config:
+    When I create a perspective with name "Full Config" for table "actors" and config:
       | columnVisibility       | filters              | sortBy | sortOrder |
       | {"purpose":false}      | {"type":"organization"} | name   | DESC      |
     Then the response status should be 201
@@ -48,7 +48,7 @@ Feature: Manage Perspectives
   Scenario: List perspectives for a table
     Given I am authenticated as "admin@marketlum.com"
     And I have a perspective "Values View" for table "values"
-    And I have a perspective "Agents View" for table "agents"
+    And I have a perspective "Actors View" for table "actors"
     When I list perspectives for table "values"
     Then the response status should be 200
     And the response should contain 1 perspective

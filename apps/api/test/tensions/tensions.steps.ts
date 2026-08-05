@@ -33,17 +33,17 @@ const transitionFeature = loadFeature(
 );
 
 const tensionIds = new Map<string, string>();
-const agentIds = new Map<string, string>();
+const actorIds = new Map<string, string>();
 const userIds = new Map<string, string>();
 const exchangeIds = new Map<string, string>();
 
-async function createAgent(authCookie: string, name: string): Promise<string> {
+async function createActor(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  agentIds.set(name, res.body.id);
+  actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -61,17 +61,17 @@ async function createTension(
   authCookie: string,
   name: string,
   opts: {
-    agentName?: string;
+    actorName?: string;
     leadName?: string;
     score?: number;
     currentContext?: string;
     state?: string;
   } = {},
 ): Promise<request.Response> {
-  const agentId = opts.agentName
-    ? agentIds.get(opts.agentName)
-    : agentIds.values().next().value;
-  const body: Record<string, unknown> = { name, agentId };
+  const actorId = opts.actorName
+    ? actorIds.get(opts.actorName)
+    : actorIds.values().next().value;
+  const body: Record<string, unknown> = { name, actorId };
   if (opts.leadName) body.leadUserId = userIds.get(opts.leadName);
   if (opts.score !== undefined) body.score = opts.score;
   if (opts.currentContext !== undefined) body.currentContext = opts.currentContext;
@@ -107,7 +107,7 @@ defineFeature(createFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     tensionIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     userIds.clear();
   });
 
@@ -120,8 +120,8 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a user exists with name "(.*)"$/, async (name: string) => {
@@ -132,7 +132,7 @@ defineFeature(createFeature, (test) => {
       'I create a tension with:',
       async (table: { name: string; currentContext: string; potentialFuture: string; score: string }[]) => {
         const row = table[0];
-        const agentId = agentIds.values().next().value;
+        const actorId = actorIds.values().next().value;
         const leadUserId = userIds.values().next().value;
         response = await request(getApp().getHttpServer())
           .post('/tensions')
@@ -143,7 +143,7 @@ defineFeature(createFeature, (test) => {
             currentContext: row.currentContext,
             potentialFuture: row.potentialFuture,
             score: parseInt(row.score),
-            agentId,
+            actorId,
             leadUserId,
           });
       },
@@ -161,9 +161,9 @@ defineFeature(createFeature, (test) => {
       expect(response.body.score).toBe(parseInt(score));
     });
 
-    and(/^the response should contain an agent with name "(.*)"$/, (name: string) => {
-      expect(response.body.agent).toBeDefined();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should contain an actor with name "(.*)"$/, (name: string) => {
+      expect(response.body.actor).toBeDefined();
+      expect(response.body.actor.name).toBe(name);
     });
 
     and(/^the response should contain a lead with name "(.*)"$/, (name: string) => {
@@ -177,12 +177,12 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    when(/^I create a tension with name "(.*)" and agent "(.*)"$/, async (name: string, agentName: string) => {
-      response = await createTension(authCookie, name, { agentName });
+    when(/^I create a tension with name "(.*)" and actor "(.*)"$/, async (name: string, actorName: string) => {
+      response = await createTension(authCookie, name, { actorName });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -203,17 +203,17 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when('I create a tension without a name', async () => {
-      const agentId = agentIds.values().next().value;
+      const actorId = actorIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .post('/tensions')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ agentId });
+        .send({ actorId });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -221,17 +221,17 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Create tension with missing agentId fails', ({ given, when, then }) => {
+  test('Create tension with missing actorId fails', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    when('I create a tension without an agentId', async () => {
+    when('I create a tension without an actorId', async () => {
       response = await request(getApp().getHttpServer())
         .post('/tensions')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ name: 'No Agent Tension' });
+        .send({ name: 'No Actor Tension' });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -239,17 +239,17 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Create tension with non-existent agentId fails', ({ given, when, then }) => {
+  test('Create tension with non-existent actorId fails', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    when('I create a tension with non-existent agentId', async () => {
+    when('I create a tension with non-existent actorId', async () => {
       response = await request(getApp().getHttpServer())
         .post('/tensions')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ name: 'Bad Agent', agentId: '00000000-0000-0000-0000-000000000000' });
+        .send({ name: 'Bad Actor', actorId: '00000000-0000-0000-0000-000000000000' });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -262,19 +262,19 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when('I create a tension with non-existent leadUserId', async () => {
-      const agentId = agentIds.values().next().value;
+      const actorId = actorIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .post('/tensions')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
           name: 'Bad Lead',
-          agentId,
+          actorId,
           leadUserId: '00000000-0000-0000-0000-000000000000',
         });
     });
@@ -289,17 +289,17 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when(/^I create a tension with score (\d+)$/, async (score: string) => {
-      const agentId = agentIds.values().next().value;
+      const actorId = actorIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .post('/tensions')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ name: 'High Score', agentId, score: parseInt(score) });
+        .send({ name: 'High Score', actorId, score: parseInt(score) });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -312,17 +312,17 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     when(/^I create a tension with score (\d+)$/, async (score: string) => {
-      const agentId = agentIds.values().next().value;
+      const actorId = actorIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .post('/tensions')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ name: 'Zero Score', agentId, score: parseInt(score) });
+        .send({ name: 'Zero Score', actorId, score: parseInt(score) });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -335,7 +335,7 @@ defineFeature(createFeature, (test) => {
       response = await request(getApp().getHttpServer())
         .post('/tensions')
         .set('X-CSRF-Protection', '1')
-        .send({ name: 'Unauth Tension', agentId: '00000000-0000-0000-0000-000000000000' });
+        .send({ name: 'Unauth Tension', actorId: '00000000-0000-0000-0000-000000000000' });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -356,7 +356,7 @@ defineFeature(listFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     tensionIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     userIds.clear();
   });
 
@@ -369,8 +369,8 @@ defineFeature(listFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -405,31 +405,31 @@ defineFeature(listFeature, (test) => {
     });
   });
 
-  test('Filter tensions by agent', ({ given, when, then, and }) => {
+  test('Filter tensions by actor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^a tension exists with name "(.*)" for agent "(.*)"$/, async (name: string, agentName: string) => {
-      await createTension(authCookie, name, { agentName });
+    and(/^a tension exists with name "(.*)" for actor "(.*)"$/, async (name: string, actorName: string) => {
+      await createTension(authCookie, name, { actorName });
     });
 
-    and(/^a tension exists with name "(.*)" for agent "(.*)"$/, async (name: string, agentName: string) => {
-      await createTension(authCookie, name, { agentName });
+    and(/^a tension exists with name "(.*)" for actor "(.*)"$/, async (name: string, actorName: string) => {
+      await createTension(authCookie, name, { actorName });
     });
 
-    when(/^I list tensions filtered by agent "(.*)"$/, async (agentName: string) => {
-      const agentId = agentIds.get(agentName);
+    when(/^I list tensions filtered by actor "(.*)"$/, async (actorName: string) => {
+      const actorId = actorIds.get(actorName);
       response = await request(getApp().getHttpServer())
-        .get(`/tensions/search?page=1&limit=10&agentId=${agentId}`)
+        .get(`/tensions/search?page=1&limit=10&actorId=${actorId}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1');
     });
@@ -452,8 +452,8 @@ defineFeature(listFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a user exists with name "(.*)"$/, async (name: string) => {
@@ -494,8 +494,8 @@ defineFeature(listFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -539,7 +539,7 @@ defineFeature(getFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     tensionIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     userIds.clear();
   });
 
@@ -552,8 +552,8 @@ defineFeature(getFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a user exists with name "(.*)"$/, async (name: string) => {
@@ -580,9 +580,9 @@ defineFeature(getFeature, (test) => {
       expect(response.body.name).toBe(name);
     });
 
-    and(/^the response should contain an agent with name "(.*)"$/, (name: string) => {
-      expect(response.body.agent).toBeDefined();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should contain an actor with name "(.*)"$/, (name: string) => {
+      expect(response.body.actor).toBeDefined();
+      expect(response.body.actor.name).toBe(name);
     });
 
     and(/^the response should contain a lead with name "(.*)"$/, (name: string) => {
@@ -621,7 +621,7 @@ defineFeature(updateFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     tensionIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     userIds.clear();
   });
 
@@ -634,12 +634,12 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a user exists with name "(.*)"$/, async (name: string) => {
@@ -647,7 +647,7 @@ defineFeature(updateFeature, (test) => {
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
-      await createTension(authCookie, name, { agentName: 'Original Agent' });
+      await createTension(authCookie, name, { actorName: 'Original Actor' });
     });
 
     when(
@@ -655,7 +655,7 @@ defineFeature(updateFeature, (test) => {
       async (name: string, table: { name: string; currentContext: string; potentialFuture: string; score: string }[]) => {
         const id = tensionIds.get(name);
         const row = table[0];
-        const newAgentId = agentIds.get('New Agent');
+        const newActorId = actorIds.get('New Actor');
         const newLeadId = userIds.get('New Lead');
         response = await request(getApp().getHttpServer())
           .patch(`/tensions/${id}`)
@@ -666,7 +666,7 @@ defineFeature(updateFeature, (test) => {
             currentContext: row.currentContext,
             potentialFuture: row.potentialFuture,
             score: parseInt(row.score),
-            agentId: newAgentId,
+            actorId: newActorId,
             leadUserId: newLeadId,
           });
       },
@@ -684,9 +684,9 @@ defineFeature(updateFeature, (test) => {
       expect(response.body.score).toBe(parseInt(score));
     });
 
-    and(/^the response should contain an agent with name "(.*)"$/, (name: string) => {
-      expect(response.body.agent).toBeDefined();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should contain an actor with name "(.*)"$/, (name: string) => {
+      expect(response.body.actor).toBeDefined();
+      expect(response.body.actor.name).toBe(name);
     });
 
     and(/^the response should contain a lead with name "(.*)"$/, (name: string) => {
@@ -700,8 +700,8 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" with score (\d+)$/, async (name: string, score: string) => {
@@ -735,8 +735,8 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -757,26 +757,26 @@ defineFeature(updateFeature, (test) => {
     });
   });
 
-  test('Update with non-existent agentId fails', ({ given, when, then, and }) => {
+  test('Update with non-existent actorId fails', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
       await createTension(authCookie, name);
     });
 
-    when(/^I update the tension "(.*)" with non-existent agentId$/, async (name: string) => {
+    when(/^I update the tension "(.*)" with non-existent actorId$/, async (name: string) => {
       const id = tensionIds.get(name);
       response = await request(getApp().getHttpServer())
         .patch(`/tensions/${id}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ agentId: '00000000-0000-0000-0000-000000000000' });
+        .send({ actorId: '00000000-0000-0000-0000-000000000000' });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -789,8 +789,8 @@ defineFeature(updateFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -824,7 +824,7 @@ defineFeature(deleteFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     tensionIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     userIds.clear();
     exchangeIds.clear();
   });
@@ -838,8 +838,8 @@ defineFeature(deleteFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -864,12 +864,12 @@ defineFeature(deleteFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -880,7 +880,7 @@ defineFeature(deleteFeature, (test) => {
       /^an exchange exists with name "(.*)" referencing tension "(.*)"$/,
       async (exchangeName: string, tensionName: string) => {
         const tensionId = tensionIds.get(tensionName);
-        const agentEntries = [...agentIds.values()];
+        const actorEntries = [...actorIds.values()];
         const res = await request(getApp().getHttpServer())
           .post('/exchanges')
           .set('Cookie', [authCookie])
@@ -890,8 +890,8 @@ defineFeature(deleteFeature, (test) => {
             purpose: 'Test exchange',
             tensionId,
             parties: [
-              { agentId: agentEntries[0], role: 'seller' },
-              { agentId: agentEntries[1], role: 'buyer' },
+              { actorId: actorEntries[0], role: 'seller' },
+              { actorId: actorEntries[1], role: 'buyer' },
             ],
           });
         exchangeIds.set(exchangeName, res.body.id);
@@ -951,7 +951,7 @@ defineFeature(searchFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     tensionIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     userIds.clear();
   });
 
@@ -964,8 +964,8 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -998,8 +998,8 @@ defineFeature(searchFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -1039,7 +1039,7 @@ defineFeature(transitionFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     tensionIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     userIds.clear();
   });
 
@@ -1052,12 +1052,12 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    when(/^I create a tension with name "(.*)" and agent "(.*)"$/, async (name: string, agentName: string) => {
-      response = await createTension(authCookie, name, { agentName });
+    when(/^I create a tension with name "(.*)" and actor "(.*)"$/, async (name: string, actorName: string) => {
+      response = await createTension(authCookie, name, { actorName });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -1074,8 +1074,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -1105,8 +1105,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)"$/, async (name: string) => {
@@ -1136,8 +1136,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
@@ -1167,8 +1167,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
@@ -1198,8 +1198,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
@@ -1225,8 +1225,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
@@ -1252,8 +1252,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
@@ -1279,8 +1279,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {
@@ -1306,8 +1306,8 @@ defineFeature(transitionFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a tension exists with name "(.*)" and state "(.*)"$/, async (name: string, state: string) => {

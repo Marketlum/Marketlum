@@ -32,9 +32,9 @@ Feature: Search Archetypes
     Given I am authenticated as "admin@marketlum.com"
     And a taxonomy exists with name "Industry"
     And a taxonomy exists with name "Region"
-    And an archetype exists with name "Industrial Agent" and taxonomies "Industry"
-    And an archetype exists with name "Regional Agent" and taxonomies "Region"
-    And an archetype exists with name "Full Agent" and taxonomies "Industry,Region"
+    And an archetype exists with name "Industrial Actor" and taxonomies "Industry"
+    And an archetype exists with name "Regional Actor" and taxonomies "Region"
+    And an archetype exists with name "Full Actor" and taxonomies "Industry,Region"
     When I search archetypes with taxonomyId for "Industry"
     Then the response status should be 200
     And the total count should be 2

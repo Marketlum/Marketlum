@@ -13,16 +13,16 @@ const feature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/dashboard/get-dashboard-summary.feature'),
 );
 
-const agentIds = new Map<string, string>();
+const actorIds = new Map<string, string>();
 const valueIds = new Map<string, string>();
 
-async function createAgent(authCookie: string, name: string): Promise<string> {
+async function createActor(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  agentIds.set(name, res.body.id);
+  actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -46,19 +46,19 @@ async function createValue(authCookie: string, name: string): Promise<string> {
 
 async function createInvoiceWithItems(
   authCookie: string,
-  fromAgentName: string,
-  toAgentName: string,
+  fromActorName: string,
+  toActorName: string,
   issuedAt: string,
   total: string,
 ): Promise<void> {
-  const fromAgentId = agentIds.get(fromAgentName)!;
-  const toAgentId = agentIds.get(toAgentName)!;
+  const fromActorId = actorIds.get(fromActorName)!;
+  const toActorId = actorIds.get(toActorName)!;
   const currencyId = valueIds.get('USD')!;
   const number = `INV-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const body: Record<string, unknown> = {
     number,
-    fromAgentId,
-    toAgentId,
+    fromActorId,
+    toActorId,
     issuedAt: `${issuedAt}T00:00:00.000Z`,
     dueAt: '2025-12-31T00:00:00.000Z',
     currencyId,
@@ -74,7 +74,7 @@ async function createInvoiceWithItems(
 }
 
 function clearMaps() {
-  agentIds.clear();
+  actorIds.clear();
   valueIds.clear();
 }
 
@@ -100,12 +100,12 @@ defineFeature(feature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -153,17 +153,17 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Filter by agentId returns revenue and expense split', ({ given, when, then, and }) => {
+  test('Filter by actorId returns revenue and expense split', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -184,10 +184,10 @@ defineFeature(feature, (test) => {
       },
     );
 
-    when(/^I request the dashboard summary with agentId for "(.*)"$/, async (agentName: string) => {
-      const agentId = agentIds.get(agentName)!;
+    when(/^I request the dashboard summary with actorId for "(.*)"$/, async (actorName: string) => {
+      const actorId = actorIds.get(actorName)!;
       response = await request(getApp().getHttpServer())
-        .get(`/dashboard/summary?agentId=${agentId}`)
+        .get(`/dashboard/summary?actorId=${actorId}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -213,12 +213,12 @@ defineFeature(feature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -261,17 +261,17 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Combined filters with agent and dates', ({ given, when, then, and }) => {
+  test('Combined filters with actor and dates', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value exists with name "(.*)"$/, async (name: string) => {
@@ -300,11 +300,11 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I request the dashboard summary with agentId for "(.*)" and fromDate "(.*)" and toDate "(.*)"$/,
-      async (agentName: string, fromDate: string, toDate: string) => {
-        const agentId = agentIds.get(agentName)!;
+      /^I request the dashboard summary with actorId for "(.*)" and fromDate "(.*)" and toDate "(.*)"$/,
+      async (actorName: string, fromDate: string, toDate: string) => {
+        const actorId = actorIds.get(actorName)!;
         response = await request(getApp().getHttpServer())
-          .get(`/dashboard/summary?agentId=${agentId}&fromDate=${fromDate}&toDate=${toDate}`)
+          .get(`/dashboard/summary?actorId=${actorId}&fromDate=${fromDate}&toDate=${toDate}`)
           .set('Cookie', [authCookie]);
       },
     );

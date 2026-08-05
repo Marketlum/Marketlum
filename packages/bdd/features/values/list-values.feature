@@ -21,15 +21,15 @@ Feature: List Values
     Then the response status should be 200
     And all returned values should have type "product"
 
-  Scenario: Filter values by agent
+  Scenario: Filter values by actor
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent Alpha" and type "organization"
-    And a value exists with name "Value One" and type "product" and agent "Agent Alpha"
+    And an actor exists with name "Actor Alpha" and type "organization"
+    And a value exists with name "Value One" and type "product" and actor "Actor Alpha"
     And a value exists with name "Value Two" and type "service"
-    When I request the list of values with agentId for "Agent Alpha"
+    When I request the list of values with actorId for "Actor Alpha"
     Then the response status should be 200
     And the response should contain 1 value
-    And all returned values should have agent "Agent Alpha"
+    And all returned values should have actor "Actor Alpha"
 
   Scenario: Filter values by taxonomy
     Given I am authenticated as "admin@marketlum.com"

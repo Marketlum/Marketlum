@@ -11,8 +11,8 @@ Feature: MCP Tool Errors
 
   Scenario: Fetching a missing entity returns a NOT_FOUND error
     Given I am authenticated as "admin@marketlum.com"
-    And I have created an API key named "Agent"
-    When I call the MCP tool "get_agent" with arguments:
+    And I have created an API key named "Actor"
+    When I call the MCP tool "get_actor" with arguments:
       """
       { "id": "00000000-0000-0000-0000-000000000000" }
       """
@@ -20,7 +20,7 @@ Feature: MCP Tool Errors
 
   Scenario: Invalid tool input returns an INVALID_INPUT error
     Given I am authenticated as "admin@marketlum.com"
-    And I have created an API key named "Agent"
+    And I have created an API key named "Actor"
     When I call the MCP tool "search_market" with arguments:
       """
       {}
@@ -29,8 +29,8 @@ Feature: MCP Tool Errors
 
   Scenario: A result limit above the maximum is rejected
     Given I am authenticated as "admin@marketlum.com"
-    And I have created an API key named "Agent"
-    When I call the MCP tool "search_agents" with arguments:
+    And I have created an API key named "Actor"
+    When I call the MCP tool "search_actors" with arguments:
       """
       { "limit": 500 }
       """

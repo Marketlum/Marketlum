@@ -2,8 +2,8 @@ Feature: Update Invoice
 
   Scenario: Update invoice scalar fields
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
     When I update the invoice's number to "INV-999"
@@ -12,8 +12,8 @@ Feature: Update Invoice
 
   Scenario: Update invoice paid status
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
     When I update the invoice's paid to true
@@ -22,8 +22,8 @@ Feature: Update Invoice
 
   Scenario: Replace invoice items on update
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And a value exists with name "Widget A"
     And a value exists with name "Widget B"
@@ -33,10 +33,10 @@ Feature: Update Invoice
     And the response should contain 1 items
     And the response total should be "500.00"
 
-  Scenario: Reject duplicate number for same fromAgent on update
+  Scenario: Reject duplicate number for same fromActor on update
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
     And an invoice exists with number "INV-002" from "Seller Corp" to "Buyer Inc"
@@ -45,8 +45,8 @@ Feature: Update Invoice
 
   Scenario: Update invoice channel
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And a channel exists with name "Online Store"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
@@ -56,8 +56,8 @@ Feature: Update Invoice
 
   Scenario: Clear invoice channel
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And a channel exists with name "Online Store"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc" with channel "Online Store"

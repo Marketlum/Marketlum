@@ -6,8 +6,8 @@ Feature: Dashboard presentation currency aggregation
     And a currency value exists named "EUR"
     And the system presentation currency is "USD"
     And an exchange rate exists from "USD" to "EUR" with rate "2" effective "2020-01-01"
-    And an agent exists named "Acme"
-    And an agent exists named "Globex"
+    And an actor exists named "Acme"
+    And an actor exists named "Globex"
 
   Scenario: Dashboard sums invoice items using presentationAmount
     Given an invoice exists from "Acme" to "Globex" in "USD" totalling "100"

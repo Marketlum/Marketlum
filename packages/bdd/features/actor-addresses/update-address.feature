@@ -1,8 +1,8 @@
-Feature: Update agent address
+Feature: Update actor address
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent "Acme Corp" of type "organization" exists
+    And an actor "Acme Corp" of type "organization" exists
     And a country "Poland" with code "PL" exists
     And a country "Germany" with code "DE" exists
     And "Acme Corp" has an address "HQ" in "Poland" with line1 "ul. Marszałkowska 1" marked primary

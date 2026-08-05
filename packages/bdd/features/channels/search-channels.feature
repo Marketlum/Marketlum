@@ -34,14 +34,14 @@ Feature: Search Channels
     Then the response status should be 200
     And the first returned channel should have name "Alpha"
 
-  Scenario: Filter channels by agentId
+  Scenario: Filter channels by actorId
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
-    And a channel exists with name "Channel A" and agent "Agent A"
-    And a channel exists with name "Channel B" and agent "Agent B"
-    And a channel exists with name "Channel C" and agent "Agent A"
-    When I request the list of channels with agentId for "Agent A"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
+    And a channel exists with name "Channel A" and actor "Actor A"
+    And a channel exists with name "Channel B" and actor "Actor B"
+    And a channel exists with name "Channel C" and actor "Actor A"
+    When I request the list of channels with actorId for "Actor A"
     Then the response status should be 200
     And the total count should be 2
 

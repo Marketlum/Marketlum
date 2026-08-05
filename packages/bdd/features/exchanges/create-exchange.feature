@@ -2,8 +2,8 @@ Feature: Create Exchange
 
   Scenario: Create exchange with all fields
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value stream exists with name "Commerce"
     And a channel exists with name "Online Store"
     And a user exists with name "John Lead"
@@ -22,8 +22,8 @@ Feature: Create Exchange
 
   Scenario: State defaults to open with openedAt set automatically
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     When I create a minimal exchange with name "Simple Exchange"
     Then the response status should be 201
     And the response should contain an exchange with state "open"
@@ -32,40 +32,40 @@ Feature: Create Exchange
 
   Scenario: Reject fewer than 2 parties
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Solo Agent"
+    And an actor exists with name "Solo Actor"
     When I create an exchange with 1 party
     Then the response status should be 400
 
   Scenario: Reject missing required fields
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     When I create an exchange with empty name
     Then the response status should be 400
 
-  Scenario: Reject non-existent agent in parties
+  Scenario: Reject non-existent actor in parties
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Real Agent"
-    When I create an exchange with a non-existent party agent
+    And an actor exists with name "Real Actor"
+    When I create an exchange with a non-existent party actor
     Then the response status should be 404
 
   Scenario: Reject non-existent valueStream reference
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     When I create an exchange with a non-existent valueStream
     Then the response status should be 404
 
-  Scenario: Reject duplicate agent in parties
+  Scenario: Reject duplicate actor in parties
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    When I create an exchange with duplicate agent in parties
+    And an actor exists with name "Actor A"
+    When I create an exchange with duplicate actor in parties
     Then the response status should be 400
 
   Scenario: Create exchange with parties without roles
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     When I create an exchange with parties without roles and:
       | name           | purpose          |
       | Roleless Deal  | No roles needed  |
@@ -76,8 +76,8 @@ Feature: Create Exchange
 
   Scenario: Create exchange with pipeline
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And a pipeline exists with name "Sales Pipeline" and color "#3b82f6"
     When I create an exchange with pipeline "Sales Pipeline" and:
       | name           | purpose          |

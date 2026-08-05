@@ -13,14 +13,14 @@ import { ValueType } from '@marketlum/shared';
 const feature = loadFeature(
   path.resolve(
     __dirname,
-    '../../../../packages/bdd/features/invoices/snapshot-per-agent.feature',
+    '../../../../packages/bdd/features/invoices/snapshot-per-actor.feature',
   ),
 );
 
 interface Ctx {
   authCookie: string;
   values: Map<string, string>;
-  agents: Map<string, string>;
+  actors: Map<string, string>;
   response: request.Response;
 }
 
@@ -28,7 +28,7 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     values: new Map(),
-    agents: new Map(),
+    actors: new Map(),
     response: {} as request.Response,
   };
 }
@@ -44,22 +44,22 @@ async function ensureCurrencyValue(ctx: Ctx, name: string): Promise<string> {
   return res.body.id;
 }
 
-async function createAgent(
+async function createActor(
   ctx: Ctx,
   name: string,
   functionalCurrencyName: string | null,
 ): Promise<string> {
-  if (ctx.agents.has(name)) return ctx.agents.get(name)!;
+  if (ctx.actors.has(name)) return ctx.actors.get(name)!;
   const body: Record<string, unknown> = { name, type: 'organization' };
   if (functionalCurrencyName !== null) {
     body.functionalCurrencyId = ctx.values.get(functionalCurrencyName);
   }
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send(body);
-  ctx.agents.set(name, res.body.id);
+  ctx.actors.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -92,8 +92,8 @@ async function createRate(
 
 async function createInvoice(
   ctx: Ctx,
-  fromAgentName: string,
-  toAgentName: string,
+  fromActorName: string,
+  toActorName: string,
   currencyName: string,
   itemTotal: string,
 ): Promise<request.Response> {
@@ -103,8 +103,8 @@ async function createInvoice(
     .set('X-CSRF-Protection', '1')
     .send({
       number: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      fromAgentId: ctx.agents.get(fromAgentName),
-      toAgentId: ctx.agents.get(toAgentName),
+      fromActorId: ctx.actors.get(fromActorName),
+      toActorId: ctx.actors.get(toActorName),
       issuedAt: new Date().toISOString(),
       dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       currencyId: ctx.values.get(currencyName),
@@ -150,16 +150,16 @@ defineFeature(feature, (test) => {
     );
   }
 
-  test('Cross-currency invoice writes both agent perspectives plus presentation', ({ given, and, when, then }) => {
+  test('Cross-currency invoice writes both actor perspectives plus presentation', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        await createAgent(ctx, name, currency);
+        await createActor(ctx, name, currency);
       });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        await createAgent(ctx, name, currency);
+        await createActor(ctx, name, currency);
       });
     when(/^I create an invoice from "(.*)" to "(.*)" in "(.*)" with one item totalling "(.*)"$/,
       async (from: string, to: string, currency: string, total: string) => {
@@ -168,17 +168,17 @@ defineFeature(feature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item fromAgentRate should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].fromAgentRate).toBe(v);
+    and(/^the item fromActorRate should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].fromActorRate).toBe(v);
     });
-    and(/^the item fromAgentAmount should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].fromAgentAmount).toBe(v);
+    and(/^the item fromActorAmount should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].fromActorAmount).toBe(v);
     });
-    and(/^the item toAgentRate should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].toAgentRate).toBe(v);
+    and(/^the item toActorRate should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].toActorRate).toBe(v);
     });
-    and(/^the item toAgentAmount should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].toAgentAmount).toBe(v);
+    and(/^the item toActorAmount should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].toActorAmount).toBe(v);
     });
     and(/^the item presentationRate should be "(.*)"$/, (v: string) => {
       expect(ctx.response.body.items[0].presentationRate).toBe(v);
@@ -188,16 +188,16 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Same-currency invoice uses identity rate for both agents', ({ given, and, when, then }) => {
+  test('Same-currency invoice uses identity rate for both actors', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        await createAgent(ctx, name, currency);
+        await createActor(ctx, name, currency);
       });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        await createAgent(ctx, name, currency);
+        await createActor(ctx, name, currency);
       });
     when(/^I create an invoice from "(.*)" to "(.*)" in "(.*)" with one item totalling "(.*)"$/,
       async (from: string, to: string, currency: string, total: string) => {
@@ -206,23 +206,23 @@ defineFeature(feature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item fromAgentRate should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].fromAgentRate).toBe(v);
+    and(/^the item fromActorRate should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].fromActorRate).toBe(v);
     });
-    and(/^the item toAgentRate should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].toAgentRate).toBe(v);
+    and(/^the item toActorRate should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].toActorRate).toBe(v);
     });
   });
 
-  test('Agent without functional currency leaves its perspective NULL', ({ given, and, when, then }) => {
+  test('Actor without functional currency leaves its perspective NULL', ({ given, and, when, then }) => {
     const ctx = makeCtx();
     registerBackground(ctx, { given, and });
-    and(/^an agent exists named "(.*)" without a functional currency$/, async (name: string) => {
-      await createAgent(ctx, name, null);
+    and(/^an actor exists named "(.*)" without a functional currency$/, async (name: string) => {
+      await createActor(ctx, name, null);
     });
-    and(/^an agent exists named "(.*)" with functional currency "(.*)"$/,
+    and(/^an actor exists named "(.*)" with functional currency "(.*)"$/,
       async (name: string, currency: string) => {
-        await createAgent(ctx, name, currency);
+        await createActor(ctx, name, currency);
       });
     when(/^I create an invoice from "(.*)" to "(.*)" in "(.*)" with one item totalling "(.*)"$/,
       async (from: string, to: string, currency: string, total: string) => {
@@ -231,17 +231,17 @@ defineFeature(feature, (test) => {
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(ctx.response.status).toBe(parseInt(status));
     });
-    and(/^the item fromAgentRate should be null$/, () => {
-      expect(ctx.response.body.items[0].fromAgentRate).toBeNull();
+    and(/^the item fromActorRate should be null$/, () => {
+      expect(ctx.response.body.items[0].fromActorRate).toBeNull();
     });
-    and(/^the item fromAgentAmount should be null$/, () => {
-      expect(ctx.response.body.items[0].fromAgentAmount).toBeNull();
+    and(/^the item fromActorAmount should be null$/, () => {
+      expect(ctx.response.body.items[0].fromActorAmount).toBeNull();
     });
-    and(/^the item toAgentRate should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].toAgentRate).toBe(v);
+    and(/^the item toActorRate should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].toActorRate).toBe(v);
     });
-    and(/^the item toAgentAmount should be "(.*)"$/, (v: string) => {
-      expect(ctx.response.body.items[0].toAgentAmount).toBe(v);
+    and(/^the item toActorAmount should be "(.*)"$/, (v: string) => {
+      expect(ctx.response.body.items[0].toActorAmount).toBe(v);
     });
   });
 });

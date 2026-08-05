@@ -3,10 +3,10 @@ Feature: Update Transaction
   Scenario: Successfully update a transaction's description
     Given I am authenticated as "admin@marketlum.com"
     And a value exists with name "Solar Panel" and type "product"
-    And an agent exists with name "Supplier Co" and type "organization"
-    And an agent exists with name "Buyer Inc" and type "organization"
-    And an account exists with name "Source Account" for agent "Supplier Co"
-    And an account exists with name "Destination Account" for agent "Buyer Inc"
+    And an actor exists with name "Supplier Co" and type "organization"
+    And an actor exists with name "Buyer Inc" and type "organization"
+    And an account exists with name "Source Account" for actor "Supplier Co"
+    And an account exists with name "Destination Account" for actor "Buyer Inc"
     And a transaction exists from "Source Account" to "Destination Account" with amount "100.00"
     When I update the transaction's description to "Updated payment"
     Then the response status should be 200
@@ -15,10 +15,10 @@ Feature: Update Transaction
   Scenario: Updating transaction to same from and to account fails
     Given I am authenticated as "admin@marketlum.com"
     And a value exists with name "Solar Panel" and type "product"
-    And an agent exists with name "Supplier Co" and type "organization"
-    And an agent exists with name "Buyer Inc" and type "organization"
-    And an account exists with name "Source Account" for agent "Supplier Co"
-    And an account exists with name "Destination Account" for agent "Buyer Inc"
+    And an actor exists with name "Supplier Co" and type "organization"
+    And an actor exists with name "Buyer Inc" and type "organization"
+    And an account exists with name "Source Account" for actor "Supplier Co"
+    And an account exists with name "Destination Account" for actor "Buyer Inc"
     And a transaction exists from "Source Account" to "Destination Account" with amount "100.00"
     When I update the transaction's fromAccountId to "Destination Account"
     Then the response status should be 400
@@ -26,10 +26,10 @@ Feature: Update Transaction
   Scenario: Successfully update a transaction to remove fromAccount
     Given I am authenticated as "admin@marketlum.com"
     And a value exists with name "Solar Panel" and type "product"
-    And an agent exists with name "Supplier Co" and type "organization"
-    And an agent exists with name "Buyer Inc" and type "organization"
-    And an account exists with name "Source Account" for agent "Supplier Co"
-    And an account exists with name "Destination Account" for agent "Buyer Inc"
+    And an actor exists with name "Supplier Co" and type "organization"
+    And an actor exists with name "Buyer Inc" and type "organization"
+    And an account exists with name "Source Account" for actor "Supplier Co"
+    And an account exists with name "Destination Account" for actor "Buyer Inc"
     And a transaction exists from "Source Account" to "Destination Account" with amount "100.00"
     When I update the transaction's fromAccountId to null
     Then the response status should be 200
@@ -39,8 +39,8 @@ Feature: Update Transaction
   Scenario: Updating a transaction to remove both accounts fails
     Given I am authenticated as "admin@marketlum.com"
     And a value exists with name "Solar Panel" and type "product"
-    And an agent exists with name "Supplier Co" and type "organization"
-    And an account exists with name "Source Account" for agent "Supplier Co"
+    And an actor exists with name "Supplier Co" and type "organization"
+    And an account exists with name "Source Account" for actor "Supplier Co"
     And a transaction exists from "Source Account" with amount "100.00"
     When I update the transaction's fromAccountId to null
     Then the response status should be 400

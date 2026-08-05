@@ -13,7 +13,7 @@ function server() {
 }
 
 interface EmcCanvasNode {
-  agentId: string | undefined;
+  actorId: string | undefined;
   tier: 'STRATEGIC' | 'TACTICAL';
   isLeading: boolean;
   profitSharePercent: number | null;
@@ -24,11 +24,11 @@ interface EmcCanvasNode {
 
 function node(
   ctx: EmcCtx,
-  agentName: string,
+  actorName: string,
   overrides: Partial<EmcCanvasNode> = {},
 ): EmcCanvasNode {
   return {
-    agentId: ctx.agents.get(agentName),
+    actorId: ctx.actors.get(actorName),
     tier: 'STRATEGIC',
     isLeading: false,
     profitSharePercent: null,

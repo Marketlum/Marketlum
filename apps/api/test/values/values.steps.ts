@@ -25,8 +25,8 @@ const taxonomyFeature = loadFeature(
 const filesFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-files.feature'),
 );
-const agentFeature = loadFeature(
-  path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-agent.feature'),
+const actorFeature = loadFeature(
+  path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-actor.feature'),
 );
 const imagesFeature = loadFeature(
   path.resolve(__dirname, '../../../../packages/bdd/features/values/assign-value-images.feature'),
@@ -250,7 +250,7 @@ defineFeature(listFeature, (test) => {
   let response: request.Response;
   let authCookie: string;
   const taxonomyIds: Record<string, string> = {};
-  const agentIds: Record<string, string> = {};
+  const actorIds: Record<string, string> = {};
 
   beforeAll(async () => {
     await bootstrapApp();
@@ -261,8 +261,8 @@ defineFeature(listFeature, (test) => {
     for (const key of Object.keys(taxonomyIds)) {
       delete taxonomyIds[key];
     }
-    for (const key of Object.keys(agentIds)) {
-      delete agentIds[key];
+    for (const key of Object.keys(actorIds)) {
+      delete actorIds[key];
     }
   });
 
@@ -280,13 +280,13 @@ defineFeature(listFeature, (test) => {
     return res.body.id;
   }
 
-  async function createAgent(name: string, type: string): Promise<string> {
+  async function createActor(name: string, type: string): Promise<string> {
     const res = await request(getApp().getHttpServer())
-      .post('/agents')
+      .post('/actors')
       .set('Cookie', [authCookie])
       .set('X-CSRF-Protection', '1')
       .send({ name, type });
-    agentIds[name] = res.body.id;
+    actorIds[name] = res.body.id;
     return res.body.id;
   }
 
@@ -363,26 +363,26 @@ defineFeature(listFeature, (test) => {
     });
   });
 
-  test('Filter values by agent', ({ given, when, then, and }) => {
+  test('Filter values by actor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await createAgent(name, type);
+        await createActor(name, type);
       },
     );
 
     and(
-      /^a value exists with name "(.*)" and type "(.*)" and agent "(.*)"$/,
-      async (name: string, type: string, agentName: string) => {
+      /^a value exists with name "(.*)" and type "(.*)" and actor "(.*)"$/,
+      async (name: string, type: string, actorName: string) => {
         await request(getApp().getHttpServer())
           .post('/values')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name, type, agentId: agentIds[agentName] });
+          .send({ name, type, actorId: actorIds[actorName] });
       },
     );
 
@@ -397,9 +397,9 @@ defineFeature(listFeature, (test) => {
       },
     );
 
-    when(/^I request the list of values with agentId for "(.*)"$/, async (name: string) => {
+    when(/^I request the list of values with actorId for "(.*)"$/, async (name: string) => {
       response = await request(getApp().getHttpServer())
-        .get(`/values?agentId=${agentIds[name]}`)
+        .get(`/values?actorId=${actorIds[name]}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -411,10 +411,10 @@ defineFeature(listFeature, (test) => {
       expect(response.body.data).toHaveLength(parseInt(count));
     });
 
-    and(/^all returned values should have agent "(.*)"$/, (name: string) => {
+    and(/^all returned values should have actor "(.*)"$/, (name: string) => {
       for (const value of response.body.data) {
-        expect(value.agent).toBeTruthy();
-        expect(value.agent.name).toBe(name);
+        expect(value.actor).toBeTruthy();
+        expect(value.actor.name).toBe(name);
       }
     });
   });
@@ -1839,12 +1839,12 @@ defineFeature(imagesFeature, (test) => {
   });
 });
 
-// --- ASSIGN VALUE AGENT ---
-defineFeature(agentFeature, (test) => {
+// --- ASSIGN VALUE ACTOR ---
+defineFeature(actorFeature, (test) => {
   let response: request.Response;
   let authCookie: string;
   let createdValueId: string;
-  const agentIds: Record<string, string> = {};
+  const actorIds: Record<string, string> = {};
 
   beforeAll(async () => {
     await bootstrapApp();
@@ -1852,8 +1852,8 @@ defineFeature(agentFeature, (test) => {
 
   beforeEach(async () => {
     await cleanDatabase();
-    for (const key of Object.keys(agentIds)) {
-      delete agentIds[key];
+    for (const key of Object.keys(actorIds)) {
+      delete actorIds[key];
     }
   });
 
@@ -1861,31 +1861,31 @@ defineFeature(agentFeature, (test) => {
     await teardownApp();
   });
 
-  async function createAgent(name: string, type: string): Promise<string> {
+  async function createActor(name: string, type: string): Promise<string> {
     const res = await request(getApp().getHttpServer())
-      .post('/agents')
+      .post('/actors')
       .set('Cookie', [authCookie])
       .set('X-CSRF-Protection', '1')
       .send({ name, type });
-    agentIds[name] = res.body.id;
+    actorIds[name] = res.body.id;
     return res.body.id;
   }
 
-  test('Create value with agent', ({ given, when, then, and }) => {
+  test('Create value with actor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await createAgent(name, type);
+        await createActor(name, type);
       },
     );
 
     when(
-      /^I create a value with agent "(.*)" and:$/,
-      async (agentName: string, table: { name: string; type: string; purpose: string }[]) => {
+      /^I create a value with actor "(.*)" and:$/,
+      async (actorName: string, table: { name: string; type: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
           .post('/values')
@@ -1895,7 +1895,7 @@ defineFeature(agentFeature, (test) => {
             name: row.name,
             type: row.type,
             purpose: row.purpose,
-            agentId: agentIds[agentName],
+            actorId: actorIds[actorName],
           });
       },
     );
@@ -1904,19 +1904,19 @@ defineFeature(agentFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include agent "(.*)"$/, (name: string) => {
-      expect(response.body.agent).toBeTruthy();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should include actor "(.*)"$/, (name: string) => {
+      expect(response.body.actor).toBeTruthy();
+      expect(response.body.actor.name).toBe(name);
     });
   });
 
-  test('Create value with non-existent agent', ({ given, when, then }) => {
+  test('Create value with non-existent actor', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     when(
-      /^I create a value with a non-existent agent and:$/,
+      /^I create a value with a non-existent actor and:$/,
       async (table: { name: string; type: string; purpose: string }[]) => {
         const row = table[0];
         response = await request(getApp().getHttpServer())
@@ -1927,7 +1927,7 @@ defineFeature(agentFeature, (test) => {
             name: row.name,
             type: row.type,
             purpose: row.purpose,
-            agentId: '00000000-0000-0000-0000-000000000000',
+            actorId: '00000000-0000-0000-0000-000000000000',
           });
       },
     );
@@ -1937,116 +1937,116 @@ defineFeature(agentFeature, (test) => {
     });
   });
 
-  test("Update value's agent", ({ given, when, then, and }) => {
+  test("Update value's actor", ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await createAgent(name, type);
+        await createActor(name, type);
       },
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await createAgent(name, type);
+        await createActor(name, type);
       },
     );
 
     and(
-      /^a value exists with name "(.*)" and type "(.*)" and agent "(.*)"$/,
-      async (name: string, type: string, agentName: string) => {
+      /^a value exists with name "(.*)" and type "(.*)" and actor "(.*)"$/,
+      async (name: string, type: string, actorName: string) => {
         const res = await request(getApp().getHttpServer())
           .post('/values')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name, type, agentId: agentIds[agentName] });
+          .send({ name, type, actorId: actorIds[actorName] });
         createdValueId = res.body.id;
       },
     );
 
-    when(/^I update the value's agent to "(.*)"$/, async (agentName: string) => {
+    when(/^I update the value's actor to "(.*)"$/, async (actorName: string) => {
       response = await request(getApp().getHttpServer())
         .patch(`/values/${createdValueId}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ agentId: agentIds[agentName] });
+        .send({ actorId: actorIds[actorName] });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include agent "(.*)"$/, (name: string) => {
-      expect(response.body.agent).toBeTruthy();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should include actor "(.*)"$/, (name: string) => {
+      expect(response.body.actor).toBeTruthy();
+      expect(response.body.actor.name).toBe(name);
     });
   });
 
-  test("Remove value's agent", ({ given, when, then, and }) => {
+  test("Remove value's actor", ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await createAgent(name, type);
+        await createActor(name, type);
       },
     );
 
     and(
-      /^a value exists with name "(.*)" and type "(.*)" and agent "(.*)"$/,
-      async (name: string, type: string, agentName: string) => {
+      /^a value exists with name "(.*)" and type "(.*)" and actor "(.*)"$/,
+      async (name: string, type: string, actorName: string) => {
         const res = await request(getApp().getHttpServer())
           .post('/values')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name, type, agentId: agentIds[agentName] });
+          .send({ name, type, actorId: actorIds[actorName] });
         createdValueId = res.body.id;
       },
     );
 
-    when("I update the value's agent to null", async () => {
+    when("I update the value's actor to null", async () => {
       response = await request(getApp().getHttpServer())
         .patch(`/values/${createdValueId}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ agentId: null });
+        .send({ actorId: null });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and('the response should have null agent', () => {
-      expect(response.body.agent).toBeNull();
+    and('the response should have null actor', () => {
+      expect(response.body.actor).toBeNull();
     });
   });
 
-  test('Get value by ID includes agent', ({ given, when, then, and }) => {
+  test('Get value by ID includes actor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await createAgent(name, type);
+        await createActor(name, type);
       },
     );
 
     and(
-      /^a value exists with name "(.*)" and type "(.*)" and agent "(.*)"$/,
-      async (name: string, type: string, agentName: string) => {
+      /^a value exists with name "(.*)" and type "(.*)" and actor "(.*)"$/,
+      async (name: string, type: string, actorName: string) => {
         const res = await request(getApp().getHttpServer())
           .post('/values')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name, type, agentId: agentIds[agentName] });
+          .send({ name, type, actorId: actorIds[actorName] });
         createdValueId = res.body.id;
       },
     );
@@ -2061,32 +2061,32 @@ defineFeature(agentFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include agent "(.*)"$/, (name: string) => {
-      expect(response.body.agent).toBeTruthy();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should include actor "(.*)"$/, (name: string) => {
+      expect(response.body.actor).toBeTruthy();
+      expect(response.body.actor.name).toBe(name);
     });
   });
 
-  test('List values includes agent data', ({ given, when, then, and }) => {
+  test('List values includes actor data', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await createAgent(name, type);
+        await createActor(name, type);
       },
     );
 
     and(
-      /^a value exists with name "(.*)" and type "(.*)" and agent "(.*)"$/,
-      async (name: string, type: string, agentName: string) => {
+      /^a value exists with name "(.*)" and type "(.*)" and actor "(.*)"$/,
+      async (name: string, type: string, actorName: string) => {
         const res = await request(getApp().getHttpServer())
           .post('/values')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name, type, agentId: agentIds[agentName] });
+          .send({ name, type, actorId: actorIds[actorName] });
         createdValueId = res.body.id;
       },
     );
@@ -2101,11 +2101,11 @@ defineFeature(agentFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the first value in the list should include agent "(.*)"$/, (name: string) => {
+    and(/^the first value in the list should include actor "(.*)"$/, (name: string) => {
       expect(response.body.data.length).toBeGreaterThan(0);
       const value = response.body.data[0];
-      expect(value.agent).toBeTruthy();
-      expect(value.agent.name).toBe(name);
+      expect(value.actor).toBeTruthy();
+      expect(value.actor.name).toBe(name);
     });
   });
 

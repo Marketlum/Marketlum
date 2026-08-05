@@ -23,23 +23,23 @@ Feature: List Value Instances
     And the response should contain 1 value instance
     And all returned value instances should have value "Solar Panel"
 
-  Scenario: Filter value instances by fromAgentId
+  Scenario: Filter value instances by fromActorId
     Given I am authenticated as "admin@marketlum.com"
     And a value exists with name "Solar Panel" and type "product"
-    And an agent exists with name "Supplier Co" and type "organization"
-    And a value instance exists with name "Unit A" for value "Solar Panel" with fromAgent "Supplier Co"
+    And an actor exists with name "Supplier Co" and type "organization"
+    And a value instance exists with name "Unit A" for value "Solar Panel" with fromActor "Supplier Co"
     And a value instance exists with name "Unit B" for value "Solar Panel"
-    When I request the list of value instances with fromAgentId for "Supplier Co"
+    When I request the list of value instances with fromActorId for "Supplier Co"
     Then the response status should be 200
     And the response should contain 1 value instance
 
-  Scenario: Filter value instances by toAgentId
+  Scenario: Filter value instances by toActorId
     Given I am authenticated as "admin@marketlum.com"
     And a value exists with name "Solar Panel" and type "product"
-    And an agent exists with name "Buyer Inc" and type "organization"
-    And a value instance exists with name "Unit A" for value "Solar Panel" with toAgent "Buyer Inc"
+    And an actor exists with name "Buyer Inc" and type "organization"
+    And a value instance exists with name "Unit A" for value "Solar Panel" with toActor "Buyer Inc"
     And a value instance exists with name "Unit B" for value "Solar Panel"
-    When I request the list of value instances with toAgentId for "Buyer Inc"
+    When I request the list of value instances with toActorId for "Buyer Inc"
     Then the response status should be 200
     And the response should contain 1 value instance
 

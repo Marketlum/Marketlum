@@ -105,17 +105,17 @@ defineFeature(presentationCurrencyFeature, (test) => {
       // invoice create plumbing (this scenario only cares about the guard).
       const ds = getApp().get<DataSource>(DataSource);
       const seller = await ds.query(
-        `INSERT INTO agents ("name", "type") VALUES ($1, 'organization') RETURNING id`,
+        `INSERT INTO actors ("name", "type") VALUES ($1, 'organization') RETURNING id`,
         ['Snapshot Lock Seller'],
       );
       const buyer = await ds.query(
-        `INSERT INTO agents ("name", "type") VALUES ($1, 'organization') RETURNING id`,
+        `INSERT INTO actors ("name", "type") VALUES ($1, 'organization') RETURNING id`,
         ['Snapshot Lock Buyer'],
       );
       const usdId = ValueRegistry.get('USD');
       const invoice = await ds.query(
         `INSERT INTO invoices
-          ("number", "fromAgentId", "toAgentId", "issuedAt", "dueAt", "currencyId")
+          ("number", "fromActorId", "toActorId", "issuedAt", "dueAt", "currencyId")
          VALUES ('INV-SNAP-LOCK', $1, $2, '2026-01-01', '2026-02-01', $3) RETURNING id`,
         [seller[0].id, buyer[0].id, usdId],
       );

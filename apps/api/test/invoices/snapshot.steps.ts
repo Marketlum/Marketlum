@@ -19,8 +19,8 @@ const snapshotFeature = loadFeature(
 interface Ctx {
   authCookie: string;
   valueIds: Map<string, string>;
-  fromAgentId: string;
-  toAgentId: string;
+  fromActorId: string;
+  toActorId: string;
   invoiceId: string;
   response: request.Response;
 }
@@ -36,9 +36,9 @@ async function ensureValue(ctx: Ctx, name: string): Promise<string> {
   return res.body.id;
 }
 
-async function createAgent(ctx: Ctx, name: string): Promise<string> {
+async function createActor(ctx: Ctx, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
@@ -82,8 +82,8 @@ async function createInvoice(
     .set('X-CSRF-Protection', '1')
     .send({
       number: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      fromAgentId: ctx.fromAgentId,
-      toAgentId: ctx.toAgentId,
+      fromActorId: ctx.fromActorId,
+      toActorId: ctx.toActorId,
       issuedAt: new Date().toISOString(),
       dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       currencyId: ctx.valueIds.get(currencyName),
@@ -101,8 +101,8 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     valueIds: new Map(),
-    fromAgentId: '',
-    toAgentId: '',
+    fromActorId: '',
+    toActorId: '',
     invoiceId: '',
     response: {} as request.Response,
   };
@@ -117,8 +117,8 @@ function registerBackground(
 ) {
   steps.given(/^I am authenticated as "(.*)"$/, async (email: string) => {
     ctx.authCookie = await createAuthenticatedUser(email, 'password123');
-    ctx.fromAgentId = await createAgent(ctx, 'From Agent');
-    ctx.toAgentId = await createAgent(ctx, 'To Agent');
+    ctx.fromActorId = await createActor(ctx, 'From Actor');
+    ctx.toActorId = await createActor(ctx, 'To Actor');
   });
   steps.and(/^a value exists named "(.*)"$/, async (name: string) => {
     await ensureValue(ctx, name);

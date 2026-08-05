@@ -13,8 +13,8 @@ import {
   RdhyCtx,
   makeRdhyCtx,
   createPlatform,
-  createRdhyAgent,
-  assignAgent,
+  createRdhyActor,
+  assignActor,
   lookupPlatform,
   expectMemberCount,
   expectUnassigned,
@@ -59,18 +59,18 @@ defineFeature(feature, (test) => {
       },
     );
     and(
-      /^an agent exists with name "(.*)"$/,
+      /^an actor exists with name "(.*)"$/,
       async (name: string) => {
-        await createRdhyAgent(ctx, name);
+        await createRdhyActor(ctx, name);
       },
     );
   }
 
   function registerAssignedGiven(given: StepFn) {
     given(
-      /^the agent "(.*)" is assigned to the RDHY platform "(.*)"$/,
-      async (agentName: string, platformCode: string) => {
-        const res = await assignAgent(ctx, agentName, platformCode);
+      /^the actor "(.*)" is assigned to the RDHY platform "(.*)"$/,
+      async (actorName: string, platformCode: string) => {
+        const res = await assignActor(ctx, actorName, platformCode);
         expect(res.status).toBe(200);
       },
     );
@@ -78,17 +78,17 @@ defineFeature(feature, (test) => {
 
   function registerAssignWhen(when: StepFn) {
     when(
-      /^I assign the agent "(.*)" to the RDHY platform "(.*)"$/,
-      async (agentName: string, platformCode: string) => {
-        ctx.response = await assignAgent(ctx, agentName, platformCode);
+      /^I assign the actor "(.*)" to the RDHY platform "(.*)"$/,
+      async (actorName: string, platformCode: string) => {
+        ctx.response = await assignActor(ctx, actorName, platformCode);
       },
     );
   }
 
   function registerDetachWhen(when: StepFn) {
-    when(/^I detach the agent "(.*)" from its RDHY platform$/, async (code: string) => {
+    when(/^I detach the actor "(.*)" from its RDHY platform$/, async (code: string) => {
       ctx.response = await request(getApp().getHttpServer())
-        .delete(`/plugins/rdhy/agents/${ctx.agents.get(code)}/platform`)
+        .delete(`/plugins/rdhy/actors/${ctx.actors.get(code)}/platform`)
         .set('Cookie', [ctx.authCookie])
         .set('X-CSRF-Protection', '1');
     });
@@ -102,9 +102,9 @@ defineFeature(feature, (test) => {
 
   function registerPlatformOfIs(and: StepFn) {
     and(
-      /^the RDHY platform of the agent "(.*)" is "(.*)"$/,
-      async (agentName: string, platformCode: string) => {
-        const res = await lookupPlatform(ctx, agentName);
+      /^the RDHY platform of the actor "(.*)" is "(.*)"$/,
+      async (actorName: string, platformCode: string) => {
+        const res = await lookupPlatform(ctx, actorName);
         expect(res.status).toBe(200);
         expect(res.body.platform).not.toBeNull();
         expect(res.body.platform.code).toBe(platformCode);
@@ -121,14 +121,14 @@ defineFeature(feature, (test) => {
     );
   }
 
-  test('Assigning an agent to a platform', ({ given, and, when, then }) => {
+  test('Assigning an actor to a platform', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerAssignWhen(when);
     registerStatus(then);
     registerPlatformOfIs(and);
   });
 
-  test('Reassigning silently moves the agent to the new platform', ({
+  test('Reassigning silently moves the actor to the new platform', ({
     given,
     and,
     when,
@@ -150,30 +150,30 @@ defineFeature(feature, (test) => {
     registerMemberCount(and);
   });
 
-  test('Detaching an agent from its platform', ({ given, and, when, then }) => {
+  test('Detaching an actor from its platform', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerAssignedGiven(given);
     registerDetachWhen(when);
     registerStatus(then);
-    and(/^the agent "(.*)" is not assigned to any RDHY platform$/, async (code: string) => {
+    and(/^the actor "(.*)" is not assigned to any RDHY platform$/, async (code: string) => {
       await expectUnassigned(ctx, code);
     });
   });
 
-  test('Detaching an unassigned agent is idempotent', ({ given, and, when, then }) => {
+  test('Detaching an unassigned actor is idempotent', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerDetachWhen(when);
     registerStatus(then);
   });
 
-  test('Looking up the platform of an unassigned agent returns null', ({
+  test('Looking up the platform of an unassigned actor returns null', ({
     given,
     and,
     when,
     then,
   }) => {
     registerBackground(given, and);
-    when(/^I look up the RDHY platform of the agent "(.*)"$/, async (code: string) => {
+    when(/^I look up the RDHY platform of the actor "(.*)"$/, async (code: string) => {
       ctx.response = await lookupPlatform(ctx, code);
     });
     registerStatus(then);
@@ -182,13 +182,13 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Assigning an unknown agent fails', ({ given, and, when, then }) => {
+  test('Assigning an unknown actor fails', ({ given, and, when, then }) => {
     registerBackground(given, and);
     when(
-      /^I assign an unknown agent to the RDHY platform "(.*)"$/,
+      /^I assign an unknown actor to the RDHY platform "(.*)"$/,
       async (platformCode: string) => {
         ctx.response = await request(getApp().getHttpServer())
-          .put(`/plugins/rdhy/agents/${randomUUID()}/platform`)
+          .put(`/plugins/rdhy/actors/${randomUUID()}/platform`)
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1')
           .send({ platformId: ctx.platforms.get(platformCode) });
@@ -200,10 +200,10 @@ defineFeature(feature, (test) => {
   test('Assigning to an unknown platform fails', ({ given, and, when, then }) => {
     registerBackground(given, and);
     when(
-      /^I assign the agent "(.*)" to an unknown RDHY platform$/,
-      async (agentName: string) => {
+      /^I assign the actor "(.*)" to an unknown RDHY platform$/,
+      async (actorName: string) => {
         ctx.response = await request(getApp().getHttpServer())
-          .put(`/plugins/rdhy/agents/${ctx.agents.get(agentName)}/platform`)
+          .put(`/plugins/rdhy/actors/${ctx.actors.get(actorName)}/platform`)
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1')
           .send({ platformId: randomUUID() });
@@ -212,14 +212,14 @@ defineFeature(feature, (test) => {
     registerStatus(then);
   });
 
-  test('Deleting an agent removes its platform assignment', ({ given, and, when, then }) => {
+  test('Deleting an actor removes its platform assignment', ({ given, and, when, then }) => {
     registerBackground(given, and);
     registerAssignedGiven(given);
     when(
-      /^I delete the agent "(.*)" through the core API$/,
+      /^I delete the actor "(.*)" through the core API$/,
       async (code: string) => {
         ctx.response = await request(getApp().getHttpServer())
-          .delete(`/agents/${ctx.agents.get(code)}`)
+          .delete(`/actors/${ctx.actors.get(code)}`)
           .set('Cookie', [ctx.authCookie])
           .set('X-CSRF-Protection', '1');
       },

@@ -29,7 +29,7 @@ type StepFn = (regex: RegExp | string, fn: (...args: never[]) => unknown) => voi
 interface Ctx {
   response: request.Response;
   authCookie: string;
-  agentIds: Map<string, string>;
+  actorIds: Map<string, string>;
   valueIds: Map<string, string>;
   valueInstanceIds: Map<string, string>;
   channelIds: Map<string, string>;
@@ -44,7 +44,7 @@ function makeCtx(): Ctx {
   return {
     response: undefined as unknown as request.Response,
     authCookie: '',
-    agentIds: new Map(),
+    actorIds: new Map(),
     valueIds: new Map(),
     valueInstanceIds: new Map(),
     channelIds: new Map(),
@@ -76,9 +76,9 @@ function authedPatch(url: string) {
     .set('X-CSRF-Protection', '1');
 }
 
-async function createAgent(name: string): Promise<void> {
-  const res = await authedPost('/agents').send({ name, type: 'organization' });
-  ctx.agentIds.set(name, res.body.id);
+async function createActor(name: string): Promise<void> {
+  const res = await authedPost('/actors').send({ name, type: 'organization' });
+  ctx.actorIds.set(name, res.body.id);
 }
 
 async function createCurrencyValue(name: string): Promise<void> {
@@ -119,14 +119,14 @@ async function createLocale(code: string): Promise<void> {
 }
 
 async function createOrder(
-  fromAgentName: string,
-  toAgentName: string,
+  fromActorName: string,
+  toActorName: string,
   currencyName: string,
   extra: Record<string, unknown> = {},
 ): Promise<request.Response> {
   const res = await authedPost('/orders').send({
-    fromAgentId: ctx.agentIds.get(fromAgentName),
-    toAgentId: ctx.agentIds.get(toAgentName),
+    fromActorId: ctx.actorIds.get(fromActorName),
+    toActorId: ctx.actorIds.get(toActorName),
     currencyId: ctx.valueIds.get(currencyName),
     ...extra,
   });
@@ -179,8 +179,8 @@ async function createInvoice(
 ): Promise<request.Response> {
   const body: Record<string, unknown> = {
     number,
-    fromAgentId: ctx.agentIds.get('Seller Corp'),
-    toAgentId: ctx.agentIds.get('Buyer Inc'),
+    fromActorId: ctx.actorIds.get('Seller Corp'),
+    toActorId: ctx.actorIds.get('Buyer Inc'),
     issuedAt: '2025-01-15T00:00:00.000Z',
     dueAt: '2025-02-15T00:00:00.000Z',
     currencyId: ctx.valueIds.get(currencyName),
@@ -202,9 +202,9 @@ function registerAuth(step: StepFn) {
   });
 }
 
-function registerAgentExists(step: StepFn) {
-  step(/^an agent exists with name "(.*)"$/, async (name: string) => {
-    await createAgent(name);
+function registerActorExists(step: StepFn) {
+  step(/^an actor exists with name "(.*)"$/, async (name: string) => {
+    await createActor(name);
   });
 }
 
@@ -318,8 +318,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Create a draft order with required references', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerCreateOrder(when);
     registerStatus(then);
@@ -327,11 +327,11 @@ defineFeature(manageFeature, (test) => {
     and(/^the order number matches the order number format$/, () => {
       expect(ctx.response.body.number).toMatch(ORDER_NUMBER_FORMAT);
     });
-    and(/^the response should contain a fromAgent with name "(.*)"$/, (name: string) => {
-      expect(ctx.response.body.fromAgent.name).toBe(name);
+    and(/^the response should contain a fromActor with name "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.fromActor.name).toBe(name);
     });
-    and(/^the response should contain a toAgent with name "(.*)"$/, (name: string) => {
-      expect(ctx.response.body.toAgent.name).toBe(name);
+    and(/^the response should contain a toActor with name "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.toActor.name).toBe(name);
     });
     and(/^the response should contain a currency with name "(.*)"$/, (name: string) => {
       expect(ctx.response.body.currency.name).toBe(name);
@@ -340,8 +340,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Order numbers are generated and unique', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerCreateOrder(when);
     registerCreateOrder(and, 'other');
@@ -356,8 +356,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Create an order with channel, pipeline and locale', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     and(/^a channel exists with name "(.*)"$/, async (name: string) => {
       await createChannel(name);
@@ -388,14 +388,14 @@ defineFeature(manageFeature, (test) => {
     });
   });
 
-  test('Reject an unknown fromAgent', ({ given, and, when, then }) => {
+  test('Reject an unknown fromActor', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
-    when(/^I create an order with a non-existent fromAgent$/, async () => {
+    when(/^I create an order with a non-existent fromActor$/, async () => {
       ctx.response = await authedPost('/orders').send({
-        fromAgentId: '00000000-0000-0000-0000-000000000000',
-        toAgentId: ctx.agentIds.get('Buyer Inc'),
+        fromActorId: '00000000-0000-0000-0000-000000000000',
+        toActorId: ctx.actorIds.get('Buyer Inc'),
         currencyId: ctx.valueIds.get('USD'),
       });
     });
@@ -404,8 +404,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Reject a non-currency value as the order currency', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerValueExists(and);
     registerCreateOrder(when);
     registerStatus(then);
@@ -421,8 +421,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Update a draft order', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     and(/^a channel exists with name "(.*)"$/, async (name: string) => {
       await createChannel(name);
@@ -437,8 +437,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Reject updating a placed order', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     and(/^a channel exists with name "(.*)"$/, async (name: string) => {
       await createChannel(name);
@@ -453,8 +453,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Delete a draft order', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerOrderExists(and);
     registerDeleteOrder(when);
@@ -463,8 +463,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Reject deleting a placed order', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerOrderExists(and);
     registerOrderTransitioned(and, 'placed', 'place');
@@ -474,8 +474,8 @@ defineFeature(manageFeature, (test) => {
 
   test('Delete a cancelled order', ({ given, and, when, then }) => {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerOrderExists(and);
     registerOrderTransitioned(and, 'cancelled', 'cancel');
@@ -509,8 +509,8 @@ defineFeature(lifecycleFeature, (test) => {
 
   function registerBackground(given: StepFn, and: StepFn) {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerOrderExists(and);
   }
@@ -618,8 +618,8 @@ defineFeature(itemsFeature, (test) => {
 
   function registerBackground(given: StepFn, and: StepFn) {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerValueExists(and);
     and(
@@ -716,8 +716,8 @@ defineFeature(addressesFeature, (test) => {
 
   function registerBackground(given: StepFn, and: StepFn) {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerOrderExists(and);
   }
@@ -782,9 +782,9 @@ defineFeature(searchFeature, (test) => {
 
   function registerBackground(given: StepFn, and: StepFn) {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     and(/^a pipeline exists with name "(.*)"$/, async (name: string) => {
       await createPipeline(name);
@@ -836,19 +836,19 @@ defineFeature(searchFeature, (test) => {
     registerResultCount(and);
   });
 
-  test('Filter orders by fromAgent', ({ given, and, when, then }) => {
+  test('Filter orders by fromActor', ({ given, and, when, then }) => {
     registerBackground(given, and);
-    when(/^I search orders with fromAgent "(.*)"$/, async (name: string) => {
-      ctx.response = await searchOrders({ fromAgentId: ctx.agentIds.get(name)! });
+    when(/^I search orders with fromActor "(.*)"$/, async (name: string) => {
+      ctx.response = await searchOrders({ fromActorId: ctx.actorIds.get(name)! });
     });
     registerStatus(then);
     registerResultCount(and);
   });
 
-  test('Filter orders by agent on either side', ({ given, and, when, then }) => {
+  test('Filter orders by actor on either side', ({ given, and, when, then }) => {
     registerBackground(given, and);
-    when(/^I search orders involving agent "(.*)"$/, async (name: string) => {
-      ctx.response = await searchOrders({ agentId: ctx.agentIds.get(name)! });
+    when(/^I search orders involving actor "(.*)"$/, async (name: string) => {
+      ctx.response = await searchOrders({ actorId: ctx.actorIds.get(name)! });
     });
     registerStatus(then);
     registerResultCount(and);
@@ -900,8 +900,8 @@ defineFeature(invoicesFeature, (test) => {
 
   function registerBackground(given: StepFn, and: StepFn) {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerCurrencyExists(and);
     registerOrderExists(and);
@@ -1071,8 +1071,8 @@ defineFeature(generateInvoiceFeature, (test) => {
 
   function registerBackground(given: StepFn, and: StepFn) {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
     registerValueExists(and);
     registerOrderExists(and);
@@ -1118,11 +1118,11 @@ defineFeature(generateInvoiceFeature, (test) => {
       expect(ctx.response.body.order.id).toBe(currentOrderId());
     });
     registerNumberSuffix(and);
-    and(/^the response should contain a fromAgent with name "(.*)"$/, (name: string) => {
-      expect(ctx.response.body.fromAgent.name).toBe(name);
+    and(/^the response should contain a fromActor with name "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.fromActor.name).toBe(name);
     });
-    and(/^the response should contain a toAgent with name "(.*)"$/, (name: string) => {
-      expect(ctx.response.body.toAgent.name).toBe(name);
+    and(/^the response should contain a toActor with name "(.*)"$/, (name: string) => {
+      expect(ctx.response.body.toActor.name).toBe(name);
     });
     and(/^the response should contain a currency with name "(.*)"$/, (name: string) => {
       expect(ctx.response.body.currency.name).toBe(name);
@@ -1216,8 +1216,8 @@ defineFeature(eventsFeature, (test) => {
 
   function registerBackground(given: StepFn, and: StepFn) {
     registerAuth(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(and);
+    registerActorExists(and);
     registerCurrencyExists(and);
   }
 

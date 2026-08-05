@@ -28,14 +28,14 @@ Feature: Search Offerings
     Then the response status should be 200
     And the total count should be 2
 
-  Scenario: Filter by agentId
+  Scenario: Filter by actorId
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent Alpha"
-    And an agent exists with name "Agent Beta"
-    And an offering exists with name "Alpha Offer" for agent "Agent Alpha"
-    And an offering exists with name "Beta Offer" for agent "Agent Beta"
-    And an offering exists with name "No Agent Offer"
-    When I search offerings with agentId for "Agent Alpha"
+    And an actor exists with name "Actor Alpha"
+    And an actor exists with name "Actor Beta"
+    And an offering exists with name "Alpha Offer" for actor "Actor Alpha"
+    And an offering exists with name "Beta Offer" for actor "Actor Beta"
+    And an offering exists with name "No Actor Offer"
+    When I search offerings with actorId for "Actor Alpha"
     Then the response status should be 200
     And the total count should be 1
 

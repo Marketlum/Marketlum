@@ -2,8 +2,8 @@ Feature: List Exchange Flows
 
   Scenario: List all flows for an exchange
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "Widget A"
     And a value exists with name "Widget B"
     And an exchange exists with name "Trade Deal"
@@ -15,8 +15,8 @@ Feature: List Exchange Flows
 
   Scenario: Empty array for exchange with no flows
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Agent A"
-    And an agent exists with name "Agent B"
+    And an actor exists with name "Actor A"
+    And an actor exists with name "Actor B"
     And an exchange exists with name "Empty Exchange"
     When I list flows for the exchange
     Then the response status should be 200

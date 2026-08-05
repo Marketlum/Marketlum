@@ -25,13 +25,13 @@ const balanceFeature = loadFeature(
 // --- helpers ---
 function makeHelpers() {
   const valueIds: Record<string, string> = {};
-  const agentIds: Record<string, string> = {};
+  const actorIds: Record<string, string> = {};
   const accountIds: Record<string, string> = {};
   const transactionIds: Record<string, string> = {};
 
   function clear() {
     for (const key of Object.keys(valueIds)) delete valueIds[key];
-    for (const key of Object.keys(agentIds)) delete agentIds[key];
+    for (const key of Object.keys(actorIds)) delete actorIds[key];
     for (const key of Object.keys(accountIds)) delete accountIds[key];
     for (const key of Object.keys(transactionIds)) delete transactionIds[key];
   }
@@ -46,28 +46,28 @@ function makeHelpers() {
     return res.body.id;
   }
 
-  async function createAgent(authCookie: string, name: string, type: string): Promise<string> {
+  async function createActor(authCookie: string, name: string, type: string): Promise<string> {
     const res = await request(getApp().getHttpServer())
-      .post('/agents')
+      .post('/actors')
       .set('Cookie', [authCookie])
       .set('X-CSRF-Protection', '1')
       .send({ name, type });
-    agentIds[name] = res.body.id;
+    actorIds[name] = res.body.id;
     return res.body.id;
   }
 
   async function createAccount(
     authCookie: string,
     name: string,
-    opts?: { valueName?: string; agentName?: string },
+    opts?: { valueName?: string; actorName?: string },
   ): Promise<string> {
     const valueName = opts?.valueName || Object.keys(valueIds)[0];
-    const agentName = opts?.agentName || Object.keys(agentIds)[0];
+    const actorName = opts?.actorName || Object.keys(actorIds)[0];
     const res = await request(getApp().getHttpServer())
       .post('/accounts')
       .set('Cookie', [authCookie])
       .set('X-CSRF-Protection', '1')
-      .send({ name, valueId: valueIds[valueName], agentId: agentIds[agentName] });
+      .send({ name, valueId: valueIds[valueName], actorId: actorIds[actorName] });
     accountIds[name] = res.body.id;
     return res.body.id;
   }
@@ -94,7 +94,7 @@ function makeHelpers() {
     return res.body.id;
   }
 
-  return { valueIds, agentIds, accountIds, transactionIds, clear, createValue, createAgent, createAccount, createTransaction };
+  return { valueIds, actorIds, accountIds, transactionIds, clear, createValue, createActor, createAccount, createTransaction };
 }
 
 // --- CREATE ACCOUNT ---
@@ -120,9 +120,9 @@ defineFeature(createFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -138,7 +138,7 @@ defineFeature(createFeature, (test) => {
             name: row.name,
             description: row.description,
             valueId: h.valueIds['Solar Panel'],
-            agentId: h.agentIds['Supplier Co'],
+            actorId: h.actorIds['Supplier Co'],
           });
       },
     );
@@ -156,9 +156,9 @@ defineFeature(createFeature, (test) => {
       expect(response.body.value.name).toBe(valueName);
     });
 
-    and(/^the response should contain an account with agent "(.*)"$/, (agentName: string) => {
-      expect(response.body.agent).toBeTruthy();
-      expect(response.body.agent.name).toBe(agentName);
+    and(/^the response should contain an account with actor "(.*)"$/, (actorName: string) => {
+      expect(response.body.actor).toBeTruthy();
+      expect(response.body.actor.name).toBe(actorName);
     });
 
     and(/^the response should contain an account with balance "(.*)"$/, (balance: string) => {
@@ -172,9 +172,9 @@ defineFeature(createFeature, (test) => {
     });
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -186,7 +186,7 @@ defineFeature(createFeature, (test) => {
           .post('/accounts')
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ name: row.name, agentId: h.agentIds['Supplier Co'] });
+          .send({ name: row.name, actorId: h.actorIds['Supplier Co'] });
       },
     );
 
@@ -208,9 +208,9 @@ defineFeature(createFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -219,7 +219,7 @@ defineFeature(createFeature, (test) => {
         .post('/accounts')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ name: '', valueId: h.valueIds['Solar Panel'], agentId: h.agentIds['Supplier Co'] });
+        .send({ name: '', valueId: h.valueIds['Solar Panel'], actorId: h.actorIds['Supplier Co'] });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
@@ -238,7 +238,7 @@ defineFeature(createFeature, (test) => {
           .send({
             name: row.name,
             valueId: '00000000-0000-0000-0000-000000000000',
-            agentId: '00000000-0000-0000-0000-000000000000',
+            actorId: '00000000-0000-0000-0000-000000000000',
           });
       },
     );
@@ -272,9 +272,9 @@ defineFeature(listFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -327,9 +327,9 @@ defineFeature(listFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -368,7 +368,7 @@ defineFeature(listFeature, (test) => {
     });
   });
 
-  test('Filter accounts by agentId', ({ given, and, when, then }) => {
+  test('Filter accounts by actorId', ({ given, and, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
@@ -381,36 +381,36 @@ defineFeature(listFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 
-    when(/^I request the list of accounts with agentId for "(.*)"$/, async (agentName: string) => {
+    when(/^I request the list of accounts with actorId for "(.*)"$/, async (actorName: string) => {
       response = await request(getApp().getHttpServer())
-        .get(`/accounts?agentId=${h.agentIds[agentName]}`)
+        .get(`/accounts?actorId=${h.actorIds[actorName]}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -422,9 +422,9 @@ defineFeature(listFeature, (test) => {
       expect(response.body.data).toHaveLength(parseInt(count));
     });
 
-    and(/^all returned accounts should have agent "(.*)"$/, (agentName: string) => {
+    and(/^all returned accounts should have actor "(.*)"$/, (actorName: string) => {
       for (const acc of response.body.data) {
-        expect(acc.agent.name).toBe(agentName);
+        expect(acc.actor.name).toBe(actorName);
       }
     });
   });
@@ -442,9 +442,9 @@ defineFeature(listFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -515,9 +515,9 @@ defineFeature(getFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -598,9 +598,9 @@ defineFeature(updateFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -690,9 +690,9 @@ defineFeature(deleteFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -768,9 +768,9 @@ defineFeature(balanceFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
@@ -809,30 +809,30 @@ defineFeature(balanceFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 
@@ -871,30 +871,30 @@ defineFeature(balanceFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 
@@ -933,30 +933,30 @@ defineFeature(balanceFeature, (test) => {
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an agent exists with name "(.*)" and type "(.*)"$/,
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
       async (name: string, type: string) => {
-        await h.createAgent(authCookie, name, type);
+        await h.createActor(authCookie, name, type);
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 
     and(
-      /^an account exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        await h.createAccount(authCookie, name, { agentName });
+      /^an account exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        await h.createAccount(authCookie, name, { actorName });
       },
     );
 

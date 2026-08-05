@@ -26,17 +26,17 @@ const searchFeature = loadFeature(
 );
 
 const offeringIds = new Map<string, string>();
-const agentIds = new Map<string, string>();
+const actorIds = new Map<string, string>();
 const valueStreamIds = new Map<string, string>();
 const valueIds = new Map<string, string>();
 
-async function createAgent(authCookie: string, name: string): Promise<string> {
+async function createActor(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  agentIds.set(name, res.body.id);
+  actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -65,14 +65,14 @@ async function createOffering(
   name: string,
   opts: {
     state?: string;
-    agentId?: string;
+    actorId?: string;
     valueStreamId?: string;
     components?: { valueId: string; quantity: string }[];
   } = {},
 ): Promise<request.Response> {
   const body: Record<string, unknown> = { name };
   if (opts.state) body.state = opts.state;
-  if (opts.agentId) body.agentId = opts.agentId;
+  if (opts.actorId) body.actorId = opts.actorId;
   if (opts.valueStreamId) body.valueStreamId = opts.valueStreamId;
   if (opts.components) body.components = opts.components;
   return request(getApp().getHttpServer())
@@ -94,7 +94,7 @@ defineFeature(createFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     offeringIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     valueStreamIds.clear();
     valueIds.clear();
   });
@@ -108,8 +108,8 @@ defineFeature(createFeature, (test) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(/^a value stream exists with name "(.*)"$/, async (name: string) => {
@@ -120,7 +120,7 @@ defineFeature(createFeature, (test) => {
       'I create an offering with:',
       async (table: { name: string; purpose: string; description: string; link: string; state: string; activeFrom: string; activeUntil: string }[]) => {
         const row = table[0];
-        const agentId = agentIds.values().next().value;
+        const actorId = actorIds.values().next().value;
         const valueStreamId = valueStreamIds.values().next().value;
         response = await request(getApp().getHttpServer())
           .post('/offerings')
@@ -135,7 +135,7 @@ defineFeature(createFeature, (test) => {
             activeFrom: row.activeFrom,
             activeUntil: row.activeUntil,
             valueStreamId,
-            agentId,
+            actorId,
           });
       },
     );
@@ -157,9 +157,9 @@ defineFeature(createFeature, (test) => {
       expect(response.body.valueStream.name).toBe(name);
     });
 
-    and(/^the response should contain an agent with name "(.*)"$/, (name: string) => {
-      expect(response.body.agent).toBeDefined();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should contain an actor with name "(.*)"$/, (name: string) => {
+      expect(response.body.actor).toBeDefined();
+      expect(response.body.actor.name).toBe(name);
     });
   });
 
@@ -272,19 +272,19 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Create offering with non-existent agentId fails', ({ given, when, then }) => {
+  test('Create offering with non-existent actorId fails', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    when('I create an offering with non-existent agentId', async () => {
+    when('I create an offering with non-existent actorId', async () => {
       response = await request(getApp().getHttpServer())
         .post('/offerings')
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
         .send({
           name: 'Test',
-          agentId: '00000000-0000-0000-0000-000000000000',
+          actorId: '00000000-0000-0000-0000-000000000000',
         });
     });
 
@@ -319,7 +319,7 @@ defineFeature(getFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     offeringIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     valueStreamIds.clear();
     valueIds.clear();
   });
@@ -434,7 +434,7 @@ defineFeature(updateFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     offeringIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     valueStreamIds.clear();
     valueIds.clear();
   });
@@ -620,7 +620,7 @@ defineFeature(deleteFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     offeringIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     valueStreamIds.clear();
     valueIds.clear();
   });
@@ -724,7 +724,7 @@ defineFeature(searchFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     offeringIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     valueStreamIds.clear();
     valueIds.clear();
   });
@@ -850,32 +850,32 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
-  test('Filter by agentId', ({ given, when, then, and }) => {
+  test('Filter by actorId', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
-      /^an offering exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        const agentId = agentIds.get(agentName)!;
-        await createOffering(authCookie, name, { agentId });
+      /^an offering exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        const actorId = actorIds.get(actorName)!;
+        await createOffering(authCookie, name, { actorId });
       },
     );
 
     and(
-      /^an offering exists with name "(.*)" for agent "(.*)"$/,
-      async (name: string, agentName: string) => {
-        const agentId = agentIds.get(agentName)!;
-        await createOffering(authCookie, name, { agentId });
+      /^an offering exists with name "(.*)" for actor "(.*)"$/,
+      async (name: string, actorName: string) => {
+        const actorId = actorIds.get(actorName)!;
+        await createOffering(authCookie, name, { actorId });
       },
     );
 
@@ -883,10 +883,10 @@ defineFeature(searchFeature, (test) => {
       await createOffering(authCookie, name);
     });
 
-    when(/^I search offerings with agentId for "(.*)"$/, async (agentName: string) => {
-      const agentId = agentIds.get(agentName);
+    when(/^I search offerings with actorId for "(.*)"$/, async (actorName: string) => {
+      const actorId = actorIds.get(actorName);
       response = await request(getApp().getHttpServer())
-        .get(`/offerings/search?agentId=${agentId}`)
+        .get(`/offerings/search?actorId=${actorId}`)
         .set('Cookie', [authCookie]);
     });
 

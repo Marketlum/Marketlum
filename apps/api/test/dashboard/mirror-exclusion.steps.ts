@@ -16,7 +16,7 @@ const feature = loadFeature(
 interface Ctx {
   authCookie: string;
   valueIds: Map<string, string>;
-  agentIds: Map<string, string>;
+  actorIds: Map<string, string>;
   response: request.Response;
 }
 
@@ -24,7 +24,7 @@ function makeCtx(): Ctx {
   return {
     authCookie: '',
     valueIds: new Map(),
-    agentIds: new Map(),
+    actorIds: new Map(),
     response: {} as request.Response,
   };
 }
@@ -49,20 +49,20 @@ async function createValue(ctx: Ctx, name: string): Promise<void> {
     .send({ presentationCurrencyId: res.body.id });
 }
 
-async function createAgent(
+async function createActor(
   ctx: Ctx,
   name: string,
   type: string,
   parentName?: string,
 ): Promise<void> {
   const body: Record<string, unknown> = { name, type };
-  if (parentName) body.parentId = ctx.agentIds.get(parentName);
+  if (parentName) body.parentId = ctx.actorIds.get(parentName);
   const res = await request(server())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send(body);
-  ctx.agentIds.set(name, res.body.id);
+  ctx.actorIds.set(name, res.body.id);
 }
 
 async function createInvoice(
@@ -79,15 +79,15 @@ async function createInvoice(
 ): Promise<void> {
   const body: Record<string, unknown> = {
     number: args.number ?? `INV-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    fromAgentId: ctx.agentIds.get(args.from),
-    toAgentId: ctx.agentIds.get(args.to),
+    fromActorId: ctx.actorIds.get(args.from),
+    toActorId: ctx.actorIds.get(args.to),
     currencyId: ctx.valueIds.get('USD'),
     issuedAt: `${args.issuedAt}T00:00:00.000Z`,
     dueAt: `${args.issuedAt}T00:00:00.000Z`,
     market: args.market ?? 'external',
     items: [{ quantity: '1.00', unitPrice: args.total, total: args.total }],
   };
-  if (args.onBehalfOf) body.onBehalfOfAgentId = ctx.agentIds.get(args.onBehalfOf);
+  if (args.onBehalfOf) body.onBehalfOfActorId = ctx.actorIds.get(args.onBehalfOf);
   const res = await request(server())
     .post('/invoices')
     .set('Cookie', [ctx.authCookie])
@@ -105,17 +105,17 @@ function registerBackground(ctx: Ctx, given: StepFn, and: StepFn) {
   and(/^a value exists with name "(.*)"$/, async (name: string) => {
     await createValue(ctx, name);
   });
-  and(/^an agent exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
-    await createAgent(ctx, name, type);
+  and(/^an actor exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
+    await createActor(ctx, name, type);
   });
   and(
-    /^an agent exists named "(.*)" of type "(.*)" under parent "(.*)"$/,
+    /^an actor exists named "(.*)" of type "(.*)" under parent "(.*)"$/,
     async (name: string, type: string, parent: string) => {
-      await createAgent(ctx, name, type, parent);
+      await createActor(ctx, name, type, parent);
     },
   );
-  and(/^an agent exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
-    await createAgent(ctx, name, type);
+  and(/^an actor exists named "(.*)" of type "(.*)"$/, async (name: string, type: string) => {
+    await createActor(ctx, name, type);
   });
 }
 

@@ -2,23 +2,23 @@ Feature: Create Invoice
 
   Scenario: Create invoice with all fields
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     When I create an invoice with:
       | number   | issuedAt                 | dueAt                    | paid  | link                       |
       | INV-001  | 2025-01-15T00:00:00.000Z | 2025-02-15T00:00:00.000Z | false | https://example.com/inv001 |
     Then the response status should be 201
     And the response should contain an invoice with number "INV-001"
-    And the response should contain a fromAgent with name "Seller Corp"
-    And the response should contain a toAgent with name "Buyer Inc"
+    And the response should contain a fromActor with name "Seller Corp"
+    And the response should contain a toActor with name "Buyer Inc"
     And the response should contain a currency with name "USD"
     And the response should contain an invoice with paid false
 
   Scenario: Create invoice with items
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And a value exists with name "Widget A"
     And a value instance exists with name "Widget A Instance" for value "Widget A"
@@ -30,20 +30,20 @@ Feature: Create Invoice
     And the response should contain 2 items
     And the response total should be "350.00"
 
-  Scenario: Reject duplicate number for same fromAgent
+  Scenario: Reject duplicate number for same fromActor
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
     When I create a duplicate invoice with number "INV-001" from "Seller Corp"
     Then the response status should be 409
 
-  Scenario: Allow same number for different fromAgents
+  Scenario: Allow same number for different fromActors
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Other Seller"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Other Seller"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And an invoice exists with number "INV-001" from "Seller Corp" to "Buyer Inc"
     When I create an invoice with number "INV-001" from "Other Seller"
@@ -54,15 +54,15 @@ Feature: Create Invoice
     When I create an invoice with empty body
     Then the response status should be 400
 
-  Scenario: Reject non-existent fromAgentId
+  Scenario: Reject non-existent fromActorId
     Given I am authenticated as "admin@marketlum.com"
-    When I create an invoice with non-existent fromAgentId
+    When I create an invoice with non-existent fromActorId
     Then the response status should be 404
 
   Scenario: Create invoice with channel
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a value exists with name "USD"
     And a channel exists with name "Online Store"
     When I create an invoice with channel "Online Store":

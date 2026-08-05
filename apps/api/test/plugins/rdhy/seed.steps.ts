@@ -13,7 +13,7 @@ import {
 import {
   RdhyCtx,
   makeRdhyCtx,
-  createRdhyAgent,
+  createRdhyActor,
   listPlatforms,
   lookupPlatform,
 } from './rdhy-helpers';
@@ -40,11 +40,11 @@ defineFeature(feature, (test) => {
     Object.assign(ctx, makeRdhyCtx());
   });
 
-  function registerAgentExists(step: StepFn) {
+  function registerActorExists(step: StepFn) {
     step(
-      /^an agent exists with name "(.*)"$/,
+      /^an actor exists with name "(.*)"$/,
       async (name: string) => {
-        await createRdhyAgent(ctx, name);
+        await createRdhyActor(ctx, name);
       },
     );
   }
@@ -55,7 +55,7 @@ defineFeature(feature, (test) => {
     });
   }
 
-  test('The seed hook creates sample platforms and assigns agents idempotently', ({
+  test('The seed hook creates sample platforms and assigns actors idempotently', ({
     given,
     and,
     when,
@@ -64,8 +64,8 @@ defineFeature(feature, (test) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    registerAgentExists(given);
-    registerAgentExists(and);
+    registerActorExists(given);
+    registerActorExists(and);
     registerSeedRuns(when, /^the RDHY plugin seed hook runs$/);
     registerSeedRuns(and, /^the RDHY plugin seed hook runs again$/);
     then(
@@ -88,12 +88,12 @@ defineFeature(feature, (test) => {
         expect(platforms[0].name).toBe(name);
       },
     );
-    and(/^the agent "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
+    and(/^the actor "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
       const res = await lookupPlatform(ctx, code);
       expect(res.status).toBe(200);
       expect(res.body.platform).not.toBeNull();
     });
-    and(/^the agent "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
+    and(/^the actor "(.*)" is assigned to an RDHY platform$/, async (code: string) => {
       const res = await lookupPlatform(ctx, code);
       expect(res.status).toBe(200);
       expect(res.body.platform).not.toBeNull();
@@ -109,7 +109,7 @@ defineFeature(feature, (test) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    registerAgentExists(given);
+    registerActorExists(given);
     registerSeedRuns(when, /^the RDHY plugin seed hook runs$/);
     registerSeedRuns(and, /^the RDHY plugin seed hook runs again$/);
 
@@ -156,9 +156,9 @@ defineFeature(feature, (test) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       ctx.authCookie = await createAuthenticatedUser(email, 'password123');
     });
-    registerAgentExists(given);
-    registerAgentExists(and);
-    registerAgentExists(and);
+    registerActorExists(given);
+    registerActorExists(and);
+    registerActorExists(and);
     registerSeedRuns(when, /^the RDHY plugin seed hook runs$/);
     registerSeedRuns(and, /^the RDHY plugin seed hook runs again$/);
     then(

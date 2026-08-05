@@ -2,8 +2,8 @@ Feature: Update Agreement
 
   Scenario: Successfully update an agreement's title
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And a root agreement exists with title "Trade Agreement"
     When I update the agreement's title to "Updated Agreement"
     Then the response status should be 200
@@ -11,9 +11,9 @@ Feature: Update Agreement
 
   Scenario: Successfully update an agreement's parties
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
-    And an agent exists with name "Party C"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
+    And an actor exists with name "Party C"
     And a root agreement exists with title "Trade Agreement"
     When I update the agreement's parties to "Party B" and "Party C"
     Then the response status should be 200
@@ -21,8 +21,8 @@ Feature: Update Agreement
 
   Scenario: Updating with fewer than 2 parties fails
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Party A"
-    And an agent exists with name "Party B"
+    And an actor exists with name "Party A"
+    And an actor exists with name "Party B"
     And a root agreement exists with title "Trade Agreement"
     When I update the agreement's parties to 1 party
     Then the response status should be 400

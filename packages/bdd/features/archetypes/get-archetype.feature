@@ -11,10 +11,10 @@ Feature: Get Archetype
     Given I am authenticated as "admin@marketlum.com"
     And a taxonomy exists with name "Industry"
     And a taxonomy exists with name "Region"
-    And an archetype exists with name "Classified Agent" and taxonomies "Industry,Region"
+    And an archetype exists with name "Classified Actor" and taxonomies "Industry,Region"
     When I request the archetype by its ID
     Then the response status should be 200
-    And the response should contain an archetype with name "Classified Agent"
+    And the response should contain an archetype with name "Classified Actor"
     And the response should contain 2 taxonomies
 
   Scenario: Get a non-existent archetype returns 404

@@ -2,8 +2,8 @@ Feature: Order addresses
 
   Background:
     Given I am authenticated as "admin@marketlum.com"
-    And an agent exists with name "Seller Corp"
-    And an agent exists with name "Buyer Inc"
+    And an actor exists with name "Seller Corp"
+    And an actor exists with name "Buyer Inc"
     And a currency value exists with name "USD"
     And an order exists from "Seller Corp" to "Buyer Inc" in currency "USD"
 

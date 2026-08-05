@@ -33,14 +33,14 @@ const treeFeature = loadFeature(
 
 const templateIds = new Map<string, string>();
 const valueStreamIds = new Map<string, string>();
-const agentIds = new Map<string, string>();
+const actorIds = new Map<string, string>();
 
 async function createTemplate(
   authCookie: string,
   name: string,
   type: string,
   parentId?: string,
-  extra?: { purpose?: string; description?: string; link?: string; valueStreamId?: string; agentId?: string },
+  extra?: { purpose?: string; description?: string; link?: string; valueStreamId?: string; actorId?: string },
 ): Promise<request.Response> {
   const body: Record<string, unknown> = { name, type };
   if (parentId) body.parentId = parentId;
@@ -48,7 +48,7 @@ async function createTemplate(
   if (extra?.description) body.description = extra.description;
   if (extra?.link) body.link = extra.link;
   if (extra?.valueStreamId) body.valueStreamId = extra.valueStreamId;
-  if (extra?.agentId) body.agentId = extra.agentId;
+  if (extra?.actorId) body.actorId = extra.actorId;
   return request(getApp().getHttpServer())
     .post('/agreement-templates')
     .set('Cookie', [authCookie])
@@ -56,13 +56,13 @@ async function createTemplate(
     .send(body);
 }
 
-async function createAgent(authCookie: string, name: string): Promise<string> {
+async function createActor(authCookie: string, name: string): Promise<string> {
   const res = await request(getApp().getHttpServer())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization' });
-  agentIds.set(name, res.body.id);
+  actorIds.set(name, res.body.id);
   return res.body.id;
 }
 
@@ -106,7 +106,7 @@ defineFeature(createFeature, (test) => {
   let response: request.Response;
   let authCookie: string;
   let pendingValueStreamId: string | undefined;
-  let pendingAgentId: string | undefined;
+  let pendingActorId: string | undefined;
 
   beforeAll(async () => {
     await bootstrapApp();
@@ -116,9 +116,9 @@ defineFeature(createFeature, (test) => {
     await cleanDatabase();
     templateIds.clear();
     valueStreamIds.clear();
-    agentIds.clear();
+    actorIds.clear();
     pendingValueStreamId = undefined;
-    pendingAgentId = undefined;
+    pendingActorId = undefined;
   });
 
   afterAll(async () => {
@@ -237,13 +237,13 @@ defineFeature(createFeature, (test) => {
     });
   });
 
-  test('Successfully create an agreement template referencing an agent', ({ given, when, then, and }) => {
+  test('Successfully create an agreement template referencing an actor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      pendingAgentId = await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      pendingActorId = await createActor(authCookie, name);
     });
 
     when(
@@ -251,16 +251,16 @@ defineFeature(createFeature, (test) => {
       async (table: { name: string; type: string }[]) => {
         const row = table[0];
         response = await createTemplate(authCookie, row.name, row.type, undefined, {
-          agentId: pendingAgentId,
+          actorId: pendingActorId,
         });
       },
     );
 
     and(
-      /^the agreement template references agent "(.*)"$/,
+      /^the agreement template references actor "(.*)"$/,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      async (_agentName: string) => {
-        // agentId was already set in the previous step
+      async (_actorName: string) => {
+        // actorId was already set in the previous step
       },
     );
 
@@ -272,20 +272,20 @@ defineFeature(createFeature, (test) => {
       expect(response.body.name).toBe(name);
     });
 
-    and(/^the response should include agent "(.*)"$/, (name: string) => {
-      expect(response.body.agent).not.toBeNull();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should include actor "(.*)"$/, (name: string) => {
+      expect(response.body.actor).not.toBeNull();
+      expect(response.body.actor.name).toBe(name);
     });
   });
 
-  test('Creating an agreement template referencing an unknown agent fails', ({ given, when, then }) => {
+  test('Creating an agreement template referencing an unknown actor fails', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    when(/^I create an agreement template referencing an unknown agent$/, async () => {
+    when(/^I create an agreement template referencing an unknown actor$/, async () => {
       response = await createTemplate(authCookie, 'Orphan Contract', 'main_agreement', undefined, {
-        agentId: '00000000-0000-0000-0000-000000000000',
+        actorId: '00000000-0000-0000-0000-000000000000',
       });
     });
 
@@ -417,7 +417,7 @@ defineFeature(searchFeature, (test) => {
     await cleanDatabase();
     templateIds.clear();
     valueStreamIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -586,20 +586,20 @@ defineFeature(searchFeature, (test) => {
     });
   });
 
-  test('Filter agreement templates by agent', ({ given, when, then, and }) => {
+  test('Filter agreement templates by actor', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
-      /^an agreement template exists with name "(.*)" and type "(.*)" and agent "(.*)"$/,
-      async (name: string, type: string, agentName: string) => {
-        const agentId = agentIds.get(agentName);
-        const res = await createTemplate(authCookie, name, type, undefined, { agentId });
+      /^an agreement template exists with name "(.*)" and type "(.*)" and actor "(.*)"$/,
+      async (name: string, type: string, actorName: string) => {
+        const actorId = actorIds.get(actorName);
+        const res = await createTemplate(authCookie, name, type, undefined, { actorId });
         templateIds.set(name, res.body.id);
       },
     );
@@ -613,11 +613,11 @@ defineFeature(searchFeature, (test) => {
     );
 
     when(
-      /^I request the list of agreement templates with agentId for "(.*)"$/,
-      async (agentName: string) => {
-        const agentId = agentIds.get(agentName);
+      /^I request the list of agreement templates with actorId for "(.*)"$/,
+      async (actorName: string) => {
+        const actorId = actorIds.get(actorName);
         response = await request(getApp().getHttpServer())
-          .get(`/agreement-templates/search?agentId=${agentId}`)
+          .get(`/agreement-templates/search?actorId=${actorId}`)
           .set('Cookie', [authCookie]);
       },
     );
@@ -790,7 +790,7 @@ defineFeature(updateFeature, (test) => {
   beforeEach(async () => {
     await cleanDatabase();
     templateIds.clear();
-    agentIds.clear();
+    actorIds.clear();
   });
 
   afterAll(async () => {
@@ -871,13 +871,13 @@ defineFeature(updateFeature, (test) => {
     });
   });
 
-  test("Successfully set the agreement template's agent", ({ given, when, then, and }) => {
+  test("Successfully set the agreement template's actor", ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -888,32 +888,32 @@ defineFeature(updateFeature, (test) => {
       },
     );
 
-    when(/^I update the agreement template's agent to "(.*)"$/, async (agentName: string) => {
+    when(/^I update the agreement template's actor to "(.*)"$/, async (actorName: string) => {
       const id = templateIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .patch(`/agreement-templates/${id}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ agentId: agentIds.get(agentName) });
+        .send({ actorId: actorIds.get(actorName) });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include agent "(.*)"$/, (name: string) => {
-      expect(response.body.agent).not.toBeNull();
-      expect(response.body.agent.name).toBe(name);
+    and(/^the response should include actor "(.*)"$/, (name: string) => {
+      expect(response.body.actor).not.toBeNull();
+      expect(response.body.actor.name).toBe(name);
     });
   });
 
-  test("Successfully clear the agreement template's agent", ({ given, when, then, and }) => {
+  test("Successfully clear the agreement template's actor", ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
-    and(/^an agent exists with name "(.*)"$/, async (name: string) => {
-      await createAgent(authCookie, name);
+    and(/^an actor exists with name "(.*)"$/, async (name: string) => {
+      await createActor(authCookie, name);
     });
 
     and(
@@ -925,32 +925,32 @@ defineFeature(updateFeature, (test) => {
     );
 
     and(
-      /^the agreement template "(.*)" references agent "(.*)"$/,
-      async (templateName: string, agentName: string) => {
+      /^the agreement template "(.*)" references actor "(.*)"$/,
+      async (templateName: string, actorName: string) => {
         const res = await request(getApp().getHttpServer())
           .patch(`/agreement-templates/${templateIds.get(templateName)}`)
           .set('Cookie', [authCookie])
           .set('X-CSRF-Protection', '1')
-          .send({ agentId: agentIds.get(agentName) });
+          .send({ actorId: actorIds.get(actorName) });
         expect(res.status).toBe(200);
       },
     );
 
-    when(/^I clear the agreement template's agent$/, async () => {
+    when(/^I clear the agreement template's actor$/, async () => {
       const id = templateIds.values().next().value;
       response = await request(getApp().getHttpServer())
         .patch(`/agreement-templates/${id}`)
         .set('Cookie', [authCookie])
         .set('X-CSRF-Protection', '1')
-        .send({ agentId: null });
+        .send({ actorId: null });
     });
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should include no agent$/, () => {
-      expect(response.body.agent).toBeNull();
+    and(/^the response should include no actor$/, () => {
+      expect(response.body.actor).toBeNull();
     });
   });
 

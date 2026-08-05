@@ -93,18 +93,18 @@ async function ensureValue(ctx: PerfCtx, name: string): Promise<void> {
   ctx.valueIds.set(name, res.body.id);
 }
 
-async function createAgentWithCurrency(
+async function createActorWithCurrency(
   ctx: PerfCtx,
   name: string,
   currencyName: string,
 ): Promise<void> {
   const res = await request(server())
-    .post('/agents')
+    .post('/actors')
     .set('Cookie', [ctx.authCookie])
     .set('X-CSRF-Protection', '1')
     .send({ name, type: 'organization', functionalCurrencyId: ctx.valueIds.get(currencyName) });
   expect(res.status).toBe(201);
-  ctx.agents.set(name, res.body.id);
+  ctx.actors.set(name, res.body.id);
 }
 
 /** Activate through the API, then backdate startedAt so milestones fall in the past. */
@@ -155,8 +155,8 @@ async function createInvoice(
     .set('X-CSRF-Protection', '1')
     .send({
       number: `PERF-${Date.now()}-${invoiceSeq}`,
-      fromAgentId: ctx.agents.get(args.from),
-      toAgentId: ctx.agents.get(args.to),
+      fromActorId: ctx.actors.get(args.from),
+      toActorId: ctx.actors.get(args.to),
       currencyId: ctx.valueIds.get(args.currencyName),
       issuedAt: issuedAt.toISOString(),
       dueAt: issuedAt.toISOString(),
@@ -212,27 +212,27 @@ defineFeature(feature, (test) => {
         await createPlatform(ctx, code, name);
       },
     );
-    const agentStep = (step: StepFn) =>
+    const actorStep = (step: StepFn) =>
       step(
-        /^an agent exists with name "(.*)" and functional currency "(.*)"$/,
+        /^an actor exists with name "(.*)" and functional currency "(.*)"$/,
         async (name: string, currency: string) => {
-          await createAgentWithCurrency(ctx, name, currency);
+          await createActorWithCurrency(ctx, name, currency);
         },
       );
-    agentStep(and);
-    agentStep(and);
+    actorStep(and);
+    actorStep(and);
     registerAgreementInCurrency(and);
     registerPerformanceCanvas(and);
   }
 
   function registerAgreementInCurrency(step: StepFn) {
     step(
-      /^a VAM agreement titled "(.*)" in currency "(.*)" exists for the agent "(.*)" sponsored by "(.*)"$/,
-      async (title: string, currency: string, agentName: string, platformCode: string) => {
+      /^a VAM agreement titled "(.*)" in currency "(.*)" exists for the actor "(.*)" sponsored by "(.*)"$/,
+      async (title: string, currency: string, actorName: string, platformCode: string) => {
         const res = await createVamAgreement(
           ctx,
           title,
-          agentName,
+          actorName,
           platformCode,
           12,
           ctx.valueIds.get(currency),

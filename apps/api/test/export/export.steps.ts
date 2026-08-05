@@ -92,17 +92,17 @@ defineFeature(exportFeature, (test) => {
     });
   });
 
-  test('Export all agents with high limit', ({ given, when, then, and }) => {
+  test('Export all actors with high limit', ({ given, when, then, and }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });
 
     and(
-      'the following agents exist:',
+      'the following actors exist:',
       async (table: { name: string; type: string; purpose: string }[]) => {
         for (const row of table) {
           await request(getApp().getHttpServer())
-            .post('/agents')
+            .post('/actors')
             .set('Cookie', [authCookie])
             .set('X-CSRF-Protection', '1')
             .send({ name: row.name, type: row.type, purpose: row.purpose });
@@ -110,9 +110,9 @@ defineFeature(exportFeature, (test) => {
       },
     );
 
-    when(/^I request the list of agents with limit (\d+)$/, async (limit: string) => {
+    when(/^I request the list of actors with limit (\d+)$/, async (limit: string) => {
       response = await request(getApp().getHttpServer())
-        .get(`/agents?limit=${limit}`)
+        .get(`/actors?limit=${limit}`)
         .set('Cookie', [authCookie]);
     });
 
@@ -120,7 +120,7 @@ defineFeature(exportFeature, (test) => {
       expect(response.status).toBe(parseInt(status));
     });
 
-    and(/^the response should contain (\d+) agents$/, (count: string) => {
+    and(/^the response should contain (\d+) actors$/, (count: string) => {
       expect(response.body.data).toHaveLength(parseInt(count));
     });
   });
