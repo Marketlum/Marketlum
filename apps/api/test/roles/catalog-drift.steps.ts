@@ -12,15 +12,20 @@ import {
   inferResource,
   REQUIRE_PERMISSION_KEY,
   ALLOW_AUTHENTICATED_KEY,
+  MCP_TOOLS,
+  type AnyMcpTool,
 } from '@marketlum/core';
 import { nbpPlugin } from '@marketlum/plugin-nbp';
 import { rdhyPlugin } from '@marketlum/plugin-rdhy';
 import { bootstrapApp, teardownApp, getApp } from '../setup';
 import { examplePlugin } from '../plugins/example/example.plugin';
 
-// Controllers whose endpoints are authentication itself or self-service and
-// therefore deliberately have no permission resource.
-const EXEMPT_PREFIXES = new Set(['auth', 'api-keys']);
+// Controllers whose endpoints deliberately have no path-inferred permission
+// resource: authentication itself, self-service API keys, and the MCP
+// endpoint, whose permission checks happen per tool inside the JSON-RPC
+// layer (spec 023) — those tool permissions are drift-guarded separately
+// below.
+const EXEMPT_PREFIXES = new Set(['auth', 'api-keys', 'mcp']);
 
 describe('Permission catalog drift guard', () => {
   beforeAll(async () => {
@@ -30,13 +35,17 @@ describe('Permission catalog drift guard', () => {
     await teardownApp();
   });
 
-  it('every controller route resolves to a catalogued permission resource', () => {
-    const catalog = new Set<string>([
+  function buildCatalog(): Set<string> {
+    return new Set<string>([
       ...PERMISSION_RESOURCES,
       ...(nbpPlugin.permissionResources ?? []),
       ...(rdhyPlugin.permissionResources ?? []),
       ...(examplePlugin.permissionResources ?? []),
     ]);
+  }
+
+  it('every controller route resolves to a catalogued permission resource', () => {
+    const catalog = buildCatalog();
 
     const modulesContainer = getApp().get(ModulesContainer);
     const uncatalogued: string[] = [];
@@ -83,6 +92,20 @@ describe('Permission catalog drift guard', () => {
     }
 
     expect(checkedRoutes).toBeGreaterThan(100);
+    expect(uncatalogued).toEqual([]);
+  });
+
+  // The /mcp controller is exempt from path inference above, so guard its
+  // authorization surface at the tool level instead: every registered MCP
+  // tool must declare a permission whose resource exists in the catalog.
+  it('every MCP tool declares a catalogued permission resource', () => {
+    const catalog = buildCatalog();
+    const tools = getApp().get<AnyMcpTool[]>(MCP_TOOLS);
+
+    expect(tools.length).toBeGreaterThan(0);
+    const uncatalogued = tools
+      .filter((tool) => !catalog.has(tool.permission.split(':')[0]))
+      .map((tool) => `${tool.name} -> ${tool.permission}`);
     expect(uncatalogued).toEqual([]);
   });
 });
