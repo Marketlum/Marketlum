@@ -1,1 +1,1 @@
-export { AgentsPage as default } from '@marketlum/ui';
+export { ActorsPage as default } from '@marketlum/ui';
