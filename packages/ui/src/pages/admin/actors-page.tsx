@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { Bot } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { AgentsDataTable } from '../../components/agents/agents-data-table';
-import { AgentTreeView } from '../../components/agents/agent-tree-view';
+import { ActorsDataTable } from '../../components/actors/actors-data-table';
+import { ActorTreeView } from '../../components/actors/actor-tree-view';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,7 +15,7 @@ import {
 } from '../../components/ui/breadcrumb';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 
-export function AgentsPage() {
+export function ActorsPage() {
   const t = useTranslations();
 
   return (
@@ -29,26 +29,26 @@ export function AgentsPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{t('agents.title')}</BreadcrumbPage>
+            <BreadcrumbPage>{t('actors.title')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="mb-1 flex items-center gap-2 md:gap-3 text-2xl md:text-3xl font-bold">
         <Bot className="h-6 w-6 md:h-8 md:w-8" />
-        {t('agents.title')}
+        {t('actors.title')}
       </h1>
-      <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{t('agents.description')}</p>
+      <p className="mb-4 md:mb-6 text-sm text-muted-foreground">{t('actors.description')}</p>
 
       <Tabs defaultValue="table">
         <TabsList className="mb-4">
-          <TabsTrigger value="table">{t('agents.tableView')}</TabsTrigger>
-          <TabsTrigger value="tree">{t('agents.treeView')}</TabsTrigger>
+          <TabsTrigger value="table">{t('actors.tableView')}</TabsTrigger>
+          <TabsTrigger value="tree">{t('actors.treeView')}</TabsTrigger>
         </TabsList>
         <TabsContent value="table">
-          <AgentsDataTable />
+          <ActorsDataTable />
         </TabsContent>
         <TabsContent value="tree">
-          <AgentTreeView />
+          <ActorTreeView />
         </TabsContent>
       </Tabs>
     </div>

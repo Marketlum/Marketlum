@@ -17,8 +17,8 @@ interface ValueInstanceColumnsTranslations {
   name: string;
   code: string;
   value: string;
-  fromAgent: string;
-  toAgent: string;
+  fromActor: string;
+  toActor: string;
   version: string;
   purpose: string;
   expiresAt: string;
@@ -97,14 +97,14 @@ export function getValueInstanceColumns({ onEdit, onDelete, onSort, translations
       },
     },
     {
-      id: 'fromAgent',
-      header: translations.fromAgent,
-      cell: ({ row }) => row.original.fromAgent?.name ?? '—',
+      id: 'fromActor',
+      header: translations.fromActor,
+      cell: ({ row }) => row.original.fromActor?.name ?? '—',
     },
     {
-      id: 'toAgent',
-      header: translations.toAgent,
-      cell: ({ row }) => row.original.toAgent?.name ?? '—',
+      id: 'toActor',
+      header: translations.toActor,
+      cell: ({ row }) => row.original.toActor?.name ?? '—',
     },
     {
       accessorKey: 'version',

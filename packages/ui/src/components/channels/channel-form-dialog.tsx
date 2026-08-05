@@ -23,7 +23,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import {
   Select,
   SelectContent,
@@ -53,7 +53,7 @@ export function ChannelFormDialog({
   const schema = isEditing ? updateChannelSchema : createChannelSchema;
   const t = useTranslations('channels');
   const tc = useTranslations('common');
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
 
   const {
     register,
@@ -66,7 +66,7 @@ export function ChannelFormDialog({
     resolver: zodResolver(schema),
   });
 
-  const watchedAgentId = watch('agentId');
+  const watchedActorId = watch('actorId');
   const nameValue = watch('name') ?? '';
   const codeValue = watch('code') ?? '';
   const codeEditedRef = useRef(false);
@@ -80,7 +80,7 @@ export function ChannelFormDialog({
           name: channel.name,
           purpose: channel.purpose ?? '',
           color: channel.color,
-          agentId: channel.agent?.id ?? null,
+          actorId: channel.actor?.id ?? null,
         });
       } else {
         reset({
@@ -89,7 +89,7 @@ export function ChannelFormDialog({
           purpose: '',
           color: '#000000',
           parentId: parentId ?? undefined,
-          agentId: null,
+          actorId: null,
         });
       }
     }
@@ -160,19 +160,19 @@ export function ChannelFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>{t('agent')}</Label>
+            <Label>{t('actor')}</Label>
             <Select
-              value={watchedAgentId ?? 'none'}
-              onValueChange={(val) => setFormValue('agentId', val === 'none' ? null : val)}
+              value={watchedActorId ?? 'none'}
+              onValueChange={(val) => setFormValue('actorId', val === 'none' ? null : val)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">-</SelectItem>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
+                {actors.map((actor) => (
+                  <SelectItem key={actor.id} value={actor.id}>
+                    {actor.name}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { Bot, Plus } from 'lucide-react';
-import type { AgentResponse, CreateAgentInput } from '@marketlum/shared';
-import { AgentType } from '@marketlum/shared';
+import type { ActorResponse, CreateActorInput } from '@marketlum/shared';
+import { ActorType } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import {
@@ -18,26 +18,26 @@ import {
   TableRow,
 } from '../ui/table';
 import { Can } from '../../permissions/can';
-import { AgentTypeBadge } from './agent-type-badge';
+import { ActorTypeBadge } from './actor-type-badge';
 import { FileImagePreview } from '../shared/file-image-preview';
-import { AgentFormDialog } from './agent-form-dialog';
+import { ActorFormDialog } from './actor-form-dialog';
 
 const typeTranslationKeys: Record<string, string> = {
-  [AgentType.ORGANIZATION]: 'typeOrganization',
-  [AgentType.INDIVIDUAL]: 'typeIndividual',
-  [AgentType.VIRTUAL]: 'typeVirtual',
+  [ActorType.ORGANIZATION]: 'typeOrganization',
+  [ActorType.INDIVIDUAL]: 'typeIndividual',
+  [ActorType.VIRTUAL]: 'typeVirtual',
 };
 
-interface SubAgentsTableProps {
-  agentId: string;
+interface SubActorsTableProps {
+  actorId: string;
 }
 
-/** Direct children of an agent, with "Add sub-agent" preselecting the parent. */
-export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
+/** Direct children of an actor, with "Add sub-actor" preselecting the parent. */
+export function SubActorsTable({ actorId }: SubActorsTableProps) {
   const router = useRouter();
-  const t = useTranslations('agents');
+  const t = useTranslations('actors');
   const tc = useTranslations('common');
-  const [children, setChildren] = useState<AgentResponse[]>([]);
+  const [children, setChildren] = useState<ActorResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,23 +45,23 @@ export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
   const fetchChildren = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.get<AgentResponse[]>(`/agents/${agentId}/children`);
+      const data = await api.get<ActorResponse[]>(`/actors/${actorId}/children`);
       setChildren(data);
     } catch {
       toast.error(t('failedToLoad'));
     } finally {
       setLoading(false);
     }
-  }, [agentId, t]);
+  }, [actorId, t]);
 
   useEffect(() => {
     fetchChildren();
   }, [fetchChildren]);
 
-  const handleCreate = async (input: CreateAgentInput) => {
+  const handleCreate = async (input: CreateActorInput) => {
     setIsSubmitting(true);
     try {
-      await api.post('/agents', input);
+      await api.post('/actors', input);
       toast.success(t('created'));
       setFormOpen(false);
       fetchChildren();
@@ -74,11 +74,11 @@ export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
 
   return (
     <div>
-      <Can resource="agents" action="write">
+      <Can resource="actors" action="write">
         <div className="mb-4 flex justify-end">
           <Button onClick={() => setFormOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            {t('addSubAgent')}
+            {t('addSubActor')}
           </Button>
         </div>
       </Can>
@@ -88,7 +88,7 @@ export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
           {tc('loading')}
         </div>
       ) : children.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('noSubAgents')}</p>
+        <p className="text-sm text-muted-foreground">{t('noSubActors')}</p>
       ) : (
         <Table>
           <TableHeader>
@@ -104,7 +104,7 @@ export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
               <TableRow
                 key={child.id}
                 className="cursor-pointer"
-                onClick={() => router.push(`/admin/agents/${child.id}`)}
+                onClick={() => router.push(`/admin/actors/${child.id}`)}
               >
                 <TableCell>
                   <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded bg-muted/30">
@@ -123,7 +123,7 @@ export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
                 </TableCell>
                 <TableCell>{child.name}</TableCell>
                 <TableCell>
-                  <AgentTypeBadge
+                  <ActorTypeBadge
                     type={child.type}
                     label={t(typeTranslationKeys[child.type])}
                   />
@@ -135,11 +135,11 @@ export function SubAgentsTable({ agentId }: SubAgentsTableProps) {
         </Table>
       )}
 
-      <AgentFormDialog
+      <ActorFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
         onSubmit={handleCreate}
-        defaultParentId={agentId}
+        defaultParentId={actorId}
         isSubmitting={isSubmitting}
       />
     </div>

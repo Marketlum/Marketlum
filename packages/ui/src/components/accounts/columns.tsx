@@ -14,7 +14,7 @@ import {
 interface AccountColumnsTranslations {
   name: string;
   value: string;
-  agent: string;
+  actor: string;
   balance: string;
   description: string;
   created: string;
@@ -45,9 +45,9 @@ export function getAccountColumns({ onEdit, onDelete, onSort, translations }: Ac
       cell: ({ row }) => row.original.value?.name ?? '—',
     },
     {
-      id: 'agent',
-      header: translations.agent,
-      cell: ({ row }) => row.original.agent?.name ?? '—',
+      id: 'actor',
+      header: translations.actor,
+      cell: ({ row }) => row.original.actor?.name ?? '—',
     },
     {
       accessorKey: 'balance',

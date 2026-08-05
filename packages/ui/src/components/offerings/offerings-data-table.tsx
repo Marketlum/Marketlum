@@ -10,7 +10,7 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { DataTable } from '../shared/data-table';
 import { DataTablePagination } from '../shared/data-table-pagination';
@@ -40,13 +40,13 @@ import type { FieldDef } from '../../lib/export-utils';
 interface OfferingsDataTableProps {
   /** Scope the table to one value stream: filters every query, hides the column and its filter. */
   valueStreamId?: string;
-  /** Scope the table to one agent: filters every query, hides the column and its filter. */
-  agentId?: string;
+  /** Scope the table to one actor: filters every query, hides the column and its filter. */
+  actorId?: string;
 }
 
 export function OfferingsDataTable({
   valueStreamId: scopedValueStreamId,
-  agentId: scopedAgentId,
+  actorId: scopedActorId,
 }: OfferingsDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
@@ -57,10 +57,10 @@ export function OfferingsDataTable({
   const isMobile = useIsMobile();
   const { can } = usePermissions();
   const canWrite = can('offerings', 'write');
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const { valueStreams } = useValueStreams();
   const [stateFilter, setStateFilter] = useState<string>('all');
-  const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [actorFilter, setActorFilter] = useState<string>('all');
   const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<OfferingResponse> | null>(null);
@@ -74,7 +74,7 @@ export function OfferingsDataTable({
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
     setStateFilter(config.filters?.state ?? 'all');
-    setAgentFilter(config.filters?.agentId ?? 'all');
+    setActorFilter(config.filters?.actorId ?? 'all');
     setValueStreamFilter(config.filters?.valueStreamId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
@@ -111,14 +111,14 @@ export function OfferingsDataTable({
     columnVisibility,
     filters: {
       ...(stateFilter !== 'all' ? { state: stateFilter } : {}),
-      ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
+      ...(actorFilter !== 'all' ? { actorId: actorFilter } : {}),
       ...(valueStreamFilter !== 'all' ? { valueStreamId: valueStreamFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, stateFilter, agentFilter, valueStreamFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, stateFilter, actorFilter, valueStreamFilter, pagination.sortBy, pagination.sortOrder]);
 
-  const effectiveAgentId =
-    scopedAgentId ?? (agentFilter !== 'all' ? agentFilter : undefined);
+  const effectiveActorId =
+    scopedActorId ?? (actorFilter !== 'all' ? actorFilter : undefined);
   const effectiveValueStreamId =
     scopedValueStreamId ?? (valueStreamFilter !== 'all' ? valueStreamFilter : undefined);
 
@@ -127,7 +127,7 @@ export function OfferingsDataTable({
     try {
       let qs = pagination.toQueryString();
       if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
-      if (effectiveAgentId) qs += `&agentId=${effectiveAgentId}`;
+      if (effectiveActorId) qs += `&actorId=${effectiveActorId}`;
       if (effectiveValueStreamId) qs += `&valueStreamId=${effectiveValueStreamId}`;
       const result = await api.get<PaginatedResponse<OfferingResponse>>(`/offerings/search?${qs}`);
       setData(result);
@@ -136,11 +136,11 @@ export function OfferingsDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, stateFilter, effectiveAgentId, effectiveValueStreamId]);
+  }, [pagination.toQueryString, stateFilter, effectiveActorId, effectiveValueStreamId]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, agentFilter, valueStreamFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, actorFilter, valueStreamFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingOffering(null);
@@ -199,7 +199,7 @@ export function OfferingsDataTable({
     translations: {
       name: tc('name'),
       state: t('state'),
-      agent: t('agent'),
+      actor: t('actor'),
       valueStream: t('valueStream'),
       components: t('components'),
       created: tc('created'),
@@ -215,7 +215,7 @@ export function OfferingsDataTable({
   const columnMeta = [
     { id: 'name', label: tc('name') },
     { id: 'state', label: t('state') },
-    { id: 'agent', label: t('agent') },
+    { id: 'actor', label: t('actor') },
     { id: 'valueStream', label: t('valueStream') },
     { id: 'components', label: t('components') },
     { id: 'createdAt', label: tc('created') },
@@ -225,9 +225,9 @@ export function OfferingsDataTable({
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
     { key: 'state', label: t('state'), extract: (r) => String(r.state ?? '') },
-    { key: 'agent', label: t('agent'), extract: (r) => {
-      const agent = r.agent as { name: string } | null;
-      return agent?.name ?? '';
+    { key: 'actor', label: t('actor'), extract: (r) => {
+      const actor = r.actor as { name: string } | null;
+      return actor?.name ?? '';
     }},
     { key: 'valueStream', label: t('valueStream'), extract: (r) => {
       const vs = r.valueStream as { name: string } | null;
@@ -250,17 +250,17 @@ export function OfferingsDataTable({
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
-    if (effectiveAgentId) qs += `&agentId=${effectiveAgentId}`;
+    if (effectiveActorId) qs += `&actorId=${effectiveActorId}`;
     if (effectiveValueStreamId) qs += `&valueStreamId=${effectiveValueStreamId}`;
     const result = await api.get<PaginatedResponse<OfferingResponse>>(`/offerings/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, effectiveAgentId, effectiveValueStreamId]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, effectiveActorId, effectiveValueStreamId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
     ...mergeColumnVisibility(columnVisibility, mobileVisibility),
     ...(scopedValueStreamId ? { valueStream: false } : {}),
-    ...(scopedAgentId ? { agent: false } : {}),
+    ...(scopedActorId ? { actor: false } : {}),
   };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
@@ -273,13 +273,13 @@ export function OfferingsDataTable({
         onClear: () => setStateFilter('all'),
       });
     }
-    if (!scopedAgentId && agentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === agentFilter);
+    if (!scopedActorId && actorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === actorFilter);
       filters.push({
-        key: 'agent',
-        label: t('agent'),
-        displayValue: agent?.name ?? agentFilter,
-        onClear: () => setAgentFilter('all'),
+        key: 'actor',
+        label: t('actor'),
+        displayValue: actor?.name ?? actorFilter,
+        onClear: () => setActorFilter('all'),
       });
     }
     if (!scopedValueStreamId && valueStreamFilter !== 'all') {
@@ -292,7 +292,7 @@ export function OfferingsDataTable({
       });
     }
     return filters;
-  }, [stateFilter, agentFilter, valueStreamFilter, agents, valueStreams, scopedAgentId, scopedValueStreamId, t]);
+  }, [stateFilter, actorFilter, valueStreamFilter, actors, valueStreams, scopedActorId, scopedValueStreamId, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -369,18 +369,18 @@ export function OfferingsDataTable({
             </SelectContent>
           </Select>
         </div>
-        {!scopedAgentId && (
+        {!scopedActorId && (
           <div className="space-y-1">
-            <label className="text-sm font-medium">{t('agent')}</label>
-            <Select value={agentFilter} onValueChange={setAgentFilter}>
+            <label className="text-sm font-medium">{t('actor')}</label>
+            <Select value={actorFilter} onValueChange={setActorFilter}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('allAgents')}</SelectItem>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
+                <SelectItem value="all">{t('allActors')}</SelectItem>
+                {actors.map((actor) => (
+                  <SelectItem key={actor.id} value={actor.id}>
+                    {actor.name}
                   </SelectItem>
                 ))}
               </SelectContent>

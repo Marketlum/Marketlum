@@ -8,7 +8,7 @@ import type { ValueInstanceResponse, PaginatedResponse, CreateValueInstanceInput
 import { ValueType } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { useValues } from '../../hooks/use-values';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
@@ -51,10 +51,10 @@ export function ValueInstancesDataTable() {
   const { can } = usePermissions();
   const canWrite = can('value-instances', 'write');
   const { values } = useValues();
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const [valueFilter, setValueFilter] = useState<string>('all');
-  const [fromAgentFilter, setFromAgentFilter] = useState<string>('all');
-  const [toAgentFilter, setToAgentFilter] = useState<string>('all');
+  const [fromActorFilter, setFromActorFilter] = useState<string>('all');
+  const [toActorFilter, setToActorFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<ValueInstanceResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,8 +67,8 @@ export function ValueInstancesDataTable() {
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
     setValueFilter(config.filters?.valueId ?? 'all');
-    setFromAgentFilter(config.filters?.fromAgentId ?? 'all');
-    setToAgentFilter(config.filters?.toAgentId ?? 'all');
+    setFromActorFilter(config.filters?.fromActorId ?? 'all');
+    setToActorFilter(config.filters?.toActorId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -104,11 +104,11 @@ export function ValueInstancesDataTable() {
     columnVisibility,
     filters: {
       ...(valueFilter !== 'all' ? { valueId: valueFilter } : {}),
-      ...(fromAgentFilter !== 'all' ? { fromAgentId: fromAgentFilter } : {}),
-      ...(toAgentFilter !== 'all' ? { toAgentId: toAgentFilter } : {}),
+      ...(fromActorFilter !== 'all' ? { fromActorId: fromActorFilter } : {}),
+      ...(toActorFilter !== 'all' ? { toActorId: toActorFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, valueFilter, fromAgentFilter, toAgentFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, valueFilter, fromActorFilter, toActorFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -117,11 +117,11 @@ export function ValueInstancesDataTable() {
       if (valueFilter && valueFilter !== 'all') {
         qs += `&valueId=${valueFilter}`;
       }
-      if (fromAgentFilter && fromAgentFilter !== 'all') {
-        qs += `&fromAgentId=${fromAgentFilter}`;
+      if (fromActorFilter && fromActorFilter !== 'all') {
+        qs += `&fromActorId=${fromActorFilter}`;
       }
-      if (toAgentFilter && toAgentFilter !== 'all') {
-        qs += `&toAgentId=${toAgentFilter}`;
+      if (toActorFilter && toActorFilter !== 'all') {
+        qs += `&toActorId=${toActorFilter}`;
       }
       const result = await api.get<PaginatedResponse<ValueInstanceResponse>>(`/value-instances?${qs}`);
       setData(result);
@@ -130,11 +130,11 @@ export function ValueInstancesDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, valueFilter, fromAgentFilter, toAgentFilter]);
+  }, [pagination.toQueryString, valueFilter, fromActorFilter, toActorFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, valueFilter, fromAgentFilter, toAgentFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, valueFilter, fromActorFilter, toActorFilter, fetchData]);
 
   const handleCreate = async (input: CreateValueInstanceInput) => {
     setIsSubmitting(true);
@@ -197,8 +197,8 @@ export function ValueInstancesDataTable() {
       name: tc('name'),
       code: tc('code'),
       value: t('value'),
-      fromAgent: t('fromAgent'),
-      toAgent: t('toAgent'),
+      fromActor: t('fromActor'),
+      toActor: t('toActor'),
       version: t('version'),
       purpose: t('purpose'),
       expiresAt: t('expiresAt'),
@@ -216,8 +216,8 @@ export function ValueInstancesDataTable() {
     { id: 'name', label: tc('name') },
     { id: 'code', label: tc('code') },
     { id: 'value', label: t('value') },
-    { id: 'fromAgent', label: t('fromAgent') },
-    { id: 'toAgent', label: t('toAgent') },
+    { id: 'fromActor', label: t('fromActor') },
+    { id: 'toActor', label: t('toActor') },
     { id: 'version', label: t('version') },
     { id: 'purpose', label: t('purpose') },
     { id: 'expiresAt', label: t('expiresAt') },
@@ -236,12 +236,12 @@ export function ValueInstancesDataTable() {
       const v = r.value as { name?: string } | null;
       return v?.name ?? '';
     }},
-    { key: 'fromAgent', label: t('fromAgent'), extract: (r) => {
-      const a = r.fromAgent as { name?: string } | null;
+    { key: 'fromActor', label: t('fromActor'), extract: (r) => {
+      const a = r.fromActor as { name?: string } | null;
       return a?.name ?? '';
     }},
-    { key: 'toAgent', label: t('toAgent'), extract: (r) => {
-      const a = r.toAgent as { name?: string } | null;
+    { key: 'toActor', label: t('toActor'), extract: (r) => {
+      const a = r.toActor as { name?: string } | null;
       return a?.name ?? '';
     }},
     { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
@@ -257,11 +257,11 @@ export function ValueInstancesDataTable() {
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (valueFilter && valueFilter !== 'all') qs += `&valueId=${valueFilter}`;
-    if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
-    if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
+    if (fromActorFilter && fromActorFilter !== 'all') qs += `&fromActorId=${fromActorFilter}`;
+    if (toActorFilter && toActorFilter !== 'all') qs += `&toActorId=${toActorFilter}`;
     const result = await api.get<PaginatedResponse<ValueInstanceResponse>>(`/value-instances?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, valueFilter, fromAgentFilter, toAgentFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, valueFilter, fromActorFilter, toActorFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -277,26 +277,26 @@ export function ValueInstancesDataTable() {
         onClear: () => setValueFilter('all'),
       });
     }
-    if (fromAgentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === fromAgentFilter);
+    if (fromActorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === fromActorFilter);
       filters.push({
-        key: 'fromAgent',
-        label: t('fromAgent'),
-        displayValue: agent?.name ?? fromAgentFilter,
-        onClear: () => setFromAgentFilter('all'),
+        key: 'fromActor',
+        label: t('fromActor'),
+        displayValue: actor?.name ?? fromActorFilter,
+        onClear: () => setFromActorFilter('all'),
       });
     }
-    if (toAgentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === toAgentFilter);
+    if (toActorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === toActorFilter);
       filters.push({
-        key: 'toAgent',
-        label: t('toAgent'),
-        displayValue: agent?.name ?? toAgentFilter,
-        onClear: () => setToAgentFilter('all'),
+        key: 'toActor',
+        label: t('toActor'),
+        displayValue: actor?.name ?? toActorFilter,
+        onClear: () => setToActorFilter('all'),
       });
     }
     return filters;
-  }, [valueFilter, fromAgentFilter, toAgentFilter, t, values, agents]);
+  }, [valueFilter, fromActorFilter, toActorFilter, t, values, actors]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -377,14 +377,14 @@ export function ValueInstancesDataTable() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium">{t('fromAgent')}</label>
-          <Select value={fromAgentFilter} onValueChange={setFromAgentFilter}>
+          <label className="text-sm font-medium">{t('fromActor')}</label>
+          <Select value={fromActorFilter} onValueChange={setFromActorFilter}>
             <SelectTrigger>
-              <SelectValue placeholder={t('allFromAgents')} />
+              <SelectValue placeholder={t('allFromActors')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allFromAgents')}</SelectItem>
-              {agents.map((a) => (
+              <SelectItem value="all">{t('allFromActors')}</SelectItem>
+              {actors.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   {a.name}
                 </SelectItem>
@@ -393,14 +393,14 @@ export function ValueInstancesDataTable() {
           </Select>
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium">{t('toAgent')}</label>
-          <Select value={toAgentFilter} onValueChange={setToAgentFilter}>
+          <label className="text-sm font-medium">{t('toActor')}</label>
+          <Select value={toActorFilter} onValueChange={setToActorFilter}>
             <SelectTrigger>
-              <SelectValue placeholder={t('allToAgents')} />
+              <SelectValue placeholder={t('allToActors')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allToAgents')}</SelectItem>
-              {agents.map((a) => (
+              <SelectItem value="all">{t('allToActors')}</SelectItem>
+              {actors.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   {a.name}
                 </SelectItem>

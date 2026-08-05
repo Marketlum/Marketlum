@@ -4,7 +4,7 @@ import type {
   FinancialsSummary,
 } from '@marketlum/shared';
 
-/** Presentation view-model shared by the value-stream and agent financials
+/** Presentation view-model shared by the value-stream and actor financials
  * surfaces. Callers map their endpoint response into this shape so the
  * summary cards, breakdown table and empty states stay source-agnostic. */
 export interface FinancialsView {

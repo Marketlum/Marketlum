@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import type { AgentResponse, PaginatedResponse, CreateAgentInput, PerspectiveConfig } from '@marketlum/shared';
-import { AgentType } from '@marketlum/shared';
+import type { ActorResponse, PaginatedResponse, CreateActorInput, PerspectiveConfig } from '@marketlum/shared';
+import { ActorType } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { useTaxonomyTree } from '../../hooks/use-taxonomy-tree';
 import { usePagination } from '../../hooks/use-pagination';
@@ -22,8 +22,8 @@ import { PerspectiveSelector } from '../shared/perspective-selector';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/column-visibility';
 import { usePermissions } from '../../permissions/permissions-context';
-import { AgentFormDialog } from './agent-form-dialog';
-import { getAgentColumns } from './columns';
+import { ActorFormDialog } from './actor-form-dialog';
+import { getActorColumns } from './columns';
 import {
   Select,
   SelectContent,
@@ -45,31 +45,31 @@ function flattenTree(nodes: TaxonomyTreeNode[]): TaxonomyTreeNode[] {
 }
 
 const typeTranslationKeys: Record<string, string> = {
-  [AgentType.ORGANIZATION]: 'typeOrganization',
-  [AgentType.INDIVIDUAL]: 'typeIndividual',
-  [AgentType.VIRTUAL]: 'typeVirtual',
+  [ActorType.ORGANIZATION]: 'typeOrganization',
+  [ActorType.INDIVIDUAL]: 'typeIndividual',
+  [ActorType.VIRTUAL]: 'typeVirtual',
 };
 
-export function AgentsDataTable() {
+export function ActorsDataTable() {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
-  const t = useTranslations('agents');
+  const t = useTranslations('actors');
   const tc = useTranslations('common');
   const tp = useTranslations('perspectives');
-  const tam = useTranslations('agentsMap');
+  const tam = useTranslations('actorsMap');
   const isMobile = useIsMobile();
   const { can } = usePermissions();
-  const canWrite = can('agents', 'write');
+  const canWrite = can('actors', 'write');
   const { tree } = useTaxonomyTree();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
-  const [data, setData] = useState<PaginatedResponse<AgentResponse> | null>(null);
+  const [data, setData] = useState<PaginatedResponse<ActorResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<AgentResponse | null>(null);
-  const [deleteAgent, setDeleteAgent] = useState<AgentResponse | null>(null);
+  const [editingActor, setEditingActor] = useState<ActorResponse | null>(null);
+  const [deleteActor, setDeleteActor] = useState<ActorResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
@@ -103,7 +103,7 @@ export function AgentsDataTable() {
     deletePerspective,
     resetPerspective,
   } = usePerspectives({
-    table: 'agents',
+    table: 'actors',
     onApply: onApplyPerspective,
     translations: perspectiveTranslations,
   });
@@ -127,7 +127,7 @@ export function AgentsDataTable() {
       if (taxonomyFilter && taxonomyFilter !== 'all') {
         qs += `&taxonomyId=${taxonomyFilter}`;
       }
-      const result = await api.get<PaginatedResponse<AgentResponse>>(`/agents?${qs}`);
+      const result = await api.get<PaginatedResponse<ActorResponse>>(`/actors?${qs}`);
       setData(result);
     } catch {
       toast.error(t('failedToLoad'));
@@ -140,10 +140,10 @@ export function AgentsDataTable() {
     fetchData();
   }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, fetchData]);
 
-  const handleCreate = async (input: CreateAgentInput) => {
+  const handleCreate = async (input: CreateActorInput) => {
     setIsSubmitting(true);
     try {
-      await api.post('/agents', input);
+      await api.post('/actors', input);
       toast.success(t('created'));
       setFormOpen(false);
       fetchData();
@@ -154,13 +154,13 @@ export function AgentsDataTable() {
     }
   };
 
-  const handleEdit = async (input: CreateAgentInput) => {
-    if (!editingAgent) return;
+  const handleEdit = async (input: CreateActorInput) => {
+    if (!editingActor) return;
     setIsSubmitting(true);
     try {
-      await api.patch(`/agents/${editingAgent.id}`, input);
+      await api.patch(`/actors/${editingActor.id}`, input);
       toast.success(t('updated'));
-      setEditingAgent(null);
+      setEditingActor(null);
       fetchData();
     } catch {
       toast.error(t('failedToUpdate'));
@@ -170,12 +170,12 @@ export function AgentsDataTable() {
   };
 
   const handleDelete = async () => {
-    if (!deleteAgent) return;
+    if (!deleteActor) return;
     setIsSubmitting(true);
     try {
-      await api.delete(`/agents/${deleteAgent.id}`);
+      await api.delete(`/actors/${deleteActor.id}`);
       toast.success(t('deleted'));
-      setDeleteAgent(null);
+      setDeleteActor(null);
       fetchData();
     } catch {
       toast.error(t('failedToDelete'));
@@ -185,13 +185,13 @@ export function AgentsDataTable() {
   };
 
   const typeLabels: Record<string, string> = {};
-  for (const agentType of Object.values(AgentType)) {
-    typeLabels[agentType] = t(typeTranslationKeys[agentType]);
+  for (const actorType of Object.values(ActorType)) {
+    typeLabels[actorType] = t(typeTranslationKeys[actorType]);
   }
 
-  const allColumns = getAgentColumns({
-    onEdit: (agent) => setEditingAgent(agent),
-    onDelete: (agent) => setDeleteAgent(agent),
+  const allColumns = getActorColumns({
+    onEdit: (actor) => setEditingActor(actor),
+    onDelete: (actor) => setDeleteActor(actor),
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
@@ -248,7 +248,7 @@ export function AgentsDataTable() {
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
     if (taxonomyFilter && taxonomyFilter !== 'all') qs += `&taxonomyId=${taxonomyFilter}`;
-    const result = await api.get<PaginatedResponse<AgentResponse>>(`/agents?${qs}`);
+    const result = await api.get<PaginatedResponse<ActorResponse>>(`/actors?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
   }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter]);
 
@@ -285,9 +285,9 @@ export function AgentsDataTable() {
         searchValue={pagination.search}
         onSearchChange={pagination.setSearch}
         onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
-        createLabel={canWrite ? t('createAgent') : undefined}
+        createLabel={canWrite ? t('createActor') : undefined}
         primaryActions={
-          <Link href="/admin/agents/map">
+          <Link href="/admin/actors/map">
             <Button variant="outline" className="w-full sm:w-auto">
               <MapIcon className="mr-2 h-4 w-4" />
               {tam('viewMap')}
@@ -340,7 +340,7 @@ export function AgentsDataTable() {
           fetchAllData={fetchAllData}
           fields={allExportFields}
           visibleFields={visibleExportFields}
-          filenameBase="agents"
+          filenameBase="actors"
         />
       </DataTableToolbar>
 
@@ -355,9 +355,9 @@ export function AgentsDataTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('allTypes')}</SelectItem>
-              {Object.values(AgentType).map((agentType) => (
-                <SelectItem key={agentType} value={agentType}>
-                  {t(typeTranslationKeys[agentType])}
+              {Object.values(ActorType).map((actorType) => (
+                <SelectItem key={actorType} value={actorType}>
+                  {t(typeTranslationKeys[actorType])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -379,7 +379,7 @@ export function AgentsDataTable() {
         <div className="flex h-24 items-center justify-center text-muted-foreground">{tc('loading')}</div>
       ) : (
         <>
-          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(agent) => router.push(`/admin/agents/${agent.id}`)} />
+          <DataTable columns={columns} data={data?.data ?? []} columnVisibility={mergedVisibility} onRowClick={(actor) => router.push(`/admin/actors/${actor.id}`)} />
           {data && (
             <DataTablePagination
               page={data.meta.page}
@@ -393,27 +393,27 @@ export function AgentsDataTable() {
         </>
       )}
 
-      <AgentFormDialog
+      <ActorFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
         onSubmit={handleCreate}
         isSubmitting={isSubmitting}
       />
 
-      <AgentFormDialog
-        open={!!editingAgent}
-        onOpenChange={(open) => !open && setEditingAgent(null)}
+      <ActorFormDialog
+        open={!!editingActor}
+        onOpenChange={(open) => !open && setEditingActor(null)}
         onSubmit={handleEdit}
-        agent={editingAgent}
+        actor={editingActor}
         isSubmitting={isSubmitting}
       />
 
       <ConfirmDeleteDialog
-        open={!!deleteAgent}
-        onOpenChange={(open) => !open && setDeleteAgent(null)}
+        open={!!deleteActor}
+        onOpenChange={(open) => !open && setDeleteActor(null)}
         onConfirm={handleDelete}
-        title={t('deleteAgent')}
-        description={tc('confirmDeleteDescription', { name: deleteAgent?.name ?? '' })}
+        title={t('deleteActor')}
+        description={tc('confirmDeleteDescription', { name: deleteActor?.name ?? '' })}
         isDeleting={isSubmitting}
       />
     </div>

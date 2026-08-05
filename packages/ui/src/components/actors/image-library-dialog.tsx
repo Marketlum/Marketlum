@@ -23,7 +23,7 @@ interface ImageLibraryDialogProps {
 }
 
 export function ImageLibraryDialog({ open, onOpenChange, onSelect }: ImageLibraryDialogProps) {
-  const t = useTranslations('agents');
+  const t = useTranslations('actors');
   const tc = useTranslations('common');
   const [files, setFiles] = useState<FileResponse[]>([]);
   const [search, setSearch] = useState('');

@@ -38,13 +38,13 @@ import type { FieldDef } from '../../lib/export-utils';
 interface AgreementTemplatesDataTableProps {
   /** Scope to one value stream (plus globally-available templates); hides the column. */
   valueStreamId?: string;
-  /** Scope to one agent: filters every query and hides the agent column. */
-  agentId?: string;
+  /** Scope to one actor: filters every query and hides the actor column. */
+  actorId?: string;
 }
 
 export function AgreementTemplatesDataTable({
   valueStreamId: scopedValueStreamId,
-  agentId: scopedAgentId,
+  actorId: scopedActorId,
 }: AgreementTemplatesDataTableProps = {}) {
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -130,8 +130,8 @@ export function AgreementTemplatesDataTable({
       } else if (valueStreamFilter && valueStreamFilter !== 'all') {
         qs += `&valueStreamId=${valueStreamFilter}`;
       }
-      if (scopedAgentId) {
-        qs += `&agentId=${scopedAgentId}`;
+      if (scopedActorId) {
+        qs += `&actorId=${scopedActorId}`;
       }
       const result = await api.get<PaginatedResponse<AgreementTemplateResponse>>(`/agreement-templates/search?${qs}`);
       setData(result);
@@ -140,7 +140,7 @@ export function AgreementTemplatesDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter, valueStreamFilter, scopedValueStreamId, scopedAgentId]);
+  }, [pagination.toQueryString, typeFilter, valueStreamFilter, scopedValueStreamId, scopedActorId]);
 
   useEffect(() => {
     fetchData();
@@ -216,7 +216,7 @@ export function AgreementTemplatesDataTable({
       purpose: t('purpose'),
       description: t('description'),
       valueStream: t('valueStream'),
-      agent: t('agent'),
+      actor: t('actor'),
       created: tc('created'),
       edit: tc('edit'),
       delete: tc('delete'),
@@ -233,7 +233,7 @@ export function AgreementTemplatesDataTable({
     { id: 'purpose', label: t('purpose') },
     { id: 'description', label: t('description') },
     { id: 'valueStream', label: t('valueStream') },
-    { id: 'agent', label: t('agent') },
+    { id: 'actor', label: t('actor') },
     { id: 'createdAt', label: tc('created') },
   ];
 
@@ -247,9 +247,9 @@ export function AgreementTemplatesDataTable({
       const vs = r.valueStream as { name: string } | null | undefined;
       return vs?.name ?? '';
     }},
-    { key: 'agent', label: t('agent'), extract: (r) => {
-      const agent = r.agent as { name: string } | null | undefined;
-      return agent?.name ?? '';
+    { key: 'actor', label: t('actor'), extract: (r) => {
+      const actor = r.actor as { name: string } | null | undefined;
+      return actor?.name ?? '';
     }},
     { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
   ];
@@ -268,16 +268,16 @@ export function AgreementTemplatesDataTable({
     } else if (valueStreamFilter && valueStreamFilter !== 'all') {
       qs += `&valueStreamId=${valueStreamFilter}`;
     }
-    if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
+    if (scopedActorId) qs += `&actorId=${scopedActorId}`;
     const result = await api.get<PaginatedResponse<AgreementTemplateResponse>>(`/agreement-templates/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, valueStreamFilter, scopedValueStreamId, scopedAgentId]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, valueStreamFilter, scopedValueStreamId, scopedActorId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
     ...mergeColumnVisibility(columnVisibility, mobileVisibility),
     ...(scopedValueStreamId ? { valueStream: false } : {}),
-    ...(scopedAgentId ? { agent: false } : {}),
+    ...(scopedActorId ? { actor: false } : {}),
   };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {

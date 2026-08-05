@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { ValueCombobox } from '../shared/value-combobox';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { useValues } from '../../hooks/use-values';
 
@@ -62,7 +62,7 @@ export function OfferingFormDialog({
   const schema = isEditing ? updateOfferingSchema : createOfferingSchema;
   const t = useTranslations('offerings');
   const tc = useTranslations('common');
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
   const { valueStreams } = useValueStreams(open);
   const { values } = useValues(open);
   const [components, setComponents] = useState<ComponentRow[]>([]);
@@ -92,7 +92,7 @@ export function OfferingFormDialog({
           activeFrom: offering.activeFrom ?? '',
           activeUntil: offering.activeUntil ?? '',
           valueStreamId: offering.valueStream?.id ?? null,
-          agentId: offering.agent?.id ?? null,
+          actorId: offering.actor?.id ?? null,
         });
         setComponents(
           (offering.components ?? []).map((c) => ({
@@ -112,7 +112,7 @@ export function OfferingFormDialog({
           activeFrom: '',
           activeUntil: '',
           valueStreamId: null,
-          agentId: null,
+          actorId: null,
         });
         setComponents([]);
       }
@@ -200,19 +200,19 @@ export function OfferingFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>{t('agent')}</Label>
+              <Label>{t('actor')}</Label>
               <Select
-                value={watch('agentId') ?? '__none__'}
-                onValueChange={(v) => setFormValue('agentId', v === '__none__' ? null : v)}
+                value={watch('actorId') ?? '__none__'}
+                onValueChange={(v) => setFormValue('actorId', v === '__none__' ? null : v)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('selectAgent')} />
+                  <SelectValue placeholder={t('selectActor')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">&mdash;</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
+                  {actors.map((actor) => (
+                    <SelectItem key={actor.id} value={actor.id}>
+                      {actor.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

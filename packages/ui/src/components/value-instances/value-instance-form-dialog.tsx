@@ -34,8 +34,8 @@ import {
 } from '../ui/select';
 import { ValueCombobox } from '../shared/value-combobox';
 import { useValues } from '../../hooks/use-values';
-import { useAgents } from '../../hooks/use-agents';
-import { ImageLibraryDialog } from '../agents/image-library-dialog';
+import { useActors } from '../../hooks/use-actors';
+import { ImageLibraryDialog } from '../actors/image-library-dialog';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { api } from '../../lib/api-client';
 
@@ -59,7 +59,7 @@ export function ValueInstanceFormDialog({
   const t = useTranslations('valueInstances');
   const tc = useTranslations('common');
   const { values } = useValues(open);
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
   const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ id: string; originalName: string; mimeType: string } | null>(null);
 
@@ -75,8 +75,8 @@ export function ValueInstanceFormDialog({
   });
 
   const valueIdValue = watch('valueId');
-  const fromAgentIdValue = watch('fromAgentId');
-  const toAgentIdValue = watch('toAgentId');
+  const fromActorIdValue = watch('fromActorId');
+  const toActorIdValue = watch('toActorId');
   const nameValue = watch('name') ?? '';
   const codeValue = watch('code') ?? '';
   const codeEditedRef = useRef(false);
@@ -94,8 +94,8 @@ export function ValueInstanceFormDialog({
           version: valueInstance.version ?? '',
           expiresAt: valueInstance.expiresAt ?? null,
           valueId: valueInstance.value.id,
-          fromAgentId: valueInstance.fromAgent?.id ?? null,
-          toAgentId: valueInstance.toAgent?.id ?? null,
+          fromActorId: valueInstance.fromActor?.id ?? null,
+          toActorId: valueInstance.toActor?.id ?? null,
           imageId: valueInstance.image?.id ?? null,
         });
         setSelectedImage(
@@ -113,8 +113,8 @@ export function ValueInstanceFormDialog({
           version: '',
           expiresAt: null,
           valueId: '' as any,
-          fromAgentId: null,
-          toAgentId: null,
+          fromActorId: null,
+          toActorId: null,
           imageId: null,
         });
         setSelectedImage(null);
@@ -229,19 +229,19 @@ export function ValueInstanceFormDialog({
             />
           </div>
 
-          {/* From Agent */}
+          {/* From Actor */}
           <div className="space-y-2">
-            <Label>{t('fromAgent')}</Label>
+            <Label>{t('fromActor')}</Label>
             <Select
-              value={fromAgentIdValue ?? 'none'}
-              onValueChange={(v) => setFormValue('fromAgentId', v === 'none' ? null : v)}
+              value={fromActorIdValue ?? 'none'}
+              onValueChange={(v) => setFormValue('fromActorId', v === 'none' ? null : v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('selectFromAgent')} />
+                <SelectValue placeholder={t('selectFromActor')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">-</SelectItem>
-                {agents.map((a) => (
+                {actors.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
                   </SelectItem>
@@ -250,19 +250,19 @@ export function ValueInstanceFormDialog({
             </Select>
           </div>
 
-          {/* To Agent */}
+          {/* To Actor */}
           <div className="space-y-2">
-            <Label>{t('toAgent')}</Label>
+            <Label>{t('toActor')}</Label>
             <Select
-              value={toAgentIdValue ?? 'none'}
-              onValueChange={(v) => setFormValue('toAgentId', v === 'none' ? null : v)}
+              value={toActorIdValue ?? 'none'}
+              onValueChange={(v) => setFormValue('toActorId', v === 'none' ? null : v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('selectToAgent')} />
+                <SelectValue placeholder={t('selectToActor')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">-</SelectItem>
-                {agents.map((a) => (
+                {actors.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
                   </SelectItem>

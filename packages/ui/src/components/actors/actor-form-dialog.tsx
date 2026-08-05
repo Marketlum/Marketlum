@@ -7,13 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { Upload, ImageIcon, Library, X } from 'lucide-react';
 import {
-  createAgentSchema,
-  updateAgentSchema,
-  AgentType,
+  createActorSchema,
+  updateActorSchema,
+  ActorType,
   ValueType,
-  type CreateAgentInput,
-  type AgentResponse,
-  type AgentSnapshotReferencesResponse,
+  type CreateActorInput,
+  type ActorResponse,
+  type ActorSnapshotReferencesResponse,
   type TaxonomyResponse,
   type FileResponse,
 } from '@marketlum/shared';
@@ -39,41 +39,41 @@ import { TaxonomyTreeSelect } from '../shared/taxonomy-tree-select';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { useTaxonomyTree } from '../../hooks/use-taxonomy-tree';
 import { useValues } from '../../hooks/use-values';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { api } from '../../lib/api-client';
 import { usePermissions } from '../../permissions/permissions-context';
 import { ImageLibraryDialog } from './image-library-dialog';
 
 const typeTranslationKeys: Record<string, string> = {
-  [AgentType.ORGANIZATION]: 'typeOrganization',
-  [AgentType.INDIVIDUAL]: 'typeIndividual',
-  [AgentType.VIRTUAL]: 'typeVirtual',
+  [ActorType.ORGANIZATION]: 'typeOrganization',
+  [ActorType.INDIVIDUAL]: 'typeIndividual',
+  [ActorType.VIRTUAL]: 'typeVirtual',
 };
 
-interface AgentFormDialogProps {
+interface ActorFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateAgentInput) => Promise<void>;
-  agent?: AgentResponse | null;
+  onSubmit: (data: CreateActorInput) => Promise<void>;
+  actor?: ActorResponse | null;
   /** When set (create mode only), pre-fills the name field. */
   defaultName?: string;
-  /** When set (create mode only), preselects and locks the parent agent. */
+  /** When set (create mode only), preselects and locks the parent actor. */
   defaultParentId?: string;
   isSubmitting?: boolean;
 }
 
-export function AgentFormDialog({
+export function ActorFormDialog({
   open,
   onOpenChange,
   onSubmit,
-  agent,
+  actor,
   defaultName,
   defaultParentId,
   isSubmitting,
-}: AgentFormDialogProps) {
-  const isEditing = !!agent;
-  const schema = isEditing ? updateAgentSchema : createAgentSchema;
-  const t = useTranslations('agents');
+}: ActorFormDialogProps) {
+  const isEditing = !!actor;
+  const schema = isEditing ? updateActorSchema : createActorSchema;
+  const t = useTranslations('actors');
   const tc = useTranslations('common');
   const { tree, refresh } = useTaxonomyTree();
   const { can } = usePermissions();
@@ -106,7 +106,7 @@ export function AgentFormDialog({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<CreateAgentInput>({
+  } = useForm<CreateActorInput>({
     resolver: zodResolver(schema),
   });
 
@@ -115,22 +115,22 @@ export function AgentFormDialog({
   const taxonomyIdsValue = watch('taxonomyIds') ?? [];
   const functionalCurrencyIdValue = watch('functionalCurrencyId');
   const parentIdValue = watch('parentId');
-  const { agents: allAgents } = useAgents(open && !isEditing);
+  const { actors: allActors } = useActors(open && !isEditing);
   const { values: allValues } = useValues(open);
   const currencyOptions = allValues.filter((v) => v.type === ValueType.CURRENCY);
-  const originalFunctionalCurrencyId = agent?.functionalCurrency?.id ?? null;
-  const [snapshotRefs, setSnapshotRefs] = useState<AgentSnapshotReferencesResponse | null>(null);
+  const originalFunctionalCurrencyId = actor?.functionalCurrency?.id ?? null;
+  const [snapshotRefs, setSnapshotRefs] = useState<ActorSnapshotReferencesResponse | null>(null);
 
   useEffect(() => {
-    if (open && agent) {
+    if (open && actor) {
       api
-        .get<AgentSnapshotReferencesResponse>(`/agents/${agent.id}/snapshot-references`)
+        .get<ActorSnapshotReferencesResponse>(`/actors/${actor.id}/snapshot-references`)
         .then(setSnapshotRefs)
         .catch(() => setSnapshotRefs(null));
     } else {
       setSnapshotRefs(null);
     }
-  }, [open, agent]);
+  }, [open, actor]);
 
   const showCurrencyChangeWarning =
     isEditing &&
@@ -141,25 +141,25 @@ export function AgentFormDialog({
 
   useEffect(() => {
     if (open) {
-      if (agent) {
+      if (actor) {
         reset({
-          name: agent.name,
-          type: agent.type,
-          purpose: agent.purpose ?? '',
-          mainTaxonomyId: agent.mainTaxonomy?.id ?? null,
-          taxonomyIds: agent.taxonomies?.map((t) => t.id) ?? [],
-          imageId: agent.image?.id ?? null,
-          functionalCurrencyId: agent.functionalCurrency?.id ?? null,
+          name: actor.name,
+          type: actor.type,
+          purpose: actor.purpose ?? '',
+          mainTaxonomyId: actor.mainTaxonomy?.id ?? null,
+          taxonomyIds: actor.taxonomies?.map((t) => t.id) ?? [],
+          imageId: actor.image?.id ?? null,
+          functionalCurrencyId: actor.functionalCurrency?.id ?? null,
         });
         setImagePreview(
-          agent.image
-            ? { id: agent.image.id, originalName: agent.image.originalName, mimeType: agent.image.mimeType }
+          actor.image
+            ? { id: actor.image.id, originalName: actor.image.originalName, mimeType: actor.image.mimeType }
             : null,
         );
       } else {
         reset({
           name: defaultName ?? '',
-          type: AgentType.ORGANIZATION,
+          type: ActorType.ORGANIZATION,
           purpose: '',
           mainTaxonomyId: null,
           taxonomyIds: [],
@@ -170,7 +170,7 @@ export function AgentFormDialog({
         setImagePreview(null);
       }
     }
-  }, [open, agent, defaultName, defaultParentId, reset]);
+  }, [open, actor, defaultName, defaultParentId, reset]);
 
   const toggleTaxonomyId = (id: string) => {
     const current = taxonomyIdsValue;
@@ -217,30 +217,30 @@ export function AgentFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? t('editAgent') : t('createAgent')}</DialogTitle>
+          <DialogTitle>{isEditing ? t('editActor') : t('createActor')}</DialogTitle>
           <DialogDescription>
             {isEditing ? t('editDescription') : t('createDescription')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="agent-name">{tc('name')}</Label>
-            <Input id="agent-name" {...register('name')} />
+            <Label htmlFor="actor-name">{tc('name')}</Label>
+            <Input id="actor-name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
           </div>
           <div className="space-y-2">
             <Label>{tc('type')}</Label>
             <Select
               value={typeValue}
-              onValueChange={(value) => setValue('type', value as AgentType)}
+              onValueChange={(value) => setValue('type', value as ActorType)}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t('selectType')} />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(AgentType).map((agentType) => (
-                  <SelectItem key={agentType} value={agentType}>
-                    {t(typeTranslationKeys[agentType])}
+                {Object.values(ActorType).map((actorType) => (
+                  <SelectItem key={actorType} value={actorType}>
+                    {t(typeTranslationKeys[actorType])}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -258,7 +258,7 @@ export function AgentFormDialog({
             <Label>{t('parent')}</Label>
             {isEditing ? (
               <p className="text-sm text-muted-foreground">
-                {agent?.parent ? agent.parent.name : t('noParent')}
+                {actor?.parent ? actor.parent.name : t('noParent')}
                 <span className="ml-1 text-xs">({t('parentEditHint')})</span>
               </p>
             ) : (
@@ -272,7 +272,7 @@ export function AgentFormDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t('noParent')}</SelectItem>
-                  {allAgents.map((a) => (
+                  {allActors.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       {a.name}
                     </SelectItem>

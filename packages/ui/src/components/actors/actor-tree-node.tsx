@@ -3,18 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Bot } from 'lucide-react';
-import type { AgentTreeNode } from '@marketlum/shared';
-import { AgentTypeBadge } from './agent-type-badge';
+import type { ActorTreeNode } from '@marketlum/shared';
+import { ActorTypeBadge } from './actor-type-badge';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { useIsMobile } from '../../hooks/use-mobile';
 
-interface AgentTreeNodeProps {
-  node: AgentTreeNode;
+interface ActorTreeNodeProps {
+  node: ActorTreeNode;
   depth: number;
   typeLabels: Record<string, string>;
 }
 
-export function AgentTreeNodeComponent({ node, depth, typeLabels }: AgentTreeNodeProps) {
+export function ActorTreeNodeComponent({ node, depth, typeLabels }: ActorTreeNodeProps) {
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(true);
 
@@ -55,18 +55,18 @@ export function AgentTreeNodeComponent({ node, depth, typeLabels }: AgentTreeNod
         </div>
 
         <Link
-          href={`/admin/agents/${node.id}`}
+          href={`/admin/actors/${node.id}`}
           className="flex flex-1 items-center gap-1.5 overflow-hidden"
         >
           <span className="truncate text-sm underline-offset-2 hover:underline">{node.name}</span>
-          <AgentTypeBadge type={node.type} label={typeLabels[node.type] ?? node.type} />
+          <ActorTypeBadge type={node.type} label={typeLabels[node.type] ?? node.type} />
         </Link>
       </div>
 
       {expanded && hasChildren && (
         <div>
           {node.children.map((child) => (
-            <AgentTreeNodeComponent
+            <ActorTreeNodeComponent
               key={child.id}
               node={child}
               depth={depth + 1}

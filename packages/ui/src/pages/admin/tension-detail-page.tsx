@@ -12,7 +12,7 @@ import { TensionFormDialog } from '../../components/tensions/tension-form-dialog
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { Can } from '../../permissions/can';
 import { MarkdownContent } from '../../components/shared/markdown-editor';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useUsers } from '../../hooks/use-users';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -44,7 +44,7 @@ export function TensionDetailPage() {
   const router = useRouter();
   const t = useTranslations('tensions');
   const tc = useTranslations('common');
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const { users } = useUsers();
 
   const [tension, setTension] = useState<TensionResponse | null>(null);
@@ -225,10 +225,10 @@ export function TensionDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-sm text-muted-foreground">{t('agent')}</p>
-              {tension.agent ? (
-                <Link href={`/admin/agents/${tension.agent.id}`} className="text-primary hover:underline">
-                  {tension.agent.name}
+              <p className="text-sm text-muted-foreground">{t('actor')}</p>
+              {tension.actor ? (
+                <Link href={`/admin/actors/${tension.actor.id}`} className="text-primary hover:underline">
+                  {tension.actor.name}
                 </Link>
               ) : (
                 <p>-</p>
@@ -312,7 +312,7 @@ export function TensionDetailPage() {
         onSubmit={handleEdit}
         tension={tension}
         isSubmitting={isSubmitting}
-        agents={agents}
+        actors={actors}
         users={users}
       />
 

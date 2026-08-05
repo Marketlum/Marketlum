@@ -11,7 +11,7 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { usePipelines } from '../../hooks/use-pipelines';
 import { useUsers } from '../../hooks/use-users';
@@ -54,7 +54,7 @@ interface ExchangeRow {
   completedAt: string | null;
   link: string | null;
   lead: { id: string; name: string } | null;
-  parties: { id: string; agent: { id: string; name: string }; role: string }[];
+  parties: { id: string; actor: { id: string; name: string }; role: string }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -62,13 +62,13 @@ interface ExchangeRow {
 interface ExchangesDataTableProps {
   /** Scope the table to one value stream: filters every query and hides the column. */
   valueStreamId?: string;
-  /** Scope the table to exchanges involving one agent: filters every query and hides the party filter. */
-  partyAgentId?: string;
+  /** Scope the table to exchanges involving one actor: filters every query and hides the party filter. */
+  partyActorId?: string;
 }
 
 export function ExchangesDataTable({
   valueStreamId: scopedValueStreamId,
-  partyAgentId: scopedPartyAgentId,
+  partyActorId: scopedPartyActorId,
 }: ExchangesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
@@ -79,7 +79,7 @@ export function ExchangesDataTable({
   const isMobile = useIsMobile();
   const { can } = usePermissions();
   const canWrite = can('exchanges', 'write');
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const { valueStreams } = useValueStreams();
   const { pipelines } = usePipelines();
   const { users } = useUsers();
@@ -88,7 +88,7 @@ export function ExchangesDataTable({
   const [channelFilter, setChannelFilter] = useState<string>('all');
   const [pipelineFilter, setPipelineFilter] = useState<string>('all');
   const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
-  const [partyAgentFilter, setPartyAgentFilter] = useState<string>('all');
+  const [partyActorFilter, setPartyActorFilter] = useState<string>('all');
   const [leadFilter, setLeadFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<ExchangeRow> | null>(null);
@@ -113,7 +113,7 @@ export function ExchangesDataTable({
     setChannelFilter(config.filters?.channelId ?? 'all');
     setPipelineFilter(config.filters?.pipelineId ?? 'all');
     setValueStreamFilter(config.filters?.valueStreamId ?? 'all');
-    setPartyAgentFilter(config.filters?.partyAgentId ?? 'all');
+    setPartyActorFilter(config.filters?.partyActorId ?? 'all');
     setLeadFilter(config.filters?.leadUserId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
@@ -153,14 +153,14 @@ export function ExchangesDataTable({
       ...(channelFilter !== 'all' ? { channelId: channelFilter } : {}),
       ...(pipelineFilter !== 'all' ? { pipelineId: pipelineFilter } : {}),
       ...(valueStreamFilter !== 'all' ? { valueStreamId: valueStreamFilter } : {}),
-      ...(partyAgentFilter !== 'all' ? { partyAgentId: partyAgentFilter } : {}),
+      ...(partyActorFilter !== 'all' ? { partyActorId: partyActorFilter } : {}),
       ...(leadFilter !== 'all' ? { leadUserId: leadFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyActorFilter, leadFilter, pagination.sortBy, pagination.sortOrder]);
 
-  const effectivePartyAgentId =
-    scopedPartyAgentId ?? (partyAgentFilter !== 'all' ? partyAgentFilter : undefined);
+  const effectivePartyActorId =
+    scopedPartyActorId ?? (partyActorFilter !== 'all' ? partyActorFilter : undefined);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -171,7 +171,7 @@ export function ExchangesDataTable({
       if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
       if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
       else if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
-      if (effectivePartyAgentId) qs += `&partyAgentId=${effectivePartyAgentId}`;
+      if (effectivePartyActorId) qs += `&partyActorId=${effectivePartyActorId}`;
       if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
       const result = await api.get<PaginatedResponse<ExchangeRow>>(`/exchanges/search?${qs}`);
       setData(result);
@@ -180,11 +180,11 @@ export function ExchangesDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, effectivePartyAgentId, leadFilter, scopedValueStreamId]);
+  }, [pagination.toQueryString, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, effectivePartyActorId, leadFilter, scopedValueStreamId]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyActorFilter, leadFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingExchange(null);
@@ -304,8 +304,8 @@ export function ExchangesDataTable({
       return l?.name ?? '';
     }},
     { key: 'parties', label: t('parties'), extract: (r) => {
-      const parties = r.parties as { agent: { name: string }; role: string }[] | undefined;
-      return parties?.map((p) => `${p.agent.name} (${p.role})`).join(', ') ?? '';
+      const parties = r.parties as { actor: { name: string }; role: string }[] | undefined;
+      return parties?.map((p) => `${p.actor.name} (${p.role})`).join(', ') ?? '';
     }},
     { key: 'openedAt', label: t('openedAt'), extract: (r) => String(r.openedAt ?? '') },
     { key: 'completedAt', label: t('completedAt'), extract: (r) => String(r.completedAt ?? '') },
@@ -325,11 +325,11 @@ export function ExchangesDataTable({
     if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
     if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
     else if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
-    if (effectivePartyAgentId) qs += `&partyAgentId=${effectivePartyAgentId}`;
+    if (effectivePartyActorId) qs += `&partyActorId=${effectivePartyActorId}`;
     if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
     const result = await api.get<PaginatedResponse<ExchangeRow>>(`/exchanges/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, effectivePartyAgentId, leadFilter, scopedValueStreamId]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, stateFilter, channelFilter, pipelineFilter, valueStreamFilter, effectivePartyActorId, leadFilter, scopedValueStreamId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
@@ -374,13 +374,13 @@ export function ExchangesDataTable({
         onClear: () => setValueStreamFilter('all'),
       });
     }
-    if (!scopedPartyAgentId && partyAgentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === partyAgentFilter);
+    if (!scopedPartyActorId && partyActorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === partyActorFilter);
       filters.push({
-        key: 'partyAgent',
-        label: t('partyAgent'),
-        displayValue: agent?.name ?? partyAgentFilter,
-        onClear: () => setPartyAgentFilter('all'),
+        key: 'partyActor',
+        label: t('partyActor'),
+        displayValue: actor?.name ?? partyActorFilter,
+        onClear: () => setPartyActorFilter('all'),
       });
     }
     if (leadFilter !== 'all') {
@@ -393,7 +393,7 @@ export function ExchangesDataTable({
       });
     }
     return filters;
-  }, [stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyAgentFilter, leadFilter, channels, pipelines, valueStreams, agents, users, scopedPartyAgentId, t]);
+  }, [stateFilter, channelFilter, pipelineFilter, valueStreamFilter, partyActorFilter, leadFilter, channels, pipelines, valueStreams, actors, users, scopedPartyActorId, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -524,17 +524,17 @@ export function ExchangesDataTable({
             </SelectContent>
           </Select>
         </div>
-        {!scopedPartyAgentId && (
+        {!scopedPartyActorId && (
           <div className="space-y-1">
-            <label className="text-sm font-medium">{t('partyAgent')}</label>
-            <Select value={partyAgentFilter} onValueChange={setPartyAgentFilter}>
+            <label className="text-sm font-medium">{t('partyActor')}</label>
+            <Select value={partyActorFilter} onValueChange={setPartyActorFilter}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('allAgents')}</SelectItem>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
+                <SelectItem value="all">{t('allActors')}</SelectItem>
+                {actors.map((actor) => (
+                  <SelectItem key={actor.id} value={actor.id}>{actor.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -608,7 +608,7 @@ export function ExchangesDataTable({
           onOpenChange={(open) => !open && setFlowsExchange(null)}
           exchangeId={flowsExchange.id}
           exchangeName={flowsExchange.name}
-          partyAgents={flowsExchange.parties.map((p) => ({ id: p.agent.id, name: p.agent.name }))}
+          partyActors={flowsExchange.parties.map((p) => ({ id: p.actor.id, name: p.actor.name }))}
         />
       )}
     </div>

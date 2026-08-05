@@ -16,7 +16,7 @@ interface GraphNode extends d3.SimulationNodeDatum {
   type: string;
   abstract: boolean;
   connectionCount: number;
-  agentName: string | null;
+  actorName: string | null;
   valueStreamName: string | null;
 }
 
@@ -69,7 +69,7 @@ function buildGraph(values: ValueResponse[]) {
     type: v.type,
     abstract: v.abstract,
     connectionCount: connectionCounts.get(v.id) ?? 0,
-    agentName: v.agent?.name ?? null,
+    actorName: v.actor?.name ?? null,
     valueStreamName: (v as any).valueStream?.name ?? null,
   }));
 
@@ -326,7 +326,7 @@ export function ValuesNetworkGraph() {
         tooltip.style.top = `${event.clientY - 12}px`;
         const parts = [`<div class="font-semibold">${d.name}</div>`];
         parts.push(`<div class="text-xs text-muted-foreground">${d.type}${d.abstract ? ' (abstract)' : ''}</div>`);
-        if (d.agentName) parts.push(`<div class="text-xs mt-1">${d.agentName}</div>`);
+        if (d.actorName) parts.push(`<div class="text-xs mt-1">${d.actorName}</div>`);
         if (d.valueStreamName) parts.push(`<div class="text-xs">${d.valueStreamName}</div>`);
         tooltip.innerHTML = parts.join('');
       })

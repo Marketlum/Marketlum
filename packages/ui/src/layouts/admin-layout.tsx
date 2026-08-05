@@ -98,7 +98,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     ]},
     { key: 'exchange', label: t('groupExchange'), items: [
       { href: '/admin/tensions', label: t('tensions'), icon: Flame, resource: 'tensions' },
-      { href: '/admin/agents', label: t('agents'), icon: Bot, resource: 'agents' },
+      { href: '/admin/actors', label: t('actors'), icon: Bot, resource: 'actors' },
       { href: '/admin/agreements', label: t('agreements'), icon: Handshake, resource: 'agreements' },
       { href: '/admin/offerings', label: t('offerings'), icon: Package, resource: 'offerings' },
       { href: '/admin/exchanges', label: t('exchanges'), icon: ArrowRightLeft, resource: 'exchanges' },

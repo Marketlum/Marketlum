@@ -23,13 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { useUsers } from '../../hooks/use-users';
 import { useTensions } from '../../hooks/use-tensions';
 
 interface PartyRow {
-  agentId: string;
+  actorId: string;
   role: string;
 }
 
@@ -46,7 +46,7 @@ interface ExchangeData {
   completedAt: string | null;
   link: string | null;
   lead: { id: string; name: string } | null;
-  parties: { id: string; agent: { id: string; name: string }; role: string | null }[];
+  parties: { id: string; actor: { id: string; name: string }; role: string | null }[];
 }
 
 interface ExchangeFormDialogProps {
@@ -74,7 +74,7 @@ export function ExchangeFormDialog({
   const isEditing = !!exchange;
   const t = useTranslations('exchanges');
   const tc = useTranslations('common');
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
   const { valueStreams } = useValueStreams(open);
   const { users } = useUsers(open);
 
@@ -88,8 +88,8 @@ export function ExchangeFormDialog({
   const [tensionId, setTensionId] = useState<string>('none');
   const [leadUserId, setLeadUserId] = useState<string>('none');
   const [parties, setParties] = useState<PartyRow[]>([
-    { agentId: '', role: '' },
-    { agentId: '', role: '' },
+    { actorId: '', role: '' },
+    { actorId: '', role: '' },
   ]);
 
   useEffect(() => {
@@ -105,7 +105,7 @@ export function ExchangeFormDialog({
       setLeadUserId(exchange.lead?.id ?? 'none');
       setParties(
         exchange.parties.map((p) => ({
-          agentId: p.agent.id,
+          actorId: p.actor.id,
           role: p.role ?? '',
         })),
       );
@@ -120,8 +120,8 @@ export function ExchangeFormDialog({
       setTensionId('none');
       setLeadUserId('none');
       setParties([
-        { agentId: '', role: '' },
-        { agentId: '', role: '' },
+        { actorId: '', role: '' },
+        { actorId: '', role: '' },
       ]);
     }
   }, [open, exchange, initialValueStreamId]);
@@ -131,8 +131,8 @@ export function ExchangeFormDialog({
     const body: Record<string, unknown> = {
       name,
       purpose,
-      parties: parties.filter((p) => p.agentId).map((p) => ({
-        agentId: p.agentId,
+      parties: parties.filter((p) => p.actorId).map((p) => ({
+        actorId: p.actorId,
         role: p.role || null,
       })),
     };
@@ -147,7 +147,7 @@ export function ExchangeFormDialog({
   };
 
   const addParty = () => {
-    setParties([...parties, { agentId: '', role: '' }]);
+    setParties([...parties, { actorId: '', role: '' }]);
   };
 
   const removeParty = (index: number) => {
@@ -155,7 +155,7 @@ export function ExchangeFormDialog({
     setParties(parties.filter((_, i) => i !== index));
   };
 
-  const updateParty = (index: number, field: 'agentId' | 'role', value: string) => {
+  const updateParty = (index: number, field: 'actorId' | 'role', value: string) => {
     setParties(parties.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
@@ -278,13 +278,13 @@ export function ExchangeFormDialog({
             {parties.map((party, index) => (
               <div key={index} className="flex gap-2 items-end">
                 <div className="flex-1">
-                  <Select value={party.agentId} onValueChange={(v) => updateParty(index, 'agentId', v)}>
+                  <Select value={party.actorId} onValueChange={(v) => updateParty(index, 'actorId', v)}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('selectAgent')} />
+                      <SelectValue placeholder={t('selectActor')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {agents.map((agent) => (
-                        <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
+                      {actors.map((actor) => (
+                        <SelectItem key={actor.id} value={actor.id}>{actor.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import * as d3 from 'd3';
-import type { AgentResponse, ValueInstanceResponse, PaginatedResponse } from '@marketlum/shared';
+import type { ActorResponse, ValueInstanceResponse, PaginatedResponse } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { Card } from '../ui/card';
 
@@ -17,8 +17,8 @@ interface GraphNode extends d3.SimulationNodeDatum {
 interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   name: string;
   valueName: string;
-  fromAgentName: string;
-  toAgentName: string;
+  fromActorName: string;
+  toActorName: string;
 }
 
 const NODE_COLORS: Record<string, { fill: string; stroke: string }> = {
@@ -31,41 +31,41 @@ function clamp(min: number, val: number, max: number) {
   return Math.max(min, Math.min(max, val));
 }
 
-function buildGraph(agents: AgentResponse[], valueInstances: ValueInstanceResponse[]) {
-  const connected = valueInstances.filter((vi) => vi.fromAgent && vi.toAgent);
+function buildGraph(actors: ActorResponse[], valueInstances: ValueInstanceResponse[]) {
+  const connected = valueInstances.filter((vi) => vi.fromActor && vi.toActor);
   if (connected.length === 0) {
     return { nodes: [] as GraphNode[], links: [] as GraphLink[] };
   }
 
   const connectionCounts = new Map<string, number>();
   for (const vi of connected) {
-    const fromId = vi.fromAgent!.id;
-    const toId = vi.toAgent!.id;
+    const fromId = vi.fromActor!.id;
+    const toId = vi.toActor!.id;
     connectionCounts.set(fromId, (connectionCounts.get(fromId) ?? 0) + 1);
     connectionCounts.set(toId, (connectionCounts.get(toId) ?? 0) + 1);
   }
 
-  const agentMap = new Map(agents.map((a) => [a.id, a]));
+  const actorMap = new Map(actors.map((a) => [a.id, a]));
   const nodes: GraphNode[] = [];
   for (const [id, count] of connectionCounts) {
-    const agent = agentMap.get(id);
-    if (agent) {
+    const actor = actorMap.get(id);
+    if (actor) {
       nodes.push({
-        id: agent.id,
-        name: agent.name,
-        type: agent.type,
+        id: actor.id,
+        name: actor.name,
+        type: actor.type,
         connectionCount: count,
       });
     }
   }
 
   const links: GraphLink[] = connected.map((vi) => ({
-    source: vi.fromAgent!.id,
-    target: vi.toAgent!.id,
+    source: vi.fromActor!.id,
+    target: vi.toActor!.id,
     name: vi.name,
     valueName: vi.value.name,
-    fromAgentName: vi.fromAgent!.name,
-    toAgentName: vi.toAgent!.name,
+    fromActorName: vi.fromActor!.name,
+    toActorName: vi.toActor!.name,
   }));
 
   return { nodes, links };
@@ -73,7 +73,7 @@ function buildGraph(agents: AgentResponse[], valueInstances: ValueInstanceRespon
 
 export function NetworkGraph() {
   const t = useTranslations('valueInstances');
-  const ta = useTranslations('agents');
+  const ta = useTranslations('actors');
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -86,14 +86,14 @@ export function NetworkGraph() {
 
     async function fetchData() {
       try {
-        const [agentsRes, viRes] = await Promise.all([
-          api.get<PaginatedResponse<AgentResponse>>('/agents?limit=10000'),
+        const [actorsRes, viRes] = await Promise.all([
+          api.get<PaginatedResponse<ActorResponse>>('/actors?limit=10000'),
           api.get<PaginatedResponse<ValueInstanceResponse>>('/value-instances?limit=10000'),
         ]);
 
         if (cancelled) return;
 
-        const data = buildGraph(agentsRes.data, viRes.data);
+        const data = buildGraph(actorsRes.data, viRes.data);
         setGraphData(data);
       } catch {
         setGraphData({ nodes: [], links: [] });
@@ -187,7 +187,7 @@ export function NetworkGraph() {
         tooltip.innerHTML = `
           <div class="font-semibold">${d.name}</div>
           <div class="text-xs text-muted-foreground">${d.valueName}</div>
-          <div class="text-xs mt-1">${d.fromAgentName} → ${d.toAgentName}</div>
+          <div class="text-xs mt-1">${d.fromActorName} → ${d.toActorName}</div>
         `;
       })
       .on('mousemove', (event: MouseEvent) => {

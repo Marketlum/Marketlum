@@ -2,10 +2,10 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown, ImageIcon } from 'lucide-react';
-import type { AgentResponse } from '@marketlum/shared';
+import type { ActorResponse } from '@marketlum/shared';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { AgentTypeBadge } from './agent-type-badge';
+import { ActorTypeBadge } from './actor-type-badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
 } from '../ui/dropdown-menu';
 import { FileImagePreview } from '../shared/file-image-preview';
 
-interface AgentColumnsTranslations {
+interface ActorColumnsTranslations {
   name: string;
   type: string;
   purpose: string;
@@ -27,14 +27,14 @@ interface AgentColumnsTranslations {
   typeLabels: Record<string, string>;
 }
 
-interface AgentColumnsOptions {
-  onEdit: (agent: AgentResponse) => void;
-  onDelete: (agent: AgentResponse) => void;
+interface ActorColumnsOptions {
+  onEdit: (actor: ActorResponse) => void;
+  onDelete: (actor: ActorResponse) => void;
   onSort: (column: string) => void;
-  translations: AgentColumnsTranslations;
+  translations: ActorColumnsTranslations;
 }
 
-export function getAgentColumns({ onEdit, onDelete, onSort, translations }: AgentColumnsOptions): ColumnDef<AgentResponse>[] {
+export function getActorColumns({ onEdit, onDelete, onSort, translations }: ActorColumnsOptions): ColumnDef<ActorResponse>[] {
   return [
     {
       id: 'image',
@@ -72,7 +72,7 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
       cell: ({ row }) => {
         const type = row.getValue('type') as string;
         return (
-          <AgentTypeBadge type={type} label={translations.typeLabels[type] ?? type} />
+          <ActorTypeBadge type={type} label={translations.typeLabels[type] ?? type} />
         );
       },
     },
@@ -108,7 +108,7 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
     {
       id: 'actions',
       cell: ({ row }) => {
-        const agent = row.original;
+        const actor = row.original;
         return (
           // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
           <div onClick={(e) => e.stopPropagation()}>
@@ -119,9 +119,9 @@ export function getAgentColumns({ onEdit, onDelete, onSort, translations }: Agen
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(agent)}>{translations.edit}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(actor)}>{translations.edit}</DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onDelete(agent)}
+                  onClick={() => onDelete(actor)}
                   className="text-destructive focus:text-destructive"
                 >
                   {translations.delete}

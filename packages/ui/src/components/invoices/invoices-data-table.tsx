@@ -11,7 +11,7 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValues } from '../../hooks/use-values';
 import { useChannels } from '../../hooks/use-channels';
 import { DataTable } from '../shared/data-table';
@@ -59,15 +59,15 @@ interface InvoiceItemRow {
 interface InvoiceRow {
   id: string;
   number: string;
-  fromAgent: { id: string; name: string } | null;
-  toAgent: { id: string; name: string } | null;
+  fromActor: { id: string; name: string } | null;
+  toActor: { id: string; name: string } | null;
   issuedAt: string;
   dueAt: string;
   currency: { id: string; name: string } | null;
   market: InvoiceMarket;
-  onBehalfOfAgent?: { id: string; name: string } | null;
+  onBehalfOfActor?: { id: string; name: string } | null;
   mirrorInvoice?: { id: string; number: string } | null;
-  sourceInvoice?: { id: string; number: string; fromAgent: { id: string; name: string } } | null;
+  sourceInvoice?: { id: string; number: string; fromActor: { id: string; name: string } } | null;
   total?: string;
   presentationTotal?: string | null;
   paid: boolean;
@@ -81,12 +81,12 @@ interface InvoiceRow {
 }
 
 interface InvoicesDataTableProps {
-  /** Scope the table to invoices involving one agent (issuer or receiver): filters every query. */
-  agentId?: string;
+  /** Scope the table to invoices involving one actor (issuer or receiver): filters every query. */
+  actorId?: string;
 }
 
 export function InvoicesDataTable({
-  agentId: scopedAgentId,
+  actorId: scopedActorId,
 }: InvoicesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
@@ -97,11 +97,11 @@ export function InvoicesDataTable({
   const isMobile = useIsMobile();
   const { can } = usePermissions();
   const canWrite = can('invoices', 'write');
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const { values } = useValues();
   const { channels } = useChannels();
-  const [fromAgentFilter, setFromAgentFilter] = useState<string>('all');
-  const [toAgentFilter, setToAgentFilter] = useState<string>('all');
+  const [fromActorFilter, setFromActorFilter] = useState<string>('all');
+  const [toActorFilter, setToActorFilter] = useState<string>('all');
   const [marketFilter, setMarketFilter] = useState<string>('all');
   const [mirrorFilter, setMirrorFilter] = useState<string>('all');
   const [paidFilter, setPaidFilter] = useState<string>('all');
@@ -125,8 +125,8 @@ export function InvoicesDataTable({
 
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
-    setFromAgentFilter(config.filters?.fromAgentId ?? 'all');
-    setToAgentFilter(config.filters?.toAgentId ?? 'all');
+    setFromActorFilter(config.filters?.fromActorId ?? 'all');
+    setToActorFilter(config.filters?.toActorId ?? 'all');
     setMarketFilter(config.filters?.market ?? 'all');
     setMirrorFilter(config.filters?.mirror ?? 'all');
     setPaidFilter(config.filters?.paid ?? 'all');
@@ -166,8 +166,8 @@ export function InvoicesDataTable({
   const getCurrentConfig = useCallback((): PerspectiveConfig => ({
     columnVisibility,
     filters: {
-      ...(fromAgentFilter !== 'all' ? { fromAgentId: fromAgentFilter } : {}),
-      ...(toAgentFilter !== 'all' ? { toAgentId: toAgentFilter } : {}),
+      ...(fromActorFilter !== 'all' ? { fromActorId: fromActorFilter } : {}),
+      ...(toActorFilter !== 'all' ? { toActorId: toActorFilter } : {}),
       ...(marketFilter !== 'all' ? { market: marketFilter } : {}),
       ...(mirrorFilter !== 'all' ? { mirror: mirrorFilter } : {}),
       ...(paidFilter !== 'all' ? { paid: paidFilter } : {}),
@@ -175,20 +175,20 @@ export function InvoicesDataTable({
       ...(channelFilter !== 'all' ? { channelId: channelFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, fromActorFilter, toActorFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       let qs = pagination.toQueryString();
-      if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
-      if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
+      if (fromActorFilter && fromActorFilter !== 'all') qs += `&fromActorId=${fromActorFilter}`;
+      if (toActorFilter && toActorFilter !== 'all') qs += `&toActorId=${toActorFilter}`;
       if (marketFilter && marketFilter !== 'all') qs += `&market=${marketFilter}`;
       if (mirrorFilter && mirrorFilter !== 'all') qs += `&mirror=${mirrorFilter}`;
       if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
       if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
       if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
-      if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
+      if (scopedActorId) qs += `&actorId=${scopedActorId}`;
       const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
       setData(result);
     } catch {
@@ -196,11 +196,11 @@ export function InvoicesDataTable({
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
+  }, [pagination.toQueryString, fromActorFilter, toActorFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, scopedActorId]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, fromActorFilter, toActorFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingInvoice(null);
@@ -333,8 +333,8 @@ export function InvoicesDataTable({
 
   const columnMeta = [
     { id: 'number', label: t('number') },
-    { id: 'fromAgent', label: t('from') },
-    { id: 'toAgent', label: t('to') },
+    { id: 'fromActor', label: t('from') },
+    { id: 'toActor', label: t('to') },
     { id: 'issuedAt', label: t('issuedAt') },
     { id: 'dueAt', label: t('dueAt') },
     { id: 'total', label: t('total') },
@@ -346,13 +346,13 @@ export function InvoicesDataTable({
 
   const allExportFields: FieldDef[] = [
     { key: 'number', label: t('number'), extract: (r) => String(r.number ?? '') },
-    { key: 'fromAgent', label: t('from'), extract: (r) => {
-      const agent = r.fromAgent as { name: string } | null;
-      return agent?.name ?? '';
+    { key: 'fromActor', label: t('from'), extract: (r) => {
+      const actor = r.fromActor as { name: string } | null;
+      return actor?.name ?? '';
     }},
-    { key: 'toAgent', label: t('to'), extract: (r) => {
-      const agent = r.toAgent as { name: string } | null;
-      return agent?.name ?? '';
+    { key: 'toActor', label: t('to'), extract: (r) => {
+      const actor = r.toActor as { name: string } | null;
+      return actor?.name ?? '';
     }},
     { key: 'issuedAt', label: t('issuedAt'), extract: (r) => String(r.issuedAt ?? '') },
     { key: 'dueAt', label: t('dueAt'), extract: (r) => String(r.dueAt ?? '') },
@@ -377,39 +377,39 @@ export function InvoicesDataTable({
     let qs = 'page=1&limit=10000';
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
-    if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
-    if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
+    if (fromActorFilter && fromActorFilter !== 'all') qs += `&fromActorId=${fromActorFilter}`;
+    if (toActorFilter && toActorFilter !== 'all') qs += `&toActorId=${toActorFilter}`;
     if (marketFilter && marketFilter !== 'all') qs += `&market=${marketFilter}`;
     if (mirrorFilter && mirrorFilter !== 'all') qs += `&mirror=${mirrorFilter}`;
     if (paidFilter && paidFilter !== 'all') qs += `&paid=${paidFilter}`;
     if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
-    if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
+    if (scopedActorId) qs += `&actorId=${scopedActorId}`;
     const result = await api.get<PaginatedResponse<InvoiceRow>>(`/invoices/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, scopedAgentId]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, fromActorFilter, toActorFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, scopedActorId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];
-    if (fromAgentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === fromAgentFilter);
+    if (fromActorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === fromActorFilter);
       filters.push({
-        key: 'fromAgent',
+        key: 'fromActor',
         label: t('from'),
-        displayValue: agent?.name ?? fromAgentFilter,
-        onClear: () => setFromAgentFilter('all'),
+        displayValue: actor?.name ?? fromActorFilter,
+        onClear: () => setFromActorFilter('all'),
       });
     }
-    if (toAgentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === toAgentFilter);
+    if (toActorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === toActorFilter);
       filters.push({
-        key: 'toAgent',
+        key: 'toActor',
         label: t('to'),
-        displayValue: agent?.name ?? toAgentFilter,
-        onClear: () => setToAgentFilter('all'),
+        displayValue: actor?.name ?? toActorFilter,
+        onClear: () => setToActorFilter('all'),
       });
     }
     if (marketFilter !== 'all') {
@@ -455,7 +455,7 @@ export function InvoicesDataTable({
       });
     }
     return filters;
-  }, [fromAgentFilter, toAgentFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, agents, values, channels, t]);
+  }, [fromActorFilter, toActorFilter, marketFilter, mirrorFilter, paidFilter, currencyFilter, channelFilter, actors, values, channels, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -536,15 +536,15 @@ export function InvoicesDataTable({
       <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
         <div className="space-y-1">
           <label className="text-sm font-medium">{t('from')}</label>
-          <Select value={fromAgentFilter} onValueChange={setFromAgentFilter}>
+          <Select value={fromActorFilter} onValueChange={setFromActorFilter}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
+              <SelectItem value="all">{t('allActors')}</SelectItem>
+              {actors.map((actor) => (
+                <SelectItem key={actor.id} value={actor.id}>
+                  {actor.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -552,15 +552,15 @@ export function InvoicesDataTable({
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium">{t('to')}</label>
-          <Select value={toAgentFilter} onValueChange={setToAgentFilter}>
+          <Select value={toActorFilter} onValueChange={setToActorFilter}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
+              <SelectItem value="all">{t('allActors')}</SelectItem>
+              {actors.map((actor) => (
+                <SelectItem key={actor.id} value={actor.id}>
+                  {actor.name}
                 </SelectItem>
               ))}
             </SelectContent>

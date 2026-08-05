@@ -6,12 +6,12 @@ import { useTheme } from 'next-themes';
 import { useTranslations } from 'next-intl';
 import L from 'leaflet';
 import 'leaflet.markercluster';
-import type { AgentResponse } from '@marketlum/shared';
-import { AgentType } from '@marketlum/shared';
+import type { ActorResponse } from '@marketlum/shared';
+import { ActorType } from '@marketlum/shared';
 
-interface AgentsMapProps {
-  agents: AgentResponse[];
-  viewAgentLabel: string;
+interface ActorsMapProps {
+  actors: ActorResponse[];
+  viewActorLabel: string;
 }
 
 // CARTO basemaps in both schemes so the map matches the app theme instead
@@ -29,30 +29,30 @@ const TILES = {
   },
 } as const;
 
-interface PlottableAgent {
-  agent: AgentResponse;
+interface PlottableActor {
+  actor: ActorResponse;
   lat: number;
   lng: number;
 }
 
-function plottable(agents: AgentResponse[]): PlottableAgent[] {
-  const out: PlottableAgent[] = [];
-  for (const a of agents) {
+function plottable(actors: ActorResponse[]): PlottableActor[] {
+  const out: PlottableActor[] = [];
+  for (const a of actors) {
     const primary = (a.addresses ?? []).find((addr) => addr.isPrimary);
     if (!primary || !primary.latitude || !primary.longitude) continue;
     const lat = Number(primary.latitude);
     const lng = Number(primary.longitude);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-    out.push({ agent: a, lat, lng });
+    out.push({ actor: a, lat, lng });
   }
   return out;
 }
 
 function typeClass(type: string): string {
   switch (type) {
-    case AgentType.ORGANIZATION: return 'organization';
-    case AgentType.INDIVIDUAL: return 'individual';
-    case AgentType.VIRTUAL: return 'virtual';
+    case ActorType.ORGANIZATION: return 'organization';
+    case ActorType.INDIVIDUAL: return 'individual';
+    case ActorType.VIRTUAL: return 'virtual';
     default: return 'organization';
   }
 }
@@ -66,9 +66,9 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function popupHtml(agent: AgentResponse, viewAgentLabel: string): string {
-  const primary = (agent.addresses ?? []).find((a) => a.isPrimary);
-  const cls = typeClass(agent.type);
+function popupHtml(actor: ActorResponse, viewActorLabel: string): string {
+  const primary = (actor.addresses ?? []).find((a) => a.isPrimary);
+  const cls = typeClass(actor.type);
   const addressLines: string[] = [];
   if (primary) {
     addressLines.push(escapeHtml(primary.line1));
@@ -78,11 +78,11 @@ function popupHtml(agent: AgentResponse, viewAgentLabel: string): string {
     addressLines.push(escapeHtml(primary.country.name));
   }
   return `
-    <div class="agent-map-popup">
-      <p class="agent-name">${escapeHtml(agent.name)}</p>
-      <span class="agent-type-badge ${cls}">${escapeHtml(agent.type)}</span>
-      <div class="agent-address">${addressLines.join('<br/>')}</div>
-      <a class="agent-link" href="/admin/agents/${escapeHtml(agent.id)}">${escapeHtml(viewAgentLabel)} →</a>
+    <div class="actor-map-popup">
+      <p class="actor-name">${escapeHtml(actor.name)}</p>
+      <span class="actor-type-badge ${cls}">${escapeHtml(actor.type)}</span>
+      <div class="actor-address">${addressLines.join('<br/>')}</div>
+      <a class="actor-link" href="/admin/actors/${escapeHtml(actor.id)}">${escapeHtml(viewActorLabel)} →</a>
     </div>
   `;
 }
@@ -90,13 +90,13 @@ function popupHtml(agent: AgentResponse, viewAgentLabel: string): string {
 function divIconForType(type: string): L.DivIcon {
   return L.divIcon({
     className: '',
-    html: `<div class="agent-map-marker type-${typeClass(type)}"></div>`,
+    html: `<div class="actor-map-marker type-${typeClass(type)}"></div>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
   });
 }
 
-function MarkerCluster({ agents, viewAgentLabel }: AgentsMapProps) {
+function MarkerCluster({ actors, viewActorLabel }: ActorsMapProps) {
   const map = useMap();
   const layerRef = useRef<L.MarkerClusterGroup | null>(null);
 
@@ -115,10 +115,10 @@ function MarkerCluster({ agents, viewAgentLabel }: AgentsMapProps) {
     if (!cluster) return;
     cluster.clearLayers();
 
-    const pins = plottable(agents);
-    for (const { agent, lat, lng } of pins) {
-      const marker = L.marker([lat, lng], { icon: divIconForType(agent.type) });
-      marker.bindPopup(popupHtml(agent, viewAgentLabel));
+    const pins = plottable(actors);
+    for (const { actor, lat, lng } of pins) {
+      const marker = L.marker([lat, lng], { icon: divIconForType(actor.type) });
+      marker.bindPopup(popupHtml(actor, viewActorLabel));
       cluster.addLayer(marker);
     }
 
@@ -126,22 +126,22 @@ function MarkerCluster({ agents, viewAgentLabel }: AgentsMapProps) {
       const bounds = L.latLngBounds(pins.map((p) => [p.lat, p.lng] as [number, number]));
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
     }
-  }, [agents, viewAgentLabel, map]);
+  }, [actors, viewActorLabel, map]);
 
   return null;
 }
 
-export function AgentsMap({ agents, viewAgentLabel }: AgentsMapProps) {
+export function ActorsMap({ actors, viewActorLabel }: ActorsMapProps) {
   const { resolvedTheme } = useTheme();
-  const t = useTranslations('agents');
-  const tm = useTranslations('agentsMap');
+  const t = useTranslations('actors');
+  const tm = useTranslations('actorsMap');
   const tiles = resolvedTheme === 'dark' ? TILES.dark : TILES.light;
 
   const initialCenter = useMemo(() => {
-    const pins = plottable(agents);
+    const pins = plottable(actors);
     if (pins.length === 0) return [20, 0] as [number, number];
     return [pins[0].lat, pins[0].lng] as [number, number];
-  }, [agents]);
+  }, [actors]);
 
   return (
     <div className="relative">
@@ -149,26 +149,26 @@ export function AgentsMap({ agents, viewAgentLabel }: AgentsMapProps) {
         center={initialCenter}
         zoom={2}
         scrollWheelZoom
-        className="agents-map-container"
+        className="actors-map-container"
       >
         <TileLayer
           key={resolvedTheme}
           attribution={tiles.attribution}
           url={tiles.url}
         />
-        <MarkerCluster agents={agents} viewAgentLabel={viewAgentLabel} />
+        <MarkerCluster actors={actors} viewActorLabel={viewActorLabel} />
       </MapContainer>
       <div className="absolute bottom-3 left-3 z-[1000] space-y-1 rounded-md border bg-background/90 px-3 py-2 text-xs backdrop-blur-sm">
         <div className="flex items-center gap-1.5">
-          <span className="agent-map-marker type-organization inline-block shrink-0 !h-3.5 !w-3.5" />
+          <span className="actor-map-marker type-organization inline-block shrink-0 !h-3.5 !w-3.5" />
           <span>{t('typeOrganization')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="agent-map-marker type-individual inline-block shrink-0 !h-3.5 !w-3.5" />
+          <span className="actor-map-marker type-individual inline-block shrink-0 !h-3.5 !w-3.5" />
           <span>{t('typeIndividual')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="agent-map-marker type-virtual inline-block shrink-0 !h-3.5 !w-3.5" />
+          <span className="actor-map-marker type-virtual inline-block shrink-0 !h-3.5 !w-3.5" />
           <span>{t('typeVirtual')}</span>
         </div>
         <div className="flex items-center gap-1.5">

@@ -7,14 +7,14 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Plus, UserPlus, X } from 'lucide-react';
 import {
-  AgentType,
+  ActorType,
   InvoiceMarket,
   ValueType,
   createInvoiceSchema,
   updateInvoiceSchema,
   type CreateInvoiceInput,
-  type CreateAgentInput,
-  type AgentResponse,
+  type CreateActorInput,
+  type ActorResponse,
 } from '@marketlum/shared';
 import {
   Sheet,
@@ -36,9 +36,9 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { ValueCombobox } from '../shared/value-combobox';
 import { ConversionPreview } from '../shared/conversion-preview';
-import { AgentFormDialog } from '../agents/agent-form-dialog';
+import { ActorFormDialog } from '../actors/actor-form-dialog';
 import { api } from '../../lib/api-client';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValues } from '../../hooks/use-values';
 import { useChannels } from '../../hooks/use-channels';
 
@@ -58,13 +58,13 @@ interface ItemRow {
 interface InvoiceData {
   id: string;
   number: string;
-  fromAgent: { id: string; name: string } | null;
-  toAgent: { id: string; name: string } | null;
+  fromActor: { id: string; name: string } | null;
+  toActor: { id: string; name: string } | null;
   issuedAt: string;
   dueAt: string;
   currency: { id: string; name: string } | null;
   market: InvoiceMarket;
-  onBehalfOfAgent?: { id: string; name: string } | null;
+  onBehalfOfActor?: { id: string; name: string } | null;
   paid: boolean;
   link: string | null;
   file: unknown;
@@ -99,14 +99,14 @@ export function InvoiceFormDialog({
   const schema = isEditing ? updateInvoiceSchema : createInvoiceSchema;
   const t = useTranslations('invoices');
   const tc = useTranslations('common');
-  const ta = useTranslations('agents');
-  const { agents, refresh: refreshAgents } = useAgents(open);
+  const ta = useTranslations('actors');
+  const { actors, refresh: refreshActors } = useActors(open);
   const { values } = useValues(open);
   const currencyOptions = values.filter((v) => v.type === ValueType.CURRENCY);
   const { channels } = useChannels(open);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [orders, setOrders] = useState<OrderOption[]>([]);
-  const [virtualDescendants, setVirtualDescendants] = useState<AgentResponse[]>([]);
+  const [virtualDescendants, setVirtualDescendants] = useState<ActorResponse[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -116,33 +116,33 @@ export function InvoiceFormDialog({
         .catch(() => {});
     }
   }, [open]);
-  const [agentFormFor, setAgentFormFor] = useState<
-    'fromAgentId' | 'toAgentId' | null
+  const [actorFormFor, setActorFormFor] = useState<
+    'fromActorId' | 'toActorId' | null
   >(null);
-  const [agentFormDefaultName, setAgentFormDefaultName] = useState('');
-  const [agentSubmitting, setAgentSubmitting] = useState(false);
+  const [actorFormDefaultName, setActorFormDefaultName] = useState('');
+  const [actorSubmitting, setActorSubmitting] = useState(false);
 
-  const openAgentForm = (
-    field: 'fromAgentId' | 'toAgentId',
+  const openActorForm = (
+    field: 'fromActorId' | 'toActorId',
     defaultName = '',
   ) => {
-    setAgentFormDefaultName(defaultName);
-    setAgentFormFor(field);
+    setActorFormDefaultName(defaultName);
+    setActorFormFor(field);
   };
 
-  const handleCreateAgent = async (input: CreateAgentInput) => {
-    if (!agentFormFor) return;
-    setAgentSubmitting(true);
+  const handleCreateActor = async (input: CreateActorInput) => {
+    if (!actorFormFor) return;
+    setActorSubmitting(true);
     try {
-      const created = await api.post<AgentResponse>('/agents', input);
+      const created = await api.post<ActorResponse>('/actors', input);
       toast.success(ta('created'));
-      await refreshAgents();
-      setFormValue(agentFormFor, created.id);
-      setAgentFormFor(null);
+      await refreshActors();
+      setFormValue(actorFormFor, created.id);
+      setActorFormFor(null);
     } catch {
       toast.error(ta('failedToCreate'));
     } finally {
-      setAgentSubmitting(false);
+      setActorSubmitting(false);
     }
   };
 
@@ -157,37 +157,37 @@ export function InvoiceFormDialog({
     resolver: zodResolver(schema),
   });
 
-  const watchedFromAgentId = watch('fromAgentId');
+  const watchedFromActorId = watch('fromActorId');
   const watchedMarket = watch('market');
   const isExternal = (watchedMarket ?? InvoiceMarket.EXTERNAL) === InvoiceMarket.EXTERNAL;
 
   // On-behalf-of (spec 022) is only offered on external invoices whose
   // issuer has virtual (non-legal-entity) descendants.
   useEffect(() => {
-    if (open && watchedFromAgentId && isExternal) {
+    if (open && watchedFromActorId && isExternal) {
       api
-        .get<AgentResponse[]>(`/agents/${watchedFromAgentId}/descendants`)
+        .get<ActorResponse[]>(`/actors/${watchedFromActorId}/descendants`)
         .then((list) =>
-          setVirtualDescendants(list.filter((a) => a.type === AgentType.VIRTUAL)),
+          setVirtualDescendants(list.filter((a) => a.type === ActorType.VIRTUAL)),
         )
         .catch(() => setVirtualDescendants([]));
     } else {
       setVirtualDescendants([]);
     }
-  }, [open, watchedFromAgentId, isExternal]);
+  }, [open, watchedFromActorId, isExternal]);
 
   useEffect(() => {
     if (open) {
       if (invoice) {
         reset({
           number: invoice.number,
-          fromAgentId: invoice.fromAgent?.id ?? '',
-          toAgentId: invoice.toAgent?.id ?? '',
+          fromActorId: invoice.fromActor?.id ?? '',
+          toActorId: invoice.toActor?.id ?? '',
           issuedAt: invoice.issuedAt ? invoice.issuedAt.slice(0, 10) : '',
           dueAt: invoice.dueAt ? invoice.dueAt.slice(0, 10) : '',
           currencyId: invoice.currency?.id ?? '',
           market: invoice.market,
-          onBehalfOfAgentId: invoice.onBehalfOfAgent?.id ?? null,
+          onBehalfOfActorId: invoice.onBehalfOfActor?.id ?? null,
           paid: invoice.paid,
           link: invoice.link ?? '',
           channelId: invoice.channel?.id ?? null,
@@ -205,13 +205,13 @@ export function InvoiceFormDialog({
       } else if (prefill) {
         reset({
           number: prefill.extracted.number ?? '',
-          fromAgentId: prefill.extracted.fromAgent.id ?? '',
-          toAgentId: prefill.extracted.toAgent.id ?? '',
+          fromActorId: prefill.extracted.fromActor.id ?? '',
+          toActorId: prefill.extracted.toActor.id ?? '',
           issuedAt: prefill.extracted.issuedAt ?? '',
           dueAt: prefill.extracted.dueAt ?? '',
           currencyId: prefill.extracted.currency.id ?? '',
           market: InvoiceMarket.EXTERNAL,
-          onBehalfOfAgentId: null,
+          onBehalfOfActorId: null,
           paid: false,
           link: '',
           fileId: prefill.fileId,
@@ -230,13 +230,13 @@ export function InvoiceFormDialog({
       } else {
         reset({
           number: '',
-          fromAgentId: '',
-          toAgentId: '',
+          fromActorId: '',
+          toActorId: '',
           issuedAt: '',
           dueAt: '',
           currencyId: '',
           market: InvoiceMarket.EXTERNAL,
-          onBehalfOfAgentId: null,
+          onBehalfOfActorId: null,
           paid: false,
           link: '',
           channelId: null,
@@ -321,7 +321,7 @@ export function InvoiceFormDialog({
               onValueChange={(v) => {
                 setFormValue('market', v as InvoiceMarket);
                 if (v !== InvoiceMarket.EXTERNAL) {
-                  setFormValue('onBehalfOfAgentId', null);
+                  setFormValue('onBehalfOfActorId', null);
                 }
               }}
             >
@@ -351,33 +351,33 @@ export function InvoiceFormDialog({
               </Label>
               <div className="flex gap-2">
                 <Select
-                  value={watch('fromAgentId') || '__none__'}
+                  value={watch('fromActorId') || '__none__'}
                   onValueChange={(v) => {
-                    setFormValue('fromAgentId', v === '__none__' ? '' : v);
-                    setFormValue('onBehalfOfAgentId', null);
+                    setFormValue('fromActorId', v === '__none__' ? '' : v);
+                    setFormValue('onBehalfOfActorId', null);
                   }}
                 >
                   <SelectTrigger className="flex-1">
                     <SelectValue
                       placeholder={
-                        prefill && !prefill.extracted.fromAgent.id
-                          ? prefill.extracted.fromAgent.name
-                          : t('selectAgent')
+                        prefill && !prefill.extracted.fromActor.id
+                          ? prefill.extracted.fromActor.name
+                          : t('selectActor')
                       }
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
-                    {agents.map((agent) => {
+                    <SelectItem value="__none__">{t('selectActor')}</SelectItem>
+                    {actors.map((actor) => {
                       const illegalIssuer =
-                        isExternal && agent.type === AgentType.VIRTUAL;
+                        isExternal && actor.type === ActorType.VIRTUAL;
                       return (
                         <SelectItem
-                          key={agent.id}
-                          value={agent.id}
+                          key={actor.id}
+                          value={actor.id}
                           disabled={illegalIssuer}
                         >
-                          {agent.name}
+                          {actor.name}
                           {illegalIssuer && (
                             <span className="ml-1 text-xs text-muted-foreground">
                               ({t('notLegalEntityHint')})
@@ -392,21 +392,21 @@ export function InvoiceFormDialog({
                   type="button"
                   variant="outline"
                   size="icon"
-                  title={ta('createAgent')}
-                  onClick={() => openAgentForm('fromAgentId')}
+                  title={ta('createActor')}
+                  onClick={() => openActorForm('fromActorId')}
                 >
                   <UserPlus className="h-4 w-4" />
                 </Button>
               </div>
-              {prefill && !prefill.extracted.fromAgent.id && !watch('fromAgentId') && (
+              {prefill && !prefill.extracted.fromActor.id && !watch('fromActorId') && (
                 <button
                   type="button"
                   className="text-xs text-amber-600 hover:underline text-left"
                   onClick={() =>
-                    openAgentForm('fromAgentId', prefill.extracted.fromAgent.name)
+                    openActorForm('fromActorId', prefill.extracted.fromActor.name)
                   }
                 >
-                  {t('importCreateAgentHint', { name: prefill.extracted.fromAgent.name })}
+                  {t('importCreateActorHint', { name: prefill.extracted.fromActor.name })}
                 </button>
               )}
             </div>
@@ -416,23 +416,23 @@ export function InvoiceFormDialog({
               </Label>
               <div className="flex gap-2">
                 <Select
-                  value={watch('toAgentId') || '__none__'}
-                  onValueChange={(v) => setFormValue('toAgentId', v === '__none__' ? '' : v)}
+                  value={watch('toActorId') || '__none__'}
+                  onValueChange={(v) => setFormValue('toActorId', v === '__none__' ? '' : v)}
                 >
                   <SelectTrigger className="flex-1">
                     <SelectValue
                       placeholder={
-                        prefill && !prefill.extracted.toAgent.id
-                          ? prefill.extracted.toAgent.name
-                          : t('selectAgent')
+                        prefill && !prefill.extracted.toActor.id
+                          ? prefill.extracted.toActor.name
+                          : t('selectActor')
                       }
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
+                    <SelectItem value="__none__">{t('selectActor')}</SelectItem>
+                    {actors.map((actor) => (
+                      <SelectItem key={actor.id} value={actor.id}>
+                        {actor.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -441,21 +441,21 @@ export function InvoiceFormDialog({
                   type="button"
                   variant="outline"
                   size="icon"
-                  title={ta('createAgent')}
-                  onClick={() => openAgentForm('toAgentId')}
+                  title={ta('createActor')}
+                  onClick={() => openActorForm('toActorId')}
                 >
                   <UserPlus className="h-4 w-4" />
                 </Button>
               </div>
-              {prefill && !prefill.extracted.toAgent.id && !watch('toAgentId') && (
+              {prefill && !prefill.extracted.toActor.id && !watch('toActorId') && (
                 <button
                   type="button"
                   className="text-xs text-amber-600 hover:underline text-left"
                   onClick={() =>
-                    openAgentForm('toAgentId', prefill.extracted.toAgent.name)
+                    openActorForm('toActorId', prefill.extracted.toActor.name)
                   }
                 >
-                  {t('importCreateAgentHint', { name: prefill.extracted.toAgent.name })}
+                  {t('importCreateActorHint', { name: prefill.extracted.toActor.name })}
                 </button>
               )}
             </div>
@@ -465,9 +465,9 @@ export function InvoiceFormDialog({
             <div className="space-y-2">
               <Label>{t('onBehalfOf')}</Label>
               <Select
-                value={watch('onBehalfOfAgentId') ?? '__none__'}
+                value={watch('onBehalfOfActorId') ?? '__none__'}
                 onValueChange={(v) =>
-                  setFormValue('onBehalfOfAgentId', v === '__none__' ? null : v)
+                  setFormValue('onBehalfOfActorId', v === '__none__' ? null : v)
                 }
               >
                 <SelectTrigger>
@@ -475,14 +475,14 @@ export function InvoiceFormDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t('onBehalfOfNone')}</SelectItem>
-                  {virtualDescendants.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
+                  {virtualDescendants.map((actor) => (
+                    <SelectItem key={actor.id} value={actor.id}>
+                      {actor.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {watch('onBehalfOfAgentId') && (
+              {watch('onBehalfOfActorId') && (
                 <p className="text-xs text-muted-foreground">{t('onBehalfOfHint')}</p>
               )}
             </div>
@@ -673,14 +673,14 @@ export function InvoiceFormDialog({
         </form>
       </SheetContent>
     </Sheet>
-    <AgentFormDialog
-      open={agentFormFor !== null}
+    <ActorFormDialog
+      open={actorFormFor !== null}
       onOpenChange={(o) => {
-        if (!o) setAgentFormFor(null);
+        if (!o) setActorFormFor(null);
       }}
-      onSubmit={handleCreateAgent}
-      defaultName={agentFormDefaultName}
-      isSubmitting={agentSubmitting}
+      onSubmit={handleCreateActor}
+      defaultName={actorFormDefaultName}
+      isSubmitting={actorSubmitting}
     />
     </>
   );

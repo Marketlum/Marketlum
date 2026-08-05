@@ -188,10 +188,10 @@ export function OfferingDetailPage() {
               </div>
             )}
             <div>
-              <p className="text-sm text-muted-foreground">{t('agent')}</p>
-              {offering.agent ? (
-                <Link href={`/admin/agents/${offering.agent.id}`} className="text-primary hover:underline">
-                  {offering.agent.name}
+              <p className="text-sm text-muted-foreground">{t('actor')}</p>
+              {offering.actor ? (
+                <Link href={`/admin/actors/${offering.actor.id}`} className="text-primary hover:underline">
+                  {offering.actor.name}
                 </Link>
               ) : (
                 <p>-</p>

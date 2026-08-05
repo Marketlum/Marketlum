@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import type { TensionResponse, CreateTensionInput, AgentResponse, UserResponse, CreateAgentInput } from '@marketlum/shared';
+import type { TensionResponse, CreateTensionInput, ActorResponse, UserResponse, CreateActorInput } from '@marketlum/shared';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { MarkdownEditor } from '../shared/markdown-editor';
-import { AgentFormDialog } from '../agents/agent-form-dialog';
+import { ActorFormDialog } from '../actors/actor-form-dialog';
 import { api } from '../../lib/api-client';
 import { Can } from '../../permissions/can';
 
@@ -28,9 +28,9 @@ interface TensionFormDialogProps {
   onSubmit: (input: CreateTensionInput) => void;
   tension?: TensionResponse | null;
   isSubmitting: boolean;
-  agents: AgentResponse[];
+  actors: ActorResponse[];
   users: UserResponse[];
-  onAgentsRefresh?: () => void;
+  onActorsRefresh?: () => void;
 }
 
 export function TensionFormDialog({
@@ -39,20 +39,20 @@ export function TensionFormDialog({
   onSubmit,
   tension,
   isSubmitting,
-  agents,
+  actors,
   users,
-  onAgentsRefresh,
+  onActorsRefresh,
 }: TensionFormDialogProps) {
   const t = useTranslations('tensions');
   const tc = useTranslations('common');
-  const ta = useTranslations('agents');
+  const ta = useTranslations('actors');
 
   const [name, setName] = useState('');
-  const [createAgentOpen, setCreateAgentOpen] = useState(false);
-  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  const [createActorOpen, setCreateActorOpen] = useState(false);
+  const [isCreatingActor, setIsCreatingActor] = useState(false);
   const [currentContext, setCurrentContext] = useState('');
   const [potentialFuture, setPotentialFuture] = useState('');
-  const [agentId, setAgentId] = useState('');
+  const [actorId, setActorId] = useState('');
   const [leadUserId, setLeadUserId] = useState('none');
   const [score, setScore] = useState(5);
 
@@ -62,39 +62,39 @@ export function TensionFormDialog({
         setName(tension.name);
         setCurrentContext(tension.currentContext ?? '');
         setPotentialFuture(tension.potentialFuture ?? '');
-        setAgentId(tension.agent?.id ?? '');
+        setActorId(tension.actor?.id ?? '');
         setLeadUserId(tension.lead?.id ?? 'none');
         setScore(tension.score);
       } else {
         setName('');
         setCurrentContext('');
         setPotentialFuture('');
-        setAgentId('');
+        setActorId('');
         setLeadUserId('none');
         setScore(5);
       }
     }
   }, [open, tension]);
 
-  const handleCreateAgent = async (data: CreateAgentInput) => {
-    setIsCreatingAgent(true);
+  const handleCreateActor = async (data: CreateActorInput) => {
+    setIsCreatingActor(true);
     try {
-      const created = await api.post<AgentResponse>('/agents', data);
+      const created = await api.post<ActorResponse>('/actors', data);
       toast.success(ta('created'));
-      setCreateAgentOpen(false);
-      setAgentId(created.id);
-      onAgentsRefresh?.();
+      setCreateActorOpen(false);
+      setActorId(created.id);
+      onActorsRefresh?.();
     } catch {
       toast.error(ta('failedToCreate'));
     } finally {
-      setIsCreatingAgent(false);
+      setIsCreatingActor(false);
     }
   };
 
   const handleSubmit = () => {
     const input: CreateTensionInput = {
       name,
-      agentId,
+      actorId,
       score,
       currentContext: currentContext || null,
       potentialFuture: potentialFuture || null,
@@ -122,22 +122,22 @@ export function TensionFormDialog({
           </div>
 
           <div className="space-y-1">
-            <Label>{t('agent')}</Label>
+            <Label>{t('actor')}</Label>
             <div className="flex gap-2">
-              <Select value={agentId} onValueChange={setAgentId}>
+              <Select value={actorId} onValueChange={setActorId}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder={t('selectAgent')} />
+                  <SelectValue placeholder={t('selectActor')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
+                  {actors.map((actor) => (
+                    <SelectItem key={actor.id} value={actor.id}>
+                      {actor.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Can resource="agents" action="write">
-                <Button type="button" variant="outline" size="icon" onClick={() => setCreateAgentOpen(true)}>
+              <Can resource="actors" action="write">
+                <Button type="button" variant="outline" size="icon" onClick={() => setCreateActorOpen(true)}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </Can>
@@ -192,17 +192,17 @@ export function TensionFormDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {tc('cancel')}
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting || !name || !agentId}>
+          <Button onClick={handleSubmit} disabled={isSubmitting || !name || !actorId}>
             {isSubmitting ? tc('saving') : isEditing ? tc('update') : tc('create')}
           </Button>
         </DialogFooter>
       </DialogContent>
 
-      <AgentFormDialog
-        open={createAgentOpen}
-        onOpenChange={setCreateAgentOpen}
-        onSubmit={handleCreateAgent}
-        isSubmitting={isCreatingAgent}
+      <ActorFormDialog
+        open={createActorOpen}
+        onOpenChange={setCreateActorOpen}
+        onSubmit={handleCreateActor}
+        isSubmitting={isCreatingActor}
       />
     </Dialog>
   );

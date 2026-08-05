@@ -10,7 +10,7 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { DataTable } from '../shared/data-table';
 import { DataTablePagination } from '../shared/data-table-pagination';
 import { DataTableToolbar } from '../shared/data-table-toolbar';
@@ -39,7 +39,7 @@ import type { FieldDef } from '../../lib/export-utils';
 interface AgreementsDataTableProps {
   /** Scope the table to one value stream: filters every query. */
   valueStreamId?: string;
-  /** Scope the table to agreements involving one agent: filters every query and hides the party filter. */
+  /** Scope the table to agreements involving one actor: filters every query and hides the party filter. */
   partyId?: string;
 }
 
@@ -56,7 +56,7 @@ export function AgreementsDataTable({
   const isMobile = useIsMobile();
   const { can } = usePermissions();
   const canWrite = can('agreements', 'write');
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const [partyFilter, setPartyFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<AgreementResponse> | null>(null);
@@ -254,16 +254,16 @@ export function AgreementsDataTable({
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];
     if (!scopedPartyId && partyFilter !== 'all') {
-      const agent = agents.find((a) => a.id === partyFilter);
+      const actor = actors.find((a) => a.id === partyFilter);
       filters.push({
         key: 'party',
         label: t('parties'),
-        displayValue: agent?.name ?? partyFilter,
+        displayValue: actor?.name ?? partyFilter,
         onClear: () => setPartyFilter('all'),
       });
     }
     return filters;
-  }, [partyFilter, agents, scopedPartyId, t]);
+  }, [partyFilter, actors, scopedPartyId, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -336,9 +336,9 @@ export function AgreementsDataTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('allParties')}</SelectItem>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
+                {actors.map((actor) => (
+                  <SelectItem key={actor.id} value={actor.id}>
+                    {actor.name}
                   </SelectItem>
                 ))}
               </SelectContent>

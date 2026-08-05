@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { useValueStreams } from '../../hooks/use-value-streams';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 
 interface AgreementTemplateFormDialogProps {
   open: boolean;
@@ -56,7 +56,7 @@ export function AgreementTemplateFormDialog({
   const t = useTranslations('agreementTemplates');
   const tc = useTranslations('common');
   const { valueStreams } = useValueStreams(open);
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
 
   const {
     register,
@@ -71,7 +71,7 @@ export function AgreementTemplateFormDialog({
 
   const watchedType = watch('type');
   const watchedValueStreamId = watch('valueStreamId');
-  const watchedAgentId = watch('agentId');
+  const watchedActorId = watch('actorId');
   const nameValue = watch('name') ?? '';
   const codeValue = watch('code') ?? '';
   const codeEditedRef = useRef(false);
@@ -88,7 +88,7 @@ export function AgreementTemplateFormDialog({
           description: template.description ?? '',
           link: template.link ?? '',
           valueStreamId: template.valueStream?.id ?? undefined,
-          agentId: template.agent?.id ?? undefined,
+          actorId: template.actor?.id ?? undefined,
         });
       } else {
         reset({
@@ -100,7 +100,7 @@ export function AgreementTemplateFormDialog({
           link: '',
           parentId: parentId ?? undefined,
           valueStreamId: undefined,
-          agentId: undefined,
+          actorId: undefined,
         });
       }
     }
@@ -214,19 +214,19 @@ export function AgreementTemplateFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>{t('agent')}</Label>
+            <Label>{t('actor')}</Label>
             <Select
-              value={watchedAgentId ?? 'none'}
-              onValueChange={(val) => setFormValue('agentId', val === 'none' ? undefined : val)}
+              value={watchedActorId ?? 'none'}
+              onValueChange={(val) => setFormValue('actorId', val === 'none' ? undefined : val)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">-</SelectItem>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
+                {actors.map((actor) => (
+                  <SelectItem key={actor.id} value={actor.id}>
+                    {actor.name}
                   </SelectItem>
                 ))}
               </SelectContent>

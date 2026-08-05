@@ -31,7 +31,7 @@ import {
 } from '../ui/select';
 import { ValueCombobox } from '../shared/value-combobox';
 import { useValues } from '../../hooks/use-values';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 
 interface AccountFormDialogProps {
   open: boolean;
@@ -53,7 +53,7 @@ export function AccountFormDialog({
   const t = useTranslations('accounts');
   const tc = useTranslations('common');
   const { values } = useValues(open);
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
 
   const {
     register,
@@ -67,7 +67,7 @@ export function AccountFormDialog({
   });
 
   const valueIdValue = watch('valueId');
-  const agentIdValue = watch('agentId');
+  const actorIdValue = watch('actorId');
 
   useEffect(() => {
     if (open) {
@@ -76,14 +76,14 @@ export function AccountFormDialog({
           name: account.name,
           description: account.description ?? '',
           valueId: account.value.id,
-          agentId: account.agent.id,
+          actorId: account.actor.id,
         });
       } else {
         reset({
           name: '',
           description: '',
           valueId: '' as any,
-          agentId: '' as any,
+          actorId: '' as any,
         });
       }
     }
@@ -117,23 +117,23 @@ export function AccountFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>{t('agent')}</Label>
+            <Label>{t('actor')}</Label>
             <Select
-              value={agentIdValue ?? ''}
-              onValueChange={(v) => setFormValue('agentId', v)}
+              value={actorIdValue ?? ''}
+              onValueChange={(v) => setFormValue('actorId', v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('selectAgent')} />
+                <SelectValue placeholder={t('selectActor')} />
               </SelectTrigger>
               <SelectContent>
-                {agents.map((a) => (
+                {actors.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.agentId && <p className="text-sm text-destructive">{errors.agentId.message}</p>}
+            {errors.actorId && <p className="text-sm text-destructive">{errors.actorId.message}</p>}
           </div>
 
           <div className="space-y-2">

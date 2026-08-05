@@ -226,10 +226,10 @@ export function ValueDetailPage() {
               )}
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{t('agent')}</p>
-              {value.agent ? (
-                <Link href={`/admin/agents/${value.agent.id}`} className="text-primary hover:underline">
-                  {value.agent.name}
+              <p className="text-sm text-muted-foreground">{t('actor')}</p>
+              {value.actor ? (
+                <Link href={`/admin/actors/${value.actor.id}`} className="text-primary hover:underline">
+                  {value.actor.name}
                 </Link>
               ) : (
                 <p>-</p>

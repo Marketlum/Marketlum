@@ -225,13 +225,13 @@ export function ValueInstanceDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('fromAgent')}</CardTitle>
+            <CardTitle>{t('fromActor')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              {item.fromAgent ? (
-                <Link href={`/admin/agents/${item.fromAgent.id}`} className="text-primary hover:underline">
-                  {item.fromAgent.name}
+              {item.fromActor ? (
+                <Link href={`/admin/actors/${item.fromActor.id}`} className="text-primary hover:underline">
+                  {item.fromActor.name}
                 </Link>
               ) : (
                 <p>-</p>
@@ -242,13 +242,13 @@ export function ValueInstanceDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('toAgent')}</CardTitle>
+            <CardTitle>{t('toActor')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              {item.toAgent ? (
-                <Link href={`/admin/agents/${item.toAgent.id}`} className="text-primary hover:underline">
-                  {item.toAgent.name}
+              {item.toActor ? (
+                <Link href={`/admin/actors/${item.toActor.id}`} className="text-primary hover:underline">
+                  {item.toActor.name}
                 </Link>
               ) : (
                 <p>-</p>

@@ -40,11 +40,11 @@ import {
 import { ValueCombobox } from '../shared/value-combobox';
 import { TaxonomyTreeSelect } from '../shared/taxonomy-tree-select';
 import { useTaxonomyTree } from '../../hooks/use-taxonomy-tree';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValues } from '../../hooks/use-values';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { api } from '../../lib/api-client';
-import { ImageLibraryDialog } from '../agents/image-library-dialog';
+import { ImageLibraryDialog } from '../actors/image-library-dialog';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { Badge } from '../ui/badge';
 
@@ -92,7 +92,7 @@ export function ValueFormDialog({
   const t = useTranslations('values');
   const tc = useTranslations('common');
   const { tree, refresh } = useTaxonomyTree();
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
   const { values: allValues } = useValues(open);
   const { valueStreams } = useValueStreams(open);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -179,7 +179,7 @@ export function ValueFormDialog({
           lifecycleStage: prefill.lifecycleStage ?? null,
           parentId: prefill.parent?.id ?? null,
           parentType: prefill.parentType ?? null,
-          agentId: prefill.agent?.id ?? null,
+          actorId: prefill.actor?.id ?? null,
           valueStreamId: (prefill as any).valueStream?.id ?? null,
           mainTaxonomyId: prefill.mainTaxonomy?.id ?? null,
           taxonomyIds: prefill.taxonomies?.map((t) => t.id) ?? [],
@@ -204,7 +204,7 @@ export function ValueFormDialog({
           lifecycleStage: null,
           parentId: null,
           parentType: null,
-          agentId: null,
+          actorId: null,
           valueStreamId: null,
           mainTaxonomyId: null,
           taxonomyIds: [],
@@ -390,19 +390,19 @@ export function ValueFormDialog({
             </div>
           )}
 
-          {/* Agent */}
+          {/* Actor */}
           <div className="space-y-2">
-            <Label>{t('agent')}</Label>
+            <Label>{t('actor')}</Label>
             <Select
-              value={watch('agentId') ?? 'none'}
-              onValueChange={(v) => setFormValue('agentId', v === 'none' ? null : v)}
+              value={watch('actorId') ?? 'none'}
+              onValueChange={(v) => setFormValue('actorId', v === 'none' ? null : v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('selectAgent')} />
+                <SelectValue placeholder={t('selectActor')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">-</SelectItem>
-                {agents.map((a) => (
+                {actors.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
                   </SelectItem>

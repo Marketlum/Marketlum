@@ -19,7 +19,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { FileImagePreview } from '../shared/file-image-preview';
-import { ImageLibraryDialog } from '../agents/image-library-dialog';
+import { ImageLibraryDialog } from '../actors/image-library-dialog';
 import { api } from '../../lib/api-client';
 
 interface UserFormDialogProps {

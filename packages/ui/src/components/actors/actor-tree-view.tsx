@@ -3,27 +3,27 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { AgentType, type AgentTreeNode } from '@marketlum/shared';
+import { ActorType, type ActorTreeNode } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
-import { AgentTreeNodeComponent } from './agent-tree-node';
+import { ActorTreeNodeComponent } from './actor-tree-node';
 
 const typeTranslationKeys: Record<string, string> = {
-  [AgentType.ORGANIZATION]: 'typeOrganization',
-  [AgentType.INDIVIDUAL]: 'typeIndividual',
-  [AgentType.VIRTUAL]: 'typeVirtual',
+  [ActorType.ORGANIZATION]: 'typeOrganization',
+  [ActorType.INDIVIDUAL]: 'typeIndividual',
+  [ActorType.VIRTUAL]: 'typeVirtual',
 };
 
-/** Read-only forest rendering of GET /agents/tree (moves happen on the
- * agent detail page). */
-export function AgentTreeView() {
-  const t = useTranslations('agents');
+/** Read-only forest rendering of GET /actors/tree (moves happen on the
+ * actor detail page). */
+export function ActorTreeView() {
+  const t = useTranslations('actors');
   const tc = useTranslations('common');
-  const [tree, setTree] = useState<AgentTreeNode[]>([]);
+  const [tree, setTree] = useState<ActorTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTree = useCallback(async () => {
     try {
-      const data = await api.get<AgentTreeNode[]>('/agents/tree');
+      const data = await api.get<ActorTreeNode[]>('/actors/tree');
       setTree(data);
     } catch {
       toast.error(t('failedToLoad'));
@@ -37,8 +37,8 @@ export function AgentTreeView() {
   }, [fetchTree]);
 
   const typeLabels: Record<string, string> = {};
-  for (const agentType of Object.values(AgentType)) {
-    typeLabels[agentType] = t(typeTranslationKeys[agentType]);
+  for (const actorType of Object.values(ActorType)) {
+    typeLabels[actorType] = t(typeTranslationKeys[actorType]);
   }
 
   if (loading) {
@@ -60,7 +60,7 @@ export function AgentTreeView() {
   return (
     <div className="rounded-md border p-2">
       {tree.map((node) => (
-        <AgentTreeNodeComponent key={node.id} node={node} depth={0} typeLabels={typeLabels} />
+        <ActorTreeNodeComponent key={node.id} node={node} depth={0} typeLabels={typeLabels} />
       ))}
     </div>
   );

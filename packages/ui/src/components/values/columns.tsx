@@ -21,7 +21,7 @@ interface ValueColumnsTranslations {
   type: string;
   purpose: string;
   taxonomy: string;
-  agent: string;
+  actor: string;
   valueStream: string;
   abstract: string;
   lifecycleStage: string;
@@ -104,11 +104,11 @@ export function getValueColumns({ onEdit, onDuplicate, onDelete, onSort, transla
       },
     },
     {
-      id: 'agent',
-      header: translations.agent,
+      id: 'actor',
+      header: translations.actor,
       cell: ({ row }) => {
-        const agent = row.original.agent;
-        return agent ? agent.name : '—';
+        const actor = row.original.actor;
+        return actor ? actor.name : '—';
       },
     },
     {

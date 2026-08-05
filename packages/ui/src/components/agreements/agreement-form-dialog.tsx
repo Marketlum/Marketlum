@@ -24,9 +24,9 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useAgreementTemplates } from '../../hooks/use-agreement-templates';
-import { ImageLibraryDialog } from '../agents/image-library-dialog';
+import { ImageLibraryDialog } from '../actors/image-library-dialog';
 import { FileImagePreview } from '../shared/file-image-preview';
 import {
   Select,
@@ -57,7 +57,7 @@ export function AgreementFormDialog({
   const schema = isEditing ? updateAgreementSchema : createAgreementSchema;
   const t = useTranslations('agreements');
   const tc = useTranslations('common');
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
   const { agreementTemplates } = useAgreementTemplates(open);
   const [fileLibraryOpen, setFileLibraryOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<{ id: string; originalName: string; mimeType: string } | null>(null);
@@ -118,11 +118,11 @@ export function AgreementFormDialog({
     setFormValue('fileId', null);
   };
 
-  const toggleParty = (agentId: string) => {
+  const toggleParty = (actorId: string) => {
     setSelectedPartyIds((prev) => {
-      const next = prev.includes(agentId)
-        ? prev.filter((id) => id !== agentId)
-        : [...prev, agentId];
+      const next = prev.includes(actorId)
+        ? prev.filter((id) => id !== actorId)
+        : [...prev, actorId];
       setFormValue('partyIds', next);
       return next;
     });
@@ -178,19 +178,19 @@ export function AgreementFormDialog({
           <div className="space-y-2">
             <Label>{t('parties')} <span className="text-xs text-muted-foreground">({t('partiesMin')})</span></Label>
             <div className="max-h-40 overflow-y-auto rounded-md border p-2 space-y-1">
-              {agents.map((agent) => (
-                <label key={agent.id} className="flex items-center gap-2 text-sm cursor-pointer">
+              {actors.map((actor) => (
+                <label key={actor.id} className="flex items-center gap-2 text-sm cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={selectedPartyIds.includes(agent.id)}
-                    onChange={() => toggleParty(agent.id)}
+                    checked={selectedPartyIds.includes(actor.id)}
+                    onChange={() => toggleParty(actor.id)}
                     className="h-4 w-4 rounded border-input"
                   />
-                  <span>{agent.name}</span>
-                  <span className="text-xs text-muted-foreground">({agent.type})</span>
+                  <span>{actor.name}</span>
+                  <span className="text-xs text-muted-foreground">({actor.type})</span>
                 </label>
               ))}
-              {agents.length === 0 && (
+              {actors.length === 0 && (
                 <p className="text-sm text-muted-foreground">{t('selectParties')}</p>
               )}
             </div>

@@ -84,13 +84,13 @@ export { AccountFormDialog } from './components/accounts/account-form-dialog';
 export { AccountsDataTable } from './components/accounts/accounts-data-table';
 export { getAccountColumns } from './components/accounts/columns';
 
-// agents
-export { AgentFormDialog } from './components/agents/agent-form-dialog';
-export { AgentTypeBadge } from './components/agents/agent-type-badge';
-export { AgentValuesTable } from './components/agents/agent-values-table';
-export { AgentsDataTable } from './components/agents/agents-data-table';
-export { getAgentColumns } from './components/agents/columns';
-export { ImageLibraryDialog as AgentImageLibraryDialog } from './components/agents/image-library-dialog';
+// actors
+export { ActorFormDialog } from './components/actors/actor-form-dialog';
+export { ActorTypeBadge } from './components/actors/actor-type-badge';
+export { ActorValuesTable } from './components/actors/actor-values-table';
+export { ActorsDataTable } from './components/actors/actors-data-table';
+export { getActorColumns } from './components/actors/columns';
+export { ImageLibraryDialog as ActorImageLibraryDialog } from './components/actors/image-library-dialog';
 
 // agreement-templates
 export { AgreementTemplateFormDialog } from './components/agreement-templates/agreement-template-form-dialog';
@@ -234,7 +234,7 @@ export { getValueColumns } from './components/values/columns';
 export { useTensions } from './hooks/use-tensions';
 export { useCodeFromName } from './hooks/use-code-from-name';
 export { useAccounts } from './hooks/use-accounts';
-export { useAgents } from './hooks/use-agents';
+export { useActors } from './hooks/use-actors';
 export { useAgreementTemplates } from './hooks/use-agreement-templates';
 export { useAgreementTree } from './hooks/use-agreement-tree';
 export { useChannels } from './hooks/use-channels';
@@ -269,9 +269,9 @@ export { cn } from './lib/utils';
 // =============================================================================
 
 export { AccountsPage } from './pages/admin/accounts-page';
-export { AgentDetailPage } from './pages/admin/agent-detail-page';
-export { AgentsMapPage } from './pages/admin/agents-map-page';
-export { AgentsPage } from './pages/admin/agents-page';
+export { ActorDetailPage } from './pages/admin/actor-detail-page';
+export { ActorsMapPage } from './pages/admin/actors-map-page';
+export { ActorsPage } from './pages/admin/actors-page';
 export { AgreementDetailPage } from './pages/admin/agreement-detail-page';
 export { AgreementTemplatesPage } from './pages/admin/agreement-templates-page';
 export { AgreementsPage } from './pages/admin/agreements-page';

@@ -240,7 +240,7 @@ export function AgreementDetailPage() {
                   {agreement.parties.map((party) => (
                     <li key={party.id}>
                       <Link
-                        href={`/admin/agents/${party.id}`}
+                        href={`/admin/actors/${party.id}`}
                         className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary/50"
                       >
                         <span className="text-sm">{party.name}</span>

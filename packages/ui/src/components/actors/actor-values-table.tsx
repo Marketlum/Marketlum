@@ -23,11 +23,11 @@ const typeTranslationKeys: Record<string, string> = {
   [ValueType.CURRENCY]: 'typeCurrency',
 };
 
-interface AgentValuesTableProps {
-  agentId: string;
+interface ActorValuesTableProps {
+  actorId: string;
 }
 
-export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
+export function ActorValuesTable({ actorId }: ActorValuesTableProps) {
   const router = useRouter();
   const pagination = usePagination();
   const tv = useTranslations('values');
@@ -39,7 +39,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const qs = pagination.toQueryString() + `&agentId=${agentId}`;
+      const qs = pagination.toQueryString() + `&actorId=${actorId}`;
       const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
       setData(result);
     } catch {
@@ -47,7 +47,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, agentId]);
+  }, [pagination.toQueryString, actorId]);
 
   useEffect(() => {
     fetchData();
@@ -74,7 +74,7 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
       code: tc('code'),
       type: tc('type'),
       taxonomy: tv('taxonomy'),
-      agent: tv('agent'),
+      actor: tv('actor'),
       valueStream: tv('valueStream'),
       abstract: tv('abstract'),
       lifecycleStage: tv('lifecycleStage'),
@@ -89,11 +89,11 @@ export function AgentValuesTable({ agentId }: AgentValuesTableProps) {
     },
   });
 
-  // Remove actions and agent columns — actions aren't needed, agent is redundant
+  // Remove actions and actor columns — actions aren't needed, actor is redundant
   const columns = allColumns.filter(
     (col) => {
       const id = (col as { id?: string }).id ?? (col as { accessorKey?: string }).accessorKey;
-      return id !== 'actions' && id !== 'agent';
+      return id !== 'actions' && id !== 'actor';
     },
   ) as ColumnDef<ValueResponse, unknown>[];
 

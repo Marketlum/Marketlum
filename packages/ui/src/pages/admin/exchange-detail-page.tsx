@@ -324,10 +324,10 @@ export function ExchangeDetailPage() {
                 {exchange.parties.map((party) => (
                   <li key={party.id}>
                     <Link
-                      href={`/admin/agents/${party.agent.id}`}
+                      href={`/admin/actors/${party.actor.id}`}
                       className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary/50"
                     >
-                      <span className="text-sm">{party.agent.name}</span>
+                      <span className="text-sm">{party.actor.name}</span>
                       <Badge variant="outline" className="text-xs">{party.role}</Badge>
                     </Link>
                   </li>
@@ -354,9 +354,9 @@ export function ExchangeDetailPage() {
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="p-2 text-left font-medium">{t('flowValue')}</th>
-                    <th className="p-2 text-left font-medium">{t('fromAgent')}</th>
+                    <th className="p-2 text-left font-medium">{t('fromActor')}</th>
                     <th className="p-2 text-center font-medium"></th>
-                    <th className="p-2 text-left font-medium">{t('toAgent')}</th>
+                    <th className="p-2 text-left font-medium">{t('toActor')}</th>
                     <th className="p-2 text-right font-medium">{t('quantity')}</th>
                   </tr>
                 </thead>
@@ -380,11 +380,11 @@ export function ExchangeDetailPage() {
                           <div className="text-xs text-muted-foreground mt-0.5">{flow.description}</div>
                         )}
                       </td>
-                      <td className="p-2">{flow.fromAgent.name}</td>
+                      <td className="p-2">{flow.fromActor.name}</td>
                       <td className="p-2 text-center text-muted-foreground">
                         <ArrowRight className="h-3 w-3 inline" />
                       </td>
-                      <td className="p-2">{flow.toAgent.name}</td>
+                      <td className="p-2">{flow.toActor.name}</td>
                       <td className="p-2 text-right font-mono">{flow.quantity}</td>
                     </tr>
                   ))}
@@ -418,7 +418,7 @@ export function ExchangeDetailPage() {
         onOpenChange={setFlowsOpen}
         exchangeId={exchange.id}
         exchangeName={exchange.name}
-        partyAgents={exchange.parties.map((p) => ({ id: p.agent.id, name: p.agent.name }))}
+        partyActors={exchange.parties.map((p) => ({ id: p.actor.id, name: p.actor.name }))}
       />
     </div>
   );

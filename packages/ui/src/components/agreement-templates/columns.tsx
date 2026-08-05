@@ -19,7 +19,7 @@ interface AgreementTemplateColumnsTranslations {
   purpose: string;
   description: string;
   valueStream: string;
-  agent: string;
+  actor: string;
   created: string;
   edit: string;
   delete: string;
@@ -109,12 +109,12 @@ export function getAgreementTemplateColumns({
       },
     },
     {
-      id: 'agent',
-      header: translations.agent,
+      id: 'actor',
+      header: translations.actor,
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
-        const agent = row.original.agent;
-        return agent ? agent.name : '—';
+        const actor = row.original.actor;
+        return actor ? actor.name : '—';
       },
     },
     {

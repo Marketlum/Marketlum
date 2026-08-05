@@ -16,7 +16,7 @@ interface ChannelColumnsTranslations {
   code: string;
   purpose: string;
   color: string;
-  agent: string;
+  actor: string;
   created: string;
   updatedAt: string;
   edit: string;
@@ -95,12 +95,12 @@ export function getChannelColumns({
       },
     },
     {
-      id: 'agent',
-      header: translations.agent,
+      id: 'actor',
+      header: translations.actor,
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
-        const agent = row.original.agent;
-        return agent ? agent.name : '—';
+        const actor = row.original.actor;
+        return actor ? actor.name : '—';
       },
     },
     {

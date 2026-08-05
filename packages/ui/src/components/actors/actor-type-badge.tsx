@@ -3,7 +3,7 @@
 import { Building2, User, Bot } from 'lucide-react';
 import { Badge } from '../ui/badge';
 
-const agentTypeConfig: Record<string, { icon: typeof Building2; className: string }> = {
+const actorTypeConfig: Record<string, { icon: typeof Building2; className: string }> = {
   organization: {
     icon: Building2,
     className: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300',
@@ -18,13 +18,13 @@ const agentTypeConfig: Record<string, { icon: typeof Building2; className: strin
   },
 };
 
-interface AgentTypeBadgeProps {
+interface ActorTypeBadgeProps {
   type: string;
   label: string;
 }
 
-export function AgentTypeBadge({ type, label }: AgentTypeBadgeProps) {
-  const config = agentTypeConfig[type];
+export function ActorTypeBadge({ type, label }: ActorTypeBadgeProps) {
+  const config = actorTypeConfig[type];
   if (!config) {
     return <Badge variant="secondary">{label}</Badge>;
   }

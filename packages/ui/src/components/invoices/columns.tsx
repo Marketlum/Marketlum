@@ -16,15 +16,15 @@ import {
 interface InvoiceRow {
   id: string;
   number: string;
-  fromAgent: { id: string; name: string } | null;
-  toAgent: { id: string; name: string } | null;
+  fromActor: { id: string; name: string } | null;
+  toActor: { id: string; name: string } | null;
   issuedAt: string;
   dueAt: string;
   currency: { id: string; name: string } | null;
   market: InvoiceMarket;
-  onBehalfOfAgent?: { id: string; name: string } | null;
+  onBehalfOfActor?: { id: string; name: string } | null;
   mirrorInvoice?: { id: string; number: string } | null;
-  sourceInvoice?: { id: string; number: string; fromAgent: { id: string; name: string } } | null;
+  sourceInvoice?: { id: string; number: string; fromActor: { id: string; name: string } } | null;
   total?: string;
   presentationTotal?: string | null;
   paid: boolean;
@@ -81,27 +81,27 @@ export function getInvoiceColumns({
       cell: ({ row }) => row.original.number,
     },
     {
-      id: 'fromAgent',
+      id: 'fromActor',
       header: translations.from,
       cell: ({ row }) => (
         <span
           className="block max-w-[10rem] truncate"
-          title={row.original.fromAgent?.name ?? undefined}
+          title={row.original.fromActor?.name ?? undefined}
         >
-          {row.original.fromAgent?.name ?? '\u2014'}
+          {row.original.fromActor?.name ?? '\u2014'}
         </span>
       ),
     },
     {
-      id: 'toAgent',
+      id: 'toActor',
       header: translations.to,
       meta: { hideOnMobile: true },
       cell: ({ row }) => (
         <span
           className="block max-w-[10rem] truncate"
-          title={row.original.toAgent?.name ?? undefined}
+          title={row.original.toActor?.name ?? undefined}
         >
-          {row.original.toAgent?.name ?? '\u2014'}
+          {row.original.toActor?.name ?? '\u2014'}
         </span>
       ),
     },

@@ -45,8 +45,8 @@ interface OrderDetail {
   id: string;
   number: string;
   state: OrderState;
-  fromAgent: { id: string; name: string } | null;
-  toAgent: { id: string; name: string } | null;
+  fromActor: { id: string; name: string } | null;
+  toActor: { id: string; name: string } | null;
   currency: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
   pipeline: { id: string; name: string } | null;
@@ -239,8 +239,8 @@ export function OrderDetailPage() {
   const transitions = TRANSITIONS[order.state] ?? [];
 
   const detailRows: { label: string; value: React.ReactNode }[] = [
-    { label: t('from'), value: order.fromAgent?.name ?? '—' },
-    { label: t('to'), value: order.toAgent?.name ?? '—' },
+    { label: t('from'), value: order.fromActor?.name ?? '—' },
+    { label: t('to'), value: order.toActor?.name ?? '—' },
     { label: t('currency'), value: order.currency?.name ?? '—' },
     { label: t('channel'), value: order.channel?.name ?? '—' },
     { label: t('pipeline'), value: order.pipeline?.name ?? '—' },
@@ -303,7 +303,7 @@ export function OrderDetailPage() {
             </Badge>
           </div>
           <p className="mb-2 text-muted-foreground">
-            {order.fromAgent?.name ?? '—'} → {order.toAgent?.name ?? '—'}
+            {order.fromActor?.name ?? '—'} → {order.toActor?.name ?? '—'}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {canWrite && transitions.map((transition) => (
@@ -371,14 +371,14 @@ export function OrderDetailPage() {
               title={t('shippingAddress')}
               address={order.shippingAddress}
               editable={isDraft && canWrite}
-              copyFromAgentId={order.toAgent?.id}
+              copyFromActorId={order.toActor?.id}
               onSave={(address) => handleSaveAddress('shippingAddress', address)}
             />
             <OrderAddressCard
               title={t('billingAddress')}
               address={order.billingAddress}
               editable={isDraft && canWrite}
-              copyFromAgentId={order.toAgent?.id}
+              copyFromActorId={order.toActor?.id}
               onSave={(address) => handleSaveAddress('billingAddress', address)}
             />
           </div>

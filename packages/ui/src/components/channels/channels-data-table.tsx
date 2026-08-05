@@ -9,7 +9,7 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { DataTable } from '../shared/data-table';
 import { DataTablePagination } from '../shared/data-table-pagination';
 import { DataTableToolbar } from '../shared/data-table-toolbar';
@@ -44,8 +44,8 @@ export function ChannelsDataTable() {
   const isMobile = useIsMobile();
   const { can } = usePermissions();
   const canWrite = can('channels', 'write');
-  const { agents } = useAgents();
-  const [agentFilter, setAgentFilter] = useState<string>('all');
+  const { actors } = useActors();
+  const [actorFilter, setActorFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<ChannelResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ export function ChannelsDataTable() {
 
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
-    setAgentFilter(config.filters?.agentId ?? 'all');
+    setActorFilter(config.filters?.actorId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -93,17 +93,17 @@ export function ChannelsDataTable() {
   const getCurrentConfig = useCallback((): PerspectiveConfig => ({
     columnVisibility,
     filters: {
-      ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
+      ...(actorFilter !== 'all' ? { actorId: actorFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, agentFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, actorFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       let qs = pagination.toQueryString();
-      if (agentFilter && agentFilter !== 'all') {
-        qs += `&agentId=${agentFilter}`;
+      if (actorFilter && actorFilter !== 'all') {
+        qs += `&actorId=${actorFilter}`;
       }
       const result = await api.get<PaginatedResponse<ChannelResponse>>(`/channels/search?${qs}`);
       setData(result);
@@ -112,11 +112,11 @@ export function ChannelsDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, agentFilter]);
+  }, [pagination.toQueryString, actorFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, agentFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, actorFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingChannel(null);
@@ -186,7 +186,7 @@ export function ChannelsDataTable() {
       code: tc('code'),
       purpose: t('purpose'),
       color: t('color'),
-      agent: t('agent'),
+      actor: t('actor'),
       created: tc('created'),
       updatedAt: t('updatedAt'),
       edit: tc('edit'),
@@ -201,7 +201,7 @@ export function ChannelsDataTable() {
     { id: 'code', label: tc('code') },
     { id: 'purpose', label: t('purpose') },
     { id: 'color', label: t('color') },
-    { id: 'agent', label: t('agent') },
+    { id: 'actor', label: t('actor') },
     { id: 'createdAt', label: tc('created') },
     { id: 'updatedAt', label: t('updatedAt') },
   ];
@@ -211,9 +211,9 @@ export function ChannelsDataTable() {
     { key: 'code', label: tc('code'), extract: (r) => String(r.code ?? '') },
     { key: 'purpose', label: t('purpose'), extract: (r) => String(r.purpose ?? '') },
     { key: 'color', label: t('color'), extract: (r) => String(r.color ?? '') },
-    { key: 'agent', label: t('agent'), extract: (r) => {
-      const agent = r.agent as { name: string } | null | undefined;
-      return agent?.name ?? '';
+    { key: 'actor', label: t('actor'), extract: (r) => {
+      const actor = r.actor as { name: string } | null | undefined;
+      return actor?.name ?? '';
     }},
     { key: 'createdAt', label: tc('created'), extract: (r) => String(r.createdAt ?? '') },
     { key: 'updatedAt', label: t('updatedAt'), extract: (r) => String(r.updatedAt ?? '') },
@@ -227,27 +227,27 @@ export function ChannelsDataTable() {
     let qs = `page=1&limit=10000`;
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
-    if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
+    if (actorFilter && actorFilter !== 'all') qs += `&actorId=${actorFilter}`;
     const result = await api.get<PaginatedResponse<ChannelResponse>>(`/channels/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, agentFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, actorFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];
-    if (agentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === agentFilter);
+    if (actorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === actorFilter);
       filters.push({
-        key: 'agent',
-        label: t('agent'),
-        displayValue: agent?.name ?? agentFilter,
-        onClear: () => setAgentFilter('all'),
+        key: 'actor',
+        label: t('actor'),
+        displayValue: actor?.name ?? actorFilter,
+        onClear: () => setActorFilter('all'),
       });
     }
     return filters;
-  }, [agentFilter, agents, t]);
+  }, [actorFilter, actors, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -312,16 +312,16 @@ export function ChannelsDataTable() {
 
       <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
         <div className="space-y-1">
-          <label className="text-sm font-medium">{t('agent')}</label>
-          <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <label className="text-sm font-medium">{t('actor')}</label>
+          <Select value={actorFilter} onValueChange={setActorFilter}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
+              <SelectItem value="all">{t('allActors')}</SelectItem>
+              {actors.map((actor) => (
+                <SelectItem key={actor.id} value={actor.id}>
+                  {actor.name}
                 </SelectItem>
               ))}
             </SelectContent>

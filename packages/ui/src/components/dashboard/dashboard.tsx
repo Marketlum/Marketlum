@@ -7,7 +7,7 @@ import type {
   SystemSettingsPresentationCurrencyResponse,
 } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useChannels } from '../../hooks/use-channels';
 import { RevenueExpensesChart } from './revenue-expenses-chart';
 import { formatDate, getPresetRange } from '../../lib/date-range-presets';
@@ -22,10 +22,10 @@ import {
 
 export function Dashboard() {
   const t = useTranslations('dashboard');
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const { channels } = useChannels();
 
-  const [agentId, setAgentId] = useState('');
+  const [actorId, setActorId] = useState('');
   const [channelId, setChannelId] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -72,7 +72,7 @@ export function Dashboard() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (agentId) params.set('agentId', agentId);
+      if (actorId) params.set('actorId', actorId);
       if (channelId) params.set('channelId', channelId);
       if (fromDate) params.set('fromDate', fromDate);
       if (toDate) params.set('toDate', toDate);
@@ -86,7 +86,7 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [agentId, channelId, fromDate, toDate]);
+  }, [actorId, channelId, fromDate, toDate]);
 
   useEffect(() => {
     fetchData();
@@ -101,15 +101,15 @@ export function Dashboard() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <Select
-          value={agentId || '__all__'}
-          onValueChange={(v) => setAgentId(v === '__all__' ? '' : v)}
+          value={actorId || '__all__'}
+          onValueChange={(v) => setActorId(v === '__all__' ? '' : v)}
         >
           <SelectTrigger className="w-auto min-w-[10rem]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">{t('allAgents')}</SelectItem>
-            {agents.map((a) => (
+            <SelectItem value="__all__">{t('allActors')}</SelectItem>
+            {actors.map((a) => (
               <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
             ))}
           </SelectContent>

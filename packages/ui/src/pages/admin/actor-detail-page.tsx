@@ -5,17 +5,17 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Bot, Pencil, Trash2, ArrowLeft, FolderTree } from 'lucide-react';
-import type { AgentResponse, CreateAgentInput } from '@marketlum/shared';
-import { useAgents } from '../../hooks/use-agents';
+import type { ActorResponse, CreateActorInput } from '@marketlum/shared';
+import { useActors } from '../../hooks/use-actors';
 import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
 import { FileImagePreview } from '../../components/shared/file-image-preview';
-import { AgentFormDialog } from '../../components/agents/agent-form-dialog';
-import { AgentTypeBadge } from '../../components/agents/agent-type-badge';
-import { AgentValuesTable } from '../../components/agents/agent-values-table';
-import { AddressesList } from '../../components/agents/addresses-list';
-import { SubAgentsTable } from '../../components/agents/sub-agents-table';
-import { AgentFinancialsTab } from '../../components/agents/agent-financials-tab';
+import { ActorFormDialog } from '../../components/actors/actor-form-dialog';
+import { ActorTypeBadge } from '../../components/actors/actor-type-badge';
+import { ActorValuesTable } from '../../components/actors/actor-values-table';
+import { AddressesList } from '../../components/actors/addresses-list';
+import { SubActorsTable } from '../../components/actors/sub-actors-table';
+import { ActorFinancialsTab } from '../../components/actors/actor-financials-tab';
 import { OfferingsDataTable } from '../../components/offerings/offerings-data-table';
 import { AgreementTemplatesDataTable } from '../../components/agreement-templates/agreement-templates-data-table';
 import { AgreementsDataTable } from '../../components/agreements/agreements-data-table';
@@ -64,13 +64,13 @@ const typeTranslationKeys: Record<string, string> = {
   virtual: 'typeVirtual',
 };
 
-export function AgentDetailPage() {
+export function ActorDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const t = useTranslations('agents');
+  const t = useTranslations('actors');
   const tc = useTranslations('common');
 
-  const [agent, setAgent] = useState<AgentResponse | null>(null);
+  const [actor, setActor] = useState<ActorResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -78,14 +78,14 @@ export function AgentDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [moveParentId, setMoveParentId] = useState<string>('__root__');
-  const { agents: allAgents } = useAgents(moveOpen);
+  const { actors: allActors } = useActors(moveOpen);
   const [descendantIds, setDescendantIds] = useState<Set<string>>(new Set());
 
-  const fetchAgent = useCallback(async () => {
+  const fetchActor = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await api.get<AgentResponse>(`/agents/${params.id}`);
-      setAgent(result);
+      const result = await api.get<ActorResponse>(`/actors/${params.id}`);
+      setActor(result);
       setNotFound(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -97,17 +97,17 @@ export function AgentDetailPage() {
   }, [params.id]);
 
   useEffect(() => {
-    fetchAgent();
-  }, [fetchAgent]);
+    fetchActor();
+  }, [fetchActor]);
 
-  const handleEdit = async (input: CreateAgentInput) => {
-    if (!agent) return;
+  const handleEdit = async (input: CreateActorInput) => {
+    if (!actor) return;
     setIsSubmitting(true);
     try {
-      await api.patch(`/agents/${agent.id}`, input);
+      await api.patch(`/actors/${actor.id}`, input);
       toast.success(t('updated'));
       setEditOpen(false);
-      fetchAgent();
+      fetchActor();
     } catch {
       toast.error(t('failedToUpdate'));
     } finally {
@@ -116,12 +116,12 @@ export function AgentDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!agent) return;
+    if (!actor) return;
     setIsSubmitting(true);
     try {
-      await api.delete(`/agents/${agent.id}`);
+      await api.delete(`/actors/${actor.id}`);
       toast.success(t('deleted'));
-      router.push('/admin/agents');
+      router.push('/admin/actors');
     } catch {
       toast.error(t('failedToDelete'));
     } finally {
@@ -130,11 +130,11 @@ export function AgentDetailPage() {
   };
 
   const openMove = async () => {
-    if (!agent) return;
-    setMoveParentId(agent.parent ? agent.parent.id : '__root__');
+    if (!actor) return;
+    setMoveParentId(actor.parent ? actor.parent.id : '__root__');
     // Own subtree is not a valid move target; the server enforces this too.
     try {
-      const descendants = await api.get<AgentResponse[]>(`/agents/${agent.id}/descendants`);
+      const descendants = await api.get<ActorResponse[]>(`/actors/${actor.id}/descendants`);
       setDescendantIds(new Set(descendants.map((d) => d.id)));
     } catch {
       setDescendantIds(new Set());
@@ -143,15 +143,15 @@ export function AgentDetailPage() {
   };
 
   const handleMove = async () => {
-    if (!agent) return;
+    if (!actor) return;
     setIsSubmitting(true);
     try {
-      await api.patch(`/agents/${agent.id}/move`, {
+      await api.patch(`/actors/${actor.id}/move`, {
         parentId: moveParentId === '__root__' ? null : moveParentId,
       });
       toast.success(t('moved'));
       setMoveOpen(false);
-      fetchAgent();
+      fetchActor();
     } catch {
       toast.error(t('failedToMove'));
     } finally {
@@ -159,8 +159,8 @@ export function AgentDetailPage() {
     }
   };
 
-  const moveCandidates = allAgents.filter(
-    (candidate) => agent && candidate.id !== agent.id && !descendantIds.has(candidate.id),
+  const moveCandidates = allActors.filter(
+    (candidate) => actor && candidate.id !== actor.id && !descendantIds.has(candidate.id),
   );
 
   if (loading) {
@@ -171,15 +171,15 @@ export function AgentDetailPage() {
     );
   }
 
-  if (notFound || !agent) {
+  if (notFound || !actor) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-12">
         <h2 className="text-xl font-semibold">{t('notFound')}</h2>
         <p className="text-muted-foreground">{t('notFoundDescription')}</p>
         <Button variant="outline" asChild>
-          <Link href="/admin/agents">
+          <Link href="/admin/actors">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('backToAgents')}
+            {t('backToActors')}
           </Link>
         </Button>
       </div>
@@ -198,31 +198,31 @@ export function AgentDetailPage() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/admin/agents">{t('title')}</Link>
+              <Link href="/admin/actors">{t('title')}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {(agent.ancestors ?? []).map((ancestor) => (
+          {(actor.ancestors ?? []).map((ancestor) => (
             <BreadcrumbItem key={ancestor.id} className="hidden md:inline-flex">
               <BreadcrumbSeparator />
               <BreadcrumbLink asChild>
-                <Link href={`/admin/agents/${ancestor.id}`}>{ancestor.name}</Link>
+                <Link href={`/admin/actors/${ancestor.id}`}>{ancestor.name}</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
           ))}
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{agent.name}</BreadcrumbPage>
+            <BreadcrumbPage>{actor.name}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="mb-6 flex items-start gap-4">
         <div className="h-24 w-24 shrink-0 rounded-lg border bg-muted/30 flex items-center justify-center overflow-hidden">
-          {agent.image ? (
+          {actor.image ? (
             <FileImagePreview
-              fileId={agent.image.id}
-              mimeType={agent.image.mimeType}
-              alt={agent.name}
+              fileId={actor.image.id}
+              mimeType={actor.image.mimeType}
+              alt={actor.name}
               iconClassName="h-12 w-12 text-muted-foreground/50"
               imgClassName="h-full w-full object-cover"
             />
@@ -232,10 +232,10 @@ export function AgentDetailPage() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl md:text-3xl font-bold truncate">{agent.name}</h1>
-            <AgentTypeBadge type={agent.type} label={t(typeTranslationKeys[agent.type])} />
+            <h1 className="text-2xl md:text-3xl font-bold truncate">{actor.name}</h1>
+            <ActorTypeBadge type={actor.type} label={t(typeTranslationKeys[actor.type])} />
           </div>
-          <Can resource="agents" action="write">
+          <Can resource="actors" action="write">
             <div className="flex gap-2 mt-2">
               <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" />
@@ -258,7 +258,7 @@ export function AgentDetailPage() {
         <TabsList>
           <TabsTrigger value="details">{t('details')}</TabsTrigger>
           <TabsTrigger value="financials">{t('financialsTab')}</TabsTrigger>
-          <TabsTrigger value="sub-agents">{t('subAgentsTab')}</TabsTrigger>
+          <TabsTrigger value="sub-actors">{t('subActorsTab')}</TabsTrigger>
           <TabsTrigger value="values">{t('valuesTab')}</TabsTrigger>
           <TabsTrigger value="offerings">{t('offeringsTab')}</TabsTrigger>
           <TabsTrigger value="exchanges">{t('exchangesTab')}</TabsTrigger>
@@ -267,7 +267,7 @@ export function AgentDetailPage() {
           <TabsTrigger value="invoices">{t('invoicesTab')}</TabsTrigger>
           <TabsTrigger value="agreement-templates">{t('agreementTemplatesTab')}</TabsTrigger>
           <TabsTrigger value="addresses">
-            {t('addressesTab')} ({agent.addresses?.length ?? 0})
+            {t('addressesTab')} ({actor.addresses?.length ?? 0})
           </TabsTrigger>
         </TabsList>
         <TabsContent value="details">
@@ -279,15 +279,15 @@ export function AgentDetailPage() {
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-sm text-muted-foreground">{t('purpose')}</p>
-                  <p>{agent.purpose || '-'}</p>
+                  <p>{actor.purpose || '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{tc('created')}</p>
-                  <p>{new Date(agent.createdAt).toLocaleDateString()}</p>
+                  <p>{new Date(actor.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{t('updatedAt')}</p>
-                  <p>{new Date(agent.updatedAt).toLocaleDateString()}</p>
+                  <p>{new Date(actor.updatedAt).toLocaleDateString()}</p>
                 </div>
               </CardContent>
             </Card>
@@ -299,17 +299,17 @@ export function AgentDetailPage() {
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">{t('mainTaxonomy')}</p>
-                  {agent.mainTaxonomy ? (
-                    <Badge variant="outline">{agent.mainTaxonomy.name}</Badge>
+                  {actor.mainTaxonomy ? (
+                    <Badge variant="outline">{actor.mainTaxonomy.name}</Badge>
                   ) : (
                     <p>-</p>
                   )}
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">{t('taxonomies')}</p>
-                  {agent.taxonomies && agent.taxonomies.length > 0 ? (
+                  {actor.taxonomies && actor.taxonomies.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
-                      {agent.taxonomies.map((tax) => (
+                      {actor.taxonomies.map((tax) => (
                         <Badge key={tax.id} variant="outline">{tax.name}</Badge>
                       ))}
                     </div>
@@ -322,46 +322,46 @@ export function AgentDetailPage() {
           </div>
         </TabsContent>
         <TabsContent value="financials">
-          <AgentFinancialsTab agentId={agent.id} onSetCurrency={() => setEditOpen(true)} />
+          <ActorFinancialsTab actorId={actor.id} onSetCurrency={() => setEditOpen(true)} />
         </TabsContent>
-        <TabsContent value="sub-agents">
-          <SubAgentsTable agentId={agent.id} />
+        <TabsContent value="sub-actors">
+          <SubActorsTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="values">
-          <AgentValuesTable agentId={agent.id} />
+          <ActorValuesTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="offerings">
-          <OfferingsDataTable agentId={agent.id} />
+          <OfferingsDataTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="exchanges">
-          <ExchangesDataTable partyAgentId={agent.id} />
+          <ExchangesDataTable partyActorId={actor.id} />
         </TabsContent>
         <TabsContent value="agreements">
-          <AgreementsDataTable partyId={agent.id} />
+          <AgreementsDataTable partyId={actor.id} />
         </TabsContent>
         <TabsContent value="orders">
-          <OrdersDataTable agentId={agent.id} />
+          <OrdersDataTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="invoices">
-          <InvoicesDataTable agentId={agent.id} />
+          <InvoicesDataTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="agreement-templates">
-          <AgreementTemplatesDataTable agentId={agent.id} />
+          <AgreementTemplatesDataTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="addresses">
           <AddressesList
-            agentId={agent.id}
-            addresses={agent.addresses ?? []}
-            onChanged={fetchAgent}
+            actorId={actor.id}
+            addresses={actor.addresses ?? []}
+            onChanged={fetchActor}
           />
         </TabsContent>
       </Tabs>
 
-      <AgentFormDialog
+      <ActorFormDialog
         open={editOpen}
         onOpenChange={setEditOpen}
         onSubmit={handleEdit}
-        agent={agent}
+        actor={actor}
         isSubmitting={isSubmitting}
       />
 
@@ -369,15 +369,15 @@ export function AgentDetailPage() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         onConfirm={handleDelete}
-        title={t('deleteAgent')}
-        description={tc('confirmDeleteDescription', { name: agent.name })}
+        title={t('deleteActor')}
+        description={tc('confirmDeleteDescription', { name: actor.name })}
         isDeleting={isSubmitting}
       />
 
       <Dialog open={moveOpen} onOpenChange={setMoveOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('moveTitle', { name: agent.name })}</DialogTitle>
+            <DialogTitle>{t('moveTitle', { name: actor.name })}</DialogTitle>
             <DialogDescription>{t('moveDescription')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">

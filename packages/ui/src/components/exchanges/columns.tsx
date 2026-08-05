@@ -24,7 +24,7 @@ interface ExchangeRow {
   completedAt: string | null;
   link: string | null;
   lead: { id: string; name: string } | null;
-  parties: { id: string; agent: { id: string; name: string }; role: string }[];
+  parties: { id: string; actor: { id: string; name: string }; role: string }[];
   createdAt: string;
   updatedAt: string;
 }

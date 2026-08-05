@@ -9,7 +9,7 @@ import type { ValueResponse, PaginatedResponse, CreateValueInput, PerspectiveCon
 import { ValueType, ValueLifecycleStage } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { useTaxonomyTree } from '../../hooks/use-taxonomy-tree';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
@@ -76,14 +76,14 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
   const { can } = usePermissions();
   const canWrite = can('values', 'write');
   const { tree } = useTaxonomyTree();
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const { valueStreams } = useValueStreams();
   const scopedStream = scopedValueStreamId
     ? valueStreams.find((vs) => vs.id === scopedValueStreamId) ?? null
     : null;
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
-  const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [actorFilter, setActorFilter] = useState<string>('all');
   const [valueStreamFilter, setValueStreamFilter] = useState<string>('all');
   const [lifecycleStageFilter, setLifecycleStageFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
@@ -100,7 +100,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     setColumnVisibility(config.columnVisibility ?? {});
     setTypeFilter(config.filters?.type ?? 'all');
     setTaxonomyFilter(config.filters?.taxonomyId ?? 'all');
-    setAgentFilter(config.filters?.agentId ?? 'all');
+    setActorFilter(config.filters?.actorId ?? 'all');
     setValueStreamFilter(config.filters?.valueStreamId ?? 'all');
     setLifecycleStageFilter(config.filters?.lifecycleStage ?? 'all');
     if (config.sort) {
@@ -139,12 +139,12 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     filters: {
       ...(typeFilter !== 'all' ? { type: typeFilter } : {}),
       ...(taxonomyFilter !== 'all' ? { taxonomyId: taxonomyFilter } : {}),
-      ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
+      ...(actorFilter !== 'all' ? { actorId: actorFilter } : {}),
       ...(valueStreamFilter !== 'all' ? { valueStreamId: valueStreamFilter } : {}),
       ...(lifecycleStageFilter !== 'all' ? { lifecycleStage: lifecycleStageFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -156,8 +156,8 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       if (taxonomyFilter && taxonomyFilter !== 'all') {
         qs += `&taxonomyId=${taxonomyFilter}`;
       }
-      if (agentFilter && agentFilter !== 'all') {
-        qs += `&agentId=${agentFilter}`;
+      if (actorFilter && actorFilter !== 'all') {
+        qs += `&actorId=${actorFilter}`;
       }
       if (scopedValueStreamId) {
         qs += `&valueStreamId=${scopedValueStreamId}`;
@@ -174,11 +174,11 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter, scopedValueStreamId]);
+  }, [pagination.toQueryString, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter, scopedValueStreamId]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter, fetchData]);
 
   const handleCreate = async (input: CreateValueInput) => {
     setIsSubmitting(true);
@@ -267,7 +267,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       code: tc('code'),
       type: tc('type'),
       taxonomy: t('taxonomy'),
-      agent: t('agent'),
+      actor: t('actor'),
       valueStream: t('valueStream'),
       abstract: t('abstract'),
       lifecycleStage: t('lifecycleStage'),
@@ -289,7 +289,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     { id: 'code', label: tc('code') },
     { id: 'type', label: tc('type') },
     { id: 'mainTaxonomy', label: t('taxonomy') },
-    { id: 'agent', label: t('agent') },
+    { id: 'actor', label: t('actor') },
     { id: 'valueStream', label: t('valueStream') },
     { id: 'purpose', label: t('purpose') },
     { id: 'createdAt', label: tc('created') },
@@ -310,8 +310,8 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       const taxs = r.taxonomies as { name: string }[] | undefined;
       return taxs?.map((tx) => tx.name).join(', ') ?? '';
     }},
-    { key: 'agent', label: t('agent'), extract: (r) => {
-      const ag = r.agent as { name?: string } | null;
+    { key: 'actor', label: t('actor'), extract: (r) => {
+      const ag = r.actor as { name?: string } | null;
       return ag?.name ?? '';
     }},
     { key: 'valueStream', label: t('valueStream'), extract: (r) => {
@@ -337,12 +337,12 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
     if (taxonomyFilter && taxonomyFilter !== 'all') qs += `&taxonomyId=${taxonomyFilter}`;
-    if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
+    if (actorFilter && actorFilter !== 'all') qs += `&actorId=${actorFilter}`;
     if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
     if (lifecycleStageFilter && lifecycleStageFilter !== 'all') qs += `&lifecycleStage=${lifecycleStageFilter}`;
     const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, lifecycleStageFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
@@ -369,13 +369,13 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
         onClear: () => setTaxonomyFilter('all'),
       });
     }
-    if (agentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === agentFilter);
+    if (actorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === actorFilter);
       filters.push({
-        key: 'agent',
-        label: t('agent'),
-        displayValue: agent?.name ?? agentFilter,
-        onClear: () => setAgentFilter('all'),
+        key: 'actor',
+        label: t('actor'),
+        displayValue: actor?.name ?? actorFilter,
+        onClear: () => setActorFilter('all'),
       });
     }
     if (valueStreamFilter !== 'all') {
@@ -396,7 +396,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       });
     }
     return filters;
-  }, [typeFilter, taxonomyFilter, agentFilter, valueStreamFilter, tc, t, tree, agents, valueStreams]);
+  }, [typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, tc, t, tree, actors, valueStreams]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -493,16 +493,16 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
           />
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium">{t('agent')}</label>
-          <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <label className="text-sm font-medium">{t('actor')}</label>
+          <Select value={actorFilter} onValueChange={setActorFilter}>
             <SelectTrigger>
-              <SelectValue placeholder={t('allAgents')} />
+              <SelectValue placeholder={t('allActors')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
+              <SelectItem value="all">{t('allActors')}</SelectItem>
+              {actors.map((actor) => (
+                <SelectItem key={actor.id} value={actor.id}>
+                  {actor.name}
                 </SelectItem>
               ))}
             </SelectContent>

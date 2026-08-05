@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { Plus, Pencil, Trash2, ArrowRight, ArrowLeftRight } from 'lucide-react';
 import { api } from '../../lib/api-client';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValues } from '../../hooks/use-values';
 import { useValueInstances } from '../../hooks/use-value-instances';
 import {
@@ -34,15 +34,15 @@ interface FlowRow {
   id: string;
   value: { id: string; name: string } | null;
   valueInstance: { id: string; name: string } | null;
-  fromAgent: { id: string; name: string };
-  toAgent: { id: string; name: string };
+  fromActor: { id: string; name: string };
+  toActor: { id: string; name: string };
   quantity: string;
   description: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-interface PartyAgent {
+interface PartyActor {
   id: string;
   name: string;
 }
@@ -52,7 +52,7 @@ interface ExchangeFlowsPanelProps {
   onOpenChange: (open: boolean) => void;
   exchangeId: string;
   exchangeName: string;
-  partyAgents: PartyAgent[];
+  partyActors: PartyActor[];
 }
 
 export function ExchangeFlowsPanel({
@@ -60,11 +60,11 @@ export function ExchangeFlowsPanel({
   onOpenChange,
   exchangeId,
   exchangeName,
-  partyAgents,
+  partyActors,
 }: ExchangeFlowsPanelProps) {
   const t = useTranslations('exchanges');
   const tc = useTranslations('common');
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
   const { values } = useValues(open);
   const { valueInstances } = useValueInstances(open);
   const [flows, setFlows] = useState<FlowRow[]>([]);
@@ -77,8 +77,8 @@ export function ExchangeFlowsPanel({
   // Form state
   const [valueId, setValueId] = useState<string>('none');
   const [valueInstanceId, setValueInstanceId] = useState<string>('none');
-  const [fromAgentId, setFromAgentId] = useState<string>('');
-  const [toAgentId, setToAgentId] = useState<string>('');
+  const [fromActorId, setFromActorId] = useState<string>('');
+  const [toActorId, setToActorId] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('');
   const [description, setDescription] = useState<string>('');
 
@@ -103,8 +103,8 @@ export function ExchangeFlowsPanel({
   const resetForm = () => {
     setValueId('none');
     setValueInstanceId('none');
-    setFromAgentId(partyAgents[0]?.id ?? '');
-    setToAgentId(partyAgents[1]?.id ?? '');
+    setFromActorId(partyActors[0]?.id ?? '');
+    setToActorId(partyActors[1]?.id ?? '');
     setQuantity('');
     setDescription('');
   };
@@ -115,17 +115,17 @@ export function ExchangeFlowsPanel({
     setFormOpen(true);
   };
 
-  const swapAgents = () => {
-    setFromAgentId(toAgentId);
-    setToAgentId(fromAgentId);
+  const swapActors = () => {
+    setFromActorId(toActorId);
+    setToActorId(fromActorId);
   };
 
   const openEditForm = (flow: FlowRow) => {
     setEditingFlow(flow);
     setValueId(flow.value?.id ?? 'none');
     setValueInstanceId(flow.valueInstance?.id ?? 'none');
-    setFromAgentId(flow.fromAgent.id);
-    setToAgentId(flow.toAgent.id);
+    setFromActorId(flow.fromActor.id);
+    setToActorId(flow.toActor.id);
     setQuantity(flow.quantity);
     setDescription(flow.description ?? '');
     setFormOpen(true);
@@ -136,8 +136,8 @@ export function ExchangeFlowsPanel({
     setIsSubmitting(true);
     try {
       const body: Record<string, unknown> = {
-        fromAgentId,
-        toAgentId,
+        fromActorId,
+        toActorId,
         quantity,
         description: description.trim() ? description : null,
       };
@@ -181,8 +181,8 @@ export function ExchangeFlowsPanel({
     }
   };
 
-  // Filter agents to only party agents for the selects
-  const availableAgents = partyAgents.length > 0 ? partyAgents : agents;
+  // Filter actors to only party actors for the selects
+  const availableActors = partyActors.length > 0 ? partyActors : actors;
 
   return (
     <>
@@ -215,9 +215,9 @@ export function ExchangeFlowsPanel({
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="p-2 text-left font-medium">{t('flowValue')}</th>
-                    <th className="p-2 text-left font-medium">{t('fromAgent')}</th>
+                    <th className="p-2 text-left font-medium">{t('fromActor')}</th>
                     <th className="p-2 text-center font-medium"></th>
-                    <th className="p-2 text-left font-medium">{t('toAgent')}</th>
+                    <th className="p-2 text-left font-medium">{t('toActor')}</th>
                     <th className="p-2 text-right font-medium">{t('quantity')}</th>
                     <th className="p-2 text-right font-medium"></th>
                   </tr>
@@ -231,11 +231,11 @@ export function ExchangeFlowsPanel({
                           <div className="text-xs text-muted-foreground mt-0.5">{flow.description}</div>
                         )}
                       </td>
-                      <td className="p-2">{flow.fromAgent.name}</td>
+                      <td className="p-2">{flow.fromActor.name}</td>
                       <td className="p-2 text-center text-muted-foreground">
                         <ArrowRight className="h-3 w-3 inline" />
                       </td>
-                      <td className="p-2">{flow.toAgent.name}</td>
+                      <td className="p-2">{flow.toActor.name}</td>
                       <td className="p-2 text-right font-mono">{flow.quantity}</td>
                       <td className="p-2 text-right">
                         <Can resource="exchanges" action="write">
@@ -307,14 +307,14 @@ export function ExchangeFlowsPanel({
 
             <div className="flex items-end gap-2">
               <div className="flex-1 space-y-1">
-                <Label>{t('fromAgent')}</Label>
-                <Select value={fromAgentId} onValueChange={setFromAgentId}>
+                <Label>{t('fromActor')}</Label>
+                <Select value={fromActorId} onValueChange={setFromActorId}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('selectAgent')} />
+                    <SelectValue placeholder={t('selectActor')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableAgents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
+                    {availableActors.map((actor) => (
+                      <SelectItem key={actor.id} value={actor.id}>{actor.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -323,22 +323,22 @@ export function ExchangeFlowsPanel({
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={swapAgents}
-                disabled={!fromAgentId && !toAgentId}
-                aria-label={t('swapAgents')}
-                title={t('swapAgents')}
+                onClick={swapActors}
+                disabled={!fromActorId && !toActorId}
+                aria-label={t('swapActors')}
+                title={t('swapActors')}
               >
                 <ArrowLeftRight className="h-4 w-4" />
               </Button>
               <div className="flex-1 space-y-1">
-                <Label>{t('toAgent')}</Label>
-                <Select value={toAgentId} onValueChange={setToAgentId}>
+                <Label>{t('toActor')}</Label>
+                <Select value={toActorId} onValueChange={setToActorId}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('selectAgent')} />
+                    <SelectValue placeholder={t('selectActor')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableAgents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
+                    {availableActors.map((actor) => (
+                      <SelectItem key={actor.id} value={actor.id}>{actor.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

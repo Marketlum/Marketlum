@@ -21,14 +21,14 @@ import {
 } from '../ui/select';
 import { ValueCombobox } from '../shared/value-combobox';
 import { api } from '../../lib/api-client';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValues } from '../../hooks/use-values';
 import { useChannels } from '../../hooks/use-channels';
 import { usePipelines } from '../../hooks/use-pipelines';
 
 interface OrderHeaderData {
-  fromAgent: { id: string } | null;
-  toAgent: { id: string } | null;
+  fromActor: { id: string } | null;
+  toActor: { id: string } | null;
   currency: { id: string } | null;
   channel: { id: string } | null;
   pipeline: { id: string } | null;
@@ -40,8 +40,8 @@ interface OrderFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateOrderInput) => Promise<void>;
   isSubmitting?: boolean;
-  /** Preselect one side of the order (used from the agent detail page). */
-  defaultFromAgentId?: string;
+  /** Preselect one side of the order (used from the actor detail page). */
+  defaultFromActorId?: string;
   /** When set, the dialog edits this order's header instead of creating. */
   order?: OrderHeaderData | null;
 }
@@ -51,18 +51,18 @@ export function OrderFormDialog({
   onOpenChange,
   onSubmit,
   isSubmitting,
-  defaultFromAgentId,
+  defaultFromActorId,
   order,
 }: OrderFormDialogProps) {
   const t = useTranslations('orders');
   const tc = useTranslations('common');
-  const { agents } = useAgents(open);
+  const { actors } = useActors(open);
   const { values } = useValues(open);
   const { channels } = useChannels(open);
   const { pipelines } = usePipelines(open);
   const [locales, setLocales] = useState<LocaleResponse[]>([]);
-  const [fromAgentId, setFromAgentId] = useState('');
-  const [toAgentId, setToAgentId] = useState('');
+  const [fromActorId, setFromActorId] = useState('');
+  const [toActorId, setToActorId] = useState('');
   const [currencyId, setCurrencyId] = useState('');
   const [channelId, setChannelId] = useState('');
   const [pipelineId, setPipelineId] = useState('');
@@ -71,8 +71,8 @@ export function OrderFormDialog({
 
   useEffect(() => {
     if (open) {
-      setFromAgentId(order?.fromAgent?.id ?? defaultFromAgentId ?? '');
-      setToAgentId(order?.toAgent?.id ?? '');
+      setFromActorId(order?.fromActor?.id ?? defaultFromActorId ?? '');
+      setToActorId(order?.toActor?.id ?? '');
       setCurrencyId(order?.currency?.id ?? '');
       setChannelId(order?.channel?.id ?? '');
       setPipelineId(order?.pipeline?.id ?? '');
@@ -83,15 +83,15 @@ export function OrderFormDialog({
         .then((result) => setLocales(result.data))
         .catch(() => {});
     }
-  }, [open, defaultFromAgentId, order]);
+  }, [open, defaultFromActorId, order]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (!fromAgentId || !toAgentId || !currencyId) return;
+    if (!fromActorId || !toActorId || !currencyId) return;
     void onSubmit({
-      fromAgentId,
-      toAgentId,
+      fromActorId,
+      toActorId,
       currencyId,
       channelId: channelId || null,
       pipelineId: pipelineId || null,
@@ -99,7 +99,7 @@ export function OrderFormDialog({
     });
   };
 
-  const agentSelect = (
+  const actorSelect = (
     label: string,
     value: string,
     onChange: (id: string) => void,
@@ -111,13 +111,13 @@ export function OrderFormDialog({
         onValueChange={(v) => onChange(v === '__none__' ? '' : v)}
       >
         <SelectTrigger>
-          <SelectValue placeholder={t('selectAgent')} />
+          <SelectValue placeholder={t('selectActor')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__none__">{t('selectAgent')}</SelectItem>
-          {agents.map((agent) => (
-            <SelectItem key={agent.id} value={agent.id}>
-              {agent.name}
+          <SelectItem value="__none__">{t('selectActor')}</SelectItem>
+          {actors.map((actor) => (
+            <SelectItem key={actor.id} value={actor.id}>
+              {actor.name}
             </SelectItem>
           ))}
         </SelectContent>
@@ -137,8 +137,8 @@ export function OrderFormDialog({
         </SheetHeader>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {agentSelect(t('from'), fromAgentId, setFromAgentId)}
-            {agentSelect(t('to'), toAgentId, setToAgentId)}
+            {actorSelect(t('from'), fromActorId, setFromActorId)}
+            {actorSelect(t('to'), toActorId, setToActorId)}
           </div>
 
           <div className="space-y-2">

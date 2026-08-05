@@ -15,7 +15,7 @@ import {
 interface OfferingColumnsTranslations {
   name: string;
   state: string;
-  agent: string;
+  actor: string;
   valueStream: string;
   components: string;
   created: string;
@@ -62,12 +62,12 @@ export function getOfferingColumns({
       },
     },
     {
-      id: 'agent',
-      header: translations.agent,
+      id: 'actor',
+      header: translations.actor,
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
-        const agent = row.original.agent;
-        return agent ? agent.name : '\u2014';
+        const actor = row.original.actor;
+        return actor ? actor.name : '\u2014';
       },
     },
     {

@@ -15,7 +15,7 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useValues } from '../../hooks/use-values';
 import { useChannels } from '../../hooks/use-channels';
 import { usePipelines } from '../../hooks/use-pipelines';
@@ -46,11 +46,11 @@ import { ValueCombobox } from '../shared/value-combobox';
 import type { FieldDef } from '../../lib/export-utils';
 
 interface OrdersDataTableProps {
-  /** Scope the table to orders involving one agent (either side): filters every query. */
-  agentId?: string;
+  /** Scope the table to orders involving one actor (either side): filters every query. */
+  actorId?: string;
 }
 
-export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps = {}) {
+export function OrdersDataTable({ actorId: scopedActorId }: OrdersDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -60,13 +60,13 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
   const isMobile = useIsMobile();
   const { can } = usePermissions();
   const canWrite = can('orders', 'write');
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const { values } = useValues();
   const { channels } = useChannels();
   const { pipelines } = usePipelines();
   const [stateFilter, setStateFilter] = useState<string>('all');
-  const [fromAgentFilter, setFromAgentFilter] = useState<string>('all');
-  const [toAgentFilter, setToAgentFilter] = useState<string>('all');
+  const [fromActorFilter, setFromActorFilter] = useState<string>('all');
+  const [toActorFilter, setToActorFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
   const [pipelineFilter, setPipelineFilter] = useState<string>('all');
@@ -89,8 +89,8 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
     setStateFilter(config.filters?.state ?? 'all');
-    setFromAgentFilter(config.filters?.fromAgentId ?? 'all');
-    setToAgentFilter(config.filters?.toAgentId ?? 'all');
+    setFromActorFilter(config.filters?.fromActorId ?? 'all');
+    setToActorFilter(config.filters?.toActorId ?? 'all');
     setCurrencyFilter(config.filters?.currencyId ?? 'all');
     setChannelFilter(config.filters?.channelId ?? 'all');
     setPipelineFilter(config.filters?.pipelineId ?? 'all');
@@ -129,26 +129,26 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
     columnVisibility,
     filters: {
       ...(stateFilter !== 'all' ? { state: stateFilter } : {}),
-      ...(fromAgentFilter !== 'all' ? { fromAgentId: fromAgentFilter } : {}),
-      ...(toAgentFilter !== 'all' ? { toAgentId: toAgentFilter } : {}),
+      ...(fromActorFilter !== 'all' ? { fromActorId: fromActorFilter } : {}),
+      ...(toActorFilter !== 'all' ? { toActorId: toActorFilter } : {}),
       ...(currencyFilter !== 'all' ? { currencyId: currencyFilter } : {}),
       ...(channelFilter !== 'all' ? { channelId: channelFilter } : {}),
       ...(pipelineFilter !== 'all' ? { pipelineId: pipelineFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, stateFilter, fromAgentFilter, toAgentFilter, currencyFilter, channelFilter, pipelineFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, stateFilter, fromActorFilter, toActorFilter, currencyFilter, channelFilter, pipelineFilter, pagination.sortBy, pagination.sortOrder]);
 
   const buildFilterQuery = useCallback(() => {
     let qs = '';
     if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
-    if (fromAgentFilter && fromAgentFilter !== 'all') qs += `&fromAgentId=${fromAgentFilter}`;
-    if (toAgentFilter && toAgentFilter !== 'all') qs += `&toAgentId=${toAgentFilter}`;
+    if (fromActorFilter && fromActorFilter !== 'all') qs += `&fromActorId=${fromActorFilter}`;
+    if (toActorFilter && toActorFilter !== 'all') qs += `&toActorId=${toActorFilter}`;
     if (currencyFilter && currencyFilter !== 'all') qs += `&currencyId=${currencyFilter}`;
     if (channelFilter && channelFilter !== 'all') qs += `&channelId=${channelFilter}`;
     if (pipelineFilter && pipelineFilter !== 'all') qs += `&pipelineId=${pipelineFilter}`;
-    if (scopedAgentId) qs += `&agentId=${scopedAgentId}`;
+    if (scopedActorId) qs += `&actorId=${scopedActorId}`;
     return qs;
-  }, [stateFilter, fromAgentFilter, toAgentFilter, currencyFilter, channelFilter, pipelineFilter, scopedAgentId]);
+  }, [stateFilter, fromActorFilter, toActorFilter, currencyFilter, channelFilter, pipelineFilter, scopedActorId]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -165,7 +165,7 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, fromAgentFilter, toAgentFilter, currencyFilter, channelFilter, pipelineFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, stateFilter, fromActorFilter, toActorFilter, currencyFilter, channelFilter, pipelineFilter, fetchData]);
 
   const handleFormSubmit = async (input: CreateOrderInput) => {
     setIsSubmitting(true);
@@ -199,7 +199,7 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
   const allColumns = getOrderColumns({
     onDelete: (order) => setDeleteTarget(order),
     onSort: pagination.setSort,
-    hideAgentColumns: !!scopedAgentId,
+    hideActorColumns: !!scopedActorId,
     translations: {
       number: t('number'),
       state: t('state'),
@@ -219,10 +219,10 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
   const columnMeta = [
     { id: 'number', label: t('number') },
     { id: 'state', label: t('state') },
-    ...(!scopedAgentId
+    ...(!scopedActorId
       ? [
-          { id: 'fromAgent', label: t('from') },
-          { id: 'toAgent', label: t('to') },
+          { id: 'fromActor', label: t('from') },
+          { id: 'toActor', label: t('to') },
         ]
       : []),
     { id: 'total', label: t('total') },
@@ -234,13 +234,13 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
   const allExportFields: FieldDef[] = [
     { key: 'number', label: t('number'), extract: (r) => String(r.number ?? '') },
     { key: 'state', label: t('state'), extract: (r) => stateLabels[r.state as OrderState] ?? String(r.state) },
-    { key: 'fromAgent', label: t('from'), extract: (r) => {
-      const agent = r.fromAgent as { name: string } | null;
-      return agent?.name ?? '';
+    { key: 'fromActor', label: t('from'), extract: (r) => {
+      const actor = r.fromActor as { name: string } | null;
+      return actor?.name ?? '';
     }},
-    { key: 'toAgent', label: t('to'), extract: (r) => {
-      const agent = r.toAgent as { name: string } | null;
-      return agent?.name ?? '';
+    { key: 'toActor', label: t('to'), extract: (r) => {
+      const actor = r.toActor as { name: string } | null;
+      return actor?.name ?? '';
     }},
     { key: 'total', label: t('total'), extract: (r) => String(r.total ?? '0.00') },
     { key: 'currency', label: t('currency'), extract: (r) => {
@@ -284,22 +284,22 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
         onClear: () => setStateFilter('all'),
       });
     }
-    if (fromAgentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === fromAgentFilter);
+    if (fromActorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === fromActorFilter);
       filters.push({
-        key: 'fromAgent',
+        key: 'fromActor',
         label: t('from'),
-        displayValue: agent?.name ?? fromAgentFilter,
-        onClear: () => setFromAgentFilter('all'),
+        displayValue: actor?.name ?? fromActorFilter,
+        onClear: () => setFromActorFilter('all'),
       });
     }
-    if (toAgentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === toAgentFilter);
+    if (toActorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === toActorFilter);
       filters.push({
-        key: 'toAgent',
+        key: 'toActor',
         label: t('to'),
-        displayValue: agent?.name ?? toAgentFilter,
-        onClear: () => setToAgentFilter('all'),
+        displayValue: actor?.name ?? toActorFilter,
+        onClear: () => setToActorFilter('all'),
       });
     }
     if (currencyFilter !== 'all') {
@@ -330,7 +330,7 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
       });
     }
     return filters;
-  }, [stateFilter, fromAgentFilter, toAgentFilter, currencyFilter, channelFilter, pipelineFilter, agents, values, channels, pipelines, t]);
+  }, [stateFilter, fromActorFilter, toActorFilter, currencyFilter, channelFilter, pipelineFilter, actors, values, channels, pipelines, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -410,19 +410,19 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
             </SelectContent>
           </Select>
         </div>
-        {!scopedAgentId && (
+        {!scopedActorId && (
           <>
             <div className="space-y-1">
               <label className="text-sm font-medium">{t('from')}</label>
-              <Select value={fromAgentFilter} onValueChange={setFromAgentFilter}>
+              <Select value={fromActorFilter} onValueChange={setFromActorFilter}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('allAgents')}</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
+                  <SelectItem value="all">{t('allActors')}</SelectItem>
+                  {actors.map((actor) => (
+                    <SelectItem key={actor.id} value={actor.id}>
+                      {actor.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -430,15 +430,15 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">{t('to')}</label>
-              <Select value={toAgentFilter} onValueChange={setToAgentFilter}>
+              <Select value={toActorFilter} onValueChange={setToActorFilter}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('allAgents')}</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
+                  <SelectItem value="all">{t('allActors')}</SelectItem>
+                  {actors.map((actor) => (
+                    <SelectItem key={actor.id} value={actor.id}>
+                      {actor.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -518,7 +518,7 @@ export function OrdersDataTable({ agentId: scopedAgentId }: OrdersDataTableProps
         onOpenChange={setFormOpen}
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
-        defaultFromAgentId={scopedAgentId}
+        defaultFromActorId={scopedActorId}
       />
 
       <ConfirmDeleteDialog

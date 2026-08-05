@@ -23,8 +23,8 @@ interface OrderAddressCardProps {
   title: string;
   address: OrderAddress | null;
   editable: boolean;
-  /** Agent whose primary address seeds the "copy from agent" action. */
-  copyFromAgentId?: string;
+  /** Actor whose primary address seeds the "copy from actor" action. */
+  copyFromActorId?: string;
   onSave: (address: OrderAddressInput | null) => Promise<void>;
 }
 
@@ -34,7 +34,7 @@ export function OrderAddressCard({
   title,
   address,
   editable,
-  copyFromAgentId,
+  copyFromActorId,
   onSave,
 }: OrderAddressCardProps) {
   const t = useTranslations('orders');
@@ -54,15 +54,15 @@ export function OrderAddressCard({
     setEditing(true);
   };
 
-  const copyFromAgent = async () => {
-    if (!copyFromAgentId) return;
+  const copyFromActor = async () => {
+    if (!copyFromActorId) return;
     try {
       const addresses = await api.get<AddressResponse[]>(
-        `/agents/${copyFromAgentId}/addresses`,
+        `/actors/${copyFromActorId}/addresses`,
       );
       const source = addresses.find((a) => a.isPrimary) ?? addresses[0];
       if (!source) {
-        toast.error(t('noAgentAddress'));
+        toast.error(t('noActorAddress'));
         return;
       }
       setForm({
@@ -165,9 +165,9 @@ export function OrderAddressCard({
               >
                 {tc('cancel')}
               </Button>
-              {copyFromAgentId && (
-                <Button type="button" variant="outline" size="sm" onClick={copyFromAgent}>
-                  {t('copyFromAgent')}
+              {copyFromActorId && (
+                <Button type="button" variant="outline" size="sm" onClick={copyFromActor}>
+                  {t('copyFromActor')}
                 </Button>
               )}
               {address && (

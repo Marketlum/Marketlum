@@ -15,7 +15,7 @@ import {
 
 interface TensionColumnsTranslations {
   name: string;
-  agent: string;
+  actor: string;
   lead: string;
   score: string;
   state: string;
@@ -52,20 +52,20 @@ export function getTensionColumns({
       cell: ({ row }) => row.original.name,
     },
     {
-      id: 'agent',
-      header: translations.agent,
+      id: 'actor',
+      header: translations.actor,
       meta: { hideOnMobile: true },
       cell: ({ row }) => {
-        const agent = row.original.agent;
-        if (!agent) return '\u2014';
+        const actor = row.original.actor;
+        if (!actor) return '\u2014';
         return (
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 shrink-0 rounded overflow-hidden bg-muted/30 flex items-center justify-center">
-              {agent.image ? (
+              {actor.image ? (
                 <FileImagePreview
-                  fileId={agent.image.id}
-                  mimeType={agent.image.mimeType}
-                  alt={agent.image.originalName}
+                  fileId={actor.image.id}
+                  mimeType={actor.image.mimeType}
+                  alt={actor.image.originalName}
                   iconClassName="h-3 w-3 text-muted-foreground/50"
                   imgClassName="h-full w-full object-cover"
                 />
@@ -73,7 +73,7 @@ export function getTensionColumns({
                 <Bot className="h-3 w-3 text-muted-foreground/50" />
               )}
             </div>
-            <span>{agent.name}</span>
+            <span>{actor.name}</span>
           </div>
         );
       },

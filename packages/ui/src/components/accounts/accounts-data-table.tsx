@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import type { AccountResponse, PaginatedResponse, CreateAccountInput, PerspectiveConfig } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { useValues } from '../../hooks/use-values';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
@@ -47,9 +47,9 @@ export function AccountsDataTable() {
   const { can } = usePermissions();
   const canWrite = can('accounts', 'write');
   const { values } = useValues();
-  const { agents } = useAgents();
+  const { actors } = useActors();
   const [valueFilter, setValueFilter] = useState<string>('all');
-  const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [actorFilter, setActorFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<PaginatedResponse<AccountResponse> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ export function AccountsDataTable() {
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
     setValueFilter(config.filters?.valueId ?? 'all');
-    setAgentFilter(config.filters?.agentId ?? 'all');
+    setActorFilter(config.filters?.actorId ?? 'all');
     if (config.sort) {
       pagination.setSortDirect(config.sort.sortBy, config.sort.sortOrder);
     } else {
@@ -98,10 +98,10 @@ export function AccountsDataTable() {
     columnVisibility,
     filters: {
       ...(valueFilter !== 'all' ? { valueId: valueFilter } : {}),
-      ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
+      ...(actorFilter !== 'all' ? { actorId: actorFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, valueFilter, agentFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, valueFilter, actorFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -110,8 +110,8 @@ export function AccountsDataTable() {
       if (valueFilter && valueFilter !== 'all') {
         qs += `&valueId=${valueFilter}`;
       }
-      if (agentFilter && agentFilter !== 'all') {
-        qs += `&agentId=${agentFilter}`;
+      if (actorFilter && actorFilter !== 'all') {
+        qs += `&actorId=${actorFilter}`;
       }
       const result = await api.get<PaginatedResponse<AccountResponse>>(`/accounts?${qs}`);
       setData(result);
@@ -120,11 +120,11 @@ export function AccountsDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, valueFilter, agentFilter]);
+  }, [pagination.toQueryString, valueFilter, actorFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, valueFilter, agentFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, valueFilter, actorFilter, fetchData]);
 
   const handleCreate = async (input: CreateAccountInput) => {
     setIsSubmitting(true);
@@ -177,7 +177,7 @@ export function AccountsDataTable() {
     translations: {
       name: tc('name'),
       value: t('value'),
-      agent: t('agent'),
+      actor: t('actor'),
       balance: t('balance'),
       description: t('accountDescription'),
       created: tc('created'),
@@ -190,7 +190,7 @@ export function AccountsDataTable() {
   const columnMeta = [
     { id: 'name', label: tc('name') },
     { id: 'value', label: t('value') },
-    { id: 'agent', label: t('agent') },
+    { id: 'actor', label: t('actor') },
     { id: 'balance', label: t('balance') },
     { id: 'description', label: t('accountDescription') },
     { id: 'createdAt', label: tc('created') },
@@ -203,8 +203,8 @@ export function AccountsDataTable() {
       const v = r.value as { name?: string } | null;
       return v?.name ?? '';
     }},
-    { key: 'agent', label: t('agent'), extract: (r) => {
-      const a = r.agent as { name?: string } | null;
+    { key: 'actor', label: t('actor'), extract: (r) => {
+      const a = r.actor as { name?: string } | null;
       return a?.name ?? '';
     }},
     { key: 'balance', label: t('balance'), extract: (r) => String(r.balance ?? '') },
@@ -220,10 +220,10 @@ export function AccountsDataTable() {
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (valueFilter && valueFilter !== 'all') qs += `&valueId=${valueFilter}`;
-    if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
+    if (actorFilter && actorFilter !== 'all') qs += `&actorId=${actorFilter}`;
     const result = await api.get<PaginatedResponse<AccountResponse>>(`/accounts?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, valueFilter, agentFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, valueFilter, actorFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
@@ -239,17 +239,17 @@ export function AccountsDataTable() {
         onClear: () => setValueFilter('all'),
       });
     }
-    if (agentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === agentFilter);
+    if (actorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === actorFilter);
       filters.push({
-        key: 'agent',
-        label: t('agent'),
-        displayValue: agent?.name ?? agentFilter,
-        onClear: () => setAgentFilter('all'),
+        key: 'actor',
+        label: t('actor'),
+        displayValue: actor?.name ?? actorFilter,
+        onClear: () => setActorFilter('all'),
       });
     }
     return filters;
-  }, [valueFilter, agentFilter, t, values, agents]);
+  }, [valueFilter, actorFilter, t, values, actors]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -324,14 +324,14 @@ export function AccountsDataTable() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium">{t('agent')}</label>
-          <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <label className="text-sm font-medium">{t('actor')}</label>
+          <Select value={actorFilter} onValueChange={setActorFilter}>
             <SelectTrigger>
-              <SelectValue placeholder={t('allAgents')} />
+              <SelectValue placeholder={t('allActors')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((a) => (
+              <SelectItem value="all">{t('allActors')}</SelectItem>
+              {actors.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   {a.name}
                 </SelectItem>

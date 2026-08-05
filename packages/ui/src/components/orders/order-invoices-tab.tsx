@@ -30,8 +30,8 @@ import {
 interface LinkedInvoice {
   id: string;
   number: string;
-  fromAgent: { id: string; name: string } | null;
-  toAgent: { id: string; name: string } | null;
+  fromActor: { id: string; name: string } | null;
+  toActor: { id: string; name: string } | null;
   currency: { id: string; name: string } | null;
   order: { id: string; number: string } | null;
   total?: string;
@@ -163,8 +163,8 @@ export function OrderInvoicesTab({
                 onClick={() => router.push(`/admin/invoices/${invoice.id}`)}
               >
                 <TableCell className="font-medium">{invoice.number}</TableCell>
-                <TableCell>{invoice.fromAgent?.name ?? '—'}</TableCell>
-                <TableCell>{invoice.toAgent?.name ?? '—'}</TableCell>
+                <TableCell>{invoice.fromActor?.name ?? '—'}</TableCell>
+                <TableCell>{invoice.toActor?.name ?? '—'}</TableCell>
                 <TableCell className="tabular-nums">
                   {invoice.total ?? '0.00'} {invoice.currency?.name ?? ''}
                 </TableCell>

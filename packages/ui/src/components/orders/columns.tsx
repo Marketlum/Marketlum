@@ -17,8 +17,8 @@ export interface OrderRow {
   id: string;
   number: string;
   state: OrderState;
-  fromAgent: { id: string; name: string } | null;
-  toAgent: { id: string; name: string } | null;
+  fromActor: { id: string; name: string } | null;
+  toActor: { id: string; name: string } | null;
   currency: { id: string; name: string } | null;
   channel: { id: string; name: string } | null;
   pipeline: { id: string; name: string } | null;
@@ -73,15 +73,15 @@ interface OrderColumnsOptions {
   onDelete: (order: OrderRow) => void;
   onSort: (column: string) => void;
   translations: OrderColumnsTranslations;
-  /** Hide the agent columns when the table is scoped to one agent. */
-  hideAgentColumns?: boolean;
+  /** Hide the actor columns when the table is scoped to one actor. */
+  hideActorColumns?: boolean;
 }
 
 export function getOrderColumns({
   onDelete,
   onSort,
   translations,
-  hideAgentColumns,
+  hideActorColumns,
 }: OrderColumnsOptions): ColumnDef<OrderRow>[] {
   const columns: ColumnDef<OrderRow>[] = [
     {
@@ -111,17 +111,17 @@ export function getOrderColumns({
     },
   ];
 
-  if (!hideAgentColumns) {
+  if (!hideActorColumns) {
     columns.push(
       {
-        id: 'fromAgent',
+        id: 'fromActor',
         header: translations.from,
-        cell: ({ row }) => row.original.fromAgent?.name ?? '—',
+        cell: ({ row }) => row.original.fromActor?.name ?? '—',
       },
       {
-        id: 'toAgent',
+        id: 'toActor',
         header: translations.to,
-        cell: ({ row }) => row.original.toAgent?.name ?? '—',
+        cell: ({ row }) => row.original.toActor?.name ?? '—',
       },
     );
   }

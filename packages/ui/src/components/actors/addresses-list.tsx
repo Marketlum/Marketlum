@@ -13,13 +13,13 @@ import { api } from '../../lib/api-client';
 import { Can } from '../../permissions/can';
 
 interface AddressesListProps {
-  agentId: string;
+  actorId: string;
   addresses: AddressResponse[];
   onChanged: () => void;
 }
 
-export function AddressesList({ agentId, addresses, onChanged }: AddressesListProps) {
-  const t = useTranslations('agents');
+export function AddressesList({ actorId, addresses, onChanged }: AddressesListProps) {
+  const t = useTranslations('actors');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<AddressResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AddressResponse | null>(null);
@@ -39,10 +39,10 @@ export function AddressesList({ agentId, addresses, onChanged }: AddressesListPr
     setSubmitting(true);
     try {
       if (editing) {
-        await api.patch(`/agents/${agentId}/addresses/${editing.id}`, input);
+        await api.patch(`/actors/${actorId}/addresses/${editing.id}`, input);
         toast.success(t('addressUpdated'));
       } else {
-        await api.post(`/agents/${agentId}/addresses`, input);
+        await api.post(`/actors/${actorId}/addresses`, input);
         toast.success(t('addressCreated'));
       }
       setFormOpen(false);
@@ -57,7 +57,7 @@ export function AddressesList({ agentId, addresses, onChanged }: AddressesListPr
 
   const handleMakePrimary = async (address: AddressResponse) => {
     try {
-      await api.patch(`/agents/${agentId}/addresses/${address.id}`, { isPrimary: true });
+      await api.patch(`/actors/${actorId}/addresses/${address.id}`, { isPrimary: true });
       toast.success(t('addressUpdated'));
       onChanged();
     } catch {
@@ -69,7 +69,7 @@ export function AddressesList({ agentId, addresses, onChanged }: AddressesListPr
     if (!deleteTarget) return;
     setSubmitting(true);
     try {
-      await api.delete(`/agents/${agentId}/addresses/${deleteTarget.id}`);
+      await api.delete(`/actors/${actorId}/addresses/${deleteTarget.id}`);
       toast.success(t('addressDeleted'));
       setDeleteTarget(null);
       onChanged();
@@ -82,7 +82,7 @@ export function AddressesList({ agentId, addresses, onChanged }: AddressesListPr
 
   return (
     <div className="space-y-3">
-      <Can resource="agents" action="write">
+      <Can resource="actors" action="write">
         <div className="flex justify-end">
           <Button size="sm" onClick={handleAdd}>
             <Plus className="mr-1.5 h-3.5 w-3.5" />

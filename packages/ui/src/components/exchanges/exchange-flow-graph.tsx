@@ -31,12 +31,12 @@ interface GraphNode extends d3.SimulationNodeDatum {
 }
 
 interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
-  fromAgentId: string;
-  toAgentId: string;
+  fromActorId: string;
+  toActorId: string;
   valueType: string;
   flowCount: number;
-  fromAgentName: string;
-  toAgentName: string;
+  fromActorName: string;
+  toActorName: string;
 }
 
 // --- Constants ---
@@ -74,44 +74,44 @@ function buildGraph(
 ): { nodes: GraphNode[]; links: GraphLink[] } {
   if (flows.length === 0) return { nodes: [], links: [] };
 
-  // Aggregate flows by (fromAgent, toAgent, valueType)
+  // Aggregate flows by (fromActor, toActor, valueType)
   const edgeMap = new Map<string, GraphLink>();
-  const agentMap = new Map<string, { id: string; name: string; type: string }>();
+  const actorMap = new Map<string, { id: string; name: string; type: string }>();
   const connectionCounts = new Map<string, number>();
 
   for (const flow of flows) {
     const valueType = flow.value?.type ?? 'unknown';
-    const key = `${flow.fromAgent.id}::${flow.toAgent.id}::${valueType}`;
+    const key = `${flow.fromActor.id}::${flow.toActor.id}::${valueType}`;
 
-    agentMap.set(flow.fromAgent.id, flow.fromAgent);
-    agentMap.set(flow.toAgent.id, flow.toAgent);
+    actorMap.set(flow.fromActor.id, flow.fromActor);
+    actorMap.set(flow.toActor.id, flow.toActor);
 
-    connectionCounts.set(flow.fromAgent.id, (connectionCounts.get(flow.fromAgent.id) ?? 0) + 1);
-    connectionCounts.set(flow.toAgent.id, (connectionCounts.get(flow.toAgent.id) ?? 0) + 1);
+    connectionCounts.set(flow.fromActor.id, (connectionCounts.get(flow.fromActor.id) ?? 0) + 1);
+    connectionCounts.set(flow.toActor.id, (connectionCounts.get(flow.toActor.id) ?? 0) + 1);
 
     const existing = edgeMap.get(key);
     if (existing) {
       existing.flowCount += 1;
     } else {
       edgeMap.set(key, {
-        source: flow.fromAgent.id,
-        target: flow.toAgent.id,
-        fromAgentId: flow.fromAgent.id,
-        toAgentId: flow.toAgent.id,
+        source: flow.fromActor.id,
+        target: flow.toActor.id,
+        fromActorId: flow.fromActor.id,
+        toActorId: flow.toActor.id,
         valueType,
         flowCount: 1,
-        fromAgentName: flow.fromAgent.name,
-        toAgentName: flow.toAgent.name,
+        fromActorName: flow.fromActor.name,
+        toActorName: flow.toActor.name,
       });
     }
   }
 
   const nodes: GraphNode[] = [];
-  for (const [id, agent] of agentMap) {
+  for (const [id, actor] of actorMap) {
     nodes.push({
       id,
-      name: agent.name,
-      type: agent.type,
+      name: actor.name,
+      type: actor.type,
       connectionCount: connectionCounts.get(id) ?? 0,
     });
   }
@@ -125,7 +125,7 @@ function buildGraph(
 
 export function ExchangeFlowGraph() {
   const t = useTranslations('exchanges');
-  const ta = useTranslations('agents');
+  const ta = useTranslations('actors');
   const tv = useTranslations('values');
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -235,16 +235,16 @@ export function ExchangeFlowGraph() {
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collide', d3.forceCollide().radius(50));
 
-    // Compute offsets for parallel edges between same agent pair
+    // Compute offsets for parallel edges between same actor pair
     const pairEdgeCounts = new Map<string, number>();
     const pairEdgeIndex = new Map<string, number>();
     for (const link of links) {
-      const pairKey = [link.fromAgentId, link.toAgentId].sort().join('::');
+      const pairKey = [link.fromActorId, link.toActorId].sort().join('::');
       pairEdgeCounts.set(pairKey, (pairEdgeCounts.get(pairKey) ?? 0) + 1);
     }
     const edgeOffsets: number[] = [];
     for (const link of links) {
-      const pairKey = [link.fromAgentId, link.toAgentId].sort().join('::');
+      const pairKey = [link.fromActorId, link.toActorId].sort().join('::');
       const total = pairEdgeCounts.get(pairKey) ?? 1;
       const idx = pairEdgeIndex.get(pairKey) ?? 0;
       pairEdgeIndex.set(pairKey, idx + 1);
@@ -269,7 +269,7 @@ export function ExchangeFlowGraph() {
         tooltip.style.left = `${event.clientX + 12}px`;
         tooltip.style.top = `${event.clientY - 12}px`;
         tooltip.innerHTML = `
-          <div class="font-semibold">${d.fromAgentName} → ${d.toAgentName}</div>
+          <div class="font-semibold">${d.fromActorName} → ${d.toActorName}</div>
           <div class="text-xs text-muted-foreground">${d.valueType}</div>
           <div class="text-xs mt-1">${d.flowCount} ${t('flowCount')}</div>
         `;
@@ -527,7 +527,7 @@ export function ExchangeFlowGraph() {
       >
         <svg ref={svgRef} className="h-full w-full" />
 
-        {/* Agent type legend */}
+        {/* Actor type legend */}
         <div className="absolute bottom-3 left-3 rounded-md border bg-background/90 p-2 text-xs backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#93c5fd' }} />

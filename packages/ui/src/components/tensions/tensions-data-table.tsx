@@ -10,7 +10,7 @@ import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
 import { useDebounce } from '../../hooks/use-debounce';
 import { usePerspectives } from '../../hooks/use-perspectives';
-import { useAgents } from '../../hooks/use-agents';
+import { useActors } from '../../hooks/use-actors';
 import { useUsers } from '../../hooks/use-users';
 import { DataTable } from '../shared/data-table';
 import { DataTablePagination } from '../shared/data-table-pagination';
@@ -47,9 +47,9 @@ export function TensionsDataTable() {
   const isMobile = useIsMobile();
   const { can } = usePermissions();
   const canWrite = can('tensions', 'write');
-  const { agents, refresh: refreshAgents } = useAgents();
+  const { actors, refresh: refreshActors } = useActors();
   const { users } = useUsers();
-  const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [actorFilter, setActorFilter] = useState<string>('all');
   const [leadFilter, setLeadFilter] = useState<string>('all');
   const [stateFilter, setStateFilter] = useState<string>('all');
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
@@ -63,7 +63,7 @@ export function TensionsDataTable() {
 
   const onApplyPerspective = useCallback((config: PerspectiveConfig) => {
     setColumnVisibility(config.columnVisibility ?? {});
-    setAgentFilter(config.filters?.agentId ?? 'all');
+    setActorFilter(config.filters?.actorId ?? 'all');
     setLeadFilter(config.filters?.leadUserId ?? 'all');
     setStateFilter(config.filters?.state ?? 'all');
     if (config.sort) {
@@ -100,18 +100,18 @@ export function TensionsDataTable() {
   const getCurrentConfig = useCallback((): PerspectiveConfig => ({
     columnVisibility,
     filters: {
-      ...(agentFilter !== 'all' ? { agentId: agentFilter } : {}),
+      ...(actorFilter !== 'all' ? { actorId: actorFilter } : {}),
       ...(leadFilter !== 'all' ? { leadUserId: leadFilter } : {}),
       ...(stateFilter !== 'all' ? { state: stateFilter } : {}),
     },
     sort: pagination.sortBy ? { sortBy: pagination.sortBy, sortOrder: pagination.sortOrder } : null,
-  }), [columnVisibility, agentFilter, leadFilter, stateFilter, pagination.sortBy, pagination.sortOrder]);
+  }), [columnVisibility, actorFilter, leadFilter, stateFilter, pagination.sortBy, pagination.sortOrder]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       let qs = pagination.toQueryString();
-      if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
+      if (actorFilter && actorFilter !== 'all') qs += `&actorId=${actorFilter}`;
       if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
       if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
       const result = await api.get<PaginatedResponse<TensionResponse>>(`/tensions/search?${qs}`);
@@ -121,11 +121,11 @@ export function TensionsDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, agentFilter, leadFilter, stateFilter]);
+  }, [pagination.toQueryString, actorFilter, leadFilter, stateFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, agentFilter, leadFilter, stateFilter, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, actorFilter, leadFilter, stateFilter, fetchData]);
 
   const handleOpenCreate = () => {
     setEditingTension(null);
@@ -183,7 +183,7 @@ export function TensionsDataTable() {
     onSort: pagination.setSort,
     translations: {
       name: tc('name'),
-      agent: t('agent'),
+      actor: t('actor'),
       lead: t('lead'),
       score: t('score'),
       state: t('state'),
@@ -200,7 +200,7 @@ export function TensionsDataTable() {
 
   const columnMeta = [
     { id: 'name', label: tc('name') },
-    { id: 'agent', label: t('agent') },
+    { id: 'actor', label: t('actor') },
     { id: 'lead', label: t('lead') },
     { id: 'score', label: t('score') },
     { id: 'state', label: t('state') },
@@ -210,9 +210,9 @@ export function TensionsDataTable() {
 
   const allExportFields: FieldDef[] = [
     { key: 'name', label: tc('name'), extract: (r) => String(r.name ?? '') },
-    { key: 'agent', label: t('agent'), extract: (r) => {
-      const agent = r.agent as { name: string } | null;
-      return agent?.name ?? '';
+    { key: 'actor', label: t('actor'), extract: (r) => {
+      const actor = r.actor as { name: string } | null;
+      return actor?.name ?? '';
     }},
     { key: 'lead', label: t('lead'), extract: (r) => {
       const lead = r.lead as { name: string } | null;
@@ -232,25 +232,25 @@ export function TensionsDataTable() {
     let qs = 'page=1&limit=10000';
     if (pagination.search) qs += `&search=${encodeURIComponent(pagination.search)}`;
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
-    if (agentFilter && agentFilter !== 'all') qs += `&agentId=${agentFilter}`;
+    if (actorFilter && actorFilter !== 'all') qs += `&actorId=${actorFilter}`;
     if (leadFilter && leadFilter !== 'all') qs += `&leadUserId=${leadFilter}`;
     if (stateFilter && stateFilter !== 'all') qs += `&state=${stateFilter}`;
     const result = await api.get<PaginatedResponse<TensionResponse>>(`/tensions/search?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, agentFilter, leadFilter, stateFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, actorFilter, leadFilter, stateFilter]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = mergeColumnVisibility(columnVisibility, mobileVisibility);
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = [];
-    if (agentFilter !== 'all') {
-      const agent = agents.find((a) => a.id === agentFilter);
+    if (actorFilter !== 'all') {
+      const actor = actors.find((a) => a.id === actorFilter);
       filters.push({
-        key: 'agent',
-        label: t('agent'),
-        displayValue: agent?.name ?? agentFilter,
-        onClear: () => setAgentFilter('all'),
+        key: 'actor',
+        label: t('actor'),
+        displayValue: actor?.name ?? actorFilter,
+        onClear: () => setActorFilter('all'),
       });
     }
     if (leadFilter !== 'all') {
@@ -274,7 +274,7 @@ export function TensionsDataTable() {
       });
     }
     return filters;
-  }, [agentFilter, leadFilter, stateFilter, agents, users, t]);
+  }, [actorFilter, leadFilter, stateFilter, actors, users, t]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -339,16 +339,16 @@ export function TensionsDataTable() {
 
       <DataTableFilterSheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
         <div className="space-y-1">
-          <label className="text-sm font-medium">{t('agent')}</label>
-          <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <label className="text-sm font-medium">{t('actor')}</label>
+          <Select value={actorFilter} onValueChange={setActorFilter}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allAgents')}</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
+              <SelectItem value="all">{t('allActors')}</SelectItem>
+              {actors.map((actor) => (
+                <SelectItem key={actor.id} value={actor.id}>
+                  {actor.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -409,9 +409,9 @@ export function TensionsDataTable() {
         onOpenChange={setFormOpen}
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
-        agents={agents}
+        actors={actors}
         users={users}
-        onAgentsRefresh={refreshAgents}
+        onActorsRefresh={refreshActors}
       />
 
       <TensionFormDialog
@@ -420,9 +420,9 @@ export function TensionsDataTable() {
         onSubmit={handleFormSubmit}
         tension={editingTension}
         isSubmitting={isSubmitting}
-        agents={agents}
+        actors={actors}
         users={users}
-        onAgentsRefresh={refreshAgents}
+        onActorsRefresh={refreshActors}
       />
 
       <ConfirmDeleteDialog

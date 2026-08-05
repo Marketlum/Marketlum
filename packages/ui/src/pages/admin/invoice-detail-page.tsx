@@ -9,7 +9,7 @@ import type {
   InvoiceResponse,
   CreateInvoiceInput,
   SystemSettingsPresentationCurrencyResponse,
-  AgentResponse,
+  ActorResponse,
 } from '@marketlum/shared';
 import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
@@ -38,12 +38,12 @@ import {
 import { formatDay, formatMoney } from '../../lib/format';
 
 interface AddressBlockProps {
-  agent: AgentResponse;
+  actor: ActorResponse;
 }
 
-function AddressBlock({ agent }: AddressBlockProps) {
+function AddressBlock({ actor }: AddressBlockProps) {
   const primary =
-    agent.addresses.find((a) => a.isPrimary) ?? agent.addresses[0] ?? null;
+    actor.addresses.find((a) => a.isPrimary) ?? actor.addresses[0] ?? null;
   if (!primary) return null;
   return (
     <div className="mt-1 text-sm text-muted-foreground leading-relaxed">
@@ -72,8 +72,8 @@ export function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<InvoiceResponse | null>(null);
   const [baseSetting, setBaseSetting] =
     useState<SystemSettingsPresentationCurrencyResponse | null>(null);
-  const [fromAgent, setFromAgent] = useState<AgentResponse | null>(null);
-  const [toAgent, setToAgent] = useState<AgentResponse | null>(null);
+  const [fromActor, setFromActor] = useState<ActorResponse | null>(null);
+  const [toActor, setToActor] = useState<ActorResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -92,13 +92,13 @@ export function InvoiceDetailPage() {
           .catch(() => null),
       ]);
       const [from, to] = await Promise.all([
-        api.get<AgentResponse>(`/agents/${invoiceResult.fromAgent.id}`).catch(() => null),
-        api.get<AgentResponse>(`/agents/${invoiceResult.toAgent.id}`).catch(() => null),
+        api.get<ActorResponse>(`/actors/${invoiceResult.fromActor.id}`).catch(() => null),
+        api.get<ActorResponse>(`/actors/${invoiceResult.toActor.id}`).catch(() => null),
       ]);
       setInvoice(invoiceResult);
       setBaseSetting(base);
-      setFromAgent(from);
-      setToAgent(to);
+      setFromActor(from);
+      setToActor(to);
       setNotFound(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -167,8 +167,8 @@ export function InvoiceDetailPage() {
 
   const isMirror = !!invoice.sourceInvoice;
   const invoiceCurrency = invoice.currency;
-  const fromCurrency = fromAgent?.functionalCurrency ?? null;
-  const toCurrency = toAgent?.functionalCurrency ?? null;
+  const fromCurrency = fromActor?.functionalCurrency ?? null;
+  const toCurrency = toActor?.functionalCurrency ?? null;
   const presentationCurrency = baseSetting?.presentationCurrency ?? null;
   const showCrossCurrencyColumns =
     presentationCurrency !== null &&
@@ -177,15 +177,15 @@ export function InvoiceDetailPage() {
   const subtotals: Array<{ label: string; amount: string | null; currencyName: string }> = [];
   if (fromCurrency && fromCurrency.id !== invoiceCurrency.id) {
     subtotals.push({
-      label: t('inAgentBooks', { name: invoice.fromAgent.name }),
-      amount: invoice.fromAgentTotal,
+      label: t('inActorBooks', { name: invoice.fromActor.name }),
+      amount: invoice.fromActorTotal,
       currencyName: fromCurrency.name,
     });
   }
   if (toCurrency && toCurrency.id !== invoiceCurrency.id) {
     subtotals.push({
-      label: t('inAgentBooks', { name: invoice.toAgent.name }),
-      amount: invoice.toAgentTotal,
+      label: t('inActorBooks', { name: invoice.toActor.name }),
+      amount: invoice.toActorTotal,
       currencyName: toCurrency.name,
     });
   }
@@ -252,7 +252,7 @@ export function InvoiceDetailPage() {
           <div className="mt-4 rounded-md border border-blue-300 bg-blue-50 p-3 text-sm dark:border-blue-800 dark:bg-blue-950">
             {t('mirrorBanner', {
               number: invoice.sourceInvoice.number,
-              agent: invoice.sourceInvoice.fromAgent.name,
+              actor: invoice.sourceInvoice.fromActor.name,
             })}{' '}
             <Link
               href={`/admin/invoices/${invoice.sourceInvoice.id}`}
@@ -292,15 +292,15 @@ export function InvoiceDetailPage() {
                 <span className="text-right">{formatDay(invoice.issuedAt)}</span>
                 <span className="text-muted-foreground">{t('dueAt')}</span>
                 <span className="text-right">{formatDay(invoice.dueAt)}</span>
-                {invoice.onBehalfOfAgent && (
+                {invoice.onBehalfOfActor && (
                   <>
                     <span className="text-muted-foreground">{t('onBehalfOf')}</span>
                     <span className="text-right">
                       <Link
-                        href={`/admin/agents/${invoice.onBehalfOfAgent.id}`}
+                        href={`/admin/actors/${invoice.onBehalfOfActor.id}`}
                         className="hover:underline print:no-underline"
                       >
-                        {invoice.onBehalfOfAgent.name}
+                        {invoice.onBehalfOfActor.name}
                       </Link>
                     </span>
                   </>
@@ -331,12 +331,12 @@ export function InvoiceDetailPage() {
                 {t('billedBy')}
               </div>
               <Link
-                href={`/admin/agents/${invoice.fromAgent.id}`}
+                href={`/admin/actors/${invoice.fromActor.id}`}
                 className="font-semibold text-foreground hover:underline print:no-underline"
               >
-                {invoice.fromAgent.name}
+                {invoice.fromActor.name}
               </Link>
-              {fromAgent && <AddressBlock agent={fromAgent} />}
+              {fromActor && <AddressBlock actor={fromActor} />}
               {fromCurrency && (
                 <div className="mt-2 text-xs text-muted-foreground">
                   {t('functionalCurrencyLabel')}: {fromCurrency.name}
@@ -348,12 +348,12 @@ export function InvoiceDetailPage() {
                 {t('billTo')}
               </div>
               <Link
-                href={`/admin/agents/${invoice.toAgent.id}`}
+                href={`/admin/actors/${invoice.toActor.id}`}
                 className="font-semibold text-foreground hover:underline print:no-underline"
               >
-                {invoice.toAgent.name}
+                {invoice.toActor.name}
               </Link>
-              {toAgent && <AddressBlock agent={toAgent} />}
+              {toActor && <AddressBlock actor={toActor} />}
               {toCurrency && (
                 <div className="mt-2 text-xs text-muted-foreground">
                   {t('functionalCurrencyLabel')}: {toCurrency.name}

@@ -20,7 +20,7 @@ interface AddressCardProps {
 }
 
 export function AddressCard({ address, onEdit, onDelete, onMakePrimary }: AddressCardProps) {
-  const t = useTranslations('agents');
+  const t = useTranslations('actors');
   const tc = useTranslations('common');
 
   return (
@@ -43,7 +43,7 @@ export function AddressCard({ address, onEdit, onDelete, onMakePrimary }: Addres
         </div>
         <div className="text-sm text-muted-foreground">{address.country.name}</div>
       </div>
-      <Can resource="agents" action="write">
+      <Can resource="actors" action="write">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">

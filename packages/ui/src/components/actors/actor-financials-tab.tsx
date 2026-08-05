@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Settings2 } from 'lucide-react';
-import type { AgentFinancialsResponse } from '@marketlum/shared';
+import type { ActorFinancialsResponse } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Can } from '../../permissions/can';
@@ -14,30 +14,30 @@ import { FinancialsBreakdownTable } from '../financials/financials-breakdown-tab
 import { FinancialsEmptyStates } from '../financials/financials-empty-states';
 import type { FinancialsView } from '../financials/financials-view';
 
-interface AgentFinancialsTabProps {
-  agentId: string;
-  /** Opens the agent edit dialog so a functional currency can be set. */
+interface ActorFinancialsTabProps {
+  actorId: string;
+  /** Opens the actor edit dialog so a functional currency can be set. */
   onSetCurrency: () => void;
 }
 
-/** Agent P&L (spec 016): issued invoices as revenue, received as expense,
- * in the agent's functional currency. With the consolidated toggle (spec
+/** Actor P&L (spec 016): issued invoices as revenue, received as expense,
+ * in the actor's functional currency. With the consolidated toggle (spec
  * 022) the whole subtree is included and intercompany internal invoices are
  * eliminated. */
-export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTabProps) {
-  const t = useTranslations('agents.financials');
+export function ActorFinancialsTab({ actorId, onSetCurrency }: ActorFinancialsTabProps) {
+  const t = useTranslations('actors.financials');
   const tc = useTranslations('common');
   const [year, setYear] = useState(() => new Date().getUTCFullYear());
   const [consolidated, setConsolidated] = useState(false);
   const [hasDescendants, setHasDescendants] = useState(false);
-  const [financials, setFinancials] = useState<AgentFinancialsResponse | null>(null);
+  const [financials, setFinancials] = useState<ActorFinancialsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchFinancials = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await api.get<AgentFinancialsResponse>(
-        `/agents/${agentId}/financials?year=${year}${consolidated ? '&consolidated=true' : ''}`,
+      const result = await api.get<ActorFinancialsResponse>(
+        `/actors/${actorId}/financials?year=${year}${consolidated ? '&consolidated=true' : ''}`,
       );
       setFinancials(result);
     } catch {
@@ -45,19 +45,19 @@ export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTa
     } finally {
       setLoading(false);
     }
-  }, [agentId, year, consolidated]);
+  }, [actorId, year, consolidated]);
 
   useEffect(() => {
     fetchFinancials();
   }, [fetchFinancials]);
 
-  // The consolidated toggle only makes sense for agents with sub-agents.
+  // The consolidated toggle only makes sense for actors with sub-actors.
   useEffect(() => {
     api
-      .get<unknown[]>(`/agents/${agentId}/children`)
+      .get<unknown[]>(`/actors/${actorId}/children`)
       .then((children) => setHasDescendants(children.length > 0))
       .catch(() => setHasDescendants(false));
-  }, [agentId]);
+  }, [actorId]);
 
   if (loading && !financials) {
     return (
@@ -108,7 +108,7 @@ export function AgentFinancialsTab({ agentId, onSetCurrency }: AgentFinancialsTa
           title: t('noCurrencyTitle'),
           body: t('noCurrencyBody'),
           action: (
-            <Can resource="agents" action="write">
+            <Can resource="actors" action="write">
               <Button variant="outline" size="sm" onClick={onSetCurrency}>
                 <Settings2 className="mr-1 h-3.5 w-3.5" />
                 {t('noCurrencyAction')}
