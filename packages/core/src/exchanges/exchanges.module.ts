@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Exchange } from './entities/exchange.entity';
 import { ExchangeParty } from './entities/exchange-party.entity';
 import { ExchangeFlow } from './entities/exchange-flow.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
@@ -23,7 +23,7 @@ import { ExchangeFlowsController } from './exchange-flows.controller';
       Exchange,
       ExchangeParty,
       ExchangeFlow,
-      Agent,
+      Actor,
       Value,
       ValueInstance,
       ValueStream,

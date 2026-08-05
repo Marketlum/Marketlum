@@ -9,7 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { OrderState } from '@marketlum/shared';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 import { Value } from '../../values/entities/value.entity';
 import { Channel } from '../../channels/channel.entity';
 import { Pipeline } from '../../pipelines/entities/pipeline.entity';
@@ -35,19 +35,19 @@ export class Order {
   @Column({ type: 'enum', enum: OrderState, default: OrderState.DRAFT })
   state: OrderState;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'fromAgentId' })
-  fromAgent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'fromActorId' })
+  fromActor: Actor;
 
   @Column({ type: 'uuid' })
-  fromAgentId: string;
+  fromActorId: string;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'toAgentId' })
-  toAgent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'toActorId' })
+  toActor: Actor;
 
   @Column({ type: 'uuid' })
-  toAgentId: string;
+  toActorId: string;
 
   @ManyToOne(() => Value, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'currencyId' })

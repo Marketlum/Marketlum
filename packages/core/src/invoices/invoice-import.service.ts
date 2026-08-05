@@ -23,7 +23,7 @@ import {
   InvoiceExtractionParseError,
 } from '../ai/anthropic.client';
 import { FilesService } from '../files/files.service';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { Value } from '../values/entities/value.entity';
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -37,8 +37,8 @@ export class InvoiceImportService {
     @Inject(ANTHROPIC_CLIENT)
     private readonly anthropic: AnthropicClient,
     private readonly filesService: FilesService,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(Value)
     private readonly valueRepository: Repository<Value>,
   ) {}
@@ -110,8 +110,8 @@ export class InvoiceImportService {
     });
 
     // 5. Resolve names (case-insensitive trimmed exact match)
-    const fromAgentId = await this.findAgentByName(extracted.fromAgent.name);
-    const toAgentId = await this.findAgentByName(extracted.toAgent.name);
+    const fromActorId = await this.findActorByName(extracted.fromActor.name);
+    const toActorId = await this.findActorByName(extracted.toActor.name);
     const currencyId = await this.findValueByName(extracted.currency.name);
 
     const itemsWithValue = await Promise.all(
@@ -133,11 +133,11 @@ export class InvoiceImportService {
 
     // 6. Compose warnings
     const warnings: string[] = [];
-    if (fromAgentId === null) {
-      warnings.push(`From agent "${extracted.fromAgent.name}" was not found.`);
+    if (fromActorId === null) {
+      warnings.push(`From actor "${extracted.fromActor.name}" was not found.`);
     }
-    if (toAgentId === null) {
-      warnings.push(`To agent "${extracted.toAgent.name}" was not found.`);
+    if (toActorId === null) {
+      warnings.push(`To actor "${extracted.toActor.name}" was not found.`);
     }
     if (currencyId === null) {
       warnings.push(`Currency "${extracted.currency.name}" was not found.`);
@@ -165,8 +165,8 @@ export class InvoiceImportService {
         number: extracted.number,
         issuedAt: extracted.issuedAt,
         dueAt: extracted.dueAt,
-        fromAgent: { name: extracted.fromAgent.name, id: fromAgentId },
-        toAgent: { name: extracted.toAgent.name, id: toAgentId },
+        fromActor: { name: extracted.fromActor.name, id: fromActorId },
+        toActor: { name: extracted.toActor.name, id: toActorId },
         currency: { name: extracted.currency.name, id: currencyId },
         items: itemsWithValue,
         notes: extracted.notes,
@@ -175,9 +175,9 @@ export class InvoiceImportService {
     };
   }
 
-  private async findAgentByName(name: string): Promise<string | null> {
+  private async findActorByName(name: string): Promise<string | null> {
     if (!name || !name.trim()) return null;
-    const row = await this.agentRepository.findOne({
+    const row = await this.actorRepository.findOne({
       where: { name: ILike(name.trim()) },
     });
     return row ? row.id : null;

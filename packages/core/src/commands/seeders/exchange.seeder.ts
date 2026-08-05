@@ -4,7 +4,7 @@ import { ExchangesService } from '../../exchanges/exchanges.service';
 import { ExchangeFlowsService } from '../../exchanges/exchange-flows.service';
 
 interface ExchangeDeps {
-  agents: Array<{ id: string; name: string }>;
+  actors: Array<{ id: string; name: string }>;
   values: Array<{ id: string; name: string }>;
   valueStreams: { all: Array<{ id: string; code: string }> };
   channels: { all: Array<{ id: string }> };
@@ -16,8 +16,8 @@ interface ExchangeDeps {
 interface ExchangeSeed {
   name: string;
   purpose: string;
-  sellerAgent: string;        // agent.name — provides the product/service/right
-  buyerAgent: string;         // agent.name — pays in currency
+  sellerActor: string;        // actor.name — provides the product/service/right
+  buyerActor: string;         // actor.name — pays in currency
   productValue: string;       // value.name being transferred from seller to buyer
   productQuantity: string;    // e.g. '10000.00'
   paymentCurrency: string;    // value.name of the currency
@@ -32,8 +32,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Battery Cell supply — TechNova Q3 order',
     purpose: 'Long-term cell offtake for TechNova pack assembly line',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'TechNova Solutions',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'TechNova Solutions',
     productValue: 'Battery Cell',
     productQuantity: '10000.00',
     paymentCurrency: 'EUR',
@@ -44,8 +44,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Battery Module pilot delivery',
     purpose: 'Pilot batch for TechNova prototype validation',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'TechNova Solutions',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'TechNova Solutions',
     productValue: 'Battery Module',
     productQuantity: '200.00',
     paymentCurrency: 'EUR',
@@ -56,8 +56,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Battery Pack fleet trial — GreenLeaf',
     purpose: 'Fleet trial packs for GreenLeaf demonstration program',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'GreenLeaf Partners',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'GreenLeaf Partners',
     productValue: 'Battery Pack',
     productQuantity: '50.00',
     paymentCurrency: 'EUR',
@@ -67,8 +67,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Industrial Storage Cabinet — factory deployment',
     purpose: 'Behind-the-meter cabinets for AutoFlow factory peak-shaving',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'AutoFlow Bot',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'AutoFlow Bot',
     productValue: 'Industrial Storage Cabinet',
     productQuantity: '4.00',
     paymentCurrency: 'EUR',
@@ -79,8 +79,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Grid-Scale Storage Array — utility deal',
     purpose: 'First commercial grid-scale block for AutoFlow utility customer',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'AutoFlow Bot',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'AutoFlow Bot',
     productValue: 'Grid-Scale Storage Array',
     productQuantity: '1.00',
     paymentCurrency: 'USD',
@@ -90,8 +90,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Site Installation engagement — AutoFlow',
     purpose: 'Turnkey installation of grid-scale block at customer site',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'AutoFlow Bot',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'AutoFlow Bot',
     productValue: 'Site Installation & Commissioning',
     productQuantity: '1.00',
     paymentCurrency: 'EUR',
@@ -101,8 +101,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'BMS Firmware OEM license — Acme platform',
     purpose: 'Per-pack BMS firmware license for the next 12 months of production',
-    sellerAgent: 'TechNova Solutions',
-    buyerAgent: 'Acme Corp',
+    sellerActor: 'TechNova Solutions',
+    buyerActor: 'Acme Corp',
     productValue: 'BMS Firmware License',
     productQuantity: '10000.00',
     paymentCurrency: 'USD',
@@ -113,8 +113,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Cathode Patent licensing — TechNova',
     purpose: 'Annual field-of-use license to the proprietary NMC811 process',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'TechNova Solutions',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'TechNova Solutions',
     productValue: 'Cathode Chemistry Patent Family',
     productQuantity: '1.00',
     paymentCurrency: 'USD',
@@ -124,8 +124,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Cathode Material supply contract',
     purpose: 'Quarterly delivery of NMC811 cathode powder',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'TechNova Solutions',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'TechNova Solutions',
     productValue: 'Cathode Material',
     productQuantity: '5000.00',
     paymentCurrency: 'USD',
@@ -136,8 +136,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Pack Cooling System sub-supply',
     purpose: 'Cold plates and pump assemblies for TechNova pack line',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'TechNova Solutions',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'TechNova Solutions',
     productValue: 'Pack Cooling System',
     productQuantity: '200.00',
     paymentCurrency: 'EUR',
@@ -147,8 +147,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'End-of-Life Recycling contract',
     purpose: 'Take-back and material recovery for Acme retired packs',
-    sellerAgent: 'GreenLeaf Partners',
-    buyerAgent: 'Acme Corp',
+    sellerActor: 'GreenLeaf Partners',
+    buyerActor: 'Acme Corp',
     productValue: 'End-of-Life Recycling',
     productQuantity: '1.00',
     paymentCurrency: 'EUR',
@@ -158,8 +158,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Recycled Cathode buyback',
     purpose: 'GreenLeaf-recovered cathode powder reintroduced into Acme line',
-    sellerAgent: 'GreenLeaf Partners',
-    buyerAgent: 'Acme Corp',
+    sellerActor: 'GreenLeaf Partners',
+    buyerActor: 'Acme Corp',
     productValue: 'Recycled Cathode Material',
     productQuantity: '2000.00',
     paymentCurrency: 'EUR',
@@ -170,8 +170,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Cell Chemistry Consulting engagement',
     purpose: 'Independent cycle-life modeling for the next-gen chemistry',
-    sellerAgent: 'Sarah Palmer',
-    buyerAgent: 'Acme Corp',
+    sellerActor: 'Sarah Palmer',
+    buyerActor: 'Acme Corp',
     productValue: 'Cell Chemistry Consulting',
     productQuantity: '80.00',
     paymentCurrency: 'USD',
@@ -182,8 +182,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Installer Certification — James Liu',
     purpose: 'Five-seat certification block for the freelance install crew',
-    sellerAgent: 'TechNova Solutions',
-    buyerAgent: 'James Liu',
+    sellerActor: 'TechNova Solutions',
+    buyerActor: 'James Liu',
     productValue: 'Installer Certification Course',
     productQuantity: '5.00',
     paymentCurrency: 'USD',
@@ -194,8 +194,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Annual Inspection — Acme deployed fleet',
     purpose: 'Annual inspection sweep across the deployed cabinet fleet',
-    sellerAgent: 'James Liu',
-    buyerAgent: 'Acme Corp',
+    sellerActor: 'James Liu',
+    buyerActor: 'Acme Corp',
     productValue: 'Annual Inspection',
     productQuantity: '1.00',
     paymentCurrency: 'EUR',
@@ -205,8 +205,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Grid Operator Connection Permit transfer',
     purpose: 'Permit assignment to the new operator of the AutoFlow site',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'AutoFlow Bot',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'AutoFlow Bot',
     productValue: 'Grid Operator Connection Permit',
     productQuantity: '1.00',
     paymentCurrency: 'EUR',
@@ -217,8 +217,8 @@ const EXCHANGES: ExchangeSeed[] = [
   {
     name: 'Performance Warranty enrollment',
     purpose: 'Five-year throughput warranty on the AutoFlow utility block',
-    sellerAgent: 'Acme Corp',
-    buyerAgent: 'AutoFlow Bot',
+    sellerActor: 'Acme Corp',
+    buyerActor: 'AutoFlow Bot',
     productValue: 'Performance Warranty Service',
     productQuantity: '1.00',
     paymentCurrency: 'USD',
@@ -232,14 +232,14 @@ export async function seedExchanges(
   flowsService: ExchangeFlowsService,
   deps: ExchangeDeps,
 ) {
-  const agentsByName = new Map(deps.agents.map((a) => [a.name, a]));
+  const actorsByName = new Map(deps.actors.map((a) => [a.name, a]));
   const valuesByName = new Map(deps.values.map((v) => [v.name, v]));
   const valueStreamsByCode = new Map(deps.valueStreams.all.map((vs) => [vs.code, vs]));
 
-  const lookupAgent = (name: string) => {
-    const agent = agentsByName.get(name);
-    if (!agent) throw new Error(`Exchange seeder: missing agent "${name}"`);
-    return agent;
+  const lookupActor = (name: string) => {
+    const actor = actorsByName.get(name);
+    if (!actor) throw new Error(`Exchange seeder: missing actor "${name}"`);
+    return actor;
   };
   const lookupValue = (name: string) => {
     const value = valuesByName.get(name);
@@ -256,8 +256,8 @@ export async function seedExchanges(
 
   for (let i = 0; i < EXCHANGES.length; i++) {
     const data = EXCHANGES[i];
-    const seller = lookupAgent(data.sellerAgent);
-    const buyer = lookupAgent(data.buyerAgent);
+    const seller = lookupActor(data.sellerActor);
+    const buyer = lookupActor(data.buyerActor);
     const product = lookupValue(data.productValue);
     const currency = lookupValue(data.paymentCurrency);
     const valueStream = lookupValueStream(data.valueStreamCode);
@@ -279,22 +279,22 @@ export async function seedExchanges(
       leadUserId: user.id,
       tensionId: tension.id,
       parties: [
-        { agentId: seller.id, role: 'Seller' },
-        { agentId: buyer.id, role: 'Buyer' },
+        { actorId: seller.id, role: 'Seller' },
+        { actorId: buyer.id, role: 'Buyer' },
       ],
     });
 
     await flowsService.create(exchange.id, {
       valueId: product.id,
-      fromAgentId: seller.id,
-      toAgentId: buyer.id,
+      fromActorId: seller.id,
+      toActorId: buyer.id,
       quantity: data.productQuantity,
     });
 
     await flowsService.create(exchange.id, {
       valueId: currency.id,
-      fromAgentId: buyer.id,
-      toAgentId: seller.id,
+      fromActorId: buyer.id,
+      toActorId: seller.id,
       quantity: data.paymentQuantity,
     });
 

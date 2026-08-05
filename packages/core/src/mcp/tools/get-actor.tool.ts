@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { mcpGetAgentInputSchema, McpGetAgentInput } from '@marketlum/shared';
-import { AgentsService } from '../../agents/agents.service';
+import { mcpGetActorInputSchema, McpGetActorInput } from '@marketlum/shared';
+import { ActorsService } from '../../actors/actors.service';
 import { McpTool } from '../mcp-tool.interface';
 
 @Injectable()
-export class GetAgentTool implements McpTool<McpGetAgentInput> {
-  readonly name = 'get_agent' as const;
+export class GetActorTool implements McpTool<McpGetActorInput> {
+  readonly name = 'get_actor' as const;
   readonly description =
-    'Fetch one agent by id, including its type, codes, addresses and functional currency. ' +
-    'Use this when you already know the agent id (e.g. from search_agents or search_market) ' +
+    'Fetch one actor by id, including its type, codes, addresses and functional currency. ' +
+    'Use this when you already know the actor id (e.g. from search_actors or search_market) ' +
     'and need the full detail record.';
-  readonly permission = 'agents:read';
-  readonly inputSchema = mcpGetAgentInputSchema;
+  readonly permission = 'actors:read';
+  readonly inputSchema = mcpGetActorInputSchema;
 
-  constructor(private readonly agentsService: AgentsService) {}
+  constructor(private readonly actorsService: ActorsService) {}
 
-  execute(input: McpGetAgentInput): Promise<unknown> {
-    return this.agentsService.findOne(input.id);
+  execute(input: McpGetActorInput): Promise<unknown> {
+    return this.actorsService.findOne(input.id);
   }
 }

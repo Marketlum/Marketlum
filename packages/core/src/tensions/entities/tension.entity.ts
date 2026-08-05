@@ -9,7 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { TensionState } from '@marketlum/shared';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 import { User } from '../../users/entities/user.entity';
 import { Exchange } from '../../exchanges/entities/exchange.entity';
 
@@ -33,12 +33,12 @@ export class Tension {
   @Column({ type: 'enum', enum: TensionState, default: TensionState.ALIVE })
   state: TensionState;
 
-  @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent;
+  @ManyToOne(() => Actor, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor;
 
   @Column({ type: 'uuid' })
-  agentId: string;
+  actorId: string;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'leadUserId' })

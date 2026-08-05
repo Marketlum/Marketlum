@@ -30,7 +30,7 @@ export const updateEmcAgreementSchema = createEmcAgreementSchema.partial();
 export const emcCanvasSchema = z.object({
   nodes: z.array(
     z.object({
-      agentId: z.string().uuid(),
+      actorId: z.string().uuid(),
       tier: z.enum(EMC_NODE_TIERS),
       isLeading: z.boolean(),
       /** Strategic nodes only: the node's access to the added value. */
@@ -65,7 +65,7 @@ interface EntitySummary {
   name: string;
 }
 
-interface AgentSummary {
+interface ActorSummary {
   id: string;
   name: string;
   type: string;
@@ -92,7 +92,7 @@ export interface RdhyEmcAgreementSummary {
 export interface RdhyEmcCanvasResponse {
   nodes: Array<{
     id: string;
-    agent: AgentSummary;
+    actor: ActorSummary;
     tier: RdhyEmcNodeTier;
     isLeading: boolean;
     profitSharePercent: string | null;

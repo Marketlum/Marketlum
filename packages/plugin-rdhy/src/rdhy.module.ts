@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Agent, Agreement, Invoice, Value } from '@marketlum/core';
+import { Actor, Agreement, Invoice, Value } from '@marketlum/core';
 import { RdhyPlatform } from './platforms/rdhy-platform.entity';
-import { RdhyPlatformAgent } from './platforms/rdhy-platform-agent.entity';
+import { RdhyPlatformActor } from './platforms/rdhy-platform-actor.entity';
 import { PlatformsController } from './platforms/platforms.controller';
 import { AssignmentsController } from './platforms/assignments.controller';
 import { PlatformsService } from './platforms/platforms.service';
@@ -28,7 +28,7 @@ import { EmcAgreementsService } from './emc/emc-agreements.service';
   imports: [
     TypeOrmModule.forFeature([
       RdhyPlatform,
-      RdhyPlatformAgent,
+      RdhyPlatformActor,
       RdhyVamAgreement,
       RdhyVamMilestone,
       RdhyVamItem,
@@ -41,7 +41,7 @@ import { EmcAgreementsService } from './emc/emc-agreements.service';
       RdhyEmcLeadingGoal,
       RdhyEmcCostEntry,
       RdhyEmcTerminationCondition,
-      Agent,
+      Actor,
       Value,
       Agreement,
       Invoice,

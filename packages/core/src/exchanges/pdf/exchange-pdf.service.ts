@@ -45,7 +45,7 @@ export class ExchangePdfService implements OnModuleDestroy {
     if (exchange.tensionId) {
       tension = await this.tensionRepository.findOne({
         where: { id: exchange.tensionId },
-        relations: ['agent'],
+        relations: ['actor'],
       });
     }
 

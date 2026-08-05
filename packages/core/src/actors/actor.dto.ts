@@ -1,10 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import {
-  createAgentSchema,
-  updateAgentSchema,
-  agentResponseSchema,
+  createActorSchema,
+  updateActorSchema,
+  actorResponseSchema,
 } from '@marketlum/shared';
 
-export class CreateAgentDto extends createZodDto(createAgentSchema as never) {}
-export class UpdateAgentDto extends createZodDto(updateAgentSchema as never) {}
-export class AgentResponseDto extends createZodDto(agentResponseSchema as never) {}
+export class CreateActorDto extends createZodDto(createActorSchema as never) {}
+export class UpdateActorDto extends createZodDto(updateActorSchema as never) {}
+export class ActorResponseDto extends createZodDto(actorResponseSchema as never) {}

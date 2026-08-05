@@ -6,16 +6,16 @@ import {
   JoinColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Agent } from '@marketlum/core';
+import { Actor } from '@marketlum/core';
 import { RdhyPlatform } from './rdhy-platform.entity';
 
 /**
- * Membership link between a core agent and an RDHY platform. The UNIQUE
- * agentId enforces one platform per agent; both FKs cascade at the database
+ * Membership link between a core actor and an RDHY platform. The UNIQUE
+ * actorId enforces one platform per actor; both FKs cascade at the database
  * level so core never needs to know about this table.
  */
-@Entity('plugin_rdhy_platform_agents')
-export class RdhyPlatformAgent {
+@Entity('plugin_rdhy_platform_actors')
+export class RdhyPlatformActor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -27,11 +27,11 @@ export class RdhyPlatformAgent {
   platform: RdhyPlatform;
 
   @Column({ type: 'uuid', unique: true })
-  agentId: string;
+  actorId: string;
 
-  @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent;
+  @ManyToOne(() => Actor, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor;
 
   @CreateDateColumn()
   createdAt: Date;

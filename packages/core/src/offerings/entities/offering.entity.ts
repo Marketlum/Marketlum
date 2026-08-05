@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { OfferingState } from '@marketlum/shared';
 import { ValueStream } from '../../value-streams/entities/value-stream.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 import { OfferingComponent } from './offering-component.entity';
 
 @Entity('offerings')
@@ -46,12 +46,12 @@ export class Offering {
   @Column({ type: 'uuid', nullable: true })
   valueStreamId: string | null;
 
-  @ManyToOne(() => Agent, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent | null;
+  @ManyToOne(() => Actor, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
-  agentId: string | null;
+  actorId: string | null;
 
   @OneToMany(() => OfferingComponent, (c) => c.offering, { cascade: true })
   components: OfferingComponent[];

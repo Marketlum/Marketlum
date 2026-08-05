@@ -32,7 +32,7 @@ import type { RdhyPlatformResponse } from '../shared/schemas';
 import { VAM_STATUSES, type RdhyVamAgreementSummary } from '../shared/vam-schemas';
 import { VamStatusBadge } from './vam-status-badge';
 
-interface AgentOption {
+interface ActorOption {
   id: string;
   label: string;
 }
@@ -54,15 +54,15 @@ export function VamAgreementsListPage() {
   const [agreements, setAgreements] = useState<RdhyVamAgreementSummary[]>([]);
   const [platforms, setPlatforms] = useState<RdhyPlatformResponse[]>([]);
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
-  const [agentOptions, setAgentOptions] = useState<AgentOption[]>([]);
+  const [actorOptions, setActorOptions] = useState<ActorOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(ALL);
   const [platformFilter, setPlatformFilter] = useState(ALL);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [agentQuery, setAgentQuery] = useState('');
-  const [agentId, setAgentId] = useState('');
+  const [actorQuery, setActorQuery] = useState('');
+  const [actorId, setActorId] = useState('');
   const [platformId, setPlatformId] = useState('');
   const [horizon, setHorizon] = useState('12');
   const [currencyId, setCurrencyId] = useState(NONE);
@@ -81,8 +81,8 @@ export function VamAgreementsListPage() {
       load(),
       api.get<RdhyPlatformResponse[]>('/plugins/rdhy/platforms').then(setPlatforms),
       api
-        .get<{ data: Array<{ id: string; name: string }> }>('/agents?limit=1000')
-        .then((res) => setAgentOptions(res.data.map((a) => ({ id: a.id, label: a.name })))),
+        .get<{ data: Array<{ id: string; name: string }> }>('/actors?limit=1000')
+        .then((res) => setActorOptions(res.data.map((a) => ({ id: a.id, label: a.name })))),
       api
         .get<{ data: CurrencyOption[] }>('/values?type=currency&limit=100')
         .then((r) => setCurrencies(r.data)),
@@ -99,13 +99,13 @@ export function VamAgreementsListPage() {
     [agreements, statusFilter, platformFilter],
   );
 
-  const agentCandidates = useMemo(() => {
-    const q = agentQuery.trim().toLowerCase();
+  const actorCandidates = useMemo(() => {
+    const q = actorQuery.trim().toLowerCase();
     if (!q) return [];
-    return agentOptions.filter((a) => a.label.toLowerCase().includes(q)).slice(0, 8);
-  }, [agentOptions, agentQuery]);
+    return actorOptions.filter((a) => a.label.toLowerCase().includes(q)).slice(0, 8);
+  }, [actorOptions, actorQuery]);
 
-  const selectedAgent = agentOptions.find((a) => a.id === agentId);
+  const selectedActor = actorOptions.find((a) => a.id === actorId);
 
   const create = async () => {
     setSaving(true);
@@ -113,7 +113,7 @@ export function VamAgreementsListPage() {
     try {
       const created = await api.post<RdhyVamAgreementSummary>('/plugins/rdhy/vam-agreements', {
         title,
-        agentId,
+        actorId,
         platformId,
         horizonMonths: Number(horizon),
         currencyId: currencyId === NONE ? null : currencyId,
@@ -176,7 +176,7 @@ export function VamAgreementsListPage() {
           <TableHeader>
             <TableRow>
               <TableHead>{t('list.titleCol')}</TableHead>
-              <TableHead>{t('list.agent')}</TableHead>
+              <TableHead>{t('list.actor')}</TableHead>
               <TableHead>{t('list.platform')}</TableHead>
               <TableHead>{t('list.status')}</TableHead>
               <TableHead>{t('list.horizon')}</TableHead>
@@ -187,7 +187,7 @@ export function VamAgreementsListPage() {
             {filtered.map((agreement) => (
               <TableRow key={agreement.id}>
                 <TableCell>{agreement.title}</TableCell>
-                <TableCell>{agreement.agent.name}</TableCell>
+                <TableCell>{agreement.actor.name}</TableCell>
                 <TableCell>{agreement.platform.name}</TableCell>
                 <TableCell>
                   <VamStatusBadge status={agreement.status} />
@@ -215,32 +215,32 @@ export function VamAgreementsListPage() {
               <Input id="vam-title" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="vam-agent">{t('create.agent')}</Label>
-              {selectedAgent ? (
+              <Label htmlFor="vam-actor">{t('create.actor')}</Label>
+              {selectedActor ? (
                 <div className="flex items-center justify-between rounded-md border p-2 text-sm">
-                  <span>{selectedAgent.label}</span>
-                  <Button variant="ghost" size="sm" onClick={() => setAgentId('')}>
+                  <span>{selectedActor.label}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setActorId('')}>
                     ×
                   </Button>
                 </div>
               ) : (
                 <>
                   <Input
-                    id="vam-agent"
-                    value={agentQuery}
-                    onChange={(e) => setAgentQuery(e.target.value)}
-                    placeholder={t('create.agentPlaceholder')}
+                    id="vam-actor"
+                    value={actorQuery}
+                    onChange={(e) => setActorQuery(e.target.value)}
+                    placeholder={t('create.actorPlaceholder')}
                   />
-                  {agentCandidates.length > 0 && (
+                  {actorCandidates.length > 0 && (
                     <ul className="divide-y rounded-md border">
-                      {agentCandidates.map((option) => (
+                      {actorCandidates.map((option) => (
                         <li key={option.id}>
                           <button
                             type="button"
                             className="w-full p-2 text-left text-sm hover:bg-accent"
                             onClick={() => {
-                              setAgentId(option.id);
-                              setAgentQuery('');
+                              setActorId(option.id);
+                              setActorQuery('');
                             }}
                           >
                             {option.label}
@@ -302,7 +302,7 @@ export function VamAgreementsListPage() {
             </Button>
             <Button
               onClick={create}
-              disabled={saving || !title || !agentId || !platformId || !Number(horizon)}
+              disabled={saving || !title || !actorId || !platformId || !Number(horizon)}
             >
               {t('create.save')}
             </Button>

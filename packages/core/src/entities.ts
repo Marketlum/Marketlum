@@ -1,5 +1,5 @@
 import { User } from './users/entities/user.entity';
-import { Agent } from './agents/entities/agent.entity';
+import { Actor } from './actors/entities/actor.entity';
 import { Taxonomy } from './taxonomies/entities/taxonomy.entity';
 import { Folder } from './files/entities/folder.entity';
 import { File } from './files/entities/file.entity';
@@ -27,7 +27,7 @@ import { Pipeline } from './pipelines/entities/pipeline.entity';
 import { Tension } from './tensions/entities/tension.entity';
 import { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity';
 import { SystemSetting } from './system-settings/entities/system-setting.entity';
-import { Address } from './agents/addresses/entities/address.entity';
+import { Address } from './actors/addresses/entities/address.entity';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
 import { ApiKey } from './api-keys/entities/api-key.entity';
@@ -35,7 +35,7 @@ import { Role, RolePermission } from './roles/entities/role.entity';
 
 export const ALL_ENTITIES = [
   User,
-  Agent,
+  Actor,
   Taxonomy,
   Folder,
   File,

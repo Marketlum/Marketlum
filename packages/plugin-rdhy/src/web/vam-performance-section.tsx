@@ -53,7 +53,7 @@ export function VamPerformanceSection({ agreementId }: { agreementId: string }) 
 
   const comparable = data?.comparability === 'COMPARABLE';
   const targetCurrency = data?.currency?.code ?? null;
-  const actualCurrency = data?.agentFunctionalCurrency?.code ?? null;
+  const actualCurrency = data?.actorFunctionalCurrency?.code ?? null;
 
   return (
     <section>

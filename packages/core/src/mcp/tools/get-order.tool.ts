@@ -7,7 +7,7 @@ import { McpTool } from '../mcp-tool.interface';
 export class GetOrderTool implements McpTool<McpGetOrderInput> {
   readonly name = 'get_order' as const;
   readonly description =
-    'Fetch one order by id, including its items, lifecycle state, counterparty agents and any linked ' +
+    'Fetch one order by id, including its items, lifecycle state, counterparty actors and any linked ' +
     'invoice. Use this when you have an order id (e.g. from search_orders) and need the full record.';
   readonly permission = 'orders:read';
   readonly inputSchema = mcpGetOrderInputSchema;

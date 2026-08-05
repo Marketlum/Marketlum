@@ -71,9 +71,9 @@ export class OrdersController {
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
   @ApiQuery({ name: 'state', required: false, type: String })
-  @ApiQuery({ name: 'fromAgentId', required: false, type: String })
-  @ApiQuery({ name: 'toAgentId', required: false, type: String })
-  @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'fromActorId', required: false, type: String })
+  @ApiQuery({ name: 'toActorId', required: false, type: String })
+  @ApiQuery({ name: 'actorId', required: false, type: String })
   @ApiQuery({ name: 'channelId', required: false, type: String })
   @ApiQuery({ name: 'pipelineId', required: false, type: String })
   @ApiQuery({ name: 'currencyId', required: false, type: String })
@@ -81,9 +81,9 @@ export class OrdersController {
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('state') state?: string,
-    @Query('fromAgentId') fromAgentId?: string,
-    @Query('toAgentId') toAgentId?: string,
-    @Query('agentId') agentId?: string,
+    @Query('fromActorId') fromActorId?: string,
+    @Query('toActorId') toActorId?: string,
+    @Query('actorId') actorId?: string,
     @Query('channelId') channelId?: string,
     @Query('pipelineId') pipelineId?: string,
     @Query('currencyId') currencyId?: string,
@@ -91,9 +91,9 @@ export class OrdersController {
     return this.ordersService.search({
       ...query,
       state,
-      fromAgentId,
-      toAgentId,
-      agentId,
+      fromActorId,
+      toActorId,
+      actorId,
       channelId,
       pipelineId,
       currencyId,

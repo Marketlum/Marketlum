@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ValueInstance } from './entities/value-instance.entity';
 import { Value } from '../values/entities/value.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { File } from '../files/entities/file.entity';
 import {
   CreateValueInstanceInput,
@@ -18,14 +18,14 @@ export class ValueInstancesService {
     private readonly repository: Repository<ValueInstance>,
     @InjectRepository(Value)
     private readonly valuesRepository: Repository<Value>,
-    @InjectRepository(Agent)
-    private readonly agentsRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorsRepository: Repository<Actor>,
     @InjectRepository(File)
     private readonly filesRepository: Repository<File>,
   ) {}
 
   async create(input: CreateValueInstanceInput): Promise<ValueInstance> {
-    const { valueId, fromAgentId, toAgentId, imageId, ...rest } = input;
+    const { valueId, fromActorId, toActorId, imageId, ...rest } = input;
 
     const value = await this.valuesRepository.findOne({ where: { id: valueId } });
     if (!value) {
@@ -34,20 +34,20 @@ export class ValueInstancesService {
 
     const instance = this.repository.create({ ...rest, valueId });
 
-    if (fromAgentId) {
-      const agent = await this.agentsRepository.findOne({ where: { id: fromAgentId } });
-      if (!agent) {
-        throw new NotFoundException('From agent not found');
+    if (fromActorId) {
+      const actor = await this.actorsRepository.findOne({ where: { id: fromActorId } });
+      if (!actor) {
+        throw new NotFoundException('From actor not found');
       }
-      instance.fromAgentId = fromAgentId;
+      instance.fromActorId = fromActorId;
     }
 
-    if (toAgentId) {
-      const agent = await this.agentsRepository.findOne({ where: { id: toAgentId } });
-      if (!agent) {
-        throw new NotFoundException('To agent not found');
+    if (toActorId) {
+      const actor = await this.actorsRepository.findOne({ where: { id: toActorId } });
+      if (!actor) {
+        throw new NotFoundException('To actor not found');
       }
-      instance.toAgentId = toAgentId;
+      instance.toActorId = toActorId;
     }
 
     if (imageId) {
@@ -78,7 +78,7 @@ export class ValueInstancesService {
   async findByCode(code: string): Promise<ValueInstance> {
     const instance = await this.repository.findOne({
       where: { code },
-      relations: ['value', 'fromAgent', 'toAgent', 'image'],
+      relations: ['value', 'fromActor', 'toActor', 'image'],
     });
     if (!instance) {
       throw new NotFoundException('Value instance not found');
@@ -89,30 +89,30 @@ export class ValueInstancesService {
   async findAll(
     query: PaginationQuery & {
       valueId?: string;
-      fromAgentId?: string;
-      toAgentId?: string;
+      fromActorId?: string;
+      toActorId?: string;
     },
   ) {
-    const { page, limit, search, sortBy, sortOrder, valueId, fromAgentId, toAgentId } = query;
+    const { page, limit, search, sortBy, sortOrder, valueId, fromActorId, toActorId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.repository.createQueryBuilder('vi');
 
     qb.leftJoinAndSelect('vi.value', 'value');
-    qb.leftJoinAndSelect('vi.fromAgent', 'fromAgent');
-    qb.leftJoinAndSelect('vi.toAgent', 'toAgent');
+    qb.leftJoinAndSelect('vi.fromActor', 'fromActor');
+    qb.leftJoinAndSelect('vi.toActor', 'toActor');
     qb.leftJoinAndSelect('vi.image', 'image');
 
     if (valueId) {
       qb.andWhere('vi."valueId" = :valueId', { valueId });
     }
 
-    if (fromAgentId) {
-      qb.andWhere('vi."fromAgentId" = :fromAgentId', { fromAgentId });
+    if (fromActorId) {
+      qb.andWhere('vi."fromActorId" = :fromActorId', { fromActorId });
     }
 
-    if (toAgentId) {
-      qb.andWhere('vi."toAgentId" = :toAgentId', { toAgentId });
+    if (toActorId) {
+      qb.andWhere('vi."toActorId" = :toActorId', { toActorId });
     }
 
     if (search) {
@@ -146,7 +146,7 @@ export class ValueInstancesService {
   async findOne(id: string): Promise<ValueInstance> {
     const instance = await this.repository.findOne({
       where: { id },
-      relations: ['value', 'fromAgent', 'toAgent', 'image'],
+      relations: ['value', 'fromActor', 'toActor', 'image'],
     });
     if (!instance) {
       throw new NotFoundException('Value instance not found');
@@ -156,7 +156,7 @@ export class ValueInstancesService {
 
   async update(id: string, input: UpdateValueInstanceInput): Promise<ValueInstance> {
     const instance = await this.findOne(id);
-    const { valueId, fromAgentId, toAgentId, imageId, ...rest } = input;
+    const { valueId, fromActorId, toActorId, imageId, ...rest } = input;
 
     Object.assign(instance, rest);
 
@@ -169,31 +169,31 @@ export class ValueInstancesService {
       instance.value = value;
     }
 
-    if (fromAgentId !== undefined) {
-      if (fromAgentId === null) {
-        instance.fromAgent = null;
-        instance.fromAgentId = null;
+    if (fromActorId !== undefined) {
+      if (fromActorId === null) {
+        instance.fromActor = null;
+        instance.fromActorId = null;
       } else {
-        const agent = await this.agentsRepository.findOne({ where: { id: fromAgentId } });
-        if (!agent) {
-          throw new NotFoundException('From agent not found');
+        const actor = await this.actorsRepository.findOne({ where: { id: fromActorId } });
+        if (!actor) {
+          throw new NotFoundException('From actor not found');
         }
-        instance.fromAgentId = fromAgentId;
-        instance.fromAgent = agent;
+        instance.fromActorId = fromActorId;
+        instance.fromActor = actor;
       }
     }
 
-    if (toAgentId !== undefined) {
-      if (toAgentId === null) {
-        instance.toAgent = null;
-        instance.toAgentId = null;
+    if (toActorId !== undefined) {
+      if (toActorId === null) {
+        instance.toActor = null;
+        instance.toActorId = null;
       } else {
-        const agent = await this.agentsRepository.findOne({ where: { id: toAgentId } });
-        if (!agent) {
-          throw new NotFoundException('To agent not found');
+        const actor = await this.actorsRepository.findOne({ where: { id: toActorId } });
+        if (!actor) {
+          throw new NotFoundException('To actor not found');
         }
-        instance.toAgentId = toAgentId;
-        instance.toAgent = agent;
+        instance.toActorId = toActorId;
+        instance.toActor = actor;
       }
     }
 

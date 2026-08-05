@@ -11,7 +11,7 @@ import {
   Unique,
 } from 'typeorm';
 import { InvoiceMarket } from '@marketlum/shared';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 import { Value } from '../../values/entities/value.entity';
 import { Channel } from '../../channels/channel.entity';
 import { File } from '../../files/entities/file.entity';
@@ -19,7 +19,7 @@ import { Order } from '../../orders/entities/order.entity';
 import { InvoiceItem } from './invoice-item.entity';
 
 @Entity('invoices')
-@Unique(['fromAgentId', 'number'])
+@Unique(['fromActorId', 'number'])
 export class Invoice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -27,19 +27,19 @@ export class Invoice {
   @Column()
   number: string;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'fromAgentId' })
-  fromAgent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'fromActorId' })
+  fromActor: Actor;
 
   @Column({ type: 'uuid' })
-  fromAgentId: string;
+  fromActorId: string;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'toAgentId' })
-  toAgent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'toActorId' })
+  toActor: Actor;
 
   @Column({ type: 'uuid' })
-  toAgentId: string;
+  toActorId: string;
 
   @Column({ type: 'timestamp' })
   issuedAt: Date;
@@ -57,12 +57,12 @@ export class Invoice {
   @Column({ type: 'enum', enum: InvoiceMarket, default: InvoiceMarket.EXTERNAL })
   market: InvoiceMarket;
 
-  @ManyToOne(() => Agent, { nullable: true, onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'onBehalfOfAgentId' })
-  onBehalfOfAgent: Agent | null;
+  @ManyToOne(() => Actor, { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'onBehalfOfActorId' })
+  onBehalfOfActor: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
-  onBehalfOfAgentId: string | null;
+  onBehalfOfActorId: string | null;
 
   @ManyToOne(() => Invoice, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'mirrorInvoiceId' })
@@ -109,9 +109,9 @@ export class Invoice {
 
   presentationTotal?: string | null;
 
-  fromAgentTotal?: string | null;
+  fromActorTotal?: string | null;
 
-  toAgentTotal?: string | null;
+  toActorTotal?: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

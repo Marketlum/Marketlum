@@ -4,7 +4,7 @@ export const VAM_COMPARABILITY = [
   'COMPARABLE',
   'CURRENCY_MISMATCH',
   'NO_AGREEMENT_CURRENCY',
-  'NO_AGENT_CURRENCY',
+  'NO_ACTOR_CURRENCY',
   'NO_MEASURABLE_TARGETS',
 ] as const;
 
@@ -57,7 +57,7 @@ export interface RdhyVamPerformanceResponse {
   agreementStatus: RdhyVamStatus;
   comparability: RdhyVamComparability;
   currency: CurrencySummary | null;
-  agentFunctionalCurrency: CurrencySummary | null;
+  actorFunctionalCurrency: CurrencySummary | null;
   windowStart: string;
   windowEnd: string;
   summary: {

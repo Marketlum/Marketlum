@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { File } from '../files/entities/file.entity';
@@ -10,9 +10,9 @@ import { Channel } from '../channels/channel.entity';
 import { Order } from '../orders/entities/order.entity';
 import { InvoicesService } from './invoices.service';
 import { InvoiceImportService } from './invoice-import.service';
-import { AgentFinancialsService } from './agent-financials.service';
+import { ActorFinancialsService } from './actor-financials.service';
 import { InvoicesController } from './invoices.controller';
-import { AgentFinancialsController } from './agent-financials.controller';
+import { ActorFinancialsController } from './actor-financials.controller';
 import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from '../system-settings/system-settings.module';
 import { AiModule } from '../ai/ai.module';
@@ -23,7 +23,7 @@ import { FilesModule } from '../files/files.module';
     TypeOrmModule.forFeature([
       Invoice,
       InvoiceItem,
-      Agent,
+      Actor,
       Value,
       ValueInstance,
       File,
@@ -35,8 +35,8 @@ import { FilesModule } from '../files/files.module';
     AiModule,
     FilesModule,
   ],
-  controllers: [InvoicesController, AgentFinancialsController],
-  providers: [InvoicesService, InvoiceImportService, AgentFinancialsService],
-  exports: [InvoicesService, AgentFinancialsService],
+  controllers: [InvoicesController, ActorFinancialsController],
+  providers: [InvoicesService, InvoiceImportService, ActorFinancialsService],
+  exports: [InvoicesService, ActorFinancialsService],
 })
 export class InvoicesModule {}

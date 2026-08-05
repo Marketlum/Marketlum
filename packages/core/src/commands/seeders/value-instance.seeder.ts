@@ -4,7 +4,7 @@ import { ValueType } from '@marketlum/shared';
 
 interface ValueInstanceDeps {
   values: Array<{ id: string; name: string; type: ValueType }>;
-  agents: Array<{ id: string; name: string }>;
+  actors: Array<{ id: string; name: string }>;
 }
 
 interface InstanceDef {
@@ -17,11 +17,11 @@ interface InstanceDef {
   // Looked up by name against the seeded values; must reference a non-CURRENCY
   // value (PRODUCT / RIGHT / RELATIONSHIP / SERVICE).
   valueName: string;
-  // Looked up by name against the seeded agents. `null` means leave the field
+  // Looked up by name against the seeded actors. `null` means leave the field
   // unset — used when the counterparty is outside the seeded org (e.g. a TSO,
   // an OEM, or a state certifier we do not model).
-  fromAgent: string | null;
-  toAgent: string | null;
+  fromActor: string | null;
+  toActor: string | null;
 }
 
 // Battery and grid-storage instances. Each row is a specific, realistic
@@ -37,8 +37,8 @@ const INSTANCES: InstanceDef[] = [
     purpose: 'Serialized 250 kWh pack delivered for the Munich-Süd commissioning slot',
     version: 'PACK-v2.1',
     valueName: 'Battery Pack',
-    fromAgent: 'Acme Corp',
-    toAgent: 'TechNova Solutions',
+    fromActor: 'Acme Corp',
+    toActor: 'TechNova Solutions',
   },
   {
     code: 'cell_batch_2025_w08',
@@ -46,8 +46,8 @@ const INSTANCES: InstanceDef[] = [
     purpose: 'Twelve-thousand-cell production batch from week 08, routed into module assembly',
     version: 'Batch 2025-W08',
     valueName: 'Battery Cell',
-    fromAgent: 'Acme Corp',
-    toAgent: 'Acme Corp',
+    fromActor: 'Acme Corp',
+    toActor: 'Acme Corp',
   },
   {
     code: 'cathode_lot_2025_q1_a',
@@ -55,8 +55,8 @@ const INSTANCES: InstanceDef[] = [
     purpose: 'Quarterly NMC811 active-material lot feeding the EU cell line',
     version: 'Lot Q1-A',
     valueName: 'Cathode Material',
-    fromAgent: 'Acme Corp',
-    toAgent: 'Acme Corp',
+    fromActor: 'Acme Corp',
+    toActor: 'Acme Corp',
   },
   {
     code: 'recycled_cathode_lot_2025_r018',
@@ -64,8 +64,8 @@ const INSTANCES: InstanceDef[] = [
     purpose: 'Hydromet-recovered cathode powder cycled back into Q2 cell production',
     version: 'Lot R-018',
     valueName: 'Recycled Cathode Material',
-    fromAgent: 'GreenLeaf Partners',
-    toAgent: 'Acme Corp',
+    fromActor: 'GreenLeaf Partners',
+    toActor: 'Acme Corp',
   },
   {
     code: 'cabinet_isc_2025_berlin_07',
@@ -73,8 +73,8 @@ const INSTANCES: InstanceDef[] = [
     purpose: 'Behind-the-meter storage cabinet shipped to the Berlin pilot rooftop site',
     version: 'CAB-v1.3',
     valueName: 'Industrial Storage Cabinet',
-    fromAgent: 'Acme Corp',
-    toAgent: 'GreenLeaf Partners',
+    fromActor: 'Acme Corp',
+    toActor: 'GreenLeaf Partners',
   },
   {
     code: 'gsa_bavaria_01',
@@ -82,8 +82,8 @@ const INSTANCES: InstanceDef[] = [
     purpose: 'First 18 MWh containerized array deployed under the Bavaria storage initiative',
     version: 'GSA-2025-01',
     valueName: 'Grid-Scale Storage Array',
-    fromAgent: 'Acme Corp',
-    toAgent: null,
+    fromActor: 'Acme Corp',
+    toActor: null,
   },
 
   // ===== RIGHT instances — granted certificates, patents, licenses, permits =====
@@ -94,8 +94,8 @@ const INSTANCES: InstanceDef[] = [
     version: 'Rev 2024-A',
     expiresAt: '2029-11-30T00:00:00.000Z',
     valueName: 'UN 38.3 Type Approval',
-    fromAgent: null,
-    toAgent: 'Acme Corp',
+    fromActor: null,
+    toActor: 'Acme Corp',
   },
   {
     code: 'patent_ep_3456789',
@@ -104,8 +104,8 @@ const INSTANCES: InstanceDef[] = [
     version: 'EP3456789-B1',
     expiresAt: '2044-04-15T00:00:00.000Z',
     valueName: 'Cathode Chemistry Patent Family',
-    fromAgent: null,
-    toAgent: 'Acme Corp',
+    fromActor: null,
+    toActor: 'Acme Corp',
   },
   {
     code: 'bms_license_2025_eu_042',
@@ -114,8 +114,8 @@ const INSTANCES: InstanceDef[] = [
     version: 'BMS-FW-3.4',
     expiresAt: '2035-12-31T00:00:00.000Z',
     valueName: 'BMS Firmware License',
-    fromAgent: 'TechNova Solutions',
-    toAgent: 'Acme Corp',
+    fromActor: 'TechNova Solutions',
+    toActor: 'Acme Corp',
   },
   {
     code: 'grid_permit_bavaria_01',
@@ -124,8 +124,8 @@ const INSTANCES: InstanceDef[] = [
     version: 'GOP-2025-BAV-01',
     expiresAt: '2030-06-30T00:00:00.000Z',
     valueName: 'Grid Operator Connection Permit',
-    fromAgent: null,
-    toAgent: 'Acme Corp',
+    fromActor: null,
+    toActor: 'Acme Corp',
   },
 
   // ===== RELATIONSHIP instances — signed contracts, memberships =====
@@ -136,8 +136,8 @@ const INSTANCES: InstanceDef[] = [
     version: 'MSA 2025',
     expiresAt: '2030-12-31T00:00:00.000Z',
     valueName: 'Strategic OEM Partnership',
-    fromAgent: 'Acme Corp',
-    toAgent: null,
+    fromActor: 'Acme Corp',
+    toActor: null,
   },
   {
     code: 'salar_lithium_offtake_2025',
@@ -146,8 +146,8 @@ const INSTANCES: InstanceDef[] = [
     version: 'Offtake 2025-A',
     expiresAt: '2030-12-31T00:00:00.000Z',
     valueName: 'Lithium Supply Agreement',
-    fromAgent: null,
-    toAgent: 'Acme Corp',
+    fromActor: null,
+    toActor: 'Acme Corp',
   },
   {
     code: 'eu_battery_compliance_4421',
@@ -156,8 +156,8 @@ const INSTANCES: InstanceDef[] = [
     version: '2025 renewal',
     expiresAt: '2026-12-31T00:00:00.000Z',
     valueName: 'Recycler Network Membership',
-    fromAgent: null,
-    toAgent: 'GreenLeaf Partners',
+    fromActor: null,
+    toActor: 'GreenLeaf Partners',
   },
   {
     code: 'solid_state_consortium_2025',
@@ -166,8 +166,8 @@ const INSTANCES: InstanceDef[] = [
     version: '2025 cohort',
     expiresAt: '2027-06-30T00:00:00.000Z',
     valueName: 'Research Consortium Membership',
-    fromAgent: 'Sarah Palmer',
-    toAgent: 'Acme Corp',
+    fromActor: 'Sarah Palmer',
+    toActor: 'Acme Corp',
   },
 ];
 
@@ -176,7 +176,7 @@ export async function seedValueInstances(
   deps: ValueInstanceDeps,
 ) {
   const valuesByName = new Map(deps.values.map((v) => [v.name, v]));
-  const agentsByName = new Map(deps.agents.map((a) => [a.name, a]));
+  const actorsByName = new Map(deps.actors.map((a) => [a.name, a]));
 
   const instances: Array<{ id: string; name: string; valueId: string }> = [];
 
@@ -193,8 +193,8 @@ export async function seedValueInstances(
       );
     }
 
-    const fromAgent = def.fromAgent ? agentsByName.get(def.fromAgent) : null;
-    const toAgent = def.toAgent ? agentsByName.get(def.toAgent) : null;
+    const fromActor = def.fromActor ? actorsByName.get(def.fromActor) : null;
+    const toActor = def.toActor ? actorsByName.get(def.toActor) : null;
 
     const instance = await service.create({
       code: def.code,
@@ -204,8 +204,8 @@ export async function seedValueInstances(
       version: def.version,
       expiresAt: def.expiresAt,
       valueId: value.id,
-      fromAgentId: fromAgent?.id ?? null,
-      toAgentId: toAgent?.id ?? null,
+      fromActorId: fromActor?.id ?? null,
+      toActorId: toActor?.id ?? null,
     });
     instances.push({ id: instance.id, name: instance.name, valueId: value.id });
   }

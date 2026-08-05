@@ -76,13 +76,13 @@ export class ChannelsController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
-  @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'actorId', required: false, type: String })
   @ApiPaginatedResponse(ChannelResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
-    @Query('agentId') agentId?: string,
+    @Query('actorId') actorId?: string,
   ) {
-    return this.channelsService.search({ ...query, agentId });
+    return this.channelsService.search({ ...query, actorId });
   }
 
   @Get('tree')

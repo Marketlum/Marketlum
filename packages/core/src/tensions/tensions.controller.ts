@@ -62,7 +62,7 @@ export class TensionsController {
   @ApiBody({ type: CreateTensionDto })
   @ApiCreatedResponse({ description: 'Tension created', type: TensionResponseDto })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  @ApiNotFoundResponse({ description: 'Referenced agent or lead user not found' })
+  @ApiNotFoundResponse({ description: 'Referenced actor or lead user not found' })
   async create(
     @Body(new ZodValidationPipe(createTensionSchema)) body: CreateTensionInput,
   ) {
@@ -76,19 +76,19 @@ export class TensionsController {
   @ApiQuery({ name: 'search', required: false, type: String, description: 'Full-text search query' })
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
-  @ApiQuery({ name: 'agentId', required: false, type: String, description: 'UUID of the agent to filter by' })
+  @ApiQuery({ name: 'actorId', required: false, type: String, description: 'UUID of the actor to filter by' })
   @ApiQuery({ name: 'leadUserId', required: false, type: String, description: 'UUID of the lead user to filter by' })
   @ApiQuery({ name: 'state', required: false, enum: ['alive', 'resolved', 'stale'] })
   @ApiPaginatedResponse(TensionResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
-    @Query('agentId') agentId?: string,
+    @Query('actorId') actorId?: string,
     @Query('leadUserId') leadUserId?: string,
     @Query('state') state?: string,
   ) {
     return this.tensionsService.search({
       ...query,
-      agentId,
+      actorId,
       leadUserId,
       state,
     });

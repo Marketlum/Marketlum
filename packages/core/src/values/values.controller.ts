@@ -72,7 +72,7 @@ export class ValuesController {
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
   @ApiQuery({ name: 'type', required: false, enum: ValueType })
   @ApiQuery({ name: 'taxonomyId', required: false, type: String })
-  @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'actorId', required: false, type: String })
   @ApiQuery({ name: 'valueStreamId', required: false, type: String })
   @ApiQuery({ name: 'lifecycleStage', required: false, enum: ValueLifecycleStage })
   @ApiPaginatedResponse(ValueResponseDto)
@@ -80,11 +80,11 @@ export class ValuesController {
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('type') type?: ValueType,
     @Query('taxonomyId') taxonomyId?: string,
-    @Query('agentId') agentId?: string,
+    @Query('actorId') actorId?: string,
     @Query('valueStreamId') valueStreamId?: string,
     @Query('lifecycleStage') lifecycleStage?: ValueLifecycleStage,
   ) {
-    return this.valuesService.findAll({ ...query, type, taxonomyId, agentId, valueStreamId, lifecycleStage });
+    return this.valuesService.findAll({ ...query, type, taxonomyId, actorId, valueStreamId, lifecycleStage });
   }
 
   @Get('by-code/:code')

@@ -25,7 +25,7 @@ export class DashboardController {
     summary: 'Aggregate dashboard summary',
     description: 'Returns revenue/expense totals and time-series data for the configured window.',
   })
-  @ApiQuery({ name: 'agentId', required: false, type: String, description: 'Optional agent UUID to scope totals' })
+  @ApiQuery({ name: 'actorId', required: false, type: String, description: 'Optional actor UUID to scope totals' })
   @ApiQuery({ name: 'from', required: false, type: String, description: 'ISO date — start of window' })
   @ApiQuery({ name: 'to', required: false, type: String, description: 'ISO date — end of window' })
   @ApiOkResponse({

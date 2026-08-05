@@ -73,16 +73,16 @@ export class ValueInstancesController {
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
   @ApiQuery({ name: 'valueId', required: false, type: String })
-  @ApiQuery({ name: 'fromAgentId', required: false, type: String })
-  @ApiQuery({ name: 'toAgentId', required: false, type: String })
+  @ApiQuery({ name: 'fromActorId', required: false, type: String })
+  @ApiQuery({ name: 'toActorId', required: false, type: String })
   @ApiPaginatedResponse(ValueInstanceResponseDto)
   async findAll(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('valueId') valueId?: string,
-    @Query('fromAgentId') fromAgentId?: string,
-    @Query('toAgentId') toAgentId?: string,
+    @Query('fromActorId') fromActorId?: string,
+    @Query('toActorId') toActorId?: string,
   ) {
-    return this.valueInstancesService.findAll({ ...query, valueId, fromAgentId, toAgentId });
+    return this.valueInstancesService.findAll({ ...query, valueId, fromActorId, toActorId });
   }
 
   @Get('by-code/:code')

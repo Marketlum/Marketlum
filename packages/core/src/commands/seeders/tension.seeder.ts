@@ -1,7 +1,7 @@
 import { TensionsService } from '../../tensions/tensions.service';
 
 interface TensionDeps {
-  agents: Array<{ id: string; name: string }>;
+  actors: Array<{ id: string; name: string }>;
   users: Array<{ id: string }>;
 }
 
@@ -10,10 +10,10 @@ interface TensionSeed {
   currentContext: string;
   potentialFuture: string;
   score: number;
-  agent: string; // agent.name — the party that owns the problem
+  actor: string; // actor.name — the party that owns the problem
 }
 
-// Battery-value-chain themed tensions. Each one belongs to the agent that
+// Battery-value-chain themed tensions. Each one belongs to the actor that
 // would realistically be accountable for resolving it: Acme Corp owns the
 // manufacturing and product-line tensions, TechNova owns the BMS/firmware
 // tension, GreenLeaf owns recycling and take-back compliance, and so on.
@@ -25,7 +25,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'Closed-loop dry-room humidity control and a tightened electrode coating window lift sustained yield past 93%.',
     score: 9,
-    agent: 'Acme Corp',
+    actor: 'Acme Corp',
   },
   {
     name: 'Lithium offtake exposed to spot market',
@@ -34,7 +34,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'Long-term offtake agreements lock down 90% of carbonate volume and give finance a flat cost curve to plan against.',
     score: 8,
-    agent: 'Acme Corp',
+    actor: 'Acme Corp',
   },
   {
     name: 'Module-level thermal runaway propagation gap',
@@ -43,7 +43,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'A mica-barrier retrofit and an updated safety case clear reinsurer review and unlock larger utility deployments.',
     score: 9,
-    agent: 'Acme Corp',
+    actor: 'Acme Corp',
   },
   {
     name: 'BMS firmware fragmentation across chemistries',
@@ -52,7 +52,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'A single parameterized BMS firmware drops calibration time per pack from days to hours and removes a class of field-bug regressions.',
     score: 7,
-    agent: 'TechNova Solutions',
+    actor: 'TechNova Solutions',
   },
   {
     name: 'Grid interconnection queue blocking revenue',
@@ -61,7 +61,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'Pre-application engineering bundles and a co-located substation deal cut queue time in half for new sites.',
     score: 8,
-    agent: 'AutoFlow Bot',
+    actor: 'AutoFlow Bot',
   },
   {
     name: 'Hydrometallurgical cathode recovery yield',
@@ -70,7 +70,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'A two-stage leach with selective precipitation pushes recovery past 90% and turns the waste stream into a margin line.',
     score: 7,
-    agent: 'GreenLeaf Partners',
+    actor: 'GreenLeaf Partners',
   },
   {
     name: 'Installer capacity for utility rollouts',
@@ -79,7 +79,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'A standing pool of twelve certified crews with shared scheduling brings mobilization down to two weeks.',
     score: 6,
-    agent: 'James Liu',
+    actor: 'James Liu',
   },
   {
     name: 'Solid-state cell cycle-life below OEM bar',
@@ -88,7 +88,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'An interlayer additive and adjusted charge profile push validated cycle life past 2,000 and open OEM sampling.',
     score: 5,
-    agent: 'Sarah Palmer',
+    actor: 'Sarah Palmer',
   },
   {
     name: 'UL 9540A backlog delaying cabinet shipments',
@@ -97,7 +97,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'An in-house pre-test rig validates suppression design before lab booking and compresses certification by a full quarter.',
     score: 7,
-    agent: 'Acme Corp',
+    actor: 'Acme Corp',
   },
   {
     name: 'EU Battery Regulation reporting is manual',
@@ -106,7 +106,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'Serialized pack tracking and an automated regulatory ledger turn quarterly compliance into a one-click export.',
     score: 6,
-    agent: 'GreenLeaf Partners',
+    actor: 'GreenLeaf Partners',
   },
   {
     name: 'Performance warranty payout exposure',
@@ -115,7 +115,7 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'A mid-life rebalance program and refined SoC limits keep degradation inside the warranted envelope.',
     score: 6,
-    agent: 'Acme Corp',
+    actor: 'Acme Corp',
   },
   {
     name: 'NiMH spares line absorbing service hours',
@@ -124,18 +124,18 @@ const TENSIONS: TensionSeed[] = [
     potentialFuture:
       'A migration incentive moves the last service accounts onto lithium packs, freeing the cell for solid-state pilot capacity.',
     score: 4,
-    agent: 'Acme Corp',
+    actor: 'Acme Corp',
   },
 ];
 
 export async function seedTensions(service: TensionsService, deps: TensionDeps) {
-  const agentsByName = new Map(deps.agents.map((a) => [a.name, a]));
+  const actorsByName = new Map(deps.actors.map((a) => [a.name, a]));
   const tensions: Array<{ id: string; name: string }> = [];
 
   for (let i = 0; i < TENSIONS.length; i++) {
     const data = TENSIONS[i];
-    const agent = agentsByName.get(data.agent);
-    if (!agent) throw new Error(`Tension seeder: missing agent "${data.agent}"`);
+    const actor = actorsByName.get(data.actor);
+    if (!actor) throw new Error(`Tension seeder: missing actor "${data.actor}"`);
     const user = deps.users[i % deps.users.length];
 
     const tension = await service.create({
@@ -143,7 +143,7 @@ export async function seedTensions(service: TensionsService, deps: TensionDeps) 
       currentContext: data.currentContext,
       potentialFuture: data.potentialFuture,
       score: data.score,
-      agentId: agent.id,
+      actorId: actor.id,
       leadUserId: user.id,
     });
     tensions.push({ id: tension.id, name: tension.name });

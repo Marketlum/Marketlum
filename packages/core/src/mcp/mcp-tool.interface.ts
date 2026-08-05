@@ -10,7 +10,7 @@ import type { User } from '../users/entities/user.entity';
  */
 export interface McpTool<TInput = unknown> {
   readonly name: McpToolName;
-  /** Agent-facing prose: what the tool returns AND when to use it. */
+  /** Actor-facing prose: what the tool returns AND when to use it. */
   readonly description: string;
   /** Permission string (`resource:action`) required to list and call the tool. */
   readonly permission: string;

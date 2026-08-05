@@ -267,10 +267,10 @@ export function VamAgreementDetailPage({ params }: PluginRouteComponentProps) {
       </div>
       <p className="mb-4 md:mb-6 text-sm text-muted-foreground">
         <Link
-          href={`/admin/agents/${document.agent.id}`}
+          href={`/admin/actors/${document.actor.id}`}
           className="underline-offset-2 hover:text-foreground hover:underline"
         >
-          {document.agent.name}
+          {document.actor.name}
         </Link>{' '}
         · {t('sponsoredBy')} {document.platform.name} ·{' '}
         {tl('months', { count: document.horizonMonths })}

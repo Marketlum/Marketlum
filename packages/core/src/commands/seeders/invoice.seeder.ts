@@ -1,4 +1,4 @@
-import { AgentType, InvoiceMarket } from '@marketlum/shared';
+import { ActorType, InvoiceMarket } from '@marketlum/shared';
 import { faker } from '@faker-js/faker';
 import { InvoicesService } from '../../invoices/invoices.service';
 
@@ -8,7 +8,7 @@ interface ValueRef {
 }
 
 interface InvoiceDeps {
-  agents: Array<{ id: string; name: string; type: AgentType }>;
+  actors: Array<{ id: string; name: string; type: ActorType }>;
   values: ValueRef[];
 }
 
@@ -40,11 +40,11 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
     // Only legal entities may issue external invoices (spec 022).
     const issuerChoices =
       market === InvoiceMarket.EXTERNAL
-        ? deps.agents.filter((a) => a.type !== AgentType.VIRTUAL)
-        : deps.agents;
-    const fromAgent = faker.helpers.arrayElement(issuerChoices);
-    const toAgentChoices = deps.agents.filter((a) => a.id !== fromAgent.id);
-    const toAgent = faker.helpers.arrayElement(toAgentChoices);
+        ? deps.actors.filter((a) => a.type !== ActorType.VIRTUAL)
+        : deps.actors;
+    const fromActor = faker.helpers.arrayElement(issuerChoices);
+    const toActorChoices = deps.actors.filter((a) => a.id !== fromActor.id);
+    const toActor = faker.helpers.arrayElement(toActorChoices);
     const currency = faker.helpers.arrayElement(currencies);
 
     const month = faker.number.int({ min: 0, max: 11 });
@@ -68,8 +68,8 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
     const number = `INV-2026-${String(i + 1).padStart(4, '0')}`;
     const invoice = await service.create({
       number,
-      fromAgentId: fromAgent.id,
-      toAgentId: toAgent.id,
+      fromActorId: fromActor.id,
+      toActorId: toActor.id,
       currencyId: currency.id,
       market,
       issuedAt: issuedAt.toISOString(),
@@ -83,19 +83,19 @@ export async function seedInvoices(service: InvoicesService, deps: InvoiceDeps) 
   // On-behalf example (spec 022): TechNova Solutions invoices a customer for
   // work done by its virtual Support Desk team — the service auto-generates
   // the internal mirror invoice (MIR-…) from the team to TechNova.
-  const technova = deps.agents.find((a) => a.name === 'TechNova Solutions');
-  const supportDesk = deps.agents.find((a) => a.name === 'TechNova Support Desk');
-  const customer = deps.agents.find((a) => a.name === 'Acme Corp');
+  const technova = deps.actors.find((a) => a.name === 'TechNova Solutions');
+  const supportDesk = deps.actors.find((a) => a.name === 'TechNova Support Desk');
+  const customer = deps.actors.find((a) => a.name === 'Acme Corp');
   if (technova && supportDesk && customer && lineValues.length > 0) {
     const issuedAt = new Date(Date.UTC(2026, 2, 12));
     const dueAt = new Date(Date.UTC(2026, 3, 11));
     const onBehalf = await service.create({
       number: 'INV-2026-OBH-0001',
-      fromAgentId: technova.id,
-      toAgentId: customer.id,
+      fromActorId: technova.id,
+      toActorId: customer.id,
       currencyId: currencies[0].id,
       market: InvoiceMarket.EXTERNAL,
-      onBehalfOfAgentId: supportDesk.id,
+      onBehalfOfActorId: supportDesk.id,
       issuedAt: issuedAt.toISOString(),
       dueAt: dueAt.toISOString(),
       paid: false,

@@ -6,7 +6,7 @@ import { MARKETLUM_CORE_VERSION, satisfiesCoreVersion } from './version-compat';
 
 /** Plugin ids that would shadow a core route segment or concept. */
 export const RESERVED_PLUGIN_IDS = new Set<string>([
-  'auth', 'users', 'user', 'agents', 'agent', 'values', 'value',
+  'auth', 'users', 'user', 'actors', 'actor', 'values', 'value',
   'value-instances', 'taxonomies', 'files', 'perspectives', 'value-streams',
   'search', 'ledger', 'agreements', 'channels', 'offerings', 'invoices',
   'pipelines', 'tensions', 'exchanges', 'exchange-rates', 'dashboard',

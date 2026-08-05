@@ -31,8 +31,8 @@ export class ExchangeFlowsService {
     input: {
       valueId?: string | null;
       valueInstanceId?: string | null;
-      fromAgentId: string;
-      toAgentId: string;
+      fromActorId: string;
+      toActorId: string;
       quantity: string;
       description?: string | null;
     },
@@ -41,13 +41,13 @@ export class ExchangeFlowsService {
     const exchange = await this.exchangeRepository.findOne({ where: { id: exchangeId } });
     if (!exchange) throw new NotFoundException('Exchange not found');
 
-    // Verify from/to agents are parties
-    const partyAgentIds = await this.exchangesService.getPartyAgentIds(exchangeId);
-    if (!partyAgentIds.includes(input.fromAgentId)) {
-      throw new BadRequestException('fromAgent is not a party of this exchange');
+    // Verify from/to actors are parties
+    const partyActorIds = await this.exchangesService.getPartyActorIds(exchangeId);
+    if (!partyActorIds.includes(input.fromActorId)) {
+      throw new BadRequestException('fromActor is not a party of this exchange');
     }
-    if (!partyAgentIds.includes(input.toAgentId)) {
-      throw new BadRequestException('toAgent is not a party of this exchange');
+    if (!partyActorIds.includes(input.toActorId)) {
+      throw new BadRequestException('toActor is not a party of this exchange');
     }
 
     // Validate value FK
@@ -66,8 +66,8 @@ export class ExchangeFlowsService {
       exchangeId,
       valueId: input.valueId ?? null,
       valueInstanceId: input.valueInstanceId ?? null,
-      fromAgentId: input.fromAgentId,
-      toAgentId: input.toAgentId,
+      fromActorId: input.fromActorId,
+      toActorId: input.toActorId,
       quantity: input.quantity,
       description: input.description ?? null,
     });
@@ -92,7 +92,7 @@ export class ExchangeFlowsService {
 
     const flows = await this.flowRepository.find({
       where: { exchangeId },
-      relations: ['value', 'valueInstance', 'valueInstance.value', 'fromAgent', 'toAgent'],
+      relations: ['value', 'valueInstance', 'valueInstance.value', 'fromActor', 'toActor'],
     });
     return flows.map((f) => this.flattenValueInstanceType(f));
   }
@@ -100,7 +100,7 @@ export class ExchangeFlowsService {
   async findOne(exchangeId: string, flowId: string): Promise<ExchangeFlow> {
     const flow = await this.flowRepository.findOne({
       where: { id: flowId, exchangeId },
-      relations: ['value', 'valueInstance', 'valueInstance.value', 'fromAgent', 'toAgent'],
+      relations: ['value', 'valueInstance', 'valueInstance.value', 'fromActor', 'toActor'],
     });
     if (!flow) {
       throw new NotFoundException('Exchange flow not found');
@@ -115,13 +115,13 @@ export class ExchangeFlowsService {
   ): Promise<ExchangeFlow> {
     const flow = await this.findOne(exchangeId, flowId);
 
-    if (input.fromAgentId !== undefined || input.toAgentId !== undefined) {
-      const partyAgentIds = await this.exchangesService.getPartyAgentIds(exchangeId);
-      if (input.fromAgentId && !partyAgentIds.includes(input.fromAgentId)) {
-        throw new BadRequestException('fromAgent is not a party of this exchange');
+    if (input.fromActorId !== undefined || input.toActorId !== undefined) {
+      const partyActorIds = await this.exchangesService.getPartyActorIds(exchangeId);
+      if (input.fromActorId && !partyActorIds.includes(input.fromActorId)) {
+        throw new BadRequestException('fromActor is not a party of this exchange');
       }
-      if (input.toAgentId && !partyAgentIds.includes(input.toAgentId)) {
-        throw new BadRequestException('toAgent is not a party of this exchange');
+      if (input.toActorId && !partyActorIds.includes(input.toActorId)) {
+        throw new BadRequestException('toActor is not a party of this exchange');
       }
     }
 
@@ -141,16 +141,16 @@ export class ExchangeFlowsService {
       flow.valueInstanceId = input.valueInstanceId ?? null;
     }
 
-    if (input.fromAgentId !== undefined) flow.fromAgentId = input.fromAgentId;
-    if (input.toAgentId !== undefined) flow.toAgentId = input.toAgentId;
+    if (input.fromActorId !== undefined) flow.fromActorId = input.fromActorId;
+    if (input.toActorId !== undefined) flow.toActorId = input.toActorId;
     if (input.quantity !== undefined) flow.quantity = input.quantity;
     if (input.description !== undefined) flow.description = input.description ?? null;
 
     // Delete relations before save
     delete (flow as any).value;
     delete (flow as any).valueInstance;
-    delete (flow as any).fromAgent;
-    delete (flow as any).toAgent;
+    delete (flow as any).fromActor;
+    delete (flow as any).toActor;
     delete (flow as any).exchange;
     await this.flowRepository.save(flow);
 

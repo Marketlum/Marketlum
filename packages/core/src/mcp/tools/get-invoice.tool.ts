@@ -7,7 +7,7 @@ import { McpTool } from '../mcp-tool.interface';
 export class GetInvoiceTool implements McpTool<McpGetInvoiceInput> {
   readonly name = 'get_invoice' as const;
   readonly description =
-    'Fetch one invoice by id, including its line items, counterparty agents, currency and payment ' +
+    'Fetch one invoice by id, including its line items, counterparty actors, currency and payment ' +
     'status. Use this when you have an invoice id (e.g. from search_invoices) and need the full ' +
     'document. Monetary amounts are decimal strings.';
   readonly permission = 'invoices:read';

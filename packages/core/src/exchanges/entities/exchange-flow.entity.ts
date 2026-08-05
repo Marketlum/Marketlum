@@ -10,7 +10,7 @@ import {
 import { Exchange } from './exchange.entity';
 import { Value } from '../../values/entities/value.entity';
 import { ValueInstance } from '../../value-instances/entities/value-instance.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 
 @Entity('exchange_flows')
 export class ExchangeFlow {
@@ -38,19 +38,19 @@ export class ExchangeFlow {
   @Column({ type: 'uuid', nullable: true })
   valueInstanceId: string | null;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'fromAgentId' })
-  fromAgent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'fromActorId' })
+  fromActor: Actor;
 
   @Column({ type: 'uuid' })
-  fromAgentId: string;
+  fromActorId: string;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'toAgentId' })
-  toAgent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'toActorId' })
+  toActor: Actor;
 
   @Column({ type: 'uuid' })
-  toAgentId: string;
+  toActorId: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   quantity: string;

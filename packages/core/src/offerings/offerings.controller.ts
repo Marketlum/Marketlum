@@ -74,16 +74,16 @@ export class OfferingsController {
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
   @ApiQuery({ name: 'state', required: false, enum: OfferingState })
-  @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'actorId', required: false, type: String })
   @ApiQuery({ name: 'valueStreamId', required: false, type: String })
   @ApiPaginatedResponse(OfferingResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('state') state?: string,
-    @Query('agentId') agentId?: string,
+    @Query('actorId') actorId?: string,
     @Query('valueStreamId') valueStreamId?: string,
   ) {
-    return this.offeringsService.search({ ...query, state, agentId, valueStreamId });
+    return this.offeringsService.search({ ...query, state, actorId, valueStreamId });
   }
 
   @Get(':id')

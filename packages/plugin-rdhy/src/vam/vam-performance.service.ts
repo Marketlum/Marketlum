@@ -24,8 +24,8 @@ interface InvoiceRow {
 
 /**
  * Plan-vs-actual for a VAM agreement (spec 018): cumulative DIRECT_VALUE
- * targets per milestone against the agent's issued-invoice revenue, computed
- * from per-agent snapshot amounts with the spec-010/016 NULL-propagation
+ * targets per milestone against the actor's issued-invoice revenue, computed
+ * from per-actor snapshot amounts with the spec-010/016 NULL-propagation
  * rule. Read-only — nothing is persisted.
  */
 @Injectable()
@@ -46,7 +46,7 @@ export class VamPerformanceService {
   async forAgreement(id: string): Promise<RdhyVamPerformanceResponse> {
     const agreement = await this.agreements.findOne({
       where: { id },
-      relations: { agent: true, currency: true },
+      relations: { actor: true, currency: true },
     });
     if (!agreement) throw new NotFoundException('VAM agreement not found');
     if (agreement.status === 'DRAFT') {
@@ -70,8 +70,8 @@ export class VamPerformanceService {
       itemsByMilestone.set(item.milestoneId, list);
     }
 
-    const functionalCurrency = agreement.agent.functionalCurrencyId
-      ? await this.values.findOne({ where: { id: agreement.agent.functionalCurrencyId } })
+    const functionalCurrency = agreement.actor.functionalCurrencyId
+      ? await this.values.findOne({ where: { id: agreement.actor.functionalCurrencyId } })
       : null;
 
     const targets = cumulativeTargets(
@@ -81,7 +81,7 @@ export class VamPerformanceService {
 
     let comparability: RdhyVamComparability;
     if (!agreement.currencyId) comparability = 'NO_AGREEMENT_CURRENCY';
-    else if (!functionalCurrency) comparability = 'NO_AGENT_CURRENCY';
+    else if (!functionalCurrency) comparability = 'NO_ACTOR_CURRENCY';
     else if (agreement.currencyId !== functionalCurrency.id) comparability = 'CURRENCY_MISMATCH';
     else if (!hasMeasurableTargets) comparability = 'NO_MEASURABLE_TARGETS';
     else comparability = 'COMPARABLE';
@@ -90,8 +90,8 @@ export class VamPerformanceService {
     const windowStart = agreement.startedAt!;
     const windowEnd = agreement.status === 'ACTIVE' ? new Date() : agreement.endedAt!;
 
-    // One pass per invoice; the LATERAL total mirrors AgentFinancialsService:
-    // NULL when any item lacks a fromAgent snapshot — that invoice is
+    // One pass per invoice; the LATERAL total mirrors ActorFinancialsService:
+    // NULL when any item lacks a fromActor snapshot — that invoice is
     // excluded from sums and counted in notConvertedCount (Q10).
     const rows: InvoiceRow[] = await this.invoices.query(
       `SELECT i."issuedAt" AS issued_at, t.total
@@ -99,16 +99,16 @@ export class VamPerformanceService {
        LATERAL (
          SELECT CASE
            WHEN COUNT(*) = 0 THEN NULL
-           WHEN COUNT(ii."fromAgentAmount") < COUNT(*) THEN NULL
-           ELSE SUM(ii."fromAgentAmount")
+           WHEN COUNT(ii."fromActorAmount") < COUNT(*) THEN NULL
+           ELSE SUM(ii."fromActorAmount")
          END AS total
          FROM invoice_items ii WHERE ii."invoiceId" = i.id
        ) t
-       WHERE i."fromAgentId" = $1
+       WHERE i."fromActorId" = $1
          AND i."issuedAt" >= $2
          AND i."issuedAt" <= $3
        ORDER BY i."issuedAt" ASC`,
-      [agreement.agentId, windowStart, windowEnd],
+      [agreement.actorId, windowStart, windowEnd],
     );
     const converted = rows
       .filter((r) => r.total !== null)
@@ -235,7 +235,7 @@ export class VamPerformanceService {
       currency: agreement.currency
         ? { id: agreement.currency.id, code: agreement.currency.code, name: agreement.currency.name }
         : null,
-      agentFunctionalCurrency: functionalCurrency
+      actorFunctionalCurrency: functionalCurrency
         ? { id: functionalCurrency.id, code: functionalCurrency.code, name: functionalCurrency.name }
         : null,
       windowStart: windowStart.toISOString(),

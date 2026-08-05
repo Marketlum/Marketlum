@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { User } from '../users/entities/user.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Tension } from '../tensions/entities/tension.entity';
@@ -16,8 +16,8 @@ export class SearchService {
     private readonly valuesRepository: Repository<Value>,
     @InjectRepository(ValueInstance)
     private readonly valueInstancesRepository: Repository<ValueInstance>,
-    @InjectRepository(Agent)
-    private readonly agentsRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorsRepository: Repository<Actor>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     @InjectRepository(ValueStream)
@@ -29,7 +29,7 @@ export class SearchService {
   async search(query: SearchQuery): Promise<SearchResponse> {
     const { q, limit } = query;
 
-    const [values, valueInstances, agents, users, valueStreams, tensions] = await Promise.all([
+    const [values, valueInstances, actors, users, valueStreams, tensions] = await Promise.all([
       this.valuesRepository.query(
         `SELECT id, 'value' as type, name, purpose as subtitle,
                 ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
@@ -48,10 +48,10 @@ export class SearchService {
          LIMIT $2`,
         [q, limit],
       ),
-      this.agentsRepository.query(
-        `SELECT id, 'agent' as type, name, purpose as subtitle,
+      this.actorsRepository.query(
+        `SELECT id, 'actor' as type, name, purpose as subtitle,
                 ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
-         FROM "agents"
+         FROM "actors"
          WHERE search_vector @@ plainto_tsquery('english', $1)
          ORDER BY rank DESC
          LIMIT $2`,
@@ -86,7 +86,7 @@ export class SearchService {
       ),
     ]);
 
-    const allResults: SearchResult[] = [...values, ...valueInstances, ...agents, ...users, ...valueStreams, ...tensions]
+    const allResults: SearchResult[] = [...values, ...valueInstances, ...actors, ...users, ...valueStreams, ...tensions]
       .map((r) => ({
         id: r.id,
         type: r.type as SearchResult['type'],

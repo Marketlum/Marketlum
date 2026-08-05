@@ -1,7 +1,7 @@
 import { ChannelsService } from '../../channels/channels.service';
 
 interface ChannelDeps {
-  agents: Array<{ id: string }>;
+  actors: Array<{ id: string }>;
 }
 
 const ROOT_CHANNELS = [
@@ -24,14 +24,14 @@ export async function seedChannels(service: ChannelsService, deps: ChannelDeps) 
 
   for (let i = 0; i < ROOT_CHANNELS.length; i++) {
     const channelData = ROOT_CHANNELS[i];
-    const agent = deps.agents[i % deps.agents.length];
+    const actor = deps.actors[i % deps.actors.length];
 
     const channel = await service.create({
       code: channelData.code,
       name: channelData.name,
       purpose: channelData.purpose,
       color: channelData.color,
-      agentId: agent.id,
+      actorId: actor.id,
     });
     roots.push({ id: channel.id, name: channel.name });
 

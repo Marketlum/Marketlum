@@ -14,7 +14,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { File } from '../../files/entities/file.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 import { AgreementTemplate } from '../../agreement-templates/entities/agreement-template.entity';
 import { ValueStream } from '../../value-streams/entities/value-stream.entity';
 
@@ -63,13 +63,13 @@ export class Agreement {
   @Column({ type: 'uuid', nullable: true })
   valueStreamId: string | null;
 
-  @ManyToMany(() => Agent)
+  @ManyToMany(() => Actor)
   @JoinTable({
     name: 'agreement_parties',
     joinColumn: { name: 'agreementId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'agentId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'actorId', referencedColumnName: 'id' },
   })
-  parties: Agent[];
+  parties: Actor[];
 
   @CreateDateColumn()
   createdAt: Date;

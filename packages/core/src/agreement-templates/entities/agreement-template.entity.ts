@@ -13,7 +13,7 @@ import {
 } from 'typeorm';
 import { AgreementTemplateType } from '@marketlum/shared';
 import { ValueStream } from '../../value-streams/entities/value-stream.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 
 @Entity('agreement_templates')
 @Tree('closure-table')
@@ -55,12 +55,12 @@ export class AgreementTemplate {
   @Column({ type: 'uuid', nullable: true })
   valueStreamId: string | null;
 
-  @ManyToOne(() => Agent, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent | null;
+  @ManyToOne(() => Actor, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
-  agentId: string | null;
+  actorId: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

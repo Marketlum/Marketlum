@@ -2,9 +2,9 @@ Feature: RDHY VAM agreement performance
 
   A read-only plan-vs-actual view for a VAM agreement: cumulative
   DIRECT_VALUE revenue targets per milestone are compared against the
-  agent's actual invoice revenue (per-agent snapshot amounts in the
-  agent's functional currency). Judgments require the agreement and
-  agent currencies to match; otherwise a comparability state explains
+  actor's actual invoice revenue (per-actor snapshot amounts in the
+  actor's functional currency). Judgments require the agreement and
+  actor currencies to match; otherwise a comparability state explains
   what is missing. Milestones due before the evaluation cutoff are
   ACHIEVED or MISSED (revenue strictly before the due date), the
   current milestone of an active agreement is ON_TRACK or BEHIND
@@ -16,9 +16,9 @@ Feature: RDHY VAM agreement performance
     Given I am authenticated as "admin@marketlum.com"
     And a currency value exists named "USD"
     And an RDHY platform exists with code "industrial_platform" and name "Industrial Platform"
-    And an agent exists with name "Web3 ME" and functional currency "USD"
-    And an agent exists with name "Acme Client" and functional currency "USD"
-    And a VAM agreement titled "Web 3 Consulting HUB" in currency "USD" exists for the agent "Web3 ME" sponsored by "industrial_platform"
+    And an actor exists with name "Web3 ME" and functional currency "USD"
+    And an actor exists with name "Acme Client" and functional currency "USD"
+    And a VAM agreement titled "Web 3 Consulting HUB" in currency "USD" exists for the actor "Web3 ME" sponsored by "industrial_platform"
     And the canvas of the VAM agreement "Web 3 Consulting HUB" is replaced with the performance canvas
 
   Scenario: Plan versus actual for a comparable agreement
@@ -89,7 +89,7 @@ Feature: RDHY VAM agreement performance
 
   Scenario: Mismatched currencies disable judgments but keep actuals
     Given a currency value exists named "EUR"
-    And a VAM agreement titled "Euro Cycle" in currency "EUR" exists for the agent "Web3 ME" sponsored by "industrial_platform"
+    And a VAM agreement titled "Euro Cycle" in currency "EUR" exists for the actor "Web3 ME" sponsored by "industrial_platform"
     And the canvas of the VAM agreement "Euro Cycle" is replaced with the performance canvas
     And the VAM agreement "Euro Cycle" is activated with a start date 7 months ago
     And an invoice exists from "Web3 ME" to "Acme Client" issued 1 months after the start of "Euro Cycle" amount "300000"

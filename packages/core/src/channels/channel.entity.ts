@@ -11,7 +11,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 
 @Entity('channels')
 @Tree('closure-table')
@@ -40,12 +40,12 @@ export class Channel {
   @TreeChildren()
   children: Channel[];
 
-  @ManyToOne(() => Agent, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent | null;
+  @ManyToOne(() => Actor, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
-  agentId: string | null;
+  actorId: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

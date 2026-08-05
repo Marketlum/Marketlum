@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Agent } from '../../entities/agent.entity';
+import { Actor } from '../../entities/actor.entity';
 import { Geography } from '../../../geographies/geography.entity';
 
 @Entity('addresses')
@@ -15,12 +15,12 @@ export class Address {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent;
+  @ManyToOne(() => Actor, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor;
 
   @Column({ type: 'uuid' })
-  agentId: string;
+  actorId: string;
 
   @ManyToOne(() => Geography, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'countryId' })

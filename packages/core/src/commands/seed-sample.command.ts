@@ -9,8 +9,8 @@ import { TaxonomiesService } from '../taxonomies/taxonomies.service';
 import { GeographiesService } from '../geographies/geographies.service';
 import { UsersService } from '../users/users.service';
 import { RolesService } from '../roles/roles.service';
-import { AgentsService } from '../agents/agents.service';
-import { AddressesService } from '../agents/addresses/addresses.service';
+import { ActorsService } from '../actors/actors.service';
+import { AddressesService } from '../actors/addresses/addresses.service';
 import { ChannelsService } from '../channels/channels.service';
 import { ArchetypesService } from '../archetypes/archetypes.service';
 import { ValueStreamsService } from '../value-streams/value-streams.service';
@@ -32,7 +32,7 @@ import { seedLocales } from './seeders/locale.seeder';
 import { seedTaxonomies } from './seeders/taxonomy.seeder';
 import { seedGeographies } from './seeders/geography.seeder';
 import { seedUsers } from './seeders/user.seeder';
-import { seedAgents } from './seeders/agent.seeder';
+import { seedActors } from './seeders/actor.seeder';
 import { seedChannels } from './seeders/channel.seeder';
 import { seedArchetypes } from './seeders/archetype.seeder';
 import { seedValueStreams } from './seeders/value-stream.seeder';
@@ -67,7 +67,7 @@ export class SeedSampleCommand extends CommandRunner {
     private readonly geographiesService: GeographiesService,
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
-    private readonly agentsService: AgentsService,
+    private readonly actorsService: ActorsService,
     private readonly addressesService: AddressesService,
     private readonly channelsService: ChannelsService,
     private readonly archetypesService: ArchetypesService,
@@ -139,16 +139,16 @@ export class SeedSampleCommand extends CommandRunner {
     const users = await seedUsers(this.usersService, this.rolesService);
     this.logger.log(`  Created ${users.length} users`);
 
-    // Level 3: Agents, Channels
-    this.logger.log('Seeding agents...');
-    const agents = await seedAgents(this.agentsService, this.addressesService, {
+    // Level 3: Actors, Channels
+    this.logger.log('Seeding actors...');
+    const actors = await seedActors(this.actorsService, this.addressesService, {
       taxonomies,
       countries: geographies.countries,
     });
-    this.logger.log(`  Created ${agents.length} agents`);
+    this.logger.log(`  Created ${actors.length} actors`);
 
     this.logger.log('Seeding channels...');
-    const channels = await seedChannels(this.channelsService, { agents });
+    const channels = await seedChannels(this.channelsService, { actors });
     this.logger.log(`  Created ${channels.all.length} channels`);
 
     // Level 4: Archetypes, Value Streams, Agreement Templates
@@ -166,11 +166,11 @@ export class SeedSampleCommand extends CommandRunner {
 
     // Level 5: Values, Agreements
     this.logger.log('Seeding values...');
-    const values = await seedValues(this.valuesService, { taxonomies, agents, valueStreams });
+    const values = await seedValues(this.valuesService, { taxonomies, actors, valueStreams });
     this.logger.log(`  Created ${values.length} values`);
 
-    // Assign a functional currency to every seeded agent so the sample
-    // dataset exercises the per-agent snapshot path end-to-end across both
+    // Assign a functional currency to every seeded actor so the sample
+    // dataset exercises the per-actor snapshot path end-to-end across both
     // matching and cross-currency invoices.
     const currencyByName: Record<string, string | undefined> = {
       USD: values.find((v) => v.name === 'USD')?.id,
@@ -178,7 +178,7 @@ export class SeedSampleCommand extends CommandRunner {
       GBP: values.find((v) => v.name === 'GBP')?.id,
       PLN: values.find((v) => v.name === 'PLN')?.id,
     };
-    const functionalCurrencyByAgentName: Record<string, string | undefined> = {
+    const functionalCurrencyByActorName: Record<string, string | undefined> = {
       'Acme Corp': currencyByName.EUR,
       'TechNova Solutions': currencyByName.USD,
       'GreenLeaf Partners': currencyByName.GBP,
@@ -186,27 +186,27 @@ export class SeedSampleCommand extends CommandRunner {
       'James Liu': currencyByName.USD,
       'AutoFlow Bot': currencyByName.USD,
     };
-    // Agents outside the explicit map cycle deterministically through the
-    // seeded currencies so every agent has one.
+    // Actors outside the explicit map cycle deterministically through the
+    // seeded currencies so every actor has one.
     const currencyCycle = [
       currencyByName.USD,
       currencyByName.EUR,
       currencyByName.PLN,
       currencyByName.GBP,
     ].filter((id): id is string => !!id);
-    for (const [index, agent] of agents.entries()) {
+    for (const [index, actor] of actors.entries()) {
       const currencyId =
-        functionalCurrencyByAgentName[agent.name] ??
+        functionalCurrencyByActorName[actor.name] ??
         currencyCycle[index % currencyCycle.length];
       if (currencyId) {
-        await this.agentsService.update(agent.id, { functionalCurrencyId: currencyId });
+        await this.actorsService.update(actor.id, { functionalCurrencyId: currencyId });
       }
     }
-    this.logger.log('  Assigned functional currencies to all seeded agents');
+    this.logger.log('  Assigned functional currencies to all seeded actors');
 
     this.logger.log('Seeding agreements...');
     const agreements = await seedAgreements(this.agreementsService, {
-      agents,
+      actors,
       agreementTemplates,
       valueStreams: valueStreams.all,
     });
@@ -218,19 +218,19 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log(`  Created ${pipelines.length} pipelines`);
 
     this.logger.log('Seeding tensions...');
-    const tensions = await seedTensions(this.tensionsService, { agents, users });
+    const tensions = await seedTensions(this.tensionsService, { actors, users });
     this.logger.log(`  Created ${tensions.length} tensions`);
 
     this.logger.log('Seeding accounts...');
-    const accounts = await seedAccounts(this.accountsService, { values, agents });
+    const accounts = await seedAccounts(this.accountsService, { values, actors });
     this.logger.log(`  Created ${accounts.length} accounts`);
 
     this.logger.log('Seeding offerings...');
-    const offerings = await seedOfferings(this.offeringsService, { values, agents, valueStreams });
+    const offerings = await seedOfferings(this.offeringsService, { values, actors, valueStreams });
     this.logger.log(`  Created ${offerings.length} offerings`);
 
     // Seed exchange rates and presentation currency BEFORE invoices
-    // flows so those entities can resolve presentation-currency and per-agent
+    // flows so those entities can resolve presentation-currency and per-actor
     // snapshots at write time.
     this.logger.log('Seeding exchange rates...');
     const rates = await seedExchangeRates(this.exchangeRatesService, { values });
@@ -243,12 +243,12 @@ export class SeedSampleCommand extends CommandRunner {
     );
 
     this.logger.log('Seeding invoices...');
-    const invoices = await seedInvoices(this.invoicesService, { agents, values });
+    const invoices = await seedInvoices(this.invoicesService, { actors, values });
     this.logger.log(`  Created ${invoices.length} invoices`);
 
     this.logger.log('Seeding orders...');
     const orders = await seedOrders(this.ordersService, this.invoicesService, {
-      agents,
+      actors,
       values,
       channels: channels.all,
       pipelines,
@@ -263,12 +263,12 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log(`  Created ${transactions.length} transactions`);
 
     this.logger.log('Seeding value instances...');
-    const valueInstances = await seedValueInstances(this.valueInstancesService, { values, agents });
+    const valueInstances = await seedValueInstances(this.valueInstancesService, { values, actors });
     this.logger.log(`  Created ${valueInstances.length} value instances`);
 
     this.logger.log('Seeding exchanges...');
     const exchanges = await seedExchanges(this.exchangesService, this.exchangeFlowsService, {
-      agents,
+      actors,
       values,
       valueStreams,
       channels,

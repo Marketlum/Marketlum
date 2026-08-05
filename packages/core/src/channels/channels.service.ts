@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository, Repository } from 'typeorm';
 import { Channel } from './channel.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import {
   CreateChannelInput,
   UpdateChannelInput,
@@ -15,12 +15,12 @@ export class ChannelsService {
   constructor(
     @InjectRepository(Channel)
     private readonly channelRepository: TreeRepository<Channel>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
   ) {}
 
   async create(input: CreateChannelInput): Promise<Channel> {
-    const { parentId, agentId, ...rest } = input;
+    const { parentId, actorId, ...rest } = input;
 
     const channel = this.channelRepository.create({
       ...rest,
@@ -37,15 +37,15 @@ export class ChannelsService {
       channel.parent = parent;
     }
 
-    if (agentId) {
-      const agent = await this.agentRepository.findOne({
-        where: { id: agentId },
+    if (actorId) {
+      const actor = await this.actorRepository.findOne({
+        where: { id: actorId },
       });
-      if (!agent) {
-        throw new NotFoundException('Agent not found');
+      if (!actor) {
+        throw new NotFoundException('Actor not found');
       }
-      channel.agentId = agentId;
-      channel.agent = agent;
+      channel.actorId = actorId;
+      channel.actor = actor;
     }
 
     let saved: Channel;
@@ -68,7 +68,7 @@ export class ChannelsService {
   async findByCode(code: string): Promise<Channel> {
     const channel = await this.channelRepository.findOne({
       where: { code },
-      relations: ['agent'],
+      relations: ['actor'],
     });
     if (!channel) {
       throw new NotFoundException('Channel not found');
@@ -76,16 +76,16 @@ export class ChannelsService {
     return channel;
   }
 
-  async search(query: PaginationQuery & { agentId?: string }) {
-    const { page, limit, search, sortBy, sortOrder, agentId } = query;
+  async search(query: PaginationQuery & { actorId?: string }) {
+    const { page, limit, search, sortBy, sortOrder, actorId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.channelRepository.createQueryBuilder('channel');
 
-    qb.leftJoinAndSelect('channel.agent', 'agent');
+    qb.leftJoinAndSelect('channel.actor', 'actor');
 
-    if (agentId) {
-      qb.andWhere('channel.agentId = :agentId', { agentId });
+    if (actorId) {
+      qb.andWhere('channel.actorId = :actorId', { actorId });
     }
 
     if (search) {
@@ -118,7 +118,7 @@ export class ChannelsService {
 
   async findTree(): Promise<Channel[]> {
     const trees = await this.channelRepository.findTrees({
-      relations: ['agent'],
+      relations: ['actor'],
     });
     return trees;
   }
@@ -126,7 +126,7 @@ export class ChannelsService {
   async findOne(id: string): Promise<Channel> {
     const channel = await this.channelRepository.findOne({
       where: { id },
-      relations: ['agent'],
+      relations: ['actor'],
     });
     if (!channel) {
       throw new NotFoundException('Channel not found');
@@ -148,23 +148,23 @@ export class ChannelsService {
 
   async update(id: string, input: UpdateChannelInput): Promise<Channel> {
     const channel = await this.findOne(id);
-    const { agentId, ...rest } = input;
+    const { actorId, ...rest } = input;
 
     Object.assign(channel, rest);
 
-    if (agentId !== undefined) {
-      if (agentId === null) {
-        channel.agent = null;
-        channel.agentId = null;
+    if (actorId !== undefined) {
+      if (actorId === null) {
+        channel.actor = null;
+        channel.actorId = null;
       } else {
-        const agent = await this.agentRepository.findOne({
-          where: { id: agentId },
+        const actor = await this.actorRepository.findOne({
+          where: { id: actorId },
         });
-        if (!agent) {
-          throw new NotFoundException('Agent not found');
+        if (!actor) {
+          throw new NotFoundException('Actor not found');
         }
-        channel.agentId = agentId;
-        channel.agent = agent;
+        channel.actorId = actorId;
+        channel.actor = actor;
       }
     }
 

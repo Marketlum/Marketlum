@@ -22,7 +22,7 @@ export const assignRdhyPlatformSchema = z.object({
   platformId: z.string().uuid(),
 });
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   type: z.string(),
@@ -45,7 +45,7 @@ export const rdhyPlatformResponseSchema = z.object({
 });
 
 export const rdhyPlatformDetailResponseSchema = rdhyPlatformResponseSchema.extend({
-  members: z.array(agentSummarySchema),
+  members: z.array(actorSummarySchema),
 });
 
 export const rdhyPlatformLookupResponseSchema = z.object({
@@ -58,4 +58,4 @@ export type AssignRdhyPlatformInput = z.infer<typeof assignRdhyPlatformSchema>;
 export type RdhyPlatformResponse = z.infer<typeof rdhyPlatformResponseSchema>;
 export type RdhyPlatformDetailResponse = z.infer<typeof rdhyPlatformDetailResponseSchema>;
 export type RdhyPlatformLookupResponse = z.infer<typeof rdhyPlatformLookupResponseSchema>;
-export type RdhyAgentSummary = z.infer<typeof agentSummarySchema>;
+export type RdhyActorSummary = z.infer<typeof actorSummarySchema>;

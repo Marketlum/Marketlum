@@ -16,33 +16,33 @@ export class DashboardService {
   ) {}
 
   async getSummary(query: DashboardQuery): Promise<DashboardSummaryResponse> {
-    const { agentId, channelId, fromDate, toDate } = query;
+    const { actorId, channelId, fromDate, toDate } = query;
 
-    const summary = agentId
-      ? await this.getSummaryByAgent(agentId, channelId, fromDate, toDate)
+    const summary = actorId
+      ? await this.getSummaryByActor(actorId, channelId, fromDate, toDate)
       : await this.getSummaryAll(channelId, fromDate, toDate);
 
     const notConvertedCount = await this.getNotConvertedCount(query);
     return { ...summary, notConvertedCount };
   }
 
-  private async getSummaryByAgent(
-    agentId: string,
+  private async getSummaryByActor(
+    actorId: string,
     channelId?: string,
     fromDate?: string,
     toDate?: string,
   ): Promise<DashboardSummaryResponse> {
     const revenueRows = await this.queryTimeSeries(
-      'i."fromAgentId" = $1',
-      [agentId],
+      'i."fromActorId" = $1',
+      [actorId],
       channelId,
       fromDate,
       toDate,
     );
 
     const expenseRows = await this.queryTimeSeries(
-      'i."toAgentId" = $1',
-      [agentId],
+      'i."toActorId" = $1',
+      [actorId],
       channelId,
       fromDate,
       toDate,
@@ -115,8 +115,8 @@ export class DashboardService {
   }
 
   private async queryTimeSeries(
-    agentCondition: string,
-    agentParams: string[],
+    actorCondition: string,
+    actorParams: string[],
     channelId?: string,
     fromDate?: string,
     toDate?: string,
@@ -125,10 +125,10 @@ export class DashboardService {
     // them keeps on-behalf deals counted exactly once. Genuine internal
     // invoices remain included.
     const conditions = [
-      agentCondition,
+      actorCondition,
       `NOT EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = i.id)`,
     ];
-    const params = [...agentParams];
+    const params = [...actorParams];
     let paramIndex = params.length + 1;
 
     if (channelId) {
@@ -168,7 +168,7 @@ export class DashboardService {
   }
 
   async getNotConvertedCount(query: DashboardQuery): Promise<number> {
-    const { agentId, channelId, fromDate, toDate } = query;
+    const { actorId, channelId, fromDate, toDate } = query;
     const conditions: string[] = [
       `ii."presentationAmount" IS NULL`,
       `NOT EXISTS (SELECT 1 FROM invoices s WHERE s."mirrorInvoiceId" = i.id)`,
@@ -176,9 +176,9 @@ export class DashboardService {
     const params: string[] = [];
     let paramIndex = 1;
 
-    if (agentId) {
-      conditions.push(`(i."fromAgentId" = $${paramIndex} OR i."toAgentId" = $${paramIndex})`);
-      params.push(agentId);
+    if (actorId) {
+      conditions.push(`(i."fromActorId" = $${paramIndex} OR i."toActorId" = $${paramIndex})`);
+      params.push(actorId);
       paramIndex++;
     }
     if (channelId) {

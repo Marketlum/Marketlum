@@ -14,41 +14,41 @@ import {
   TreeChildren,
   TreeLevelColumn,
 } from 'typeorm';
-import { AgentType } from '@marketlum/shared';
+import { ActorType } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 import { File } from '../../files/entities/file.entity';
 import { Address } from '../addresses/entities/address.entity';
 import { Value } from '../../values/entities/value.entity';
 
-@Entity('agents')
+@Entity('actors')
 @Tree('closure-table')
-export class Agent {
+export class Actor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: AgentType })
-  type: AgentType;
+  @Column({ type: 'enum', enum: ActorType })
+  type: ActorType;
 
   @TreeParent()
   @JoinColumn({ name: 'parentId' })
-  parent: Agent | null;
+  parent: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
   parentId: string | null;
 
   @TreeChildren()
-  children: Agent[];
+  children: Actor[];
 
-  // Unlike the other trees, level is maintained by AgentsService (TypeORM
+  // Unlike the other trees, level is maintained by ActorsService (TypeORM
   // does not populate it — DB DEFAULT 0 is the insert-time backstop).
   @TreeLevelColumn()
   level: number;
 
-  /** Not a column: populated by AgentsService.findOne (root → direct parent). */
-  ancestors?: Agent[];
+  /** Not a column: populated by ActorsService.findOne (root → direct parent). */
+  ancestors?: Actor[];
 
   @Column({ type: 'text', nullable: true })
   purpose: string | null;
@@ -62,8 +62,8 @@ export class Agent {
 
   @ManyToMany(() => Taxonomy)
   @JoinTable({
-    name: 'agent_taxonomies',
-    joinColumn: { name: 'agentId', referencedColumnName: 'id' },
+    name: 'actor_taxonomies',
+    joinColumn: { name: 'actorId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'taxonomyId', referencedColumnName: 'id' },
   })
   taxonomies: Taxonomy[];
@@ -75,7 +75,7 @@ export class Agent {
   @Column({ type: 'uuid', nullable: true })
   imageId: string | null;
 
-  @OneToMany(() => Address, (address) => address.agent)
+  @OneToMany(() => Address, (address) => address.actor)
   addresses: Address[];
 
   @ManyToOne(() => Value, { nullable: true, onDelete: 'RESTRICT' })

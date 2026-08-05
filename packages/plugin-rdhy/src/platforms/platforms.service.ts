@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Agent } from '@marketlum/core';
+import { Actor } from '@marketlum/core';
 import type {
   AssignRdhyPlatformInput,
   CreateRdhyPlatformInput,
@@ -11,7 +11,7 @@ import type {
   UpdateRdhyPlatformInput,
 } from '../shared/schemas';
 import { RdhyPlatform } from './rdhy-platform.entity';
-import { RdhyPlatformAgent } from './rdhy-platform-agent.entity';
+import { RdhyPlatformActor } from './rdhy-platform-actor.entity';
 import { RdhyVamAgreement } from '../vam/rdhy-vam-agreement.entity';
 import { RdhyEmcAgreement } from '../emc/rdhy-emc-agreement.entity';
 
@@ -20,10 +20,10 @@ export class PlatformsService {
   constructor(
     @InjectRepository(RdhyPlatform)
     private readonly platformRepository: Repository<RdhyPlatform>,
-    @InjectRepository(RdhyPlatformAgent)
-    private readonly linkRepository: Repository<RdhyPlatformAgent>,
-    @InjectRepository(Agent)
-    private readonly coreAgentRepository: Repository<Agent>,
+    @InjectRepository(RdhyPlatformActor)
+    private readonly linkRepository: Repository<RdhyPlatformActor>,
+    @InjectRepository(Actor)
+    private readonly coreActorRepository: Repository<Actor>,
     @InjectRepository(RdhyVamAgreement)
     private readonly vamAgreementRepository: Repository<RdhyVamAgreement>,
     @InjectRepository(RdhyEmcAgreement)
@@ -63,13 +63,13 @@ export class PlatformsService {
     const platform = await this.requirePlatform(id);
     const links = await this.linkRepository.find({
       where: { platformId: platform.id },
-      relations: ['agent'],
+      relations: ['actor'],
       order: { createdAt: 'ASC' },
     });
     const members = links.map((link) => ({
-      id: link.agent.id,
-      name: link.agent.name,
-      type: link.agent.type,
+      id: link.actor.id,
+      name: link.actor.name,
+      type: link.actor.type,
     }));
     return { ...this.toResponse(platform, members.length), members };
   }
@@ -103,34 +103,34 @@ export class PlatformsService {
   }
 
   async assign(
-    agentId: string,
+    actorId: string,
     input: AssignRdhyPlatformInput,
   ): Promise<RdhyPlatformLookupResponse> {
-    await this.requireAgent(agentId);
+    await this.requireActor(actorId);
     const platform = await this.requirePlatform(input.platformId);
 
-    const existing = await this.linkRepository.findOne({ where: { agentId } });
+    const existing = await this.linkRepository.findOne({ where: { actorId } });
     if (existing) {
       existing.platformId = platform.id;
       await this.linkRepository.save(existing);
     } else {
       await this.linkRepository.save(
-        this.linkRepository.create({ agentId, platformId: platform.id }),
+        this.linkRepository.create({ actorId, platformId: platform.id }),
       );
     }
     return { platform: { id: platform.id, code: platform.code, name: platform.name } };
   }
 
-  async detach(agentId: string): Promise<void> {
-    await this.requireAgent(agentId);
-    const link = await this.linkRepository.findOne({ where: { agentId } });
+  async detach(actorId: string): Promise<void> {
+    await this.requireActor(actorId);
+    const link = await this.linkRepository.findOne({ where: { actorId } });
     if (link) await this.linkRepository.remove(link);
   }
 
-  async platformOf(agentId: string): Promise<RdhyPlatformLookupResponse> {
-    await this.requireAgent(agentId);
+  async platformOf(actorId: string): Promise<RdhyPlatformLookupResponse> {
+    await this.requireActor(actorId);
     const link = await this.linkRepository.findOne({
-      where: { agentId },
+      where: { actorId },
       relations: ['platform'],
     });
     if (!link) return { platform: null };
@@ -145,10 +145,10 @@ export class PlatformsService {
     return platform;
   }
 
-  private async requireAgent(id: string): Promise<Agent> {
-    const agent = await this.coreAgentRepository.findOne({ where: { id } });
-    if (!agent) throw new NotFoundException('Agent not found');
-    return agent;
+  private async requireActor(id: string): Promise<Actor> {
+    const actor = await this.coreActorRepository.findOne({ where: { id } });
+    if (!actor) throw new NotFoundException('Actor not found');
+    return actor;
   }
 
   private async memberCounts(): Promise<Map<string, number>> {

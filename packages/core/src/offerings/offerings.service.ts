@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Offering } from './entities/offering.entity';
 import { OfferingComponent } from './entities/offering-component.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Value } from '../values/entities/value.entity';
 import {
@@ -19,8 +19,8 @@ export class OfferingsService {
     private readonly offeringRepository: Repository<Offering>,
     @InjectRepository(OfferingComponent)
     private readonly componentRepository: Repository<OfferingComponent>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(ValueStream)
     private readonly valueStreamRepository: Repository<ValueStream>,
     @InjectRepository(Value)
@@ -28,16 +28,16 @@ export class OfferingsService {
   ) {}
 
   async create(input: CreateOfferingInput): Promise<Offering> {
-    const { valueStreamId, agentId, components, ...rest } = input;
+    const { valueStreamId, actorId, components, ...rest } = input;
 
     if (valueStreamId) {
       const vs = await this.valueStreamRepository.findOne({ where: { id: valueStreamId } });
       if (!vs) throw new NotFoundException('Value stream not found');
     }
 
-    if (agentId) {
-      const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-      if (!agent) throw new NotFoundException('Agent not found');
+    if (actorId) {
+      const actor = await this.actorRepository.findOne({ where: { id: actorId } });
+      if (!actor) throw new NotFoundException('Actor not found');
     }
 
     const offering = this.offeringRepository.create({
@@ -48,7 +48,7 @@ export class OfferingsService {
       activeFrom: rest.activeFrom ? new Date(rest.activeFrom) : null,
       activeUntil: rest.activeUntil ? new Date(rest.activeUntil) : null,
       valueStreamId: valueStreamId ?? null,
-      agentId: agentId ?? null,
+      actorId: actorId ?? null,
     });
 
     const saved = await this.offeringRepository.save(offering);
@@ -63,17 +63,17 @@ export class OfferingsService {
   async search(
     query: PaginationQuery & {
       state?: string;
-      agentId?: string;
+      actorId?: string;
       valueStreamId?: string;
     },
   ) {
-    const { page, limit, search, sortBy, sortOrder, state, agentId, valueStreamId } = query;
+    const { page, limit, search, sortBy, sortOrder, state, actorId, valueStreamId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.offeringRepository.createQueryBuilder('offering');
 
     qb.leftJoinAndSelect('offering.valueStream', 'valueStream');
-    qb.leftJoinAndSelect('offering.agent', 'agent');
+    qb.leftJoinAndSelect('offering.actor', 'actor');
     qb.leftJoinAndSelect('offering.components', 'components');
     qb.leftJoinAndSelect('components.value', 'componentValue');
 
@@ -81,8 +81,8 @@ export class OfferingsService {
       qb.andWhere('offering.state = :state', { state });
     }
 
-    if (agentId) {
-      qb.andWhere('offering.agentId = :agentId', { agentId });
+    if (actorId) {
+      qb.andWhere('offering.actorId = :actorId', { actorId });
     }
 
     if (valueStreamId) {
@@ -120,7 +120,7 @@ export class OfferingsService {
   async findOne(id: string): Promise<Offering> {
     const offering = await this.offeringRepository.findOne({
       where: { id },
-      relations: ['valueStream', 'agent', 'components', 'components.value'],
+      relations: ['valueStream', 'actor', 'components', 'components.value'],
     });
     if (!offering) {
       throw new NotFoundException('Offering not found');
@@ -130,7 +130,7 @@ export class OfferingsService {
 
   async update(id: string, input: UpdateOfferingInput): Promise<Offering> {
     const offering = await this.findOne(id);
-    const { valueStreamId, agentId, components, ...rest } = input;
+    const { valueStreamId, actorId, components, ...rest } = input;
 
     if (rest.name !== undefined) offering.name = rest.name;
     if (rest.purpose !== undefined) offering.purpose = rest.purpose ?? null;
@@ -156,15 +156,15 @@ export class OfferingsService {
       }
     }
 
-    if (agentId !== undefined) {
-      if (agentId === null) {
-        offering.agent = null;
-        offering.agentId = null;
+    if (actorId !== undefined) {
+      if (actorId === null) {
+        offering.actor = null;
+        offering.actorId = null;
       } else {
-        const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-        if (!agent) throw new NotFoundException('Agent not found');
-        offering.agentId = agentId;
-        offering.agent = agent;
+        const actor = await this.actorRepository.findOne({ where: { id: actorId } });
+        if (!actor) throw new NotFoundException('Actor not found');
+        offering.actorId = actorId;
+        offering.actor = actor;
       }
     }
 

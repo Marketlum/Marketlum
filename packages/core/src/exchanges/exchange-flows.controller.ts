@@ -51,7 +51,7 @@ export class ExchangeFlowsController {
   @ApiParam({ name: 'exchangeId', type: String, description: 'Exchange UUID' })
   @ApiBody({ type: CreateExchangeFlowDto })
   @ApiCreatedResponse({ type: ExchangeFlowResponseDto })
-  @ApiBadRequestResponse({ description: 'fromAgent or toAgent is not a party of this exchange' })
+  @ApiBadRequestResponse({ description: 'fromActor or toActor is not a party of this exchange' })
   @ApiNotFoundResponse({ description: 'Exchange or referenced entity not found' })
   async create(
     @Param('exchangeId') exchangeId: string,
@@ -88,7 +88,7 @@ export class ExchangeFlowsController {
   @ApiParam({ name: 'flowId', type: String, description: 'Flow UUID' })
   @ApiBody({ type: UpdateExchangeFlowDto })
   @ApiOkResponse({ type: ExchangeFlowResponseDto })
-  @ApiBadRequestResponse({ description: 'fromAgent or toAgent is not a party of this exchange' })
+  @ApiBadRequestResponse({ description: 'fromActor or toActor is not a party of this exchange' })
   @ApiNotFoundResponse({ description: 'Exchange or flow not found' })
   async update(
     @Param('exchangeId') exchangeId: string,

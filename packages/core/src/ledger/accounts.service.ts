@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
 import { Value } from '../values/entities/value.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import {
   CreateAccountInput,
   UpdateAccountInput,
@@ -17,24 +17,24 @@ export class AccountsService {
     private readonly repository: Repository<Account>,
     @InjectRepository(Value)
     private readonly valuesRepository: Repository<Value>,
-    @InjectRepository(Agent)
-    private readonly agentsRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorsRepository: Repository<Actor>,
   ) {}
 
   async create(input: CreateAccountInput): Promise<Account> {
-    const { valueId, agentId, ...rest } = input;
+    const { valueId, actorId, ...rest } = input;
 
     const value = await this.valuesRepository.findOne({ where: { id: valueId } });
     if (!value) {
       throw new NotFoundException('Value not found');
     }
 
-    const agent = await this.agentsRepository.findOne({ where: { id: agentId } });
-    if (!agent) {
-      throw new NotFoundException('Agent not found');
+    const actor = await this.actorsRepository.findOne({ where: { id: actorId } });
+    if (!actor) {
+      throw new NotFoundException('Actor not found');
     }
 
-    const account = this.repository.create({ ...rest, valueId, agentId });
+    const account = this.repository.create({ ...rest, valueId, actorId });
     const saved = await this.repository.save(account);
     return this.findOne(saved.id);
   }
@@ -42,16 +42,16 @@ export class AccountsService {
   async findAll(
     query: PaginationQuery & {
       valueId?: string;
-      agentId?: string;
+      actorId?: string;
     },
   ) {
-    const { page, limit, search, sortBy, sortOrder, valueId, agentId } = query;
+    const { page, limit, search, sortBy, sortOrder, valueId, actorId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.repository.createQueryBuilder('account');
 
     qb.leftJoinAndSelect('account.value', 'value');
-    qb.leftJoinAndSelect('account.agent', 'agent');
+    qb.leftJoinAndSelect('account.actor', 'actor');
 
     // Computed balance subquery
     qb.addSelect(
@@ -66,8 +66,8 @@ export class AccountsService {
       qb.andWhere('account."valueId" = :valueId', { valueId });
     }
 
-    if (agentId) {
-      qb.andWhere('account."agentId" = :agentId', { agentId });
+    if (actorId) {
+      qb.andWhere('account."actorId" = :actorId', { actorId });
     }
 
     if (search) {
@@ -85,7 +85,7 @@ export class AccountsService {
     // Get total count separately (without the addSelect)
     const countQb = this.repository.createQueryBuilder('account');
     if (valueId) countQb.andWhere('account."valueId" = :valueId', { valueId });
-    if (agentId) countQb.andWhere('account."agentId" = :agentId', { agentId });
+    if (actorId) countQb.andWhere('account."actorId" = :actorId', { actorId });
     if (search) countQb.andWhere('account.name ILIKE :search', { search: `%${search}%` });
     const total = await countQb.getCount();
 
@@ -114,7 +114,7 @@ export class AccountsService {
   async findOne(id: string): Promise<Account> {
     const account = await this.repository.findOne({
       where: { id },
-      relations: ['value', 'agent'],
+      relations: ['value', 'actor'],
     });
     if (!account) {
       throw new NotFoundException('Account not found');
@@ -135,7 +135,7 @@ export class AccountsService {
 
   async update(id: string, input: UpdateAccountInput): Promise<Account> {
     const account = await this.findOne(id);
-    const { valueId, agentId, ...rest } = input;
+    const { valueId, actorId, ...rest } = input;
 
     Object.assign(account, rest);
 
@@ -148,13 +148,13 @@ export class AccountsService {
       account.value = value;
     }
 
-    if (agentId !== undefined) {
-      const agent = await this.agentsRepository.findOne({ where: { id: agentId } });
-      if (!agent) {
-        throw new NotFoundException('Agent not found');
+    if (actorId !== undefined) {
+      const actor = await this.actorsRepository.findOne({ where: { id: actorId } });
+      if (!actor) {
+        throw new NotFoundException('Actor not found');
       }
-      account.agentId = agentId;
-      account.agent = agent;
+      account.actorId = actorId;
+      account.actor = actor;
     }
 
     await this.repository.save(account);

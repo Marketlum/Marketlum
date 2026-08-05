@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Exchange } from './entities/exchange.entity';
 import { ExchangeParty } from './entities/exchange-party.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import { Channel } from '../channels/channel.entity';
 import { Pipeline } from '../pipelines/entities/pipeline.entity';
@@ -30,8 +30,8 @@ export class ExchangesService {
     private readonly exchangeRepository: Repository<Exchange>,
     @InjectRepository(ExchangeParty)
     private readonly partyRepository: Repository<ExchangeParty>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(ValueStream)
     private readonly valueStreamRepository: Repository<ValueStream>,
     @InjectRepository(Channel)
@@ -77,17 +77,17 @@ export class ExchangesService {
       if (!tension) throw new NotFoundException('Tension not found');
     }
 
-    // Validate no duplicate agents in parties
-    const agentIds = parties.map((p) => p.agentId);
-    const uniqueAgentIds = [...new Set(agentIds)];
-    if (uniqueAgentIds.length !== agentIds.length) {
-      throw new BadRequestException('Duplicate agents in parties');
+    // Validate no duplicate actors in parties
+    const actorIds = parties.map((p) => p.actorId);
+    const uniqueActorIds = [...new Set(actorIds)];
+    if (uniqueActorIds.length !== actorIds.length) {
+      throw new BadRequestException('Duplicate actors in parties');
     }
 
-    // Validate all party agents exist
-    const agents = await this.agentRepository.findBy({ id: In(uniqueAgentIds) });
-    if (agents.length !== uniqueAgentIds.length) {
-      throw new NotFoundException('One or more party agents not found');
+    // Validate all party actors exist
+    const actors = await this.actorRepository.findBy({ id: In(uniqueActorIds) });
+    if (actors.length !== uniqueActorIds.length) {
+      throw new NotFoundException('One or more party actors not found');
     }
 
     const exchange = this.exchangeRepository.create({
@@ -110,7 +110,7 @@ export class ExchangesService {
     const partyEntities = parties.map((p) =>
       this.partyRepository.create({
         exchangeId: saved.id,
-        agentId: p.agentId,
+        actorId: p.actorId,
         role: p.role ?? null,
       }),
     );
@@ -129,7 +129,7 @@ export class ExchangesService {
         'lead',
         'tension',
         'parties',
-        'parties.agent',
+        'parties.actor',
       ],
     });
     if (!exchange) {
@@ -144,7 +144,7 @@ export class ExchangesService {
       channelId?: string;
       valueStreamId?: string;
       pipelineId?: string;
-      partyAgentId?: string;
+      partyActorId?: string;
       leadUserId?: string;
     },
   ) {
@@ -158,7 +158,7 @@ export class ExchangesService {
       channelId,
       valueStreamId,
       pipelineId,
-      partyAgentId,
+      partyActorId,
       leadUserId,
     } = query;
     const skip = (page - 1) * limit;
@@ -169,7 +169,7 @@ export class ExchangesService {
     qb.leftJoinAndSelect('exchange.pipeline', 'pipeline');
     qb.leftJoinAndSelect('exchange.lead', 'lead');
     qb.leftJoinAndSelect('exchange.parties', 'parties');
-    qb.leftJoinAndSelect('parties.agent', 'partyAgent');
+    qb.leftJoinAndSelect('parties.actor', 'partyActor');
 
     if (state) {
       qb.andWhere('exchange.state = :state', { state });
@@ -191,10 +191,10 @@ export class ExchangesService {
       qb.andWhere('exchange.leadUserId = :leadUserId', { leadUserId });
     }
 
-    if (partyAgentId) {
+    if (partyActorId) {
       qb.andWhere(
-        `EXISTS (SELECT 1 FROM exchange_parties ep WHERE ep."exchangeId" = exchange.id AND ep."agentId" = :partyAgentId)`,
-        { partyAgentId },
+        `EXISTS (SELECT 1 FROM exchange_parties ep WHERE ep."exchangeId" = exchange.id AND ep."actorId" = :partyActorId)`,
+        { partyActorId },
       );
     }
 
@@ -233,10 +233,10 @@ export class ExchangesService {
     if (leadUserId) {
       countQb.andWhere('exchange.leadUserId = :leadUserId', { leadUserId });
     }
-    if (partyAgentId) {
+    if (partyActorId) {
       countQb.andWhere(
-        `EXISTS (SELECT 1 FROM exchange_parties ep WHERE ep."exchangeId" = exchange.id AND ep."agentId" = :partyAgentId)`,
-        { partyAgentId },
+        `EXISTS (SELECT 1 FROM exchange_parties ep WHERE ep."exchangeId" = exchange.id AND ep."actorId" = :partyActorId)`,
+        { partyActorId },
       );
     }
     if (search) {
@@ -383,34 +383,34 @@ export class ExchangesService {
     await this.exchangeRepository.remove(exchange);
   }
 
-  async getPartyAgentIds(exchangeId: string): Promise<string[]> {
+  async getPartyActorIds(exchangeId: string): Promise<string[]> {
     const parties = await this.partyRepository.find({
       where: { exchangeId },
     });
-    return parties.map((p) => p.agentId);
+    return parties.map((p) => p.actorId);
   }
 
   private async replaceParties(
     exchangeId: string,
-    parties: { agentId: string; role?: string | null }[],
+    parties: { actorId: string; role?: string | null }[],
   ): Promise<void> {
     await this.partyRepository.delete({ exchangeId });
 
-    const agentIds = parties.map((p) => p.agentId);
-    const uniqueAgentIds = [...new Set(agentIds)];
-    if (uniqueAgentIds.length !== agentIds.length) {
-      throw new BadRequestException('Duplicate agents in parties');
+    const actorIds = parties.map((p) => p.actorId);
+    const uniqueActorIds = [...new Set(actorIds)];
+    if (uniqueActorIds.length !== actorIds.length) {
+      throw new BadRequestException('Duplicate actors in parties');
     }
 
-    const agents = await this.agentRepository.findBy({ id: In(uniqueAgentIds) });
-    if (agents.length !== uniqueAgentIds.length) {
-      throw new NotFoundException('One or more party agents not found');
+    const actors = await this.actorRepository.findBy({ id: In(uniqueActorIds) });
+    if (actors.length !== uniqueActorIds.length) {
+      throw new NotFoundException('One or more party actors not found');
     }
 
     const partyEntities = parties.map((p) =>
       this.partyRepository.create({
         exchangeId,
-        agentId: p.agentId,
+        actorId: p.actorId,
         role: p.role ?? null,
       }),
     );

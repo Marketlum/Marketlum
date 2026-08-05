@@ -5,7 +5,7 @@ import { Value } from './entities/value.entity';
 import { ValueImage } from './entities/value-image.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
 import {
   CreateValueInput,
@@ -26,14 +26,14 @@ export class ValuesService {
     private readonly taxonomyRepository: Repository<Taxonomy>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(ValueStream)
     private readonly valueStreamRepository: Repository<ValueStream>,
   ) {}
 
   async create(input: CreateValueInput): Promise<Value> {
-    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, valueStreamId, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, actorId, parentId, parentType, valueStreamId, ...rest } = input;
 
     const value = this.valuesRepository.create(rest);
 
@@ -47,13 +47,13 @@ export class ValuesService {
       value.parentType = parentType ?? null;
     }
 
-    if (agentId) {
-      const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-      if (!agent) {
-        throw new NotFoundException('Agent not found');
+    if (actorId) {
+      const actor = await this.actorRepository.findOne({ where: { id: actorId } });
+      if (!actor) {
+        throw new NotFoundException('Actor not found');
       }
-      value.agentId = agentId;
-      value.agent = agent;
+      value.actorId = actorId;
+      value.actor = actor;
     }
 
     if (valueStreamId) {
@@ -129,8 +129,8 @@ export class ValuesService {
     return this.findOne(saved.id);
   }
 
-  async findAll(query: PaginationQuery & { type?: ValueType; taxonomyId?: string; agentId?: string; valueStreamId?: string; lifecycleStage?: ValueLifecycleStage }) {
-    const { page, limit, search, sortBy, sortOrder, type, taxonomyId, agentId, valueStreamId, lifecycleStage } = query;
+  async findAll(query: PaginationQuery & { type?: ValueType; taxonomyId?: string; actorId?: string; valueStreamId?: string; lifecycleStage?: ValueLifecycleStage }) {
+    const { page, limit, search, sortBy, sortOrder, type, taxonomyId, actorId, valueStreamId, lifecycleStage } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.valuesRepository.createQueryBuilder('value');
@@ -140,7 +140,7 @@ export class ValuesService {
     qb.leftJoinAndSelect('value.files', 'files');
     qb.leftJoinAndSelect('value.images', 'images');
     qb.leftJoinAndSelect('images.file', 'imageFile');
-    qb.leftJoinAndSelect('value.agent', 'agent');
+    qb.leftJoinAndSelect('value.actor', 'actor');
     qb.leftJoinAndSelect('value.valueStream', 'valueStream');
     qb.leftJoinAndSelect('valueStream.image', 'valueStreamImage');
     qb.leftJoinAndSelect('value.parent', 'parent');
@@ -149,8 +149,8 @@ export class ValuesService {
       qb.andWhere('value.type = :type', { type });
     }
 
-    if (agentId) {
-      qb.andWhere('value."agentId" = :agentId', { agentId });
+    if (actorId) {
+      qb.andWhere('value."actorId" = :actorId', { actorId });
     }
 
     if (valueStreamId) {
@@ -205,7 +205,7 @@ export class ValuesService {
   async findByCode(code: string): Promise<Value> {
     const value = await this.valuesRepository.findOne({
       where: { code },
-      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'valueStream', 'valueStream.image', 'parent'],
+      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'actor', 'valueStream', 'valueStream.image', 'parent'],
     });
     if (!value) {
       throw new NotFoundException('Value not found');
@@ -217,7 +217,7 @@ export class ValuesService {
   private async findOneRaw(id: string): Promise<Value> {
     const value = await this.valuesRepository.findOne({
       where: { id },
-      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'agent', 'valueStream', 'valueStream.image', 'parent'],
+      relations: ['mainTaxonomy', 'taxonomies', 'files', 'images', 'images.file', 'actor', 'valueStream', 'valueStream.image', 'parent'],
     });
     if (!value) {
       throw new NotFoundException('Value not found');
@@ -228,7 +228,7 @@ export class ValuesService {
 
   async update(id: string, input: UpdateValueInput): Promise<Value> {
     const value = await this.findOneRaw(id);
-    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, agentId, parentId, parentType, valueStreamId, ...rest } = input;
+    const { mainTaxonomyId, taxonomyIds, fileIds, imageIds, actorId, parentId, parentType, valueStreamId, ...rest } = input;
 
     Object.assign(value, rest);
 
@@ -252,17 +252,17 @@ export class ValuesService {
       value.parentType = parentType ?? null;
     }
 
-    if (agentId !== undefined) {
-      if (agentId === null) {
-        value.agent = null;
-        value.agentId = null;
+    if (actorId !== undefined) {
+      if (actorId === null) {
+        value.actor = null;
+        value.actorId = null;
       } else {
-        const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-        if (!agent) {
-          throw new NotFoundException('Agent not found');
+        const actor = await this.actorRepository.findOne({ where: { id: actorId } });
+        if (!actor) {
+          throw new NotFoundException('Actor not found');
         }
-        value.agentId = agentId;
-        value.agent = agent;
+        value.actorId = actorId;
+        value.actor = actor;
       }
     }
 

@@ -237,10 +237,10 @@ export function EmcAgreementDetailPage({ params }: PluginRouteComponentProps) {
                       {node.isLeading && (
                         <Crown className="h-3.5 w-3.5 text-amber-500" aria-label={t('leading')} />
                       )}
-                      {node.agent.name}
+                      {node.actor.name}
                     </span>
                     <p className="font-mono text-xs font-normal text-muted-foreground">
-                      {node.agent.type}
+                      {node.actor.type}
                     </p>
                   </td>
                   <td className="border-l p-2">

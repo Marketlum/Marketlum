@@ -26,132 +26,132 @@ import {
   ApiUnauthorizedResponse,
   ApiExtraModels,
 } from '@nestjs/swagger';
-import { AgentsService } from './agents.service';
+import { ActorsService } from './actors.service';
 import { AddressesService } from './addresses/addresses.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ApiPaginatedResponse } from '../common/swagger/api-paginated-response.decorator';
 import {
-  createAgentSchema,
-  updateAgentSchema,
-  moveAgentSchema,
+  createActorSchema,
+  updateActorSchema,
+  moveActorSchema,
   createAddressSchema,
   updateAddressSchema,
   paginationQuerySchema,
-  CreateAgentInput,
-  UpdateAgentInput,
-  MoveAgentInput,
+  CreateActorInput,
+  UpdateActorInput,
+  MoveActorInput,
   CreateAddressInput,
   UpdateAddressInput,
   PaginationQuery,
-  AgentType,
+  ActorType,
 } from '@marketlum/shared';
-import { CreateAgentDto, UpdateAgentDto, AgentResponseDto } from './agent.dto';
+import { CreateActorDto, UpdateActorDto, ActorResponseDto } from './actor.dto';
 import {
   CreateAddressDto,
   UpdateAddressDto,
   AddressResponseDto,
 } from './addresses/address.dto';
 
-@ApiTags('agents')
+@ApiTags('actors')
 @ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
-@ApiExtraModels(AgentResponseDto, AddressResponseDto)
-@Controller('agents')
+@ApiExtraModels(ActorResponseDto, AddressResponseDto)
+@Controller('actors')
 @UseGuards(AdminGuard)
-export class AgentsController {
+export class ActorsController {
   constructor(
-    private readonly agentsService: AgentsService,
+    private readonly actorsService: ActorsService,
     private readonly addressesService: AddressesService,
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create an agent' })
-  @ApiBody({ type: CreateAgentDto })
-  @ApiCreatedResponse({ type: AgentResponseDto })
+  @ApiOperation({ summary: 'Create an actor' })
+  @ApiBody({ type: CreateActorDto })
+  @ApiCreatedResponse({ type: ActorResponseDto })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   async create(
-    @Body(new ZodValidationPipe(createAgentSchema)) body: CreateAgentInput,
+    @Body(new ZodValidationPipe(createActorSchema)) body: CreateActorInput,
   ) {
-    return this.agentsService.create(body);
+    return this.actorsService.create(body);
   }
 
   @Get()
-  @ApiOperation({ summary: 'List and paginate agents' })
+  @ApiOperation({ summary: 'List and paginate actors' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
-  @ApiQuery({ name: 'type', required: false, enum: AgentType })
+  @ApiQuery({ name: 'type', required: false, enum: ActorType })
   @ApiQuery({ name: 'taxonomyId', required: false, type: String })
-  @ApiPaginatedResponse(AgentResponseDto)
+  @ApiPaginatedResponse(ActorResponseDto)
   async findAll(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
-    @Query('type') type?: AgentType,
+    @Query('type') type?: ActorType,
     @Query('taxonomyId') taxonomyId?: string,
   ) {
-    return this.agentsService.findAll({ ...query, type, taxonomyId });
+    return this.actorsService.findAll({ ...query, type, taxonomyId });
   }
 
   @Get('tree')
-  @ApiOperation({ summary: 'Full agent forest as nested trees' })
+  @ApiOperation({ summary: 'Full actor forest as nested trees' })
   async findTree() {
-    return this.agentsService.findTree();
+    return this.actorsService.findTree();
   }
 
   @Get('roots')
-  @ApiOperation({ summary: 'Root agents only' })
-  @ApiOkResponse({ type: AgentResponseDto, isArray: true })
+  @ApiOperation({ summary: 'Root actors only' })
+  @ApiOkResponse({ type: ActorResponseDto, isArray: true })
   async findRoots() {
-    return this.agentsService.findRoots();
+    return this.actorsService.findRoots();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get an agent by ID' })
-  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
-  @ApiOkResponse({ type: AgentResponseDto })
-  @ApiNotFoundResponse({ description: 'Agent not found' })
+  @ApiOperation({ summary: 'Get an actor by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Actor UUID' })
+  @ApiOkResponse({ type: ActorResponseDto })
+  @ApiNotFoundResponse({ description: 'Actor not found' })
   async findOne(@Param('id') id: string) {
-    return this.agentsService.findOne(id);
+    return this.actorsService.findOne(id);
   }
 
   @Get(':id/children')
-  @ApiOperation({ summary: 'Direct sub-agents of an agent' })
-  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
-  @ApiOkResponse({ type: AgentResponseDto, isArray: true })
-  @ApiNotFoundResponse({ description: 'Agent not found' })
+  @ApiOperation({ summary: 'Direct sub-actors of an actor' })
+  @ApiParam({ name: 'id', type: String, description: 'Actor UUID' })
+  @ApiOkResponse({ type: ActorResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: 'Actor not found' })
   async findChildren(@Param('id') id: string) {
-    return this.agentsService.findChildren(id);
+    return this.actorsService.findChildren(id);
   }
 
   @Get(':id/descendants')
-  @ApiOperation({ summary: 'All descendants of an agent (flat list)' })
-  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
-  @ApiOkResponse({ type: AgentResponseDto, isArray: true })
-  @ApiNotFoundResponse({ description: 'Agent not found' })
+  @ApiOperation({ summary: 'All descendants of an actor (flat list)' })
+  @ApiParam({ name: 'id', type: String, description: 'Actor UUID' })
+  @ApiOkResponse({ type: ActorResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: 'Actor not found' })
   async findDescendants(@Param('id') id: string) {
-    return this.agentsService.findDescendants(id);
+    return this.actorsService.findDescendants(id);
   }
 
   @Patch(':id/move')
-  @ApiOperation({ summary: 'Move an agent under a different parent (null = root)' })
-  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
-  @ApiOkResponse({ type: AgentResponseDto })
+  @ApiOperation({ summary: 'Move an actor under a different parent (null = root)' })
+  @ApiParam({ name: 'id', type: String, description: 'Actor UUID' })
+  @ApiOkResponse({ type: ActorResponseDto })
   @ApiBadRequestResponse({ description: 'Move into itself or its own subtree' })
-  @ApiNotFoundResponse({ description: 'Agent or parent not found' })
+  @ApiNotFoundResponse({ description: 'Actor or parent not found' })
   async move(
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(moveAgentSchema)) body: MoveAgentInput,
+    @Body(new ZodValidationPipe(moveActorSchema)) body: MoveActorInput,
   ) {
-    return this.agentsService.move(id, body);
+    return this.actorsService.move(id, body);
   }
 
   @Get(':id/snapshot-references')
   @ApiOperation({
-    summary: 'Count snapshot rows that reference this agent in either perspective',
+    summary: 'Count snapshot rows that reference this actor in either perspective',
   })
-  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
+  @ApiParam({ name: 'id', type: String, description: 'Actor UUID' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -160,96 +160,96 @@ export class AgentsController {
       },
     },
   })
-  @ApiNotFoundResponse({ description: 'Agent not found' })
+  @ApiNotFoundResponse({ description: 'Actor not found' })
   async snapshotReferences(@Param('id') id: string) {
-    return this.agentsService.getSnapshotReferences(id);
+    return this.actorsService.getSnapshotReferences(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an agent' })
-  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
-  @ApiBody({ type: UpdateAgentDto })
-  @ApiOkResponse({ type: AgentResponseDto })
-  @ApiNotFoundResponse({ description: 'Agent not found' })
+  @ApiOperation({ summary: 'Update an actor' })
+  @ApiParam({ name: 'id', type: String, description: 'Actor UUID' })
+  @ApiBody({ type: UpdateActorDto })
+  @ApiOkResponse({ type: ActorResponseDto })
+  @ApiNotFoundResponse({ description: 'Actor not found' })
   async update(
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(updateAgentSchema)) body: UpdateAgentInput,
+    @Body(new ZodValidationPipe(updateActorSchema)) body: UpdateActorInput,
   ) {
-    return this.agentsService.update(id, body);
+    return this.actorsService.update(id, body);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete an agent' })
-  @ApiParam({ name: 'id', type: String, description: 'Agent UUID' })
-  @ApiNoContentResponse({ description: 'Agent deleted' })
-  @ApiNotFoundResponse({ description: 'Agent not found' })
+  @ApiOperation({ summary: 'Delete an actor' })
+  @ApiParam({ name: 'id', type: String, description: 'Actor UUID' })
+  @ApiNoContentResponse({ description: 'Actor deleted' })
+  @ApiNotFoundResponse({ description: 'Actor not found' })
   async remove(@Param('id') id: string) {
-    await this.agentsService.remove(id);
+    await this.actorsService.remove(id);
   }
 
-  @Post(':agentId/addresses')
-  @ApiOperation({ summary: 'Add an address to an agent' })
-  @ApiParam({ name: 'agentId', type: String, description: 'Agent UUID' })
+  @Post(':actorId/addresses')
+  @ApiOperation({ summary: 'Add an address to an actor' })
+  @ApiParam({ name: 'actorId', type: String, description: 'Actor UUID' })
   @ApiBody({ type: CreateAddressDto })
   @ApiCreatedResponse({ type: AddressResponseDto })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  @ApiNotFoundResponse({ description: 'Agent or country not found' })
+  @ApiNotFoundResponse({ description: 'Actor or country not found' })
   async createAddress(
-    @Param('agentId') agentId: string,
+    @Param('actorId') actorId: string,
     @Body(new ZodValidationPipe(createAddressSchema)) body: CreateAddressInput,
   ) {
-    return this.addressesService.create(agentId, body);
+    return this.addressesService.create(actorId, body);
   }
 
-  @Get(':agentId/addresses')
-  @ApiOperation({ summary: 'List addresses for an agent' })
-  @ApiParam({ name: 'agentId', type: String, description: 'Agent UUID' })
+  @Get(':actorId/addresses')
+  @ApiOperation({ summary: 'List addresses for an actor' })
+  @ApiParam({ name: 'actorId', type: String, description: 'Actor UUID' })
   @ApiOkResponse({ type: AddressResponseDto, isArray: true })
-  @ApiNotFoundResponse({ description: 'Agent not found' })
-  async findAddresses(@Param('agentId') agentId: string) {
-    return this.addressesService.findAllForAgent(agentId);
+  @ApiNotFoundResponse({ description: 'Actor not found' })
+  async findAddresses(@Param('actorId') actorId: string) {
+    return this.addressesService.findAllForActor(actorId);
   }
 
-  @Get(':agentId/addresses/:id')
+  @Get(':actorId/addresses/:id')
   @ApiOperation({ summary: 'Get a single address' })
-  @ApiParam({ name: 'agentId', type: String, description: 'Agent UUID' })
+  @ApiParam({ name: 'actorId', type: String, description: 'Actor UUID' })
   @ApiParam({ name: 'id', type: String, description: 'Address UUID' })
   @ApiOkResponse({ type: AddressResponseDto })
   @ApiNotFoundResponse({ description: 'Address not found' })
   async findAddress(
-    @Param('agentId') agentId: string,
+    @Param('actorId') actorId: string,
     @Param('id') id: string,
   ) {
-    return this.addressesService.findOne(agentId, id);
+    return this.addressesService.findOne(actorId, id);
   }
 
-  @Patch(':agentId/addresses/:id')
+  @Patch(':actorId/addresses/:id')
   @ApiOperation({ summary: 'Update an address' })
-  @ApiParam({ name: 'agentId', type: String, description: 'Agent UUID' })
+  @ApiParam({ name: 'actorId', type: String, description: 'Actor UUID' })
   @ApiParam({ name: 'id', type: String, description: 'Address UUID' })
   @ApiBody({ type: UpdateAddressDto })
   @ApiOkResponse({ type: AddressResponseDto })
   @ApiNotFoundResponse({ description: 'Address or country not found' })
   async updateAddress(
-    @Param('agentId') agentId: string,
+    @Param('actorId') actorId: string,
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateAddressSchema)) body: UpdateAddressInput,
   ) {
-    return this.addressesService.update(agentId, id, body);
+    return this.addressesService.update(actorId, id, body);
   }
 
-  @Delete(':agentId/addresses/:id')
+  @Delete(':actorId/addresses/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an address' })
-  @ApiParam({ name: 'agentId', type: String, description: 'Agent UUID' })
+  @ApiParam({ name: 'actorId', type: String, description: 'Actor UUID' })
   @ApiParam({ name: 'id', type: String, description: 'Address UUID' })
   @ApiNoContentResponse({ description: 'Address deleted' })
   @ApiNotFoundResponse({ description: 'Address not found' })
   async removeAddress(
-    @Param('agentId') agentId: string,
+    @Param('actorId') actorId: string,
     @Param('id') id: string,
   ) {
-    await this.addressesService.remove(agentId, id);
+    await this.addressesService.remove(actorId, id);
   }
 }

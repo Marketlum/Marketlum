@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Value } from '../../values/entities/value.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 import { File } from '../../files/entities/file.entity';
 
 @Entity('value_instances')
@@ -44,19 +44,19 @@ export class ValueInstance {
   @Column({ type: 'uuid' })
   valueId: string;
 
-  @ManyToOne(() => Agent, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'fromAgentId' })
-  fromAgent: Agent | null;
+  @ManyToOne(() => Actor, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'fromActorId' })
+  fromActor: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
-  fromAgentId: string | null;
+  fromActorId: string | null;
 
-  @ManyToOne(() => Agent, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'toAgentId' })
-  toAgent: Agent | null;
+  @ManyToOne(() => Actor, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'toActorId' })
+  toActor: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
-  toAgentId: string | null;
+  toActorId: string | null;
 
   @ManyToOne(() => File, { nullable: true, onDelete: 'SET NULL', eager: true })
   @JoinColumn({ name: 'imageId' })

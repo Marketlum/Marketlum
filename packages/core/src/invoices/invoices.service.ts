@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { Channel } from '../channels/channel.entity';
@@ -19,7 +19,7 @@ import {
   UpdateInvoiceInput,
   PaginationQuery,
   OrderState,
-  AgentType,
+  ActorType,
   InvoiceMarket,
   convertAmount,
   formatPresentationAmount,
@@ -41,10 +41,10 @@ interface PerspectiveSnapshot {
 interface InvoiceItemSnapshot {
   presentationRate: string | null;
   presentationAmount: string | null;
-  fromAgentRate: string | null;
-  fromAgentAmount: string | null;
-  toAgentRate: string | null;
-  toAgentAmount: string | null;
+  fromActorRate: string | null;
+  fromActorAmount: string | null;
+  toActorRate: string | null;
+  toActorAmount: string | null;
 }
 
 @Injectable()
@@ -54,8 +54,8 @@ export class InvoicesService {
     private readonly invoiceRepository: Repository<Invoice>,
     @InjectRepository(InvoiceItem)
     private readonly itemRepository: Repository<InvoiceItem>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(Value)
     private readonly valueRepository: Repository<Value>,
     @InjectRepository(ValueInstance)
@@ -92,38 +92,38 @@ export class InvoicesService {
   private async snapshotItem(
     sourceCurrencyId: string,
     nativeAmount: string,
-    fromAgentCurrencyId: string | null,
-    toAgentCurrencyId: string | null,
+    fromActorCurrencyId: string | null,
+    toActorCurrencyId: string | null,
     at: Date,
   ): Promise<InvoiceItemSnapshot> {
     const presentationCurrencyId =
       await this.systemSettingsService.getPresentationCurrencyId();
-    const [presentation, fromAgent, toAgent] = await Promise.all([
+    const [presentation, fromActor, toActor] = await Promise.all([
       this.snapshotPerspective(sourceCurrencyId, presentationCurrencyId, nativeAmount, at),
-      this.snapshotPerspective(sourceCurrencyId, fromAgentCurrencyId, nativeAmount, at),
-      this.snapshotPerspective(sourceCurrencyId, toAgentCurrencyId, nativeAmount, at),
+      this.snapshotPerspective(sourceCurrencyId, fromActorCurrencyId, nativeAmount, at),
+      this.snapshotPerspective(sourceCurrencyId, toActorCurrencyId, nativeAmount, at),
     ]);
     return {
       presentationRate: presentation.rate,
       presentationAmount: presentation.amount,
-      fromAgentRate: fromAgent.rate,
-      fromAgentAmount: fromAgent.amount,
-      toAgentRate: toAgent.rate,
-      toAgentAmount: toAgent.amount,
+      fromActorRate: fromActor.rate,
+      fromActorAmount: fromActor.amount,
+      toActorRate: toActor.rate,
+      toActorAmount: toActor.amount,
     };
   }
 
-  private async resolveAgentCurrency(agentId: string): Promise<string | null> {
-    const agent = await this.agentRepository.findOne({
-      where: { id: agentId },
+  private async resolveActorCurrency(actorId: string): Promise<string | null> {
+    const actor = await this.actorRepository.findOne({
+      where: { id: actorId },
       select: ['id', 'functionalCurrencyId'],
     });
-    return agent?.functionalCurrencyId ?? null;
+    return actor?.functionalCurrencyId ?? null;
   }
 
-  /** I1 (spec 022): only legal entities (non-VIRTUAL agents) issue external invoices. */
-  private assertLegalIssuer(fromAgentType: AgentType, market: InvoiceMarket): void {
-    if (market === InvoiceMarket.EXTERNAL && fromAgentType === AgentType.VIRTUAL) {
+  /** I1 (spec 022): only legal entities (non-VIRTUAL actors) issue external invoices. */
+  private assertLegalIssuer(fromActorType: ActorType, market: InvoiceMarket): void {
+    if (market === InvoiceMarket.EXTERNAL && fromActorType === ActorType.VIRTUAL) {
       throw new UnprocessableEntityException(
         'Only legal entities can issue external invoices',
       );
@@ -132,8 +132,8 @@ export class InvoicesService {
 
   /** I2–I4 (spec 022): on-behalf-of is external-only, targets a VIRTUAL strict descendant. */
   private async validateOnBehalf(
-    fromAgentId: string,
-    onBehalfOfAgentId: string,
+    fromActorId: string,
+    onBehalfOfActorId: string,
     market: InvoiceMarket,
   ): Promise<void> {
     if (market !== InvoiceMarket.EXTERNAL) {
@@ -141,23 +141,23 @@ export class InvoicesService {
         'On-behalf-of is only allowed on external invoices',
       );
     }
-    const agent = await this.agentRepository.findOne({
-      where: { id: onBehalfOfAgentId },
+    const actor = await this.actorRepository.findOne({
+      where: { id: onBehalfOfActorId },
     });
-    if (!agent) throw new NotFoundException('On-behalf-of agent not found');
-    if (agent.type !== AgentType.VIRTUAL) {
+    if (!actor) throw new NotFoundException('On-behalf-of actor not found');
+    if (actor.type !== ActorType.VIRTUAL) {
       throw new UnprocessableEntityException(
-        'On-behalf-of agent must not be a legal entity',
+        'On-behalf-of actor must not be a legal entity',
       );
     }
     const rows: unknown[] = await this.invoiceRepository.query(
-      `SELECT 1 FROM "agents_closure"
+      `SELECT 1 FROM "actors_closure"
        WHERE "id_ancestor" = $1 AND "id_descendant" = $2 AND "id_ancestor" <> "id_descendant"`,
-      [fromAgentId, onBehalfOfAgentId],
+      [fromActorId, onBehalfOfActorId],
     );
     if (rows.length === 0) {
       throw new UnprocessableEntityException(
-        'On-behalf-of agent must be a descendant of the issuing agent',
+        'On-behalf-of actor must be a descendant of the issuing actor',
       );
     }
   }
@@ -166,7 +166,7 @@ export class InvoicesService {
   private async findSourceOf(invoiceId: string): Promise<Invoice | null> {
     return this.invoiceRepository.findOne({
       where: { mirrorInvoiceId: invoiceId },
-      relations: ['fromAgent'],
+      relations: ['fromActor'],
     });
   }
 
@@ -177,10 +177,10 @@ export class InvoicesService {
   /**
    * Q9 (spec 022): the mirror is system-owned and regenerated wholesale.
    * Deletes the previous mirror (if any), then — when on-behalf is set —
-   * creates a fresh INTERNAL invoice from the on-behalf agent to the issuer
+   * creates a fresh INTERNAL invoice from the on-behalf actor to the issuer
    * copying dates, currency, paid and items; document/workflow fields stay
    * on the source. Item snapshots run through the normal replaceItems path,
-   * so the mirror's per-agent amounts land in the sub-agent's functional
+   * so the mirror's per-actor amounts land in the sub-actor's functional
    * currency.
    */
   private async regenerateMirror(sourceId: string): Promise<void> {
@@ -190,13 +190,13 @@ export class InvoicesService {
     });
     if (!source) throw new NotFoundException('Invoice not found');
 
-    if (source.onBehalfOfAgentId) {
+    if (source.onBehalfOfActorId) {
       const mirrorNumber = this.mirrorNumberFor(source.number);
       const collision = await this.invoiceRepository.findOne({
-        where: { fromAgentId: source.onBehalfOfAgentId, number: mirrorNumber },
+        where: { fromActorId: source.onBehalfOfActorId, number: mirrorNumber },
       });
       if (collision && collision.id !== source.mirrorInvoiceId) {
-        throw new ConflictException('Invoice number already exists for this agent');
+        throw new ConflictException('Invoice number already exists for this actor');
       }
     }
 
@@ -208,12 +208,12 @@ export class InvoicesService {
       if (oldMirror) await this.invoiceRepository.remove(oldMirror);
     }
 
-    if (!source.onBehalfOfAgentId) return;
+    if (!source.onBehalfOfActorId) return;
 
     const mirror = this.invoiceRepository.create({
       number: this.mirrorNumberFor(source.number),
-      fromAgentId: source.onBehalfOfAgentId,
-      toAgentId: source.fromAgentId,
+      fromActorId: source.onBehalfOfActorId,
+      toActorId: source.fromActorId,
       market: InvoiceMarket.INTERNAL,
       issuedAt: source.issuedAt,
       dueAt: source.dueAt,
@@ -263,45 +263,45 @@ export class InvoicesService {
 
   async create(input: CreateInvoiceInput): Promise<Invoice> {
     const {
-      fromAgentId,
-      toAgentId,
+      fromActorId,
+      toActorId,
       currencyId,
       fileId,
       channelId,
       orderId,
-      onBehalfOfAgentId,
+      onBehalfOfActorId,
       items,
       ...rest
     } = input;
 
-    // Validate fromAgent
-    const fromAgent = await this.agentRepository.findOne({
-      where: { id: fromAgentId },
+    // Validate fromActor
+    const fromActor = await this.actorRepository.findOne({
+      where: { id: fromActorId },
     });
-    if (!fromAgent) throw new NotFoundException('From agent not found');
+    if (!fromActor) throw new NotFoundException('From actor not found');
 
-    this.assertLegalIssuer(fromAgent.type, rest.market);
+    this.assertLegalIssuer(fromActor.type, rest.market);
 
-    if (onBehalfOfAgentId) {
-      await this.validateOnBehalf(fromAgentId, onBehalfOfAgentId, rest.market);
+    if (onBehalfOfActorId) {
+      await this.validateOnBehalf(fromActorId, onBehalfOfActorId, rest.market);
       // Reject the whole create up front if the mirror number is taken, so a
       // 409 never leaves a mirror-less on-behalf invoice behind.
       const mirrorCollision = await this.invoiceRepository.findOne({
         where: {
-          fromAgentId: onBehalfOfAgentId,
+          fromActorId: onBehalfOfActorId,
           number: this.mirrorNumberFor(rest.number),
         },
       });
       if (mirrorCollision) {
-        throw new ConflictException('Invoice number already exists for this agent');
+        throw new ConflictException('Invoice number already exists for this actor');
       }
     }
 
-    // Validate toAgent
-    const toAgent = await this.agentRepository.findOne({
-      where: { id: toAgentId },
+    // Validate toActor
+    const toActor = await this.actorRepository.findOne({
+      where: { id: toActorId },
     });
-    if (!toAgent) throw new NotFoundException('To agent not found');
+    if (!toActor) throw new NotFoundException('To actor not found');
 
     // Validate currency
     const currency = await this.valueRepository.findOne({
@@ -328,22 +328,22 @@ export class InvoicesService {
       await this.validateOrderLink(orderId, currencyId);
     }
 
-    // Check unique constraint (fromAgentId, number)
+    // Check unique constraint (fromActorId, number)
     const existing = await this.invoiceRepository.findOne({
-      where: { fromAgentId, number: rest.number },
+      where: { fromActorId, number: rest.number },
     });
     if (existing) {
       throw new ConflictException(
-        'Invoice number already exists for this agent',
+        'Invoice number already exists for this actor',
       );
     }
 
     const invoice = this.invoiceRepository.create({
       ...rest,
-      fromAgentId,
-      toAgentId,
+      fromActorId,
+      toActorId,
       currencyId,
-      onBehalfOfAgentId: onBehalfOfAgentId ?? null,
+      onBehalfOfActorId: onBehalfOfActorId ?? null,
       issuedAt: new Date(rest.issuedAt),
       dueAt: new Date(rest.dueAt),
       link: rest.link ?? null,
@@ -358,7 +358,7 @@ export class InvoicesService {
       await this.replaceItems(saved.id, items, currencyId);
     }
 
-    if (onBehalfOfAgentId) {
+    if (onBehalfOfActorId) {
       await this.regenerateMirror(saved.id);
     }
 
@@ -367,9 +367,9 @@ export class InvoicesService {
 
   async search(
     query: PaginationQuery & {
-      fromAgentId?: string;
-      toAgentId?: string;
-      agentId?: string;
+      fromActorId?: string;
+      toActorId?: string;
+      actorId?: string;
       market?: string;
       paid?: string;
       currencyId?: string;
@@ -384,9 +384,9 @@ export class InvoicesService {
       search,
       sortBy,
       sortOrder,
-      fromAgentId,
-      toAgentId,
-      agentId,
+      fromActorId,
+      toActorId,
+      actorId,
       market,
       paid,
       currencyId,
@@ -398,15 +398,15 @@ export class InvoicesService {
 
     const qb = this.invoiceRepository.createQueryBuilder('invoice');
 
-    qb.leftJoinAndSelect('invoice.fromAgent', 'fromAgent');
-    qb.leftJoinAndSelect('invoice.toAgent', 'toAgent');
+    qb.leftJoinAndSelect('invoice.fromActor', 'fromActor');
+    qb.leftJoinAndSelect('invoice.toActor', 'toActor');
     qb.leftJoinAndSelect('invoice.currency', 'currency');
     qb.leftJoinAndSelect('invoice.file', 'file');
     qb.leftJoinAndSelect('invoice.channel', 'channel');
     qb.leftJoinAndSelect('invoice.order', 'order');
-    qb.leftJoinAndSelect('invoice.onBehalfOfAgent', 'onBehalfOfAgent');
+    qb.leftJoinAndSelect('invoice.onBehalfOfActor', 'onBehalfOfActor');
 
-    // Per-perspective totals (presentation / from-agent / to-agent) are
+    // Per-perspective totals (presentation / from-actor / to-actor) are
     // still computed at read time. NULL when any item is missing a snapshot
     // — mirrors the rule used by findOne so list and detail agree. The base
     // `total` column is denormalised on the invoice row.
@@ -419,19 +419,19 @@ export class InvoicesService {
       FROM invoice_items ii WHERE ii."invoiceId" = invoice.id
     )`;
     qb.addSelect(perspectiveTotalSelect('presentationAmount'), 'invoice_presentation_total');
-    qb.addSelect(perspectiveTotalSelect('fromAgentAmount'), 'invoice_from_agent_total');
-    qb.addSelect(perspectiveTotalSelect('toAgentAmount'), 'invoice_to_agent_total');
+    qb.addSelect(perspectiveTotalSelect('fromActorAmount'), 'invoice_from_actor_total');
+    qb.addSelect(perspectiveTotalSelect('toActorAmount'), 'invoice_to_actor_total');
 
-    if (fromAgentId) {
-      qb.andWhere('invoice.fromAgentId = :fromAgentId', { fromAgentId });
+    if (fromActorId) {
+      qb.andWhere('invoice.fromActorId = :fromActorId', { fromActorId });
     }
 
-    if (toAgentId) {
-      qb.andWhere('invoice.toAgentId = :toAgentId', { toAgentId });
+    if (toActorId) {
+      qb.andWhere('invoice.toActorId = :toActorId', { toActorId });
     }
 
-    if (agentId) {
-      qb.andWhere('(invoice.fromAgentId = :agentId OR invoice.toAgentId = :agentId)', { agentId });
+    if (actorId) {
+      qb.andWhere('(invoice.fromActorId = :actorId OR invoice.toActorId = :actorId)', { actorId });
     }
 
     if (market) {
@@ -466,7 +466,7 @@ export class InvoicesService {
 
     if (search) {
       qb.andWhere(
-        '(invoice.number ILIKE :search OR fromAgent.name ILIKE :search OR toAgent.name ILIKE :search)',
+        '(invoice.number ILIKE :search OR fromActor.name ILIKE :search OR toActor.name ILIKE :search)',
         { search: `%${search}%` },
       );
     }
@@ -490,8 +490,8 @@ export class InvoicesService {
     for (let i = 0; i < entities.length; i++) {
       entities[i].total = Number(entities[i].total).toFixed(2);
       entities[i].presentationTotal = formatNullable(raw[i].invoice_presentation_total);
-      entities[i].fromAgentTotal = formatNullable(raw[i].invoice_from_agent_total);
-      entities[i].toAgentTotal = formatNullable(raw[i].invoice_to_agent_total);
+      entities[i].fromActorTotal = formatNullable(raw[i].invoice_from_actor_total);
+      entities[i].toActorTotal = formatNullable(raw[i].invoice_to_actor_total);
     }
 
     // Mirror/source links, trimmed to summaries (same shapes as findOne).
@@ -503,7 +503,7 @@ export class InvoicesService {
       pageIds.length > 0
         ? this.invoiceRepository.find({
             where: { mirrorInvoiceId: In(pageIds) },
-            relations: ['fromAgent'],
+            relations: ['fromActor'],
           })
         : Promise.resolve([] as Invoice[]),
       mirrorIds.length > 0
@@ -521,7 +521,7 @@ export class InvoicesService {
         ? ({
             id: source.id,
             number: source.number,
-            fromAgent: { id: source.fromAgent.id, name: source.fromAgent.name },
+            fromActor: { id: source.fromActor.id, name: source.fromActor.name },
           } as Invoice)
         : null;
       const mirrorInvoice = entity.mirrorInvoiceId
@@ -534,18 +534,18 @@ export class InvoicesService {
 
     // Get total count
     const countQb = this.invoiceRepository.createQueryBuilder('invoice');
-    countQb.leftJoin('invoice.fromAgent', 'fromAgent');
-    countQb.leftJoin('invoice.toAgent', 'toAgent');
+    countQb.leftJoin('invoice.fromActor', 'fromActor');
+    countQb.leftJoin('invoice.toActor', 'toActor');
 
-    if (fromAgentId) {
-      countQb.andWhere('invoice.fromAgentId = :fromAgentId', { fromAgentId });
+    if (fromActorId) {
+      countQb.andWhere('invoice.fromActorId = :fromActorId', { fromActorId });
     }
-    if (toAgentId) {
-      countQb.andWhere('invoice.toAgentId = :toAgentId', { toAgentId });
+    if (toActorId) {
+      countQb.andWhere('invoice.toActorId = :toActorId', { toActorId });
     }
-    if (agentId) {
-      countQb.andWhere('(invoice.fromAgentId = :agentId OR invoice.toAgentId = :agentId)', {
-        agentId,
+    if (actorId) {
+      countQb.andWhere('(invoice.fromActorId = :actorId OR invoice.toActorId = :actorId)', {
+        actorId,
       });
     }
     if (market) {
@@ -574,7 +574,7 @@ export class InvoicesService {
     }
     if (search) {
       countQb.andWhere(
-        '(invoice.number ILIKE :search OR fromAgent.name ILIKE :search OR toAgent.name ILIKE :search)',
+        '(invoice.number ILIKE :search OR fromActor.name ILIKE :search OR toActor.name ILIKE :search)',
         { search: `%${search}%` },
       );
     }
@@ -596,13 +596,13 @@ export class InvoicesService {
     const invoice = await this.invoiceRepository.findOne({
       where: { id },
       relations: [
-        'fromAgent',
-        'toAgent',
+        'fromActor',
+        'toActor',
         'currency',
         'file',
         'channel',
         'order',
-        'onBehalfOfAgent',
+        'onBehalfOfActor',
         'items',
         'items.value',
         'items.valueInstance',
@@ -631,7 +631,7 @@ export class InvoicesService {
       ? ({
           id: source.id,
           number: source.number,
-          fromAgent: { id: source.fromAgent.id, name: source.fromAgent.name },
+          fromActor: { id: source.fromActor.id, name: source.fromActor.name },
         } as Invoice)
       : null;
 
@@ -643,29 +643,29 @@ export class InvoicesService {
          COUNT(*) AS item_count,
          COUNT("presentationAmount") AS presentation_amount_count,
          COALESCE(SUM("presentationAmount"), 0) AS presentation_total,
-         COUNT("fromAgentAmount") AS from_agent_amount_count,
-         COALESCE(SUM("fromAgentAmount"), 0) AS from_agent_total,
-         COUNT("toAgentAmount") AS to_agent_amount_count,
-         COALESCE(SUM("toAgentAmount"), 0) AS to_agent_total
+         COUNT("fromActorAmount") AS from_actor_amount_count,
+         COALESCE(SUM("fromActorAmount"), 0) AS from_actor_total,
+         COUNT("toActorAmount") AS to_actor_amount_count,
+         COALESCE(SUM("toActorAmount"), 0) AS to_actor_total
        FROM invoice_items WHERE "invoiceId" = $1`,
       [id],
     );
     const itemCount = Number(result[0].item_count);
     const presentationCount = Number(result[0].presentation_amount_count);
-    const fromAgentCount = Number(result[0].from_agent_amount_count);
-    const toAgentCount = Number(result[0].to_agent_amount_count);
+    const fromActorCount = Number(result[0].from_actor_amount_count);
+    const toActorCount = Number(result[0].to_actor_amount_count);
     invoice.presentationTotal =
       itemCount === 0 || presentationCount < itemCount
         ? null
         : Number(result[0].presentation_total).toFixed(2);
-    invoice.fromAgentTotal =
-      itemCount === 0 || fromAgentCount < itemCount
+    invoice.fromActorTotal =
+      itemCount === 0 || fromActorCount < itemCount
         ? null
-        : Number(result[0].from_agent_total).toFixed(2);
-    invoice.toAgentTotal =
-      itemCount === 0 || toAgentCount < itemCount
+        : Number(result[0].from_actor_total).toFixed(2);
+    invoice.toActorTotal =
+      itemCount === 0 || toActorCount < itemCount
         ? null
-        : Number(result[0].to_agent_total).toFixed(2);
+        : Number(result[0].to_actor_total).toFixed(2);
 
     return invoice;
   }
@@ -681,13 +681,13 @@ export class InvoicesService {
     }
 
     const {
-      fromAgentId,
-      toAgentId,
+      fromActorId,
+      toActorId,
       currencyId,
       fileId,
       channelId,
       orderId,
-      onBehalfOfAgentId,
+      onBehalfOfActorId,
       items,
       ...rest
     } = input;
@@ -700,52 +700,52 @@ export class InvoicesService {
     if (rest.paid !== undefined) invoice.paid = rest.paid;
     if (rest.link !== undefined) invoice.link = rest.link ?? null;
 
-    let effectiveFromAgentType = invoice.fromAgent.type;
-    if (fromAgentId !== undefined) {
-      const agent = await this.agentRepository.findOne({
-        where: { id: fromAgentId },
+    let effectiveFromActorType = invoice.fromActor.type;
+    if (fromActorId !== undefined) {
+      const actor = await this.actorRepository.findOne({
+        where: { id: fromActorId },
       });
-      if (!agent) throw new NotFoundException('From agent not found');
-      invoice.fromAgentId = fromAgentId;
-      effectiveFromAgentType = agent.type;
+      if (!actor) throw new NotFoundException('From actor not found');
+      invoice.fromActorId = fromActorId;
+      effectiveFromActorType = actor.type;
     }
 
     // I1 (spec 022) is re-checked only when the update touches issuer or
     // market — legacy violating rows stay untouched until then (Q19).
-    if (rest.market !== undefined || fromAgentId !== undefined) {
-      this.assertLegalIssuer(effectiveFromAgentType, invoice.market);
+    if (rest.market !== undefined || fromActorId !== undefined) {
+      this.assertLegalIssuer(effectiveFromActorType, invoice.market);
     }
 
     const effectiveOnBehalfId =
-      onBehalfOfAgentId !== undefined
-        ? onBehalfOfAgentId
-        : invoice.onBehalfOfAgentId;
+      onBehalfOfActorId !== undefined
+        ? onBehalfOfActorId
+        : invoice.onBehalfOfActorId;
     if (effectiveOnBehalfId) {
       await this.validateOnBehalf(
-        invoice.fromAgentId,
+        invoice.fromActorId,
         effectiveOnBehalfId,
         invoice.market,
       );
       const mirrorCollision = await this.invoiceRepository.findOne({
         where: {
-          fromAgentId: effectiveOnBehalfId,
+          fromActorId: effectiveOnBehalfId,
           number: this.mirrorNumberFor(invoice.number),
         },
       });
       if (mirrorCollision && mirrorCollision.id !== invoice.mirrorInvoiceId) {
-        throw new ConflictException('Invoice number already exists for this agent');
+        throw new ConflictException('Invoice number already exists for this actor');
       }
     }
-    if (onBehalfOfAgentId !== undefined) {
-      invoice.onBehalfOfAgentId = onBehalfOfAgentId ?? null;
+    if (onBehalfOfActorId !== undefined) {
+      invoice.onBehalfOfActorId = onBehalfOfActorId ?? null;
     }
 
-    if (toAgentId !== undefined) {
-      const agent = await this.agentRepository.findOne({
-        where: { id: toAgentId },
+    if (toActorId !== undefined) {
+      const actor = await this.actorRepository.findOne({
+        where: { id: toActorId },
       });
-      if (!agent) throw new NotFoundException('To agent not found');
-      invoice.toAgentId = toAgentId;
+      if (!actor) throw new NotFoundException('To actor not found');
+      invoice.toActorId = toActorId;
     }
 
     if (currencyId !== undefined) {
@@ -793,26 +793,26 @@ export class InvoicesService {
     }
 
     // Check unique constraint on update
-    const effectiveFromAgentId = fromAgentId ?? invoice.fromAgentId;
+    const effectiveFromActorId = fromActorId ?? invoice.fromActorId;
     const effectiveNumber = rest.number ?? invoice.number;
     const existing = await this.invoiceRepository.findOne({
-      where: { fromAgentId: effectiveFromAgentId, number: effectiveNumber },
+      where: { fromActorId: effectiveFromActorId, number: effectiveNumber },
     });
     if (existing && existing.id !== id) {
       throw new ConflictException(
-        'Invoice number already exists for this agent',
+        'Invoice number already exists for this actor',
       );
     }
 
     // Delete items relation before save to avoid cascade inserting malformed rows
     delete (invoice as any).items;
-    delete (invoice as any).fromAgent;
-    delete (invoice as any).toAgent;
+    delete (invoice as any).fromActor;
+    delete (invoice as any).toActor;
     delete (invoice as any).currency;
     delete (invoice as any).file;
     delete (invoice as any).channel;
     delete (invoice as any).order;
-    delete (invoice as any).onBehalfOfAgent;
+    delete (invoice as any).onBehalfOfActor;
     delete (invoice as any).mirrorInvoice;
     delete (invoice as any).sourceInvoice;
     delete (invoice as any).total;
@@ -898,9 +898,9 @@ export class InvoicesService {
 
     const invoice = await this.invoiceRepository.findOne({ where: { id: invoiceId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
-    const [fromAgentCurrencyId, toAgentCurrencyId] = await Promise.all([
-      this.resolveAgentCurrency(invoice.fromAgentId),
-      this.resolveAgentCurrency(invoice.toAgentId),
+    const [fromActorCurrencyId, toActorCurrencyId] = await Promise.all([
+      this.resolveActorCurrency(invoice.fromActorId),
+      this.resolveActorCurrency(invoice.toActorId),
     ]);
 
     // Bulk create new items, snapshotting each against the invoice currency
@@ -909,8 +909,8 @@ export class InvoicesService {
       const snap = await this.snapshotItem(
         currencyId,
         item.total,
-        fromAgentCurrencyId,
-        toAgentCurrencyId,
+        fromActorCurrencyId,
+        toActorCurrencyId,
         invoice.issuedAt,
       );
       entities.push(
@@ -943,24 +943,24 @@ export class InvoicesService {
     if (items.length === 0) return;
     const invoice = await this.invoiceRepository.findOne({ where: { id: invoiceId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
-    const [fromAgentCurrencyId, toAgentCurrencyId] = await Promise.all([
-      this.resolveAgentCurrency(invoice.fromAgentId),
-      this.resolveAgentCurrency(invoice.toAgentId),
+    const [fromActorCurrencyId, toActorCurrencyId] = await Promise.all([
+      this.resolveActorCurrency(invoice.fromActorId),
+      this.resolveActorCurrency(invoice.toActorId),
     ]);
     for (const item of items) {
       const snap = await this.snapshotItem(
         currencyId,
         item.total,
-        fromAgentCurrencyId,
-        toAgentCurrencyId,
+        fromActorCurrencyId,
+        toActorCurrencyId,
         invoice.issuedAt,
       );
       item.presentationRate = snap.presentationRate;
       item.presentationAmount = snap.presentationAmount;
-      item.fromAgentRate = snap.fromAgentRate;
-      item.fromAgentAmount = snap.fromAgentAmount;
-      item.toAgentRate = snap.toAgentRate;
-      item.toAgentAmount = snap.toAgentAmount;
+      item.fromActorRate = snap.fromActorRate;
+      item.fromActorAmount = snap.fromActorAmount;
+      item.toActorRate = snap.toActorRate;
+      item.toActorAmount = snap.toActorAmount;
     }
     await this.itemRepository.save(items);
   }

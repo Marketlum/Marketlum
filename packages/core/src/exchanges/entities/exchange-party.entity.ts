@@ -7,10 +7,10 @@ import {
   Unique,
 } from 'typeorm';
 import { Exchange } from './exchange.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 
 @Entity('exchange_parties')
-@Unique(['exchangeId', 'agentId'])
+@Unique(['exchangeId', 'actorId'])
 export class ExchangeParty {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,12 +22,12 @@ export class ExchangeParty {
   @Column({ type: 'uuid' })
   exchangeId: string;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor;
 
   @Column({ type: 'uuid' })
-  agentId: string;
+  actorId: string;
 
   @Column({ type: 'varchar', nullable: true })
   role: string | null;

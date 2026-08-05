@@ -51,14 +51,14 @@ export class InvoiceItem {
   presentationAmount: string | null;
 
   @Column({ type: 'decimal', precision: 20, scale: 10, nullable: true })
-  fromAgentRate: string | null;
+  fromActorRate: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  fromAgentAmount: string | null;
+  fromActorAmount: string | null;
 
   @Column({ type: 'decimal', precision: 20, scale: 10, nullable: true })
-  toAgentRate: string | null;
+  toActorRate: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  toAgentAmount: string | null;
+  toActorAmount: string | null;
 }

@@ -23,7 +23,7 @@ export class SearchController {
   @Get()
   @ApiOperation({
     summary: 'Cross-entity full-text search',
-    description: 'Searches across agents, values, taxonomies, and other entities; returns a typed result list.',
+    description: 'Searches across actors, values, taxonomies, and other entities; returns a typed result list.',
   })
   @ApiQuery({ name: 'q', required: true, type: String, description: 'Search query string' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max results to return' })
@@ -37,7 +37,7 @@ export class SearchController {
           items: {
             type: 'object',
             properties: {
-              type: { type: 'string', description: 'Entity type, e.g. agent, value, tension' },
+              type: { type: 'string', description: 'Entity type, e.g. actor, value, tension' },
               id: { type: 'string', format: 'uuid' },
               name: { type: 'string' },
             },

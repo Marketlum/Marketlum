@@ -1,79 +1,79 @@
-import { AgentsService } from '../../agents/agents.service';
-import { AddressesService } from '../../agents/addresses/addresses.service';
-import { AgentType, CreateAgentInput } from '@marketlum/shared';
+import { ActorsService } from '../../actors/actors.service';
+import { AddressesService } from '../../actors/addresses/addresses.service';
+import { ActorType, CreateActorInput } from '@marketlum/shared';
 
-interface AgentDeps {
+interface ActorDeps {
   taxonomies: { all: Array<{ id: string }> };
   countries: Array<{ id: string; name: string }>;
-  functionalCurrencyByAgentName?: Record<string, string>;
+  functionalCurrencyByActorName?: Record<string, string>;
 }
 
 // Parents must appear before their children: the seeder resolves parentName
-// against agents created earlier in this list (spec 015 sample hierarchy).
+// against actors created earlier in this list (spec 015 sample hierarchy).
 // The first six names are load-bearing — exchange/tension/value/value-instance
 // seeders and the functional-currency map look them up by name.
-const AGENTS: Array<{
+const ACTORS: Array<{
   name: string;
-  type: AgentType;
+  type: ActorType;
   purpose: string;
   parentName?: string;
 }> = [
   // --- Root organizations ---
-  { name: 'Acme Corp', type: AgentType.ORGANIZATION, purpose: 'Global manufacturing and distribution' },
-  { name: 'TechNova Solutions', type: AgentType.ORGANIZATION, purpose: 'Cloud infrastructure provider' },
-  { name: 'GreenLeaf Partners', type: AgentType.ORGANIZATION, purpose: 'Sustainable supply chain consulting' },
-  { name: 'Meridian Logistics Group', type: AgentType.ORGANIZATION, purpose: 'Intermodal freight and last-mile delivery' },
-  { name: 'Bluewater Capital', type: AgentType.ORGANIZATION, purpose: 'Growth investments in industrial technology' },
-  { name: 'Helios Energy Cooperative', type: AgentType.ORGANIZATION, purpose: 'Community-owned renewable energy projects' },
-  { name: 'Kite & Anchor Studio', type: AgentType.ORGANIZATION, purpose: 'Brand design and product storytelling' },
-  { name: 'Northwind Manufacturing', type: AgentType.ORGANIZATION, purpose: 'Precision components for heavy industry' },
-  { name: 'Sakura Trading House', type: AgentType.ORGANIZATION, purpose: 'Cross-border wholesale and import services' },
-  { name: 'Alpine Data Works', type: AgentType.ORGANIZATION, purpose: 'Analytics platforms for regulated industries' },
+  { name: 'Acme Corp', type: ActorType.ORGANIZATION, purpose: 'Global manufacturing and distribution' },
+  { name: 'TechNova Solutions', type: ActorType.ORGANIZATION, purpose: 'Cloud infrastructure provider' },
+  { name: 'GreenLeaf Partners', type: ActorType.ORGANIZATION, purpose: 'Sustainable supply chain consulting' },
+  { name: 'Meridian Logistics Group', type: ActorType.ORGANIZATION, purpose: 'Intermodal freight and last-mile delivery' },
+  { name: 'Bluewater Capital', type: ActorType.ORGANIZATION, purpose: 'Growth investments in industrial technology' },
+  { name: 'Helios Energy Cooperative', type: ActorType.ORGANIZATION, purpose: 'Community-owned renewable energy projects' },
+  { name: 'Kite & Anchor Studio', type: ActorType.ORGANIZATION, purpose: 'Brand design and product storytelling' },
+  { name: 'Northwind Manufacturing', type: ActorType.ORGANIZATION, purpose: 'Precision components for heavy industry' },
+  { name: 'Sakura Trading House', type: ActorType.ORGANIZATION, purpose: 'Cross-border wholesale and import services' },
+  { name: 'Alpine Data Works', type: ActorType.ORGANIZATION, purpose: 'Analytics platforms for regulated industries' },
   // --- Subsidiary organizations ---
-  { name: 'Acme Poland', type: AgentType.ORGANIZATION, purpose: 'Central European operations of Acme Corp', parentName: 'Acme Corp' },
-  { name: 'Acme Nordics', type: AgentType.ORGANIZATION, purpose: 'Scandinavian sales and service of Acme Corp', parentName: 'Acme Corp' },
-  { name: 'Meridian Iberia', type: AgentType.ORGANIZATION, purpose: 'Iberian road network of Meridian Logistics', parentName: 'Meridian Logistics Group' },
-  // --- TechNova virtual sub-agent teams ---
-  { name: 'TechNova Support Desk', type: AgentType.VIRTUAL, purpose: 'Tier-1 customer support automation team', parentName: 'TechNova Solutions' },
-  { name: 'TechNova DevOps Crew', type: AgentType.VIRTUAL, purpose: 'Deployment and reliability engineering team', parentName: 'TechNova Solutions' },
-  { name: 'TechNova Data Platform Team', type: AgentType.VIRTUAL, purpose: 'Ingestion pipelines and warehouse operations', parentName: 'TechNova Solutions' },
-  { name: 'TechNova Security Response', type: AgentType.VIRTUAL, purpose: 'Threat monitoring and incident response', parentName: 'TechNova Solutions' },
-  { name: 'TechNova Onboarding Bots', type: AgentType.VIRTUAL, purpose: 'Automated tenant provisioning workflows', parentName: 'TechNova Solutions' },
-  // --- Other virtual agents ---
-  { name: 'AutoFlow Bot', type: AgentType.VIRTUAL, purpose: 'Automated order processing agent', parentName: 'Acme Corp' },
-  { name: 'GreenLeaf Audit Team', type: AgentType.VIRTUAL, purpose: 'Supplier sustainability scoring team', parentName: 'GreenLeaf Partners' },
-  { name: 'Meridian Freight Analytics', type: AgentType.VIRTUAL, purpose: 'Route and load optimization models', parentName: 'Meridian Logistics Group' },
-  { name: 'Helios Grid Watch', type: AgentType.VIRTUAL, purpose: 'Production and grid balancing telemetry', parentName: 'Helios Energy Cooperative' },
-  { name: 'Northwind Assembly Line Bot', type: AgentType.VIRTUAL, purpose: 'Shop-floor scheduling automation', parentName: 'Northwind Manufacturing' },
-  { name: 'Sakura Customs Broker Bot', type: AgentType.VIRTUAL, purpose: 'Automated customs declarations', parentName: 'Sakura Trading House' },
-  { name: 'Alpine ETL Pipeline', type: AgentType.VIRTUAL, purpose: 'Managed data ingestion service', parentName: 'Alpine Data Works' },
-  { name: 'Ledger Reconciliation Bot', type: AgentType.VIRTUAL, purpose: 'Independent settlement reconciliation service' },
-  { name: 'Market Pulse Crawler', type: AgentType.VIRTUAL, purpose: 'Market signal aggregation service' },
+  { name: 'Acme Poland', type: ActorType.ORGANIZATION, purpose: 'Central European operations of Acme Corp', parentName: 'Acme Corp' },
+  { name: 'Acme Nordics', type: ActorType.ORGANIZATION, purpose: 'Scandinavian sales and service of Acme Corp', parentName: 'Acme Corp' },
+  { name: 'Meridian Iberia', type: ActorType.ORGANIZATION, purpose: 'Iberian road network of Meridian Logistics', parentName: 'Meridian Logistics Group' },
+  // --- TechNova virtual sub-actor teams ---
+  { name: 'TechNova Support Desk', type: ActorType.VIRTUAL, purpose: 'Tier-1 customer support automation team', parentName: 'TechNova Solutions' },
+  { name: 'TechNova DevOps Crew', type: ActorType.VIRTUAL, purpose: 'Deployment and reliability engineering team', parentName: 'TechNova Solutions' },
+  { name: 'TechNova Data Platform Team', type: ActorType.VIRTUAL, purpose: 'Ingestion pipelines and warehouse operations', parentName: 'TechNova Solutions' },
+  { name: 'TechNova Security Response', type: ActorType.VIRTUAL, purpose: 'Threat monitoring and incident response', parentName: 'TechNova Solutions' },
+  { name: 'TechNova Onboarding Bots', type: ActorType.VIRTUAL, purpose: 'Automated tenant provisioning workflows', parentName: 'TechNova Solutions' },
+  // --- Other virtual actors ---
+  { name: 'AutoFlow Bot', type: ActorType.VIRTUAL, purpose: 'Automated order processing actor', parentName: 'Acme Corp' },
+  { name: 'GreenLeaf Audit Team', type: ActorType.VIRTUAL, purpose: 'Supplier sustainability scoring team', parentName: 'GreenLeaf Partners' },
+  { name: 'Meridian Freight Analytics', type: ActorType.VIRTUAL, purpose: 'Route and load optimization models', parentName: 'Meridian Logistics Group' },
+  { name: 'Helios Grid Watch', type: ActorType.VIRTUAL, purpose: 'Production and grid balancing telemetry', parentName: 'Helios Energy Cooperative' },
+  { name: 'Northwind Assembly Line Bot', type: ActorType.VIRTUAL, purpose: 'Shop-floor scheduling automation', parentName: 'Northwind Manufacturing' },
+  { name: 'Sakura Customs Broker Bot', type: ActorType.VIRTUAL, purpose: 'Automated customs declarations', parentName: 'Sakura Trading House' },
+  { name: 'Alpine ETL Pipeline', type: ActorType.VIRTUAL, purpose: 'Managed data ingestion service', parentName: 'Alpine Data Works' },
+  { name: 'Ledger Reconciliation Bot', type: ActorType.VIRTUAL, purpose: 'Independent settlement reconciliation service' },
+  { name: 'Market Pulse Crawler', type: ActorType.VIRTUAL, purpose: 'Market signal aggregation service' },
   // --- Individuals inside organizations ---
-  { name: 'Sarah Palmer', type: AgentType.INDIVIDUAL, purpose: 'Independent market analyst', parentName: 'Acme Corp' },
-  { name: 'James Liu', type: AgentType.INDIVIDUAL, purpose: 'Freelance integration specialist', parentName: 'TechNova Solutions' },
-  { name: 'Piotr Nowak', type: AgentType.INDIVIDUAL, purpose: 'Plant operations manager', parentName: 'Acme Poland' },
-  { name: 'Anna Wiśniewska', type: AgentType.INDIVIDUAL, purpose: 'Regional key account manager', parentName: 'Acme Poland' },
-  { name: 'Freja Lindqvist', type: AgentType.INDIVIDUAL, purpose: 'Nordic partnerships lead', parentName: 'Acme Nordics' },
-  { name: 'Carlos Mendez', type: AgentType.INDIVIDUAL, purpose: 'Fleet coordinator', parentName: 'Meridian Iberia' },
-  { name: 'Nina Petrova', type: AgentType.INDIVIDUAL, purpose: 'Investment analyst', parentName: 'Bluewater Capital' },
-  { name: 'Maria Santos', type: AgentType.INDIVIDUAL, purpose: 'Circular economy consultant', parentName: 'GreenLeaf Partners' },
-  { name: 'Kenji Watanabe', type: AgentType.INDIVIDUAL, purpose: 'Sourcing director', parentName: 'Sakura Trading House' },
-  { name: 'Lena Hoffmann', type: AgentType.INDIVIDUAL, purpose: 'Compliance data architect', parentName: 'Alpine Data Works' },
+  { name: 'Sarah Palmer', type: ActorType.INDIVIDUAL, purpose: 'Independent market analyst', parentName: 'Acme Corp' },
+  { name: 'James Liu', type: ActorType.INDIVIDUAL, purpose: 'Freelance integration specialist', parentName: 'TechNova Solutions' },
+  { name: 'Piotr Nowak', type: ActorType.INDIVIDUAL, purpose: 'Plant operations manager', parentName: 'Acme Poland' },
+  { name: 'Anna Wiśniewska', type: ActorType.INDIVIDUAL, purpose: 'Regional key account manager', parentName: 'Acme Poland' },
+  { name: 'Freja Lindqvist', type: ActorType.INDIVIDUAL, purpose: 'Nordic partnerships lead', parentName: 'Acme Nordics' },
+  { name: 'Carlos Mendez', type: ActorType.INDIVIDUAL, purpose: 'Fleet coordinator', parentName: 'Meridian Iberia' },
+  { name: 'Nina Petrova', type: ActorType.INDIVIDUAL, purpose: 'Investment analyst', parentName: 'Bluewater Capital' },
+  { name: 'Maria Santos', type: ActorType.INDIVIDUAL, purpose: 'Circular economy consultant', parentName: 'GreenLeaf Partners' },
+  { name: 'Kenji Watanabe', type: ActorType.INDIVIDUAL, purpose: 'Sourcing director', parentName: 'Sakura Trading House' },
+  { name: 'Lena Hoffmann', type: ActorType.INDIVIDUAL, purpose: 'Compliance data architect', parentName: 'Alpine Data Works' },
   // --- Independent individuals ---
-  { name: 'Tomás Oliveira', type: AgentType.INDIVIDUAL, purpose: 'Freelance logistics auditor' },
-  { name: 'Aisha Bello', type: AgentType.INDIVIDUAL, purpose: 'Trade finance advisor' },
-  { name: 'David Chen', type: AgentType.INDIVIDUAL, purpose: 'Independent hardware prototyper' },
-  { name: 'Ingrid Johansson', type: AgentType.INDIVIDUAL, purpose: 'Sustainability reporting specialist' },
-  { name: 'Rafael Costa', type: AgentType.INDIVIDUAL, purpose: 'Contract manufacturing broker' },
-  { name: 'Chloe Martin', type: AgentType.INDIVIDUAL, purpose: 'Freelance UX researcher' },
-  { name: 'Omar Haddad', type: AgentType.INDIVIDUAL, purpose: 'Customs and tariffs consultant' },
-  { name: 'Elena Rossi', type: AgentType.INDIVIDUAL, purpose: 'Interim CFO for scale-ups' },
-  { name: "Jack O'Brien", type: AgentType.INDIVIDUAL, purpose: 'Field service engineer' },
-  { name: 'Yuki Tanaka', type: AgentType.INDIVIDUAL, purpose: 'Localization project manager' },
-  { name: 'Priya Sharma', type: AgentType.INDIVIDUAL, purpose: 'Procurement negotiator' },
-  { name: 'Sofia Almeida', type: AgentType.INDIVIDUAL, purpose: 'Renewable energy project developer' },
-  { name: 'Ewa Kamińska', type: AgentType.INDIVIDUAL, purpose: 'Independent legal counsel' },
+  { name: 'Tomás Oliveira', type: ActorType.INDIVIDUAL, purpose: 'Freelance logistics auditor' },
+  { name: 'Aisha Bello', type: ActorType.INDIVIDUAL, purpose: 'Trade finance advisor' },
+  { name: 'David Chen', type: ActorType.INDIVIDUAL, purpose: 'Independent hardware prototyper' },
+  { name: 'Ingrid Johansson', type: ActorType.INDIVIDUAL, purpose: 'Sustainability reporting specialist' },
+  { name: 'Rafael Costa', type: ActorType.INDIVIDUAL, purpose: 'Contract manufacturing broker' },
+  { name: 'Chloe Martin', type: ActorType.INDIVIDUAL, purpose: 'Freelance UX researcher' },
+  { name: 'Omar Haddad', type: ActorType.INDIVIDUAL, purpose: 'Customs and tariffs consultant' },
+  { name: 'Elena Rossi', type: ActorType.INDIVIDUAL, purpose: 'Interim CFO for scale-ups' },
+  { name: "Jack O'Brien", type: ActorType.INDIVIDUAL, purpose: 'Field service engineer' },
+  { name: 'Yuki Tanaka', type: ActorType.INDIVIDUAL, purpose: 'Localization project manager' },
+  { name: 'Priya Sharma', type: ActorType.INDIVIDUAL, purpose: 'Procurement negotiator' },
+  { name: 'Sofia Almeida', type: ActorType.INDIVIDUAL, purpose: 'Renewable energy project developer' },
+  { name: 'Ewa Kamińska', type: ActorType.INDIVIDUAL, purpose: 'Independent legal counsel' },
 ];
 
 interface AddressSeed {
@@ -125,12 +125,12 @@ const ADDRESSES: Record<string, AddressSeed[]> = {
   ],
 };
 
-export async function seedAgents(
-  service: AgentsService,
+export async function seedActors(
+  service: ActorsService,
   addressesService: AddressesService,
-  deps: AgentDeps,
+  deps: ActorDeps,
 ) {
-  const agents: Array<{ id: string; name: string; type: AgentType }> = [];
+  const actors: Array<{ id: string; name: string; type: ActorType }> = [];
   const nameToCode: Record<string, string> = {
     Poland: 'PL', Germany: 'DE', France: 'FR', 'United Kingdom': 'GB',
     'United States': 'US', Canada: 'CA', Japan: 'JP', Singapore: 'SG',
@@ -141,30 +141,30 @@ export async function seedAgents(
     if (code) countryIdByCode[code] = c.id;
   }
 
-  for (let i = 0; i < AGENTS.length; i++) {
-    const agentData = AGENTS[i];
+  for (let i = 0; i < ACTORS.length; i++) {
+    const actorData = ACTORS[i];
     const taxonomy = deps.taxonomies.all[i % deps.taxonomies.all.length];
 
-    const parentId = agentData.parentName
-      ? agents.find((a) => a.name === agentData.parentName)?.id
+    const parentId = actorData.parentName
+      ? actors.find((a) => a.name === actorData.parentName)?.id
       : undefined;
 
-    const agent = await service.create({
-      name: agentData.name,
-      type: agentData.type,
-      purpose: agentData.purpose,
+    const actor = await service.create({
+      name: actorData.name,
+      type: actorData.type,
+      purpose: actorData.purpose,
       mainTaxonomyId: taxonomy.id,
-      functionalCurrencyId: deps.functionalCurrencyByAgentName?.[agentData.name],
+      functionalCurrencyId: deps.functionalCurrencyByActorName?.[actorData.name],
       parentId,
-    } as unknown as CreateAgentInput);
-    agents.push({ id: agent.id, name: agent.name, type: agentData.type });
+    } as unknown as CreateActorInput);
+    actors.push({ id: actor.id, name: actor.name, type: actorData.type });
 
-    const addresses = ADDRESSES[agentData.name] ?? [];
+    const addresses = ADDRESSES[actorData.name] ?? [];
     for (const a of addresses) {
       const countryId = countryIdByCode[a.countryCode];
       if (!countryId) continue;
       await addressesService.create(
-        agent.id,
+        actor.id,
         {
           label: a.label,
           line1: a.line1,
@@ -178,5 +178,5 @@ export async function seedAgents(
     }
   }
 
-  return agents;
+  return actors;
 }

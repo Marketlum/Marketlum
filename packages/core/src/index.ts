@@ -42,7 +42,7 @@ export { ALL_MIGRATIONS } from './migrations';
 
 // Entities
 export { User } from './users/entities/user.entity';
-export { Agent } from './agents/entities/agent.entity';
+export { Actor } from './actors/entities/actor.entity';
 export { Taxonomy } from './taxonomies/entities/taxonomy.entity';
 export { Folder } from './files/entities/folder.entity';
 export { File } from './files/entities/file.entity';
@@ -76,7 +76,7 @@ export { Role, RolePermission } from './roles/entities/role.entity';
 
 // Services
 export { UsersService } from './users/users.service';
-export { AgentsService } from './agents/agents.service';
+export { ActorsService } from './actors/actors.service';
 export { ValuesService } from './values/values.service';
 export { ValueInstancesService } from './value-instances/value-instances.service';
 export { ValueStreamsService } from './value-streams/value-streams.service';

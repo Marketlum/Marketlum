@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Value } from '../../values/entities/value.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 
 @Entity('accounts')
 export class Account {
@@ -28,12 +28,12 @@ export class Account {
   @Column({ type: 'uuid' })
   valueId: string;
 
-  @ManyToOne(() => Agent, { nullable: false, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent;
+  @ManyToOne(() => Actor, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor;
 
   @Column({ type: 'uuid' })
-  agentId: string;
+  actorId: string;
 
   @CreateDateColumn()
   createdAt: Date;

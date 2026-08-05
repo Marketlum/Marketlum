@@ -12,7 +12,7 @@ export const rdhyMessages = {
     },
     emc: {
       title: 'EMC Agreements',
-      description: 'Ecosystem Micro-community canvases connecting agents as micro-nodes.',
+      description: 'Ecosystem Micro-community canvases connecting actors as micro-nodes.',
       list: {
         titleCol: 'Title',
         platform: 'Platform',
@@ -103,7 +103,7 @@ export const rdhyMessages = {
         amount: 'Amount',
         headcount: 'FTEs',
         addNode: 'Add micro-node',
-        addNodePlaceholder: 'Search agents…',
+        addNodePlaceholder: 'Search actors…',
         remove: 'Remove',
         terminationRules: 'Termination conditions',
         addRule: 'Add condition',
@@ -124,10 +124,10 @@ export const rdhyMessages = {
     },
     vam: {
       title: 'VAM Agreements',
-      description: 'Value Adjustment Mechanism canvases for agents.',
+      description: 'Value Adjustment Mechanism canvases for actors.',
       list: {
         titleCol: 'Title',
-        agent: 'Agent',
+        actor: 'Actor',
         platform: 'Platform',
         status: 'Status',
         horizon: 'Horizon',
@@ -148,8 +148,8 @@ export const rdhyMessages = {
       create: {
         title: 'Create VAM agreement',
         titleLabel: 'Title',
-        agent: 'Agent',
-        agentPlaceholder: 'Search agents…',
+        actor: 'Actor',
+        actorPlaceholder: 'Search actors…',
         platform: 'Sponsor platform',
         horizon: 'Horizon (months)',
         currency: 'Currency (optional)',
@@ -277,11 +277,11 @@ export const rdhyMessages = {
         actualsInCurrency: 'Actuals shown in {currency}',
         comparabilityBanner: {
           CURRENCY_MISMATCH:
-            "The agreement currency differs from the agent's functional currency — actuals cannot be judged against the plan.",
+            "The agreement currency differs from the actor's functional currency — actuals cannot be judged against the plan.",
           NO_AGREEMENT_CURRENCY:
             'The agreement has no currency, so its targets cannot be compared with actual revenue.',
-          NO_AGENT_CURRENCY:
-            'The agent has no functional currency, so actual revenue cannot be computed.',
+          NO_ACTOR_CURRENCY:
+            'The actor has no functional currency, so actual revenue cannot be computed.',
           NO_MEASURABLE_TARGETS:
             'The canvas has no direct-value amounts, so there is nothing to measure against.',
         },
@@ -296,10 +296,10 @@ export const rdhyMessages = {
     },
     platforms: {
       title: 'Platforms',
-      description: 'RenDanHeYi platforms hosting agents.',
+      description: 'RenDanHeYi platforms hosting actors.',
       code: 'Code',
       name: 'Name',
-      members: 'Agents',
+      members: 'Actors',
       create: 'New platform',
       createTitle: 'Create platform',
       editTitle: 'Edit platform',
@@ -316,15 +316,15 @@ export const rdhyMessages = {
       delete: 'Delete',
       deleteTitle: 'Delete platform',
       deleteDescription:
-        'The platform will be removed and its member agents become unassigned.',
-      membersTitle: 'Member agents',
-      agentType: 'Type',
+        'The platform will be removed and its member actors become unassigned.',
+      membersTitle: 'Member actors',
+      actorType: 'Type',
       remove: 'Remove',
-      noMembers: 'No agents assigned yet.',
-      addLabel: 'Add agent',
-      addPlaceholder: 'Search agents…',
+      noMembers: 'No actors assigned yet.',
+      addLabel: 'Add actor',
+      addPlaceholder: 'Search actors…',
       add: 'Add',
-      noMatches: 'No matching agents.',
+      noMatches: 'No matching actors.',
     },
   },
   pl: {
@@ -336,7 +336,7 @@ export const rdhyMessages = {
     },
     emc: {
       title: 'Umowy EMC',
-      description: 'Kanwy mikrospołeczności ekosystemowych (EMC) łączące agentów jako mikrowęzły.',
+      description: 'Kanwy mikrospołeczności ekosystemowych (EMC) łączące aktorów jako mikrowęzły.',
       list: {
         titleCol: 'Tytuł',
         platform: 'Platforma',
@@ -427,7 +427,7 @@ export const rdhyMessages = {
         amount: 'Kwota',
         headcount: 'Etaty',
         addNode: 'Dodaj mikrowęzeł',
-        addNodePlaceholder: 'Szukaj agentów…',
+        addNodePlaceholder: 'Szukaj aktorów…',
         remove: 'Usuń',
         terminationRules: 'Warunki rozwiązania',
         addRule: 'Dodaj warunek',
@@ -448,10 +448,10 @@ export const rdhyMessages = {
     },
     vam: {
       title: 'Umowy VAM',
-      description: 'Kanwy mechanizmu korekty wartości (VAM) dla agentów.',
+      description: 'Kanwy mechanizmu korekty wartości (VAM) dla aktorów.',
       list: {
         titleCol: 'Tytuł',
-        agent: 'Agent',
+        actor: 'Aktor',
         platform: 'Platforma',
         status: 'Status',
         horizon: 'Horyzont',
@@ -472,8 +472,8 @@ export const rdhyMessages = {
       create: {
         title: 'Utwórz umowę VAM',
         titleLabel: 'Tytuł',
-        agent: 'Agent',
-        agentPlaceholder: 'Szukaj agentów…',
+        actor: 'Aktor',
+        actorPlaceholder: 'Szukaj aktorów…',
         platform: 'Platforma sponsorująca',
         horizon: 'Horyzont (miesiące)',
         currency: 'Waluta (opcjonalnie)',
@@ -601,11 +601,11 @@ export const rdhyMessages = {
         actualsInCurrency: 'Wykonanie w walucie {currency}',
         comparabilityBanner: {
           CURRENCY_MISMATCH:
-            'Waluta umowy różni się od waluty funkcjonalnej agenta — wykonania nie można ocenić względem planu.',
+            'Waluta umowy różni się od waluty funkcjonalnej aktora — wykonania nie można ocenić względem planu.',
           NO_AGREEMENT_CURRENCY:
             'Umowa nie ma waluty, więc celów nie można porównać z rzeczywistym przychodem.',
-          NO_AGENT_CURRENCY:
-            'Agent nie ma waluty funkcjonalnej, więc nie można obliczyć rzeczywistego przychodu.',
+          NO_ACTOR_CURRENCY:
+            'Aktor nie ma waluty funkcjonalnej, więc nie można obliczyć rzeczywistego przychodu.',
           NO_MEASURABLE_TARGETS:
             'Kanwa nie zawiera kwot wartości bezpośredniej, więc nie ma czego mierzyć.',
         },
@@ -620,10 +620,10 @@ export const rdhyMessages = {
     },
     platforms: {
       title: 'Platformy',
-      description: 'Platformy RenDanHeYi grupujące agentów.',
+      description: 'Platformy RenDanHeYi grupujące aktorów.',
       code: 'Kod',
       name: 'Nazwa',
-      members: 'Agenci',
+      members: 'Aktorzy',
       create: 'Nowa platforma',
       createTitle: 'Utwórz platformę',
       editTitle: 'Edytuj platformę',
@@ -640,15 +640,15 @@ export const rdhyMessages = {
       delete: 'Usuń',
       deleteTitle: 'Usuń platformę',
       deleteDescription:
-        'Platforma zostanie usunięta, a jej agenci przestaną być przypisani.',
-      membersTitle: 'Przypisani agenci',
-      agentType: 'Typ',
+        'Platforma zostanie usunięta, a jej aktorzy przestaną być przypisani.',
+      membersTitle: 'Przypisani aktorzy',
+      actorType: 'Typ',
       remove: 'Usuń',
-      noMembers: 'Brak przypisanych agentów.',
-      addLabel: 'Dodaj agenta',
-      addPlaceholder: 'Szukaj agentów…',
+      noMembers: 'Brak przypisanych aktorów.',
+      addLabel: 'Dodaj aktora',
+      addPlaceholder: 'Szukaj aktorów…',
       add: 'Dodaj',
-      noMatches: 'Brak pasujących agentów.',
+      noMatches: 'Brak pasujących aktorów.',
     },
   },
 };

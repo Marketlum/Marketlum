@@ -35,7 +35,7 @@ export function renderExchangePdfHtml(data: ExchangePdfData): string {
         <div class="row">
           <div class="title">${escape(tension.name)}</div>
         </div>
-        ${tension.agent ? `<div class="meta">Agent: ${escape(tension.agent.name)}</div>` : ''}
+        ${tension.actor ? `<div class="meta">Actor: ${escape(tension.actor.name)}</div>` : ''}
         ${
           tension.currentContext
             ? `<div class="subhead">Current Context</div><div class="markdown">${md(tension.currentContext)}</div>`
@@ -54,7 +54,7 @@ export function renderExchangePdfHtml(data: ExchangePdfData): string {
     .map(
       (p) => `
         <tr>
-          <td>${escape(p.agent?.name ?? '')}</td>
+          <td>${escape(p.actor?.name ?? '')}</td>
           <td>${escape(p.role ?? '')}</td>
         </tr>
       `,
@@ -81,9 +81,9 @@ export function renderExchangePdfHtml(data: ExchangePdfData): string {
       const description = (f as any).description as string | null | undefined;
       return `
         <tr>
-          <td>${escape(f.fromAgent?.name ?? '')}</td>
+          <td>${escape(f.fromActor?.name ?? '')}</td>
           <td class="arrow">→</td>
-          <td>${escape(f.toAgent?.name ?? '')}</td>
+          <td>${escape(f.toActor?.name ?? '')}</td>
           <td>
             <div class="value-cell">
               <span>${escape(valueName)}</span>
@@ -296,7 +296,7 @@ export function renderExchangePdfHtml(data: ExchangePdfData): string {
       <section class="card">
         <h2>Parties</h2>
         <table>
-          <thead><tr><th>Agent</th><th>Role</th></tr></thead>
+          <thead><tr><th>Actor</th><th>Role</th></tr></thead>
           <tbody>${partiesRows}</tbody>
         </table>
       </section>

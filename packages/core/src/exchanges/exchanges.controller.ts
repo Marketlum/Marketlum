@@ -87,7 +87,7 @@ export class ExchangesController {
   @ApiQuery({ name: 'channelId', required: false, type: String })
   @ApiQuery({ name: 'valueStreamId', required: false, type: String })
   @ApiQuery({ name: 'pipelineId', required: false, type: String })
-  @ApiQuery({ name: 'partyAgentId', required: false, type: String })
+  @ApiQuery({ name: 'partyActorId', required: false, type: String })
   @ApiQuery({ name: 'leadUserId', required: false, type: String })
   @ApiPaginatedResponse(ExchangeResponseDto)
   async search(
@@ -96,7 +96,7 @@ export class ExchangesController {
     @Query('channelId') channelId?: string,
     @Query('valueStreamId') valueStreamId?: string,
     @Query('pipelineId') pipelineId?: string,
-    @Query('partyAgentId') partyAgentId?: string,
+    @Query('partyActorId') partyActorId?: string,
     @Query('leadUserId') leadUserId?: string,
   ) {
     return this.exchangesService.search({
@@ -105,7 +105,7 @@ export class ExchangesController {
       channelId,
       valueStreamId,
       pipelineId,
-      partyAgentId,
+      partyActorId,
       leadUserId,
     });
   }

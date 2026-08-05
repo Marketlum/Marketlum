@@ -12,7 +12,7 @@ import {
   GeographyType,
 } from '@marketlum/shared';
 import { Address } from './entities/address.entity';
-import { Agent } from '../entities/agent.entity';
+import { Actor } from '../entities/actor.entity';
 import { Geography } from '../../geographies/geography.entity';
 import {
   GEOCODING_CLIENT,
@@ -45,8 +45,8 @@ export class AddressesService {
   constructor(
     @InjectRepository(Address)
     private readonly addressesRepository: Repository<Address>,
-    @InjectRepository(Agent)
-    private readonly agentsRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorsRepository: Repository<Actor>,
     @InjectRepository(Geography)
     private readonly geographiesRepository: Repository<Geography>,
     @Inject(GEOCODING_CLIENT)
@@ -54,15 +54,15 @@ export class AddressesService {
   ) {}
 
   async create(
-    agentId: string,
+    actorId: string,
     input: CreateAddressInput,
     opts?: AddressCreateOpts,
   ): Promise<Address> {
-    await this.assertAgentExists(agentId);
+    await this.assertActorExists(actorId);
     const country = await this.assertCountry(input.countryId);
 
     const address = this.addressesRepository.create({
-      agentId,
+      actorId,
       countryId: input.countryId,
       label: input.label ?? null,
       line1: input.line1,
@@ -76,7 +76,7 @@ export class AddressesService {
     });
 
     if (address.isPrimary) {
-      await this.clearPrimaryForAgent(agentId);
+      await this.clearPrimaryForActor(actorId);
     }
 
     const saved = await this.addressesRepository.save(address);
@@ -98,35 +98,35 @@ export class AddressesService {
       }
     }
 
-    return this.findOne(agentId, saved.id);
+    return this.findOne(actorId, saved.id);
   }
 
-  async findAllForAgent(agentId: string): Promise<Address[]> {
-    await this.assertAgentExists(agentId);
+  async findAllForActor(actorId: string): Promise<Address[]> {
+    await this.assertActorExists(actorId);
     const rows = await this.addressesRepository.find({
-      where: { agentId },
+      where: { actorId },
       relations: ['country'],
     });
     return this.sortAddresses(rows);
   }
 
-  async findOne(agentId: string, id: string): Promise<Address> {
+  async findOne(actorId: string, id: string): Promise<Address> {
     const address = await this.addressesRepository.findOne({
       where: { id },
       relations: ['country'],
     });
-    if (!address || address.agentId !== agentId) {
+    if (!address || address.actorId !== actorId) {
       throw new NotFoundException('Address not found');
     }
     return address;
   }
 
   async update(
-    agentId: string,
+    actorId: string,
     id: string,
     input: UpdateAddressInput,
   ): Promise<Address> {
-    const address = await this.findOne(agentId, id);
+    const address = await this.findOne(actorId, id);
 
     const postalChanged = POSTAL_FIELDS.some((field) => {
       if (input[field] === undefined) return false;
@@ -148,7 +148,7 @@ export class AddressesService {
 
     if (input.isPrimary !== undefined) {
       if (input.isPrimary === true && !address.isPrimary) {
-        await this.clearPrimaryForAgent(agentId);
+        await this.clearPrimaryForActor(actorId);
         address.isPrimary = true;
       } else if (input.isPrimary === false) {
         address.isPrimary = false;
@@ -184,11 +184,11 @@ export class AddressesService {
       }
     }
 
-    return this.findOne(agentId, id);
+    return this.findOne(actorId, id);
   }
 
-  async remove(agentId: string, id: string): Promise<void> {
-    const address = await this.findOne(agentId, id);
+  async remove(actorId: string, id: string): Promise<void> {
+    const address = await this.findOne(actorId, id);
     await this.addressesRepository.remove(address);
   }
 
@@ -218,10 +218,10 @@ export class AddressesService {
     });
   }
 
-  private async assertAgentExists(agentId: string): Promise<void> {
-    const exists = await this.agentsRepository.exist({ where: { id: agentId } });
+  private async assertActorExists(actorId: string): Promise<void> {
+    const exists = await this.actorsRepository.exist({ where: { id: actorId } });
     if (!exists) {
-      throw new NotFoundException('Agent not found');
+      throw new NotFoundException('Actor not found');
     }
   }
 
@@ -238,9 +238,9 @@ export class AddressesService {
     return country;
   }
 
-  private async clearPrimaryForAgent(agentId: string): Promise<void> {
+  private async clearPrimaryForActor(actorId: string): Promise<void> {
     await this.addressesRepository.update(
-      { agentId, isPrimary: true },
+      { actorId, isPrimary: true },
       { isPrimary: false },
     );
   }

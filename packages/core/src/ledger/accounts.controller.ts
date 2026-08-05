@@ -68,14 +68,14 @@ export class AccountsController {
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
   @ApiQuery({ name: 'valueId', required: false, type: String })
-  @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'actorId', required: false, type: String })
   @ApiPaginatedResponse(AccountResponseDto)
   async findAll(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('valueId') valueId?: string,
-    @Query('agentId') agentId?: string,
+    @Query('actorId') actorId?: string,
   ) {
-    return this.accountsService.findAll({ ...query, valueId, agentId });
+    return this.accountsService.findAll({ ...query, valueId, actorId });
   }
 
   @Get(':id')

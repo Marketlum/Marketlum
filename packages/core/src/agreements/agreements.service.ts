@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository, Repository, In } from 'typeorm';
 import { Agreement } from './entities/agreement.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { File } from '../files/entities/file.entity';
 import { AgreementTemplate } from '../agreement-templates/entities/agreement-template.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
@@ -18,8 +18,8 @@ export class AgreementsService {
   constructor(
     @InjectRepository(Agreement)
     private readonly agreementRepository: TreeRepository<Agreement>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
     @InjectRepository(AgreementTemplate)
@@ -80,11 +80,11 @@ export class AgreementsService {
       agreement.valueStream = valueStream;
     }
 
-    const agents = await this.agentRepository.findBy({ id: In(partyIds) });
-    if (agents.length < 2) {
+    const actors = await this.actorRepository.findBy({ id: In(partyIds) });
+    if (actors.length < 2) {
       throw new BadRequestException('At least 2 valid parties are required');
     }
-    agreement.parties = agents;
+    agreement.parties = actors;
 
     const saved = await this.agreementRepository.save(agreement);
     return this.findOne(saved.id);
@@ -103,7 +103,7 @@ export class AgreementsService {
 
     if (partyId) {
       qb.andWhere(
-        `agreement.id IN (SELECT "agreementId" FROM "agreement_parties" WHERE "agentId" = :partyId)`,
+        `agreement.id IN (SELECT "agreementId" FROM "agreement_parties" WHERE "actorId" = :partyId)`,
         { partyId },
       );
     }
@@ -230,11 +230,11 @@ export class AgreementsService {
     }
 
     if (partyIds !== undefined) {
-      const agents = await this.agentRepository.findBy({ id: In(partyIds) });
-      if (agents.length < 2) {
+      const actors = await this.actorRepository.findBy({ id: In(partyIds) });
+      if (actors.length < 2) {
         throw new BadRequestException('At least 2 valid parties are required');
       }
-      agreement.parties = agents;
+      agreement.parties = actors;
     }
 
     await this.agreementRepository.save(agreement);

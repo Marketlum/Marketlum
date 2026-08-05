@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, TreeRepository, In, IsNull } from 'typeorm';
-import { Agent } from './entities/agent.entity';
+import { Actor } from './entities/actor.entity';
 import { Address } from './addresses/entities/address.entity';
 import { AddressesService } from './addresses/addresses.service';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
@@ -14,19 +14,19 @@ import { File } from '../files/entities/file.entity';
 import { Value } from '../values/entities/value.entity';
 import { InvoiceItem } from '../invoices/entities/invoice-item.entity';
 import {
-  CreateAgentInput,
-  UpdateAgentInput,
-  MoveAgentInput,
+  CreateActorInput,
+  UpdateActorInput,
+  MoveActorInput,
   PaginationQuery,
-  AgentType,
+  ActorType,
   ValueType,
 } from '@marketlum/shared';
 
 @Injectable()
-export class AgentsService {
+export class ActorsService {
   constructor(
-    @InjectRepository(Agent)
-    private readonly agentsRepository: TreeRepository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorsRepository: TreeRepository<Actor>,
     @InjectRepository(Taxonomy)
     private readonly taxonomyRepository: Repository<Taxonomy>,
     @InjectRepository(File)
@@ -40,30 +40,30 @@ export class AgentsService {
     private readonly addressesService: AddressesService,
   ) {}
 
-  async create(input: CreateAgentInput): Promise<Agent> {
+  async create(input: CreateActorInput): Promise<Actor> {
     const { mainTaxonomyId, taxonomyIds, imageId, functionalCurrencyId, parentId, ...rest } =
       input;
 
-    const agent = this.agentsRepository.create(rest);
+    const actor = this.actorsRepository.create(rest);
 
     if (parentId) {
-      const parent = await this.agentsRepository.findOne({ where: { id: parentId } });
+      const parent = await this.actorsRepository.findOne({ where: { id: parentId } });
       if (!parent) {
-        throw new NotFoundException('Parent agent not found');
+        throw new NotFoundException('Parent actor not found');
       }
-      agent.parent = parent;
+      actor.parent = parent;
       // TypeORM does not maintain level — this service does.
-      agent.level = parent.level + 1;
+      actor.level = parent.level + 1;
     } else {
-      agent.parent = null;
-      agent.level = 0;
+      actor.parent = null;
+      actor.level = 0;
     }
 
     if (functionalCurrencyId !== undefined && functionalCurrencyId !== null) {
       await this.assertCurrencyValue(functionalCurrencyId);
-      agent.functionalCurrencyId = functionalCurrencyId;
+      actor.functionalCurrencyId = functionalCurrencyId;
     } else {
-      agent.functionalCurrencyId = null;
+      actor.functionalCurrencyId = null;
     }
 
     if (imageId) {
@@ -71,8 +71,8 @@ export class AgentsService {
       if (!file) {
         throw new NotFoundException('Image file not found');
       }
-      agent.imageId = imageId;
-      agent.image = file;
+      actor.imageId = imageId;
+      actor.image = file;
     }
 
     if (mainTaxonomyId) {
@@ -82,8 +82,8 @@ export class AgentsService {
       if (!taxonomy) {
         throw new NotFoundException('Main taxonomy not found');
       }
-      agent.mainTaxonomyId = mainTaxonomyId;
-      agent.mainTaxonomy = taxonomy;
+      actor.mainTaxonomyId = mainTaxonomyId;
+      actor.mainTaxonomy = taxonomy;
     }
 
     if (taxonomyIds && taxonomyIds.length > 0) {
@@ -93,59 +93,59 @@ export class AgentsService {
       if (taxonomies.length !== taxonomyIds.length) {
         throw new NotFoundException('One or more taxonomies not found');
       }
-      agent.taxonomies = taxonomies;
+      actor.taxonomies = taxonomies;
     } else {
-      agent.taxonomies = [];
+      actor.taxonomies = [];
     }
 
-    const saved = await this.agentsRepository.save(agent);
+    const saved = await this.actorsRepository.save(actor);
     return this.findOne(saved.id);
   }
 
-  async findAll(query: PaginationQuery & { type?: AgentType; taxonomyId?: string }) {
+  async findAll(query: PaginationQuery & { type?: ActorType; taxonomyId?: string }) {
     const { page, limit, search, sortBy, sortOrder, type, taxonomyId } = query;
     const skip = (page - 1) * limit;
 
-    const qb = this.agentsRepository.createQueryBuilder('agent');
+    const qb = this.actorsRepository.createQueryBuilder('actor');
 
-    qb.leftJoinAndSelect('agent.mainTaxonomy', 'mainTaxonomy');
-    qb.leftJoinAndSelect('agent.taxonomies', 'taxonomies');
-    qb.leftJoinAndSelect('agent.image', 'image');
-    qb.leftJoinAndSelect('agent.addresses', 'addresses');
+    qb.leftJoinAndSelect('actor.mainTaxonomy', 'mainTaxonomy');
+    qb.leftJoinAndSelect('actor.taxonomies', 'taxonomies');
+    qb.leftJoinAndSelect('actor.image', 'image');
+    qb.leftJoinAndSelect('actor.addresses', 'addresses');
     qb.leftJoinAndSelect('addresses.country', 'addressCountry');
-    qb.leftJoinAndSelect('agent.functionalCurrency', 'functionalCurrency');
-    qb.leftJoinAndSelect('agent.parent', 'parent');
+    qb.leftJoinAndSelect('actor.functionalCurrency', 'functionalCurrency');
+    qb.leftJoinAndSelect('actor.parent', 'parent');
 
     if (type) {
-      qb.andWhere('agent.type = :type', { type });
+      qb.andWhere('actor.type = :type', { type });
     }
 
     if (taxonomyId) {
       qb.andWhere(
-        '(agent."mainTaxonomyId" = :taxonomyId OR EXISTS (SELECT 1 FROM agent_taxonomies at WHERE at."agentId" = agent.id AND at."taxonomyId" = :taxonomyId))',
+        '(actor."mainTaxonomyId" = :taxonomyId OR EXISTS (SELECT 1 FROM actor_taxonomies at WHERE at."actorId" = actor.id AND at."taxonomyId" = :taxonomyId))',
         { taxonomyId },
       );
     }
 
     if (search) {
       qb.andWhere(
-        '(agent.name ILIKE :search OR agent.purpose ILIKE :search)',
+        '(actor.name ILIKE :search OR actor.purpose ILIKE :search)',
         { search: `%${search}%` },
       );
     }
 
     if (sortBy) {
-      qb.orderBy(`agent.${sortBy}`, sortOrder || 'ASC');
+      qb.orderBy(`actor.${sortBy}`, sortOrder || 'ASC');
     } else {
-      qb.orderBy('agent.createdAt', 'DESC');
+      qb.orderBy('actor.createdAt', 'DESC');
     }
 
     qb.skip(skip).take(limit);
 
     const [data, total] = await qb.getManyAndCount();
 
-    for (const agent of data) {
-      agent.addresses = this.addressesService.sortAddresses(agent.addresses ?? []);
+    for (const actor of data) {
+      actor.addresses = this.addressesService.sortAddresses(actor.addresses ?? []);
     }
 
     return {
@@ -159,8 +159,8 @@ export class AgentsService {
     };
   }
 
-  async findOne(id: string): Promise<Agent> {
-    const agent = await this.agentsRepository.findOne({
+  async findOne(id: string): Promise<Actor> {
+    const actor = await this.actorsRepository.findOne({
       where: { id },
       relations: [
         'mainTaxonomy',
@@ -172,20 +172,20 @@ export class AgentsService {
         'parent',
       ],
     });
-    if (!agent) {
-      throw new NotFoundException('Agent not found');
+    if (!actor) {
+      throw new NotFoundException('Actor not found');
     }
-    agent.addresses = this.addressesService.sortAddresses(agent.addresses ?? []);
-    const ancestorsWithSelf = await this.agentsRepository.findAncestors(agent);
-    agent.ancestors = ancestorsWithSelf
-      .filter((a) => a.id !== agent.id)
+    actor.addresses = this.addressesService.sortAddresses(actor.addresses ?? []);
+    const ancestorsWithSelf = await this.actorsRepository.findAncestors(actor);
+    actor.ancestors = ancestorsWithSelf
+      .filter((a) => a.id !== actor.id)
       .sort((a, b) => a.level - b.level);
-    return agent;
+    return actor;
   }
 
-  async findTree(): Promise<Agent[]> {
-    const trees = await this.agentsRepository.findTrees({ relations: ['image'] });
-    const sortByName = (nodes: Agent[]): Agent[] => {
+  async findTree(): Promise<Actor[]> {
+    const trees = await this.actorsRepository.findTrees({ relations: ['image'] });
+    const sortByName = (nodes: Actor[]): Actor[] => {
       nodes.sort((a, b) => a.name.localeCompare(b.name));
       for (const node of nodes) {
         if (node.children?.length) sortByName(node.children);
@@ -195,26 +195,26 @@ export class AgentsService {
     return sortByName(trees);
   }
 
-  async findRoots(): Promise<Agent[]> {
-    return this.agentsRepository.find({
+  async findRoots(): Promise<Actor[]> {
+    return this.actorsRepository.find({
       where: { parentId: IsNull() },
       relations: ['mainTaxonomy', 'image', 'parent'],
       order: { name: 'ASC' },
     });
   }
 
-  async findChildren(id: string): Promise<Agent[]> {
-    await this.requireAgent(id);
-    return this.agentsRepository.find({
+  async findChildren(id: string): Promise<Actor[]> {
+    await this.requireActor(id);
+    return this.actorsRepository.find({
       where: { parentId: id },
       relations: ['mainTaxonomy', 'image', 'parent'],
       order: { name: 'ASC' },
     });
   }
 
-  async findDescendants(id: string): Promise<Agent[]> {
-    const agent = await this.requireAgent(id);
-    const withSelf = await this.agentsRepository.findDescendants(agent, {
+  async findDescendants(id: string): Promise<Actor[]> {
+    const actor = await this.requireActor(id);
+    const withSelf = await this.actorsRepository.findDescendants(actor, {
       relations: ['image', 'parent'],
     });
     return withSelf
@@ -222,38 +222,38 @@ export class AgentsService {
       .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
   }
 
-  async move(id: string, input: MoveAgentInput): Promise<Agent> {
-    const agent = await this.requireAgent(id);
+  async move(id: string, input: MoveActorInput): Promise<Actor> {
+    const actor = await this.requireActor(id);
 
-    let newParent: Agent | null = null;
+    let newParent: Actor | null = null;
     let newLevel = 0;
     if (input.parentId !== null) {
       if (input.parentId === id) {
-        throw new BadRequestException('Cannot move an agent under itself');
+        throw new BadRequestException('Cannot move an actor under itself');
       }
-      newParent = await this.agentsRepository.findOne({ where: { id: input.parentId } });
+      newParent = await this.actorsRepository.findOne({ where: { id: input.parentId } });
       if (!newParent) {
-        throw new NotFoundException('Parent agent not found');
+        throw new NotFoundException('Parent actor not found');
       }
-      const subtree = await this.agentsRepository.findDescendants(agent);
+      const subtree = await this.actorsRepository.findDescendants(actor);
       if (subtree.some((d) => d.id === input.parentId)) {
-        throw new BadRequestException('Cannot move an agent under its own descendant');
+        throw new BadRequestException('Cannot move an actor under its own descendant');
       }
       newLevel = newParent.level + 1;
     }
 
-    const delta = newLevel - agent.level;
-    agent.parent = newParent;
-    agent.level = newLevel;
-    await this.agentsRepository.save(agent);
+    const delta = newLevel - actor.level;
+    actor.parent = newParent;
+    actor.level = newLevel;
+    await this.actorsRepository.save(actor);
 
     // Shift descendant levels by the same delta (subtree membership is
     // unchanged by the move, so the closure table addresses them correctly).
     if (delta !== 0) {
-      await this.agentsRepository.query(
-        `UPDATE "agents" SET "level" = "level" + $1
+      await this.actorsRepository.query(
+        `UPDATE "actors" SET "level" = "level" + $1
          WHERE "id" IN (
-           SELECT "id_descendant" FROM "agents_closure"
+           SELECT "id_descendant" FROM "actors_closure"
            WHERE "id_ancestor" = $2 AND "id_descendant" <> $2
          )`,
         [delta, id],
@@ -263,49 +263,49 @@ export class AgentsService {
     return this.findOne(id);
   }
 
-  private async requireAgent(id: string): Promise<Agent> {
-    const agent = await this.agentsRepository.findOne({ where: { id } });
-    if (!agent) {
-      throw new NotFoundException('Agent not found');
+  private async requireActor(id: string): Promise<Actor> {
+    const actor = await this.actorsRepository.findOne({ where: { id } });
+    if (!actor) {
+      throw new NotFoundException('Actor not found');
     }
-    return agent;
+    return actor;
   }
 
-  async update(id: string, input: UpdateAgentInput): Promise<Agent> {
-    const agent = await this.findOne(id);
+  async update(id: string, input: UpdateActorInput): Promise<Actor> {
+    const actor = await this.findOne(id);
     const { mainTaxonomyId, taxonomyIds, imageId, functionalCurrencyId, ...rest } = input;
 
-    Object.assign(agent, rest);
+    Object.assign(actor, rest);
 
     if (functionalCurrencyId !== undefined) {
       if (functionalCurrencyId === null) {
-        agent.functionalCurrency = null;
-        agent.functionalCurrencyId = null;
+        actor.functionalCurrency = null;
+        actor.functionalCurrencyId = null;
       } else {
         await this.assertCurrencyValue(functionalCurrencyId);
-        agent.functionalCurrency = null;
-        agent.functionalCurrencyId = functionalCurrencyId;
+        actor.functionalCurrency = null;
+        actor.functionalCurrencyId = functionalCurrencyId;
       }
     }
 
     if (imageId !== undefined) {
       if (imageId === null) {
-        agent.image = null;
-        agent.imageId = null;
+        actor.image = null;
+        actor.imageId = null;
       } else {
         const file = await this.fileRepository.findOne({ where: { id: imageId } });
         if (!file) {
           throw new NotFoundException('Image file not found');
         }
-        agent.imageId = imageId;
-        agent.image = file;
+        actor.imageId = imageId;
+        actor.image = file;
       }
     }
 
     if (mainTaxonomyId !== undefined) {
       if (mainTaxonomyId === null) {
-        agent.mainTaxonomy = null;
-        agent.mainTaxonomyId = null;
+        actor.mainTaxonomy = null;
+        actor.mainTaxonomyId = null;
       } else {
         const taxonomy = await this.taxonomyRepository.findOne({
           where: { id: mainTaxonomyId },
@@ -313,14 +313,14 @@ export class AgentsService {
         if (!taxonomy) {
           throw new NotFoundException('Main taxonomy not found');
         }
-        agent.mainTaxonomyId = mainTaxonomyId;
-        agent.mainTaxonomy = taxonomy;
+        actor.mainTaxonomyId = mainTaxonomyId;
+        actor.mainTaxonomy = taxonomy;
       }
     }
 
     if (taxonomyIds !== undefined) {
       if (taxonomyIds.length === 0) {
-        agent.taxonomies = [];
+        actor.taxonomies = [];
       } else {
         const taxonomies = await this.taxonomyRepository.find({
           where: { id: In(taxonomyIds) },
@@ -328,34 +328,34 @@ export class AgentsService {
         if (taxonomies.length !== taxonomyIds.length) {
           throw new NotFoundException('One or more taxonomies not found');
         }
-        agent.taxonomies = taxonomies;
+        actor.taxonomies = taxonomies;
       }
     }
 
-    await this.agentsRepository.save(agent);
+    await this.actorsRepository.save(actor);
     return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
-    const agent = await this.findOne(id);
-    const childCount = await this.agentsRepository.count({ where: { parentId: id } });
+    const actor = await this.findOne(id);
+    const childCount = await this.actorsRepository.count({ where: { parentId: id } });
     if (childCount > 0) {
       throw new ConflictException(
-        'Agent has sub-agents. Move or delete them before deleting this agent.',
+        'Actor has sub-actors. Move or delete them before deleting this actor.',
       );
     }
-    await this.agentsRepository.remove(agent);
+    await this.actorsRepository.remove(actor);
   }
 
   async getSnapshotReferences(id: string): Promise<{ invoiceItems: number }> {
-    const agent = await this.agentsRepository.findOne({ where: { id } });
-    if (!agent) throw new NotFoundException('Agent not found');
+    const actor = await this.actorsRepository.findOne({ where: { id } });
+    if (!actor) throw new NotFoundException('Actor not found');
 
     const invoiceItems = await this.invoiceItemRepository.query(
       `SELECT COUNT(*) AS count FROM invoice_items ii
        JOIN invoices i ON i.id = ii."invoiceId"
-       WHERE (i."fromAgentId" = $1 AND ii."fromAgentAmount" IS NOT NULL)
-          OR (i."toAgentId"   = $1 AND ii."toAgentAmount"   IS NOT NULL)`,
+       WHERE (i."fromActorId" = $1 AND ii."fromActorAmount" IS NOT NULL)
+          OR (i."toActorId"   = $1 AND ii."toActorAmount"   IS NOT NULL)`,
       [id],
     );
 

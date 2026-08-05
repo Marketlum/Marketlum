@@ -31,7 +31,7 @@ import type { RdhyPlatformDetailResponse } from '../shared/schemas';
 import type { RdhyVamAgreementSummary } from '../shared/vam-schemas';
 import { VamStatusBadge } from './vam-status-badge';
 
-interface AgentOption {
+interface ActorOption {
   id: string;
   label: string;
 }
@@ -44,11 +44,11 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
   const tv = useTranslations('plugin.rdhy.vam.platformSection');
   const router = useRouter();
   const { can } = usePermissions();
-  const canWriteAgents = can('rdhy.agents', 'write');
+  const canWriteActors = can('rdhy.actors', 'write');
 
   const [platform, setPlatform] = useState<RdhyPlatformDetailResponse | null>(null);
   const [sponsored, setSponsored] = useState<RdhyVamAgreementSummary[]>([]);
-  const [options, setOptions] = useState<AgentOption[]>([]);
+  const [options, setOptions] = useState<ActorOption[]>([]);
   const [query, setQuery] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -72,7 +72,7 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
   useEffect(() => {
     load();
     api
-      .get<{ data: Array<{ id: string; name: string }> }>('/agents?limit=1000')
+      .get<{ data: Array<{ id: string; name: string }> }>('/actors?limit=1000')
       .then((res) => setOptions(res.data.map((a) => ({ id: a.id, label: a.name }))))
       .catch(() => undefined);
     if (id) {
@@ -128,12 +128,12 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
     }
   };
 
-  const assign = async (agentId: string) => {
+  const assign = async (actorId: string) => {
     if (!id) return;
     setBusy(true);
     setError(null);
     try {
-      await api.put(`/plugins/rdhy/agents/${agentId}/platform`, {
+      await api.put(`/plugins/rdhy/actors/${actorId}/platform`, {
         platformId: id,
       });
       setQuery('');
@@ -145,11 +145,11 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
     }
   };
 
-  const detach = async (agentId: string) => {
+  const detach = async (actorId: string) => {
     setBusy(true);
     setError(null);
     try {
-      await api.delete(`/plugins/rdhy/agents/${agentId}/platform`);
+      await api.delete(`/plugins/rdhy/actors/${actorId}/platform`);
       await load();
     } catch {
       setError(tp('failed'));
@@ -204,7 +204,7 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
           <TableHeader>
             <TableRow>
               <TableHead>{tp('name')}</TableHead>
-              <TableHead>{t('agentType')}</TableHead>
+              <TableHead>{t('actorType')}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -214,7 +214,7 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
                 <TableCell>{member.name}</TableCell>
                 <TableCell className="text-muted-foreground">{member.type}</TableCell>
                 <TableCell className="text-right">
-                  {canWriteAgents && (
+                  {canWriteActors && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -231,7 +231,7 @@ export function PlatformDetailPage({ params }: PluginRouteComponentProps) {
         </Table>
       )}
 
-      {canWriteAgents && (
+      {canWriteActors && (
         <div className="mt-4 max-w-md space-y-1">
           <Label htmlFor="rdhy-add-member">{t('addLabel')}</Label>
           <Input

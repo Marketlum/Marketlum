@@ -83,21 +83,21 @@ export class AgreementTemplatesController {
   @ApiQuery({ name: 'type', required: false, enum: AgreementTemplateType })
   @ApiQuery({ name: 'valueStreamId', required: false, type: String })
   @ApiQuery({ name: 'valueStreamIdWithGlobals', required: false, type: String })
-  @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'actorId', required: false, type: String })
   @ApiPaginatedResponse(AgreementTemplateResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
     @Query('type') type?: string,
     @Query('valueStreamId') valueStreamId?: string,
     @Query('valueStreamIdWithGlobals') valueStreamIdWithGlobals?: string,
-    @Query('agentId') agentId?: string,
+    @Query('actorId') actorId?: string,
   ) {
     return this.agreementTemplatesService.search({
       ...query,
       type,
       valueStreamId,
       valueStreamIdWithGlobals,
-      agentId,
+      actorId,
     });
   }
 

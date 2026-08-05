@@ -1,7 +1,7 @@
 import type { MarketlumApiPlugin } from '@marketlum/core';
 import { RdhyModule } from './rdhy.module';
 import { RdhyPlatform } from './platforms/rdhy-platform.entity';
-import { RdhyPlatformAgent } from './platforms/rdhy-platform-agent.entity';
+import { RdhyPlatformActor } from './platforms/rdhy-platform-actor.entity';
 import { RdhyVamAgreement } from './vam/rdhy-vam-agreement.entity';
 import { RdhyVamMilestone } from './vam/rdhy-vam-milestone.entity';
 import { RdhyVamItem } from './vam/rdhy-vam-item.entity';
@@ -18,12 +18,13 @@ import { CreateRdhyPlatformTables1700000000100 } from './migrations/170000000010
 import { CreateRdhyVamTables1700000000101 } from './migrations/1700000000101-CreateRdhyVamTables';
 import { CreateRdhyEmcTables1700000000102 } from './migrations/1700000000102-CreateRdhyEmcTables';
 import { RdhyAgentCentric1700000000103 } from './migrations/1700000000103-RdhyAgentCentric';
+import { RdhyAgentsToActors1700000000104 } from './migrations/1700000000104-RdhyAgentsToActors';
 import { seedRdhy } from './seed/rdhy.seeder';
 import { RDHY_PLUGIN_ID } from './shared/schemas';
 
-/** The RenDanHeYi plugin: groups core agents into plugin-owned platforms
+/** The RenDanHeYi plugin: groups core actors into plugin-owned platforms
  * (spec 013), models VAM canvas agreements (spec 014) and EMC canvas
- * agreements (spec 015) — all agent-centric. Owns the plugin_rdhy_*
+ * agreements (spec 015) — all actor-centric. Owns the plugin_rdhy_*
  * tables; never touches core. */
 export const rdhyPlugin: MarketlumApiPlugin = {
   manifest: {
@@ -35,7 +36,7 @@ export const rdhyPlugin: MarketlumApiPlugin = {
   module: RdhyModule,
   entities: [
     RdhyPlatform,
-    RdhyPlatformAgent,
+    RdhyPlatformActor,
     RdhyVamAgreement,
     RdhyVamMilestone,
     RdhyVamItem,
@@ -54,11 +55,12 @@ export const rdhyPlugin: MarketlumApiPlugin = {
     CreateRdhyVamTables1700000000101,
     CreateRdhyEmcTables1700000000102,
     RdhyAgentCentric1700000000103,
+    RdhyAgentsToActors1700000000104,
   ],
   primaryEntities: [RdhyPlatform, RdhyVamAgreement, RdhyEmcAgreement],
   permissionResources: [
     'rdhy.platforms',
-    'rdhy.agents',
+    'rdhy.actors',
     'rdhy.vam-agreements',
     'rdhy.emc-agreements',
   ],
@@ -67,7 +69,7 @@ export const rdhyPlugin: MarketlumApiPlugin = {
 
 export { RdhyModule } from './rdhy.module';
 export { RdhyPlatform } from './platforms/rdhy-platform.entity';
-export { RdhyPlatformAgent } from './platforms/rdhy-platform-agent.entity';
+export { RdhyPlatformActor } from './platforms/rdhy-platform-actor.entity';
 export { PlatformsService } from './platforms/platforms.service';
 export { RdhyVamAgreement } from './vam/rdhy-vam-agreement.entity';
 export { RdhyVamMilestone } from './vam/rdhy-vam-milestone.entity';

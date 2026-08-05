@@ -21,7 +21,7 @@ import {
 } from '@marketlum/shared';
 import { Order, OrderAddress } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { Channel } from '../channels/channel.entity';
@@ -39,8 +39,8 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly itemRepository: Repository<OrderItem>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(Value)
     private readonly valueRepository: Repository<Value>,
     @InjectRepository(ValueInstance)
@@ -64,24 +64,24 @@ export class OrdersService {
   }
 
   private async validateReferences(input: {
-    fromAgentId?: string;
-    toAgentId?: string;
+    fromActorId?: string;
+    toActorId?: string;
     currencyId?: string;
     channelId?: string | null;
     pipelineId?: string | null;
     localeId?: string | null;
   }): Promise<void> {
-    if (input.fromAgentId !== undefined) {
-      const agent = await this.agentRepository.findOne({
-        where: { id: input.fromAgentId },
+    if (input.fromActorId !== undefined) {
+      const actor = await this.actorRepository.findOne({
+        where: { id: input.fromActorId },
       });
-      if (!agent) throw new NotFoundException('From agent not found');
+      if (!actor) throw new NotFoundException('From actor not found');
     }
-    if (input.toAgentId !== undefined) {
-      const agent = await this.agentRepository.findOne({
-        where: { id: input.toAgentId },
+    if (input.toActorId !== undefined) {
+      const actor = await this.actorRepository.findOne({
+        where: { id: input.toActorId },
       });
-      if (!agent) throw new NotFoundException('To agent not found');
+      if (!actor) throw new NotFoundException('To actor not found');
     }
     if (input.currencyId !== undefined) {
       const currency = await this.valueRepository.findOne({
@@ -157,8 +157,8 @@ export class OrdersService {
     const order = this.orderRepository.create({
       number: await this.generateNumber(),
       state: OrderState.DRAFT,
-      fromAgentId: refs.fromAgentId,
-      toAgentId: refs.toAgentId,
+      fromActorId: refs.fromActorId,
+      toActorId: refs.toActorId,
       currencyId: refs.currencyId,
       channelId: refs.channelId ?? null,
       pipelineId: refs.pipelineId ?? null,
@@ -179,9 +179,9 @@ export class OrdersService {
   async search(
     query: PaginationQuery & {
       state?: string;
-      fromAgentId?: string;
-      toAgentId?: string;
-      agentId?: string;
+      fromActorId?: string;
+      toActorId?: string;
+      actorId?: string;
       channelId?: string;
       pipelineId?: string;
       currencyId?: string;
@@ -194,9 +194,9 @@ export class OrdersService {
       sortBy,
       sortOrder,
       state,
-      fromAgentId,
-      toAgentId,
-      agentId,
+      fromActorId,
+      toActorId,
+      actorId,
       channelId,
       pipelineId,
       currencyId,
@@ -205,11 +205,11 @@ export class OrdersService {
 
     const applyFilters = (qb: ReturnType<Repository<Order>['createQueryBuilder']>) => {
       if (state) qb.andWhere('order.state = :state', { state });
-      if (fromAgentId) qb.andWhere('order.fromAgentId = :fromAgentId', { fromAgentId });
-      if (toAgentId) qb.andWhere('order.toAgentId = :toAgentId', { toAgentId });
-      if (agentId) {
-        qb.andWhere('(order.fromAgentId = :agentId OR order.toAgentId = :agentId)', {
-          agentId,
+      if (fromActorId) qb.andWhere('order.fromActorId = :fromActorId', { fromActorId });
+      if (toActorId) qb.andWhere('order.toActorId = :toActorId', { toActorId });
+      if (actorId) {
+        qb.andWhere('(order.fromActorId = :actorId OR order.toActorId = :actorId)', {
+          actorId,
         });
       }
       if (channelId) qb.andWhere('order.channelId = :channelId', { channelId });
@@ -217,15 +217,15 @@ export class OrdersService {
       if (currencyId) qb.andWhere('order.currencyId = :currencyId', { currencyId });
       if (search) {
         qb.andWhere(
-          '(order.number ILIKE :search OR fromAgent.name ILIKE :search OR toAgent.name ILIKE :search)',
+          '(order.number ILIKE :search OR fromActor.name ILIKE :search OR toActor.name ILIKE :search)',
           { search: `%${search}%` },
         );
       }
     };
 
     const qb = this.orderRepository.createQueryBuilder('order');
-    qb.leftJoinAndSelect('order.fromAgent', 'fromAgent');
-    qb.leftJoinAndSelect('order.toAgent', 'toAgent');
+    qb.leftJoinAndSelect('order.fromActor', 'fromActor');
+    qb.leftJoinAndSelect('order.toActor', 'toActor');
     qb.leftJoinAndSelect('order.currency', 'currency');
     qb.leftJoinAndSelect('order.channel', 'channel');
     qb.leftJoinAndSelect('order.pipeline', 'pipeline');
@@ -246,8 +246,8 @@ export class OrdersService {
     }
 
     const countQb = this.orderRepository.createQueryBuilder('order');
-    countQb.leftJoin('order.fromAgent', 'fromAgent');
-    countQb.leftJoin('order.toAgent', 'toAgent');
+    countQb.leftJoin('order.fromActor', 'fromActor');
+    countQb.leftJoin('order.toActor', 'toActor');
     applyFilters(countQb);
     const total = await countQb.getCount();
 
@@ -266,8 +266,8 @@ export class OrdersService {
     const order = await this.orderRepository.findOne({
       where: { id },
       relations: [
-        'fromAgent',
-        'toAgent',
+        'fromActor',
+        'toActor',
         'currency',
         'channel',
         'pipeline',
@@ -313,8 +313,8 @@ export class OrdersService {
     const { shippingAddress, billingAddress, items, ...refs } = input;
     await this.validateReferences(refs);
 
-    if (refs.fromAgentId !== undefined) order.fromAgentId = refs.fromAgentId;
-    if (refs.toAgentId !== undefined) order.toAgentId = refs.toAgentId;
+    if (refs.fromActorId !== undefined) order.fromActorId = refs.fromActorId;
+    if (refs.toActorId !== undefined) order.toActorId = refs.toActorId;
     if (refs.currencyId !== undefined) order.currencyId = refs.currencyId;
     if (refs.channelId !== undefined) order.channelId = refs.channelId ?? null;
     if (refs.pipelineId !== undefined) order.pipelineId = refs.pipelineId ?? null;
@@ -372,14 +372,14 @@ export class OrdersService {
       );
     }
 
-    // Number: order number + per-order suffix, bumped past any (fromAgent,
+    // Number: order number + per-order suffix, bumped past any (fromActor,
     // number) collision so retries after manual renames still succeed.
     const linkedCount = await this.invoiceRepository.count({ where: { orderId: id } });
     let suffix = linkedCount + 1;
     let number = `${order.number}/${suffix}`;
     while (
       await this.invoiceRepository.findOne({
-        where: { fromAgentId: order.fromAgentId, number },
+        where: { fromActorId: order.fromActorId, number },
       })
     ) {
       suffix++;
@@ -402,8 +402,8 @@ export class OrdersService {
 
     return this.invoicesService.create({
       number,
-      fromAgentId: order.fromAgentId,
-      toAgentId: order.toAgentId,
+      fromActorId: order.fromActorId,
+      toActorId: order.toActorId,
       currencyId: order.currencyId,
       channelId: order.channelId,
       orderId: order.id,

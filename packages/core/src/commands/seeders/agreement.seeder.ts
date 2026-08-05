@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { AgreementsService } from '../../agreements/agreements.service';
 
 interface AgreementDeps {
-  agents: Array<{ id: string; name: string }>;
+  actors: Array<{ id: string; name: string }>;
   agreementTemplates: Array<{ id: string }>;
   valueStreams?: Array<{ id: string; name: string }>;
 }
@@ -20,8 +20,8 @@ export async function seedAgreements(service: AgreementsService, deps: Agreement
 
   for (let i = 0; i < AGREEMENTS.length; i++) {
     const data = AGREEMENTS[i];
-    const partyA = deps.agents[i % deps.agents.length];
-    const partyB = deps.agents[(i + 1) % deps.agents.length];
+    const partyA = deps.actors[i % deps.actors.length];
+    const partyB = deps.actors[(i + 1) % deps.actors.length];
     const template = deps.agreementTemplates[i % deps.agreementTemplates.length];
 
     // ~70% of agreements get a valueStreamId; distributed round-robin.

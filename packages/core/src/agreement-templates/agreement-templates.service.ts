@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TreeRepository, Repository } from 'typeorm';
 import { AgreementTemplate } from './entities/agreement-template.entity';
 import { ValueStream } from '../value-streams/entities/value-stream.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import {
   CreateAgreementTemplateInput,
   UpdateAgreementTemplateInput,
@@ -22,8 +22,8 @@ export class AgreementTemplatesService {
     private readonly templateRepository: TreeRepository<AgreementTemplate>,
     @InjectRepository(ValueStream)
     private readonly valueStreamRepository: Repository<ValueStream>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
   ) {}
 
   async create(input: CreateAgreementTemplateInput): Promise<AgreementTemplate> {
@@ -64,15 +64,15 @@ export class AgreementTemplatesService {
       template.valueStream = valueStream;
     }
 
-    if (input.agentId) {
-      const agent = await this.agentRepository.findOne({
-        where: { id: input.agentId },
+    if (input.actorId) {
+      const actor = await this.actorRepository.findOne({
+        where: { id: input.actorId },
       });
-      if (!agent) {
-        throw new NotFoundException('Agent not found');
+      if (!actor) {
+        throw new NotFoundException('Actor not found');
       }
-      template.agentId = input.agentId;
-      template.agent = agent;
+      template.actorId = input.actorId;
+      template.actor = actor;
     }
 
     let saved: AgreementTemplate;
@@ -95,7 +95,7 @@ export class AgreementTemplatesService {
   async findByCode(code: string): Promise<AgreementTemplate> {
     const template = await this.templateRepository.findOne({
       where: { code },
-      relations: ['valueStream', 'agent'],
+      relations: ['valueStream', 'actor'],
     });
     if (!template) {
       throw new NotFoundException('Agreement template not found');
@@ -108,23 +108,23 @@ export class AgreementTemplatesService {
       type?: string;
       valueStreamId?: string;
       valueStreamIdWithGlobals?: string;
-      agentId?: string;
+      actorId?: string;
     },
   ) {
-    const { page, limit, search, sortBy, sortOrder, type, valueStreamId, valueStreamIdWithGlobals, agentId } = query;
+    const { page, limit, search, sortBy, sortOrder, type, valueStreamId, valueStreamIdWithGlobals, actorId } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.templateRepository.createQueryBuilder('template');
 
     qb.leftJoinAndSelect('template.valueStream', 'valueStream');
-    qb.leftJoinAndSelect('template.agent', 'agent');
+    qb.leftJoinAndSelect('template.actor', 'actor');
 
     if (type) {
       qb.andWhere('template.type = :type', { type });
     }
 
-    if (agentId) {
-      qb.andWhere('template.agentId = :agentId', { agentId });
+    if (actorId) {
+      qb.andWhere('template.actorId = :actorId', { actorId });
     }
 
     if (valueStreamId) {
@@ -167,7 +167,7 @@ export class AgreementTemplatesService {
 
   async findTree(): Promise<AgreementTemplate[]> {
     const trees = await this.templateRepository.findTrees({
-      relations: ['valueStream', 'agent'],
+      relations: ['valueStream', 'actor'],
     });
     return trees;
   }
@@ -179,7 +179,7 @@ export class AgreementTemplatesService {
   async findOne(id: string): Promise<AgreementTemplate> {
     const template = await this.templateRepository.findOne({
       where: { id },
-      relations: ['valueStream', 'agent'],
+      relations: ['valueStream', 'actor'],
     });
     if (!template) {
       throw new NotFoundException('Agreement template not found');
@@ -223,19 +223,19 @@ export class AgreementTemplatesService {
       }
     }
 
-    if (input.agentId !== undefined) {
-      if (input.agentId === null) {
-        template.agent = null;
-        template.agentId = null;
+    if (input.actorId !== undefined) {
+      if (input.actorId === null) {
+        template.actor = null;
+        template.actorId = null;
       } else {
-        const agent = await this.agentRepository.findOne({
-          where: { id: input.agentId },
+        const actor = await this.actorRepository.findOne({
+          where: { id: input.actorId },
         });
-        if (!agent) {
-          throw new NotFoundException('Agent not found');
+        if (!actor) {
+          throw new NotFoundException('Actor not found');
         }
-        template.agentId = input.agentId;
-        template.agent = agent;
+        template.actorId = input.actorId;
+        template.actor = actor;
       }
     }
 

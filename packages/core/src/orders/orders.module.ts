@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { Value } from '../values/entities/value.entity';
 import { ValueInstance } from '../value-instances/entities/value-instance.entity';
 import { Channel } from '../channels/channel.entity';
@@ -18,7 +18,7 @@ import { OrdersController } from './orders.controller';
     TypeOrmModule.forFeature([
       Order,
       OrderItem,
-      Agent,
+      Actor,
       Value,
       ValueInstance,
       Channel,

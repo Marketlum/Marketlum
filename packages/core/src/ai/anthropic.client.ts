@@ -34,8 +34,8 @@ or any text outside the JSON.
   "number": string | null,                  // invoice number / id
   "issuedAt": string | null,                // ISO date "YYYY-MM-DD"
   "dueAt": string | null,                   // ISO date "YYYY-MM-DD"
-  "fromAgent": { "name": string },          // seller / issuer
-  "toAgent":   { "name": string },          // buyer / recipient
+  "fromActor": { "name": string },          // seller / issuer
+  "toActor":   { "name": string },          // buyer / recipient
   "currency":  { "name": string },          // ISO code (USD, EUR, …) or full name
   "items": Array<{
     "description": string,

@@ -98,9 +98,9 @@ export class InvoicesController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
-  @ApiQuery({ name: 'fromAgentId', required: false, type: String })
-  @ApiQuery({ name: 'toAgentId', required: false, type: String })
-  @ApiQuery({ name: 'agentId', required: false, type: String })
+  @ApiQuery({ name: 'fromActorId', required: false, type: String })
+  @ApiQuery({ name: 'toActorId', required: false, type: String })
+  @ApiQuery({ name: 'actorId', required: false, type: String })
   @ApiQuery({ name: 'market', required: false, enum: ['internal', 'external'] })
   @ApiQuery({ name: 'paid', required: false, enum: ['true', 'false'] })
   @ApiQuery({ name: 'currencyId', required: false, type: String })
@@ -110,9 +110,9 @@ export class InvoicesController {
   @ApiPaginatedResponse(InvoiceResponseDto)
   async search(
     @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
-    @Query('fromAgentId') fromAgentId?: string,
-    @Query('toAgentId') toAgentId?: string,
-    @Query('agentId') agentId?: string,
+    @Query('fromActorId') fromActorId?: string,
+    @Query('toActorId') toActorId?: string,
+    @Query('actorId') actorId?: string,
     @Query('market') market?: string,
     @Query('paid') paid?: string,
     @Query('currencyId') currencyId?: string,
@@ -122,9 +122,9 @@ export class InvoicesController {
   ) {
     return this.invoicesService.search({
       ...query,
-      fromAgentId,
-      toAgentId,
-      agentId,
+      fromActorId,
+      toActorId,
+      actorId,
       market,
       paid,
       currencyId,

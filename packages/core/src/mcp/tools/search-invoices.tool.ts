@@ -7,9 +7,9 @@ import { McpTool } from '../mcp-tool.interface';
 export class SearchInvoicesTool implements McpTool<McpSearchInvoicesInput> {
   readonly name = 'search_invoices' as const;
   readonly description =
-    'Search invoices with pagination and optional filters: counterparty agents (fromAgentId / toAgentId ' +
-    'or agentId for either side), channel, currency, linked order, market and paid status. ' +
-    'Use this to find invoices or to answer questions about invoicing volume between agents. ' +
+    'Search invoices with pagination and optional filters: counterparty actors (fromActorId / toActorId ' +
+    'or actorId for either side), channel, currency, linked order, market and paid status. ' +
+    'Use this to find invoices or to answer questions about invoicing volume between actors. ' +
     'Returns a paginated envelope { data, meta: { page, limit, total, totalPages } }; amounts are decimal strings.';
   readonly permission = 'invoices:read';
   readonly inputSchema = mcpSearchInvoicesInputSchema;

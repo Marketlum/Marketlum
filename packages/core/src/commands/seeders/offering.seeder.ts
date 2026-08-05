@@ -4,7 +4,7 @@ import { OfferingState, ValueType } from '@marketlum/shared';
 
 interface OfferingDeps {
   values: Array<{ id: string; name: string; type: ValueType }>;
-  agents: Array<{ id: string }>;
+  actors: Array<{ id: string }>;
   valueStreams: { all: Array<{ id: string }> };
 }
 
@@ -20,7 +20,7 @@ export async function seedOfferings(service: OfferingsService, deps: OfferingDep
 
   for (let i = 0; i < OFFERINGS.length; i++) {
     const data = OFFERINGS[i];
-    const agent = deps.agents[i % deps.agents.length];
+    const actor = deps.actors[i % deps.actors.length];
     const valueStream = deps.valueStreams.all[i % deps.valueStreams.all.length];
 
     // Each offering gets 2 components from available values
@@ -32,7 +32,7 @@ export async function seedOfferings(service: OfferingsService, deps: OfferingDep
       purpose: data.purpose,
       description: faker.lorem.paragraph(),
       state: data.state,
-      agentId: agent.id,
+      actorId: actor.id,
       valueStreamId: valueStream.id,
       components: [
         { valueId: comp1.id, quantity: '1.00', pricingFormula: `${faker.number.int({ min: 500, max: 5000 })}.00` },

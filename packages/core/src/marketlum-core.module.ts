@@ -9,7 +9,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
 import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './roles/permissions.module';
 import { UsersModule } from './users/users.module';
-import { AgentsModule } from './agents/agents.module';
+import { ActorsModule } from './actors/actors.module';
 import { TaxonomiesModule } from './taxonomies/taxonomies.module';
 import { FilesModule } from './files/files.module';
 import { ValuesModule } from './values/values.module';
@@ -47,7 +47,7 @@ const CORE_FEATURE_MODULES = [
   ApiKeysModule,
   RolesModule,
   UsersModule,
-  AgentsModule,
+  ActorsModule,
   TaxonomiesModule,
   FilesModule,
   ValuesModule,
@@ -82,7 +82,7 @@ const CORE_EXPORTED_MODULES = [
   ApiKeysModule,
   RolesModule,
   UsersModule,
-  AgentsModule,
+  ActorsModule,
   TaxonomiesModule,
   FilesModule,
   ValuesModule,

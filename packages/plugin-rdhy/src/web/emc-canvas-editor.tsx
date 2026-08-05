@@ -40,8 +40,8 @@ interface EditableCost {
 
 interface EditableNode {
   uid: string;
-  agentId: string;
-  agentLabel: string;
+  actorId: string;
+  actorLabel: string;
   tier: (typeof EMC_NODE_TIERS)[number];
   isLeading: boolean;
   profitSharePercent: string;
@@ -55,7 +55,7 @@ interface EditableCanvas {
   terminationConditions: EditableText[];
 }
 
-interface AgentOption {
+interface ActorOption {
   id: string;
   label: string;
 }
@@ -64,8 +64,8 @@ function canvasToEditable(canvas: RdhyEmcCanvasResponse): EditableCanvas {
   return {
     nodes: canvas.nodes.map((n) => ({
       uid: uid(),
-      agentId: n.agent.id,
-      agentLabel: n.agent.name,
+      actorId: n.actor.id,
+      actorLabel: n.actor.name,
       tier: n.tier,
       isLeading: n.isLeading,
       profitSharePercent: n.profitSharePercent != null ? String(Number(n.profitSharePercent)) : '',
@@ -85,7 +85,7 @@ function canvasToEditable(canvas: RdhyEmcCanvasResponse): EditableCanvas {
 function toPayload(canvas: EditableCanvas): EmcCanvasInput {
   return {
     nodes: canvas.nodes.map((n) => ({
-      agentId: n.agentId,
+      actorId: n.actorId,
       tier: n.tier,
       isLeading: n.isLeading,
       profitSharePercent:
@@ -190,8 +190,8 @@ export function EmcCanvasEditor({
   const tr = useTranslations('plugin.rdhy.emc.tiers');
   const [canvas, setCanvas] = useState<EditableCanvas>(() => canvasToEditable(document.canvas));
   const initialSnapshot = useRef<string>(JSON.stringify(canvas));
-  const [agents, setAgents] = useState<AgentOption[]>([]);
-  const [agentQuery, setAgentQuery] = useState('');
+  const [actors, setActors] = useState<ActorOption[]>([]);
+  const [actorQuery, setActorQuery] = useState('');
 
   const dirty = JSON.stringify(canvas) !== initialSnapshot.current;
   useEffect(() => {
@@ -200,8 +200,8 @@ export function EmcCanvasEditor({
 
   useEffect(() => {
     api
-      .get<{ data: Array<{ id: string; name: string }> }>('/agents?limit=1000')
-      .then((res) => setAgents(res.data.map((a) => ({ id: a.id, label: a.name }))))
+      .get<{ data: Array<{ id: string; name: string }> }>('/actors?limit=1000')
+      .then((res) => setActors(res.data.map((a) => ({ id: a.id, label: a.name }))))
       .catch(() => undefined);
   }, []);
 
@@ -215,15 +215,15 @@ export function EmcCanvasEditor({
   const setLeading = (index: number) =>
     patch({ nodes: canvas.nodes.map((n, i) => ({ ...n, isLeading: i === index })) });
 
-  const addNode = (option: AgentOption) => {
-    setAgentQuery('');
+  const addNode = (option: ActorOption) => {
+    setActorQuery('');
     patch({
       nodes: [
         ...canvas.nodes,
         {
           uid: uid(),
-          agentId: option.id,
-          agentLabel: option.label,
+          actorId: option.id,
+          actorLabel: option.label,
           tier: 'STRATEGIC',
           isLeading: canvas.nodes.length === 0,
           profitSharePercent: '',
@@ -235,15 +235,15 @@ export function EmcCanvasEditor({
     });
   };
 
-  const agentCandidates = useMemo(() => {
-    const q = agentQuery.trim().toLowerCase();
+  const actorCandidates = useMemo(() => {
+    const q = actorQuery.trim().toLowerCase();
     if (!q) return [];
-    const used = new Set(canvas.nodes.map((n) => n.agentId));
-    return agents
+    const used = new Set(canvas.nodes.map((n) => n.actorId));
+    return actors
       .filter((a) => !used.has(a.id))
       .filter((a) => a.label.toLowerCase().includes(q))
       .slice(0, 8);
-  }, [agents, agentQuery, canvas.nodes]);
+  }, [actors, actorQuery, canvas.nodes]);
 
   const reinvestment = document.reinvestmentPercent ? Number(document.reinvestmentPercent) : 0;
   const shareSum = canvas.nodes.reduce((sum, n) => sum + shareOf(n), 0);
@@ -285,7 +285,7 @@ export function EmcCanvasEditor({
             {canvas.nodes.map((node, ni) => (
               <SortableRow key={node.uid} id={node.uid} className="rounded-md border p-3">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{node.agentLabel}</span>
+                  <span className="font-medium">{node.actorLabel}</span>
                   <Select
                     value={node.tier}
                     onValueChange={(tier) =>
@@ -463,13 +463,13 @@ export function EmcCanvasEditor({
           <Label htmlFor="emc-add-node">{t('addNode')}</Label>
           <Input
             id="emc-add-node"
-            value={agentQuery}
-            onChange={(e) => setAgentQuery(e.target.value)}
+            value={actorQuery}
+            onChange={(e) => setActorQuery(e.target.value)}
             placeholder={t('addNodePlaceholder')}
           />
-          {agentCandidates.length > 0 && (
+          {actorCandidates.length > 0 && (
             <ul className="divide-y rounded-md border">
-              {agentCandidates.map((option) => (
+              {actorCandidates.map((option) => (
                 <li key={option.id}>
                   <button
                     type="button"

@@ -1,8 +1,8 @@
 import { DataSource, Not } from 'typeorm';
-import { Agent, Invoice, InvoiceItem, Value } from '@marketlum/core';
+import { Actor, Invoice, InvoiceItem, Value } from '@marketlum/core';
 import { addMonths } from '../shared/vam-performance';
 import { RdhyPlatform } from '../platforms/rdhy-platform.entity';
-import { RdhyPlatformAgent } from '../platforms/rdhy-platform-agent.entity';
+import { RdhyPlatformActor } from '../platforms/rdhy-platform-actor.entity';
 import { RdhyVamAgreement } from '../vam/rdhy-vam-agreement.entity';
 import { RdhyVamMilestone } from '../vam/rdhy-vam-milestone.entity';
 import { RdhyVamItem } from '../vam/rdhy-vam-item.entity';
@@ -31,7 +31,7 @@ const PLATFORMS: Array<Pick<RdhyPlatform, 'code' | 'name' | 'description'>> = [
   },
 ];
 
-/** How many existing agents get assigned across the sample platforms. */
+/** How many existing actors get assigned across the sample platforms. */
 const ASSIGNMENT_TARGET = 4;
 
 const VAM_TITLE = 'Web 3 Consulting HUB';
@@ -134,7 +134,7 @@ const VAM_TERMINATION_CONDITIONS = [
 const EMC_TITLE = 'DAO Infrastructure EMC';
 
 /** The sample EMC setting and micro-nodes, adapted from the source EMC Canvas
- * PDF (spec 015). Nodes are anchored to whichever agents exist, in candidate
+ * PDF (spec 015). Nodes are anchored to whichever actors exist, in candidate
  * order: leading strategic hub, strategic development, tactical legal
  * counseling. */
 const EMC_SETTING = {
@@ -210,12 +210,12 @@ const EMC_TERMINATION_CONDITIONS = [
   'A micro-node exits the EMC when its leading goals are repeatedly missed and no remediation is agreed by consent',
 ];
 
-/** Idempotent: platforms are upserted by code, already-assigned agents are
- * skipped, and VAM agreements are upserted by title + agent. */
+/** Idempotent: platforms are upserted by code, already-assigned actors are
+ * skipped, and VAM agreements are upserted by title + actor. */
 export async function seedRdhy(dataSource: DataSource): Promise<void> {
   const platformRepository = dataSource.getRepository(RdhyPlatform);
-  const linkRepository = dataSource.getRepository(RdhyPlatformAgent);
-  const coreAgentRepository = dataSource.getRepository(Agent);
+  const linkRepository = dataSource.getRepository(RdhyPlatformActor);
+  const coreActorRepository = dataSource.getRepository(Actor);
 
   const platforms: RdhyPlatform[] = [];
   for (const definition of PLATFORMS) {
@@ -226,16 +226,16 @@ export async function seedRdhy(dataSource: DataSource): Promise<void> {
     platforms.push(platform);
   }
 
-  const candidates = await coreAgentRepository.find({
+  const candidates = await coreActorRepository.find({
     order: { name: 'ASC' },
     take: ASSIGNMENT_TARGET,
   });
-  for (const [index, agent] of candidates.entries()) {
-    const existing = await linkRepository.findOne({ where: { agentId: agent.id } });
+  for (const [index, actor] of candidates.entries()) {
+    const existing = await linkRepository.findOne({ where: { actorId: actor.id } });
     if (existing) continue;
     await linkRepository.save(
       linkRepository.create({
-        agentId: agent.id,
+        actorId: actor.id,
         platformId: platforms[index % platforms.length].id,
       }),
     );
@@ -248,9 +248,9 @@ export async function seedRdhy(dataSource: DataSource): Promise<void> {
 async function seedEmcAgreement(
   dataSource: DataSource,
   sponsor: RdhyPlatform,
-  agents: Agent[],
+  actors: Actor[],
 ): Promise<void> {
-  if (agents.length === 0) return;
+  if (actors.length === 0) return;
 
   const agreementRepository = dataSource.getRepository(RdhyEmcAgreement);
   const existing = await agreementRepository.findOne({ where: { title: EMC_TITLE } });
@@ -273,12 +273,12 @@ async function seedEmcAgreement(
   const goalRepository = dataSource.getRepository(RdhyEmcLeadingGoal);
   const costRepository = dataSource.getRepository(RdhyEmcCostEntry);
   for (const [ni, definition] of EMC_NODES.entries()) {
-    const agent = agents[ni];
-    if (!agent) break;
+    const actor = actors[ni];
+    if (!actor) break;
     const node = await nodeRepository.save(
       nodeRepository.create({
         agreementId: agreement.id,
-        agentId: agent.id,
+        actorId: actor.id,
         tier: definition.tier,
         isLeading: definition.isLeading,
         profitSharePercent: definition.profitSharePercent,
@@ -317,9 +317,9 @@ async function seedEmcAgreement(
 async function seedVamAgreements(
   dataSource: DataSource,
   sponsor: RdhyPlatform,
-  agent: Agent | null,
+  actor: Actor | null,
 ): Promise<void> {
-  if (!agent) return;
+  if (!actor) return;
 
   const agreementRepository = dataSource.getRepository(RdhyVamAgreement);
   const currency = await dataSource
@@ -327,13 +327,13 @@ async function seedVamAgreements(
     .findOne({ where: { code: 'usd' } });
 
   let active = await agreementRepository.findOne({
-    where: { title: VAM_TITLE, agentId: agent.id },
+    where: { title: VAM_TITLE, actorId: actor.id },
   });
   if (!active) {
     active = await agreementRepository.save(
       agreementRepository.create({
         title: VAM_TITLE,
-        agentId: agent.id,
+        actorId: actor.id,
         platformId: sponsor.id,
         horizonMonths: 12,
         currencyId: currency?.id ?? null,
@@ -402,13 +402,13 @@ async function seedVamAgreements(
   }
 
   const draft = await agreementRepository.findOne({
-    where: { title: VAM_DRAFT_TITLE, agentId: agent.id },
+    where: { title: VAM_DRAFT_TITLE, actorId: actor.id },
   });
   if (!draft) {
     await agreementRepository.save(
       agreementRepository.create({
         title: VAM_DRAFT_TITLE,
-        agentId: agent.id,
+        actorId: actor.id,
         platformId: sponsor.id,
         horizonMonths: 12,
         currencyId: currency?.id ?? null,
@@ -417,31 +417,31 @@ async function seedVamAgreements(
     );
   }
 
-  await seedVamPerformanceInvoices(dataSource, active, agent, currency);
+  await seedVamPerformanceInvoices(dataSource, active, actor, currency);
 }
 
 /** Demo revenue for the ACTIVE agreement's performance view (spec 018 Q18).
- * Skipped unless the sample usd currency exists, the agent's functional
+ * Skipped unless the sample usd currency exists, the actor's functional
  * currency is usd (so identity snapshots are honest) and a counterparty
- * agent exists. Idempotent via the deterministic invoice numbers. */
+ * actor exists. Idempotent via the deterministic invoice numbers. */
 async function seedVamPerformanceInvoices(
   dataSource: DataSource,
   agreement: RdhyVamAgreement,
-  agent: Agent,
+  actor: Actor,
   currency: Value | null,
 ): Promise<void> {
-  if (!currency || agent.functionalCurrencyId !== currency.id) return;
+  if (!currency || actor.functionalCurrencyId !== currency.id) return;
   if (!agreement.startedAt) return;
 
   const invoiceRepository = dataSource.getRepository(Invoice);
   const existing = await invoiceRepository.findOne({
-    where: { fromAgentId: agent.id, number: 'VAM-DEMO-0001' },
+    where: { fromActorId: actor.id, number: 'VAM-DEMO-0001' },
   });
   if (existing) return;
 
   const counterparty = await dataSource
-    .getRepository(Agent)
-    .findOne({ where: { id: Not(agent.id) }, order: { name: 'ASC' } });
+    .getRepository(Actor)
+    .findOne({ where: { id: Not(actor.id) }, order: { name: 'ASC' } });
   if (!counterparty) return;
 
   const presentationRows: Array<{ value: string }> = await dataSource.query(
@@ -459,8 +459,8 @@ async function seedVamPerformanceInvoices(
     const invoice = await invoiceRepository.save(
       invoiceRepository.create({
         number: `VAM-DEMO-${String(index + 1).padStart(4, '0')}`,
-        fromAgentId: agent.id,
-        toAgentId: counterparty.id,
+        fromActorId: actor.id,
+        toActorId: counterparty.id,
         currencyId: currency.id,
         issuedAt,
         dueAt: addMonths(issuedAt, 1),
@@ -476,10 +476,10 @@ async function seedVamPerformanceInvoices(
         quantity: '1.00',
         unitPrice: amount,
         total: amount,
-        fromAgentRate: '1',
-        fromAgentAmount: amount,
-        toAgentRate: counterpartyMatches ? '1' : null,
-        toAgentAmount: counterpartyMatches ? amount : null,
+        fromActorRate: '1',
+        fromActorAmount: amount,
+        toActorRate: counterpartyMatches ? '1' : null,
+        toActorAmount: counterpartyMatches ? amount : null,
         presentationRate: presentationMatches ? '1' : null,
         presentationAmount: presentationMatches ? amount : null,
       }),

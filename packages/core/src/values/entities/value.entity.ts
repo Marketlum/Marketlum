@@ -13,7 +13,7 @@ import {
 import { ValueType, ValueParentType, ValueLifecycleStage } from '@marketlum/shared';
 import { Taxonomy } from '../../taxonomies/entities/taxonomy.entity';
 import { File } from '../../files/entities/file.entity';
-import { Agent } from '../../agents/entities/agent.entity';
+import { Actor } from '../../actors/entities/actor.entity';
 import { ValueStream } from '../../value-streams/entities/value-stream.entity';
 import { ValueImage } from './value-image.entity';
 
@@ -56,12 +56,12 @@ export class Value {
   @Column({ type: 'uuid', nullable: true })
   parentId: string | null;
 
-  @ManyToOne(() => Agent, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'agentId' })
-  agent: Agent | null;
+  @ManyToOne(() => Actor, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'actorId' })
+  actor: Actor | null;
 
   @Column({ type: 'uuid', nullable: true })
-  agentId: string | null;
+  actorId: string | null;
 
   @ManyToOne(() => Taxonomy, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'mainTaxonomyId' })

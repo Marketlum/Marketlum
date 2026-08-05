@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { getNextSnapshot } from 'xstate';
 import { Tension } from './entities/tension.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { User } from '../users/entities/user.entity';
 import {
   CreateTensionInput,
@@ -19,17 +19,17 @@ export class TensionsService {
   constructor(
     @InjectRepository(Tension)
     private readonly tensionRepository: Repository<Tension>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
   async create(input: CreateTensionInput): Promise<Tension> {
-    const { agentId, leadUserId, ...rest } = input;
+    const { actorId, leadUserId, ...rest } = input;
 
-    const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-    if (!agent) throw new NotFoundException('Agent not found');
+    const actor = await this.actorRepository.findOne({ where: { id: actorId } });
+    if (!actor) throw new NotFoundException('Actor not found');
 
     if (leadUserId) {
       const user = await this.userRepository.findOne({ where: { id: leadUserId } });
@@ -41,7 +41,7 @@ export class TensionsService {
       currentContext: rest.currentContext ?? null,
       potentialFuture: rest.potentialFuture ?? null,
       score: rest.score ?? 5,
-      agentId,
+      actorId,
       leadUserId: leadUserId ?? null,
     });
 
@@ -52,19 +52,19 @@ export class TensionsService {
   async findOne(id: string): Promise<Tension> {
     const tension = await this.tensionRepository.findOne({
       where: { id },
-      relations: ['agent', 'lead', 'exchanges'],
+      relations: ['actor', 'lead', 'exchanges'],
     });
     if (!tension) {
       throw new NotFoundException('Tension not found');
     }
-    // Load agent image separately (nested relation loading is unreliable)
-    if (tension.agent) {
-      const agentWithImage = await this.agentRepository.findOne({
-        where: { id: tension.agentId },
+    // Load actor image separately (nested relation loading is unreliable)
+    if (tension.actor) {
+      const actorWithImage = await this.actorRepository.findOne({
+        where: { id: tension.actorId },
         relations: ['image'],
       });
-      if (agentWithImage) {
-        tension.agent.image = agentWithImage.image;
+      if (actorWithImage) {
+        tension.actor.image = actorWithImage.image;
       }
     }
     return tension;
@@ -72,20 +72,20 @@ export class TensionsService {
 
   async search(
     query: PaginationQuery & {
-      agentId?: string;
+      actorId?: string;
       leadUserId?: string;
       state?: string;
     },
   ) {
-    const { page, limit, search, sortBy, sortOrder, agentId, leadUserId, state } = query;
+    const { page, limit, search, sortBy, sortOrder, actorId, leadUserId, state } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.tensionRepository.createQueryBuilder('tension');
-    qb.leftJoinAndSelect('tension.agent', 'agent');
+    qb.leftJoinAndSelect('tension.actor', 'actor');
     qb.leftJoinAndSelect('tension.lead', 'lead');
 
-    if (agentId) {
-      qb.andWhere('tension.agentId = :agentId', { agentId });
+    if (actorId) {
+      qb.andWhere('tension.actorId = :actorId', { actorId });
     }
 
     if (leadUserId) {
@@ -113,26 +113,26 @@ export class TensionsService {
 
     const entities = await qb.getMany();
 
-    // Batch-load agent images (nested join not hydrated by getMany)
-    const agentIds = [...new Set(entities.map((t) => t.agentId))];
-    if (agentIds.length > 0) {
-      const agentsWithImages = await this.agentRepository.find({
-        where: { id: In(agentIds) },
+    // Batch-load actor images (nested join not hydrated by getMany)
+    const actorIds = [...new Set(entities.map((t) => t.actorId))];
+    if (actorIds.length > 0) {
+      const actorsWithImages = await this.actorRepository.find({
+        where: { id: In(actorIds) },
         relations: ['image'],
       });
-      const agentMap = new Map(agentsWithImages.map((a) => [a.id, a]));
+      const actorMap = new Map(actorsWithImages.map((a) => [a.id, a]));
       for (const tension of entities) {
-        const agentWithImage = agentMap.get(tension.agentId);
-        if (tension.agent && agentWithImage) {
-          tension.agent.image = agentWithImage.image;
+        const actorWithImage = actorMap.get(tension.actorId);
+        if (tension.actor && actorWithImage) {
+          tension.actor.image = actorWithImage.image;
         }
       }
     }
 
     const countQb = this.tensionRepository.createQueryBuilder('tension');
 
-    if (agentId) {
-      countQb.andWhere('tension.agentId = :agentId', { agentId });
+    if (actorId) {
+      countQb.andWhere('tension.actorId = :actorId', { actorId });
     }
     if (leadUserId) {
       countQb.andWhere('tension.leadUserId = :leadUserId', { leadUserId });
@@ -162,17 +162,17 @@ export class TensionsService {
 
   async update(id: string, input: UpdateTensionInput): Promise<Tension> {
     const tension = await this.findOne(id);
-    const { agentId, leadUserId, ...rest } = input;
+    const { actorId, leadUserId, ...rest } = input;
 
     if (rest.name !== undefined) tension.name = rest.name;
     if (rest.currentContext !== undefined) tension.currentContext = rest.currentContext ?? null;
     if (rest.potentialFuture !== undefined) tension.potentialFuture = rest.potentialFuture ?? null;
     if (rest.score !== undefined) tension.score = rest.score;
 
-    if (agentId !== undefined) {
-      const agent = await this.agentRepository.findOne({ where: { id: agentId } });
-      if (!agent) throw new NotFoundException('Agent not found');
-      tension.agentId = agentId;
+    if (actorId !== undefined) {
+      const actor = await this.actorRepository.findOne({ where: { id: actorId } });
+      if (!actor) throw new NotFoundException('Actor not found');
+      tension.actorId = actorId;
     }
 
     if (leadUserId !== undefined) {
@@ -186,7 +186,7 @@ export class TensionsService {
       }
     }
 
-    delete (tension as any).agent;
+    delete (tension as any).actor;
     delete (tension as any).lead;
     delete (tension as any).exchanges;
     await this.tensionRepository.save(tension);
@@ -211,7 +211,7 @@ export class TensionsService {
 
     tension.state = nextSnapshot.value as TensionState;
 
-    delete (tension as any).agent;
+    delete (tension as any).actor;
     delete (tension as any).lead;
     delete (tension as any).exchanges;
     await this.tensionRepository.save(tension);

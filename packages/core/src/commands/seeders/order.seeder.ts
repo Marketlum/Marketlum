@@ -4,7 +4,7 @@ import { OrdersService } from '../../orders/orders.service';
 import { InvoicesService } from '../../invoices/invoices.service';
 
 interface OrderDeps {
-  agents: Array<{ id: string; name: string }>;
+  actors: Array<{ id: string; name: string }>;
   values: Array<{ id: string; name: string }>;
   channels: Array<{ id: string }>;
   pipelines: Array<{ id: string }>;
@@ -64,9 +64,9 @@ export async function seedOrders(
   const orders: Array<{ id: string; number: string }> = [];
 
   for (let i = 0; i < NUM_ORDERS; i++) {
-    const fromAgent = faker.helpers.arrayElement(deps.agents);
-    const toAgent = faker.helpers.arrayElement(
-      deps.agents.filter((a) => a.id !== fromAgent.id),
+    const fromActor = faker.helpers.arrayElement(deps.actors);
+    const toActor = faker.helpers.arrayElement(
+      deps.actors.filter((a) => a.id !== fromActor.id),
     );
     const currency = faker.helpers.arrayElement(currencies);
     const withContext = faker.number.int({ min: 1, max: 3 }) > 1;
@@ -79,8 +79,8 @@ export async function seedOrders(
     }));
 
     const order = await service.create({
-      fromAgentId: fromAgent.id,
-      toAgentId: toAgent.id,
+      fromActorId: fromActor.id,
+      toActorId: toActor.id,
       currencyId: currency.id,
       channelId: withContext ? faker.helpers.arrayElement(deps.channels).id : null,
       pipelineId: withContext ? faker.helpers.arrayElement(deps.pipelines).id : null,

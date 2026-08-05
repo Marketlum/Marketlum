@@ -1,5 +1,5 @@
 import { User } from '../users/entities/user.entity';
-import { Agent } from '../agents/entities/agent.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
 import { Value } from '../values/entities/value.entity';
@@ -39,7 +39,7 @@ function stripKeyHash(entity: unknown): unknown {
 
 export const PRIMARY_ENTITIES: PrimaryEntityDescriptor[] = [
   { cls: User, snakeName: 'user' },
-  { cls: Agent, snakeName: 'agent' },
+  { cls: Actor, snakeName: 'actor' },
   { cls: Taxonomy, snakeName: 'taxonomy' },
   { cls: File, snakeName: 'file' },
   { cls: Value, snakeName: 'value' },
