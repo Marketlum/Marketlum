@@ -35,6 +35,7 @@ import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { AiModule } from './ai/ai.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
+import { McpModule } from './mcp/mcp.module';
 import { EventsModule } from './events/events.module';
 import { PluginsModule } from './plugins/plugins.module';
 import { validatePlugins } from './plugins/validate-plugins';
@@ -72,6 +73,7 @@ const CORE_FEATURE_MODULES = [
   SystemSettingsModule,
   AiModule,
   GeocodingModule,
+  McpModule,
 ];
 
 const CORE_EXPORTED_MODULES = [

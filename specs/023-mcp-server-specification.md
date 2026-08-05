@@ -6,7 +6,7 @@
 
 Marketlum core gains an MCP (Model Context Protocol) server: a curated, read-only, permission-aware tool surface that any MCP-capable client (Vercel AI SDK agents, Claude Code, Claude Desktop, Cursor, …) can connect to over Streamable HTTP. It ships as a **core module** — every Marketlum market has it, always on (Q1) — mounted at `POST /mcp` on the existing API (port 3001) (Q2), authenticated exclusively with Marketlum API keys (spec 019) (Q4), and enforcing HRBAC per tool (specs 020/021) (Q5).
 
-v1 exposes **12 read tools and no writes** (Q3, Q7), tools only — no MCP resources or prompts (Q6).
+v1 exposes **11 read tools and no writes** (Q3, Q7), tools only — no MCP resources or prompts (Q6).
 
 ```
  MCP client (Vercel AI SDK agent, Claude Code, ...)
@@ -49,7 +49,7 @@ Permissions are `resource:action` strings resolved via `PermissionsService.getEf
 
 ## Tool Catalog (Q7, Q8)
 
-12 read-only tools, `verb_noun` snake_case. (The brainstorm's Q7 option said "13 tools" — that was a miscount of the roster's reads; the recurring-flows feature has since been removed from Marketlum, so the roster is the 12 reads below.) Every tool wraps an existing core service call — no new query logic. Each description states what the tool returns **and when to use it** (agent-facing prose, written per tool during implementation).
+11 read-only tools, `verb_noun` snake_case. (The brainstorm's Q7 option said "13 tools" — that was a miscount of the roster's reads; the recurring-flows feature has since been removed from Marketlum, and during implementation the value-stream financials feature (spec 011) turned out to have been removed as well, so `get_value_stream_financials` was dropped and the roster is the 11 reads below.) Every tool wraps an existing core service call — no new query logic. Each description states what the tool returns **and when to use it** (agent-facing prose, written per tool during implementation).
 
 | # | Tool | Underlying service call | Permission | Input schema (shared) |
 |---|---|---|---|---|
@@ -62,9 +62,8 @@ Permissions are `resource:action` strings resolved via `PermissionsService.getEf
 | 7 | `search_orders` | `OrdersService` list | `orders:read` | list filters ⊆ existing orders query schema + pagination |
 | 8 | `get_order` | `OrdersService.findOne` | `orders:read` | `{ id: uuid }` |
 | 9 | `list_value_streams` | `ValueStreamsService` list | `value-streams:read` | pagination |
-| 10 | `get_value_stream_financials` | value-stream financials (spec 011) | `value-streams:read` | `{ id: uuid }` (+ existing period params) |
-| 11 | `get_dashboard_summary` | `DashboardService` summary | `dashboard:read` | `{}` (presentation-currency semantics from spec 010 apply as-is) |
-| 12 | `get_exchange_rate` | `ExchangeRatesService` lookup | `exchange-rates:read` | currency pair + optional date, ⊆ existing exchange-rate query schema |
+| 10 | `get_dashboard_summary` | `DashboardService` summary | `dashboard:read` | `{}` (presentation-currency semantics from spec 010 apply as-is) |
+| 11 | `get_exchange_rate` | `ExchangeRatesService` lookup | `exchange-rates:read` | currency pair + optional date, ⊆ existing exchange-rate query schema |
 
 Implementation note: "⊆ existing query schema" means the tool input is built with `pick`/`omit` from the corresponding `packages/shared/src/schemas/*.schema.ts` query schema (Q9) — the implementer takes the fields the REST list endpoint actually accepts; no new filter semantics are invented for MCP.
 
@@ -79,7 +78,7 @@ Implementation note: "⊆ existing query schema" means the tool input is built w
 ### Outputs (Q10, Q11)
 
 - Tool results return **exactly the serialized shapes the REST endpoints return**, JSON-stringified into a single `text` content block. This keeps one tested serialization: decimal formatting (`Number(x).toFixed(2)`), currency snapshot fields, computed balances.
-- List/search tools accept `page` / `pageSize` (default 20, max 100 — enforced in the shared MCP schemas) and return `{ items, total, page, pageSize }` mirroring the REST list envelope.
+- List/search tools accept `page` / `limit` (default 20, max 100 — enforced in the shared MCP schemas) and return the REST list envelope verbatim: `{ data, meta: { page, limit, total, totalPages } }`. (The brainstorm said `pageSize`; the actual REST param is `limit`, and mirroring REST — the Q11 decision — wins.)
 
 ### Errors (Q12)
 
@@ -112,7 +111,6 @@ packages/core/src/mcp/
     search-orders.tool.ts
     get-order.tool.ts
     list-value-streams.tool.ts
-    get-value-stream-financials.tool.ts
     get-dashboard-summary.tool.ts
     get-exchange-rate.tool.ts
 ```
@@ -148,17 +146,17 @@ Feature files in `packages/bdd/features/mcp/`, step definitions in `apps/api/tes
 |---|---|---|
 | `protocol.feature` | 3 | `initialize` handshake; unknown JSON-RPC method; GET /mcp → 405 |
 | `authentication.feature` | 3 | no key → 401; invalid key → 401; JWT cookie (no key) → 401 |
-| `tool-listing.feature` | 3 | Admin sees all 12; scoped role (e.g. only `invoices:read` + `search:read`) sees exactly its subset; role with no read grants sees an empty list |
-| `tool-calls.feature` | 12 | one happy-path call per tool against seeded/fixture data, asserting REST-identical payloads incl. decimal formatting |
-| `tool-errors.feature` | 4 | `FORBIDDEN` (calling an unlisted tool); `NOT_FOUND` (bad uuid); `INVALID_INPUT` (bad params); `pageSize` > 100 rejected |
+| `tool-listing.feature` | 3 | Admin sees all 11; scoped role (e.g. only `invoices:read` + `search:read`) sees exactly its subset; role with no read grants sees an empty list |
+| `tool-calls.feature` | 11 | one happy-path call per tool against seeded/fixture data, asserting REST-identical payloads incl. decimal formatting |
+| `tool-errors.feature` | 4 | `FORBIDDEN` (calling an unlisted tool); `NOT_FOUND` (bad uuid); `INVALID_INPUT` (bad params); `limit` > 100 rejected |
 
-**Total: 25 scenarios.** Per the strict-BDD rule, feature files and failing step definitions come first; implementation follows.
+**Total: 24 scenarios.** Per the strict-BDD rule, feature files and failing step definitions come first; implementation follows.
 
 ## Documentation (Q23)
 
 New `## MCP Server` section in the root `README.md`:
 
-- What it is, endpoint URL, auth setup (role → API key), permission model, the 12-tool catalog table.
+- What it is, endpoint URL, auth setup (role → API key), permission model, the 11-tool catalog table.
 - Copy-paste connection examples:
   - **Vercel AI SDK** — `experimental_createMCPClient` with the Streamable HTTP transport and the `Authorization` header.
   - **Claude Code** — `claude mcp add --transport http marketlum http://localhost:3001/mcp --header "Authorization: Bearer <key>"`.
@@ -174,7 +172,7 @@ New `## MCP Server` section in the root `README.md`:
 Single PR, in this order:
 
 1. `@marketlum/shared`: `mcp.schema.ts` + exports; rebuild shared.
-2. BDD feature files (`packages/bdd/features/mcp/`, 25 scenarios) + step definitions in `apps/api/test/mcp/` (failing).
+2. BDD feature files (`packages/bdd/features/mcp/`, 24 scenarios) + step definitions in `apps/api/test/mcp/` (failing).
 3. Core MCP module: guard, registry, controller + stateless transport wiring, error mapping.
-4. The 12 tool definitions.
+4. The 11 tool definitions.
 5. Green test run (`pnpm test:e2e`), structured logging, README section.

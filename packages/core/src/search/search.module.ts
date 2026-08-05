@@ -13,5 +13,6 @@ import { SearchController } from './search.controller';
   imports: [TypeOrmModule.forFeature([Value, ValueInstance, Agent, User, ValueStream, Tension])],
   controllers: [SearchController],
   providers: [SearchService],
+  exports: [SearchService],
 })
 export class SearchModule {}

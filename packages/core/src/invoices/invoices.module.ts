@@ -37,6 +37,6 @@ import { FilesModule } from '../files/files.module';
   ],
   controllers: [InvoicesController, AgentFinancialsController],
   providers: [InvoicesService, InvoiceImportService, AgentFinancialsService],
-  exports: [InvoicesService],
+  exports: [InvoicesService, AgentFinancialsService],
 })
 export class InvoicesModule {}

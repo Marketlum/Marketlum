@@ -391,6 +391,37 @@ export {
   type AgentFinancialsResponse,
 } from './schemas/agent-financials.schema';
 
+export {
+  MCP_TOOL_NAMES,
+  MCP_TOOL_ERROR_CODES,
+  mcpToolErrorSchema,
+  mcpSearchMarketInputSchema,
+  mcpSearchAgentsInputSchema,
+  mcpGetAgentInputSchema,
+  mcpGetAgentFinancialsInputSchema,
+  mcpSearchInvoicesInputSchema,
+  mcpGetInvoiceInputSchema,
+  mcpSearchOrdersInputSchema,
+  mcpGetOrderInputSchema,
+  mcpListValueStreamsInputSchema,
+  mcpGetDashboardSummaryInputSchema,
+  mcpGetExchangeRateInputSchema,
+  type McpToolName,
+  type McpToolErrorCode,
+  type McpToolError,
+  type McpSearchMarketInput,
+  type McpSearchAgentsInput,
+  type McpGetAgentInput,
+  type McpGetAgentFinancialsInput,
+  type McpSearchInvoicesInput,
+  type McpGetInvoiceInput,
+  type McpSearchOrdersInput,
+  type McpGetOrderInput,
+  type McpListValueStreamsInput,
+  type McpGetDashboardSummaryInput,
+  type McpGetExchangeRateInput,
+} from './schemas/mcp.schema';
+
 export type {
   DomainEvent,
   DomainEventEnvelope,

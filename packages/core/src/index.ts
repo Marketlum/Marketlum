@@ -131,3 +131,7 @@ export { ZodValidationPipe } from './common/pipes/zod-validation.pipe';
 // Events
 export { EventsModule } from './events/events.module';
 export { DomainEventBus, type EmitArgs } from './events/domain-event-bus.service';
+
+// MCP (spec 023)
+export { McpModule } from './mcp/mcp.module';
+export { type McpTool, type AnyMcpTool, MCP_TOOLS } from './mcp/mcp-tool.interface';
