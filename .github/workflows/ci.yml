@@ -65,6 +65,8 @@ jobs:
           pnpm --filter @marketlum/shared build
           pnpm --filter @marketlum/core build
           pnpm --filter @marketlum/ui build
+          pnpm --filter @marketlum/plugin-nbp build
+          pnpm --filter @marketlum/plugin-rdhy build
 
       - name: Lint
         run: |
