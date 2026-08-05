@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { OrderState } from '../enums/order-state.enum';
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 const valueSummarySchema = z.object({
@@ -55,8 +55,8 @@ export const createOrderItemSchema = z.object({
 });
 
 export const createOrderSchema = z.object({
-  fromAgentId: z.string().uuid(),
-  toAgentId: z.string().uuid(),
+  fromActorId: z.string().uuid(),
+  toActorId: z.string().uuid(),
   currencyId: z.string().uuid(),
   channelId: z.string().uuid().nullable().optional(),
   pipelineId: z.string().uuid().nullable().optional(),
@@ -90,8 +90,8 @@ export const orderResponseSchema = z.object({
   id: z.string().uuid(),
   number: z.string(),
   state: z.nativeEnum(OrderState),
-  fromAgent: agentSummarySchema,
-  toAgent: agentSummarySchema,
+  fromActor: actorSummarySchema,
+  toActor: actorSummarySchema,
   currency: valueSummarySchema,
   channel: channelSummarySchema.nullable(),
   pipeline: pipelineSummarySchema.nullable(),

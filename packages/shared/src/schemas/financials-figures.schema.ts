@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /** Shared row/figure shapes for the invoice-derived financials endpoints
- * (value-stream financials and agent financials). Strings carry 2-decimal
+ * (value-stream financials and actor financials). Strings carry 2-decimal
  * amounts; null means "not computable" (no reporting currency configured). */
 
 export const financialsFigureSchema = z.object({

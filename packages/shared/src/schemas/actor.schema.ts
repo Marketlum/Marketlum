@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { addressResponseSchema } from './address.schema';
 
 const taxonomySummarySchema = z.object({
@@ -22,15 +22,15 @@ const valueSummarySchema = z.object({
   code: z.string(),
 });
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
-export const createAgentSchema = z.object({
+export const createActorSchema = z.object({
   name: z.string().min(1),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
   purpose: z.string().optional(),
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
@@ -41,9 +41,9 @@ export const createAgentSchema = z.object({
   parentId: z.string().uuid().nullable().optional(),
 });
 
-export const updateAgentSchema = z.object({
+export const updateActorSchema = z.object({
   name: z.string().min(1).optional(),
-  type: z.nativeEnum(AgentType).optional(),
+  type: z.nativeEnum(ActorType).optional(),
   purpose: z.string().optional(),
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
@@ -51,15 +51,15 @@ export const updateAgentSchema = z.object({
   functionalCurrencyId: z.string().uuid().nullable().optional(),
 });
 
-/** Re-parenting goes only through PATCH /agents/:id/move; null = make root. */
-export const moveAgentSchema = z.object({
+/** Re-parenting goes only through PATCH /actors/:id/move; null = make root. */
+export const moveActorSchema = z.object({
   parentId: z.string().uuid().nullable(),
 });
 
-export const agentResponseSchema = z.object({
+export const actorResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
   purpose: z.string().nullable(),
   mainTaxonomy: taxonomySummarySchema.nullable(),
   taxonomies: z.array(taxonomySummarySchema),
@@ -69,29 +69,29 @@ export const agentResponseSchema = z.object({
   functionalCurrencyId: z.string().uuid().nullable(),
   parentId: z.string().uuid().nullable().default(null),
   level: z.number().default(0),
-  parent: agentSummarySchema.nullable().default(null),
+  parent: actorSummarySchema.nullable().default(null),
   /** Detail endpoint only: path from root down to the direct parent. */
-  ancestors: z.array(agentSummarySchema).default([]),
+  ancestors: z.array(actorSummarySchema).default([]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-export const agentSnapshotReferencesResponseSchema = z.object({
+export const actorSnapshotReferencesResponseSchema = z.object({
   invoiceItems: z.number().int().nonnegative(),
 });
 
-export type CreateAgentInput = z.infer<typeof createAgentSchema>;
-export type UpdateAgentInput = z.infer<typeof updateAgentSchema>;
-export type MoveAgentInput = z.infer<typeof moveAgentSchema>;
-export type AgentResponse = z.infer<typeof agentResponseSchema>;
-export type AgentSummary = z.infer<typeof agentSummarySchema>;
-export type AgentSnapshotReferencesResponse = z.infer<typeof agentSnapshotReferencesResponseSchema>;
+export type CreateActorInput = z.infer<typeof createActorSchema>;
+export type UpdateActorInput = z.infer<typeof updateActorSchema>;
+export type MoveActorInput = z.infer<typeof moveActorSchema>;
+export type ActorResponse = z.infer<typeof actorResponseSchema>;
+export type ActorSummary = z.infer<typeof actorSummarySchema>;
+export type ActorSnapshotReferencesResponse = z.infer<typeof actorSnapshotReferencesResponseSchema>;
 
-export interface AgentTreeNode {
+export interface ActorTreeNode {
   id: string;
   name: string;
-  type: AgentType;
+  type: ActorType;
   level: number;
   image: { id: string; mimeType: string } | null;
-  children: AgentTreeNode[];
+  children: ActorTreeNode[];
 }

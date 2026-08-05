@@ -11,7 +11,7 @@ const valueSummarySchema = z.object({
   code: z.string(),
 });
 
-export const agentFinancialsQuerySchema = z.object({
+export const actorFinancialsQuerySchema = z.object({
   year: z.coerce
     .number()
     .int()
@@ -25,12 +25,12 @@ export const agentFinancialsQuerySchema = z.object({
     .transform((v) => v === true || v === 'true'),
 });
 
-/** Agent P&L: invoices the agent issued are revenue, invoices it received
- * are expense, reported in the agent's functional currency from the
- * per-agent snapshot totals. Null figures when the agent has no
+/** Actor P&L: invoices the actor issued are revenue, invoices it received
+ * are expense, reported in the actor's functional currency from the
+ * per-actor snapshot totals. Null figures when the actor has no
  * functional currency. */
-export const agentFinancialsResponseSchema = z.object({
-  agentId: z.string().uuid(),
+export const actorFinancialsResponseSchema = z.object({
+  actorId: z.string().uuid(),
   year: z.number().int(),
   consolidated: z.boolean(),
   functionalCurrency: valueSummarySchema.nullable(),
@@ -41,5 +41,5 @@ export const agentFinancialsResponseSchema = z.object({
   notConvertedCount: z.number().int(),
 });
 
-export type AgentFinancialsQuery = z.infer<typeof agentFinancialsQuerySchema>;
-export type AgentFinancialsResponse = z.infer<typeof agentFinancialsResponseSchema>;
+export type ActorFinancialsQuery = z.infer<typeof actorFinancialsQuerySchema>;
+export type ActorFinancialsResponse = z.infer<typeof actorFinancialsResponseSchema>;

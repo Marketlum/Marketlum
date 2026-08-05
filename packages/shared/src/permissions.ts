@@ -8,7 +8,7 @@ export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
 // `permissionResources` and are validated in RolesService, not here.
 export const PERMISSION_RESOURCES = [
   'accounts',
-  'agents',
+  'actors',
   'agreement-templates',
   'agreements',
   'archetypes',

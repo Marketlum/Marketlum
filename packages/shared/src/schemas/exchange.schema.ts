@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { ExchangeState } from '../enums/exchange-state.enum';
 import { ExchangeTransitionAction } from '../enums/exchange-transition-action.enum';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { ValueType } from '../enums/value-type.enum';
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 const valueSummarySchema = z.object({
@@ -53,13 +53,13 @@ const decimalStringRegex = /^\d+(\.\d{1,2})?$/;
 // --- Exchange Party ---
 
 export const exchangePartyInputSchema = z.object({
-  agentId: z.string().uuid(),
+  actorId: z.string().uuid(),
   role: z.string().min(1).nullable().optional(),
 });
 
 export const exchangePartySummarySchema = z.object({
   id: z.string().uuid(),
-  agent: agentSummarySchema,
+  actor: actorSummarySchema,
   role: z.string().nullable(),
 });
 
@@ -118,8 +118,8 @@ export const exchangeResponseSchema = z.object({
 export const createExchangeFlowSchema = z.object({
   valueId: z.string().uuid().nullable().optional(),
   valueInstanceId: z.string().uuid().nullable().optional(),
-  fromAgentId: z.string().uuid(),
-  toAgentId: z.string().uuid(),
+  fromActorId: z.string().uuid(),
+  toActorId: z.string().uuid(),
   quantity: z.string().regex(decimalStringRegex, 'Must be a decimal string'),
   description: z.string().nullable().optional(),
 }).refine(
@@ -134,8 +134,8 @@ export const createExchangeFlowSchema = z.object({
 export const updateExchangeFlowSchema = z.object({
   valueId: z.string().uuid().nullable().optional(),
   valueInstanceId: z.string().uuid().nullable().optional(),
-  fromAgentId: z.string().uuid().optional(),
-  toAgentId: z.string().uuid().optional(),
+  fromActorId: z.string().uuid().optional(),
+  toActorId: z.string().uuid().optional(),
   quantity: z.string().regex(decimalStringRegex, 'Must be a decimal string').optional(),
   description: z.string().nullable().optional(),
 });
@@ -144,8 +144,8 @@ export const exchangeFlowResponseSchema = z.object({
   id: z.string().uuid(),
   value: valueSummarySchema.nullable(),
   valueInstance: valueInstanceSummarySchema.nullable(),
-  fromAgent: agentSummarySchema,
-  toAgent: agentSummarySchema,
+  fromActor: actorSummarySchema,
+  toActor: actorSummarySchema,
   quantity: z.string(),
   description: z.string().nullable(),
   createdAt: z.string(),

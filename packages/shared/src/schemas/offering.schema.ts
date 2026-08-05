@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { OfferingState } from '../enums/offering-state.enum';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 const valueStreamSummarySchema = z.object({
@@ -44,7 +44,7 @@ export const createOfferingSchema = z.object({
   activeFrom: z.string().optional(),
   activeUntil: z.string().optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
-  agentId: z.string().uuid().nullable().optional(),
+  actorId: z.string().uuid().nullable().optional(),
   components: z.array(createComponentSchema).optional(),
 });
 
@@ -57,7 +57,7 @@ export const updateOfferingSchema = z.object({
   activeFrom: z.string().nullable().optional(),
   activeUntil: z.string().nullable().optional(),
   valueStreamId: z.string().uuid().nullable().optional(),
-  agentId: z.string().uuid().nullable().optional(),
+  actorId: z.string().uuid().nullable().optional(),
   components: z.array(createComponentSchema).optional(),
 });
 
@@ -71,7 +71,7 @@ export const offeringResponseSchema = z.object({
   activeFrom: z.string().nullable(),
   activeUntil: z.string().nullable(),
   valueStream: valueStreamSummarySchema.nullable(),
-  agent: agentSummarySchema.nullable(),
+  actor: actorSummarySchema.nullable(),
   components: z.array(componentResponseSchema),
   createdAt: z.string(),
   updatedAt: z.string(),

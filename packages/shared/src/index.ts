@@ -1,4 +1,4 @@
-export { AgentType } from './enums/agent-type.enum';
+export { ActorType } from './enums/actor-type.enum';
 export { InvoiceMarket } from './enums/invoice-market.enum';
 export { ValueType } from './enums/value-type.enum';
 export { ValueParentType } from './enums/value-parent-type.enum';
@@ -33,17 +33,17 @@ export {
 } from './schemas/user.schema';
 
 export {
-  createAgentSchema,
-  updateAgentSchema,
-  moveAgentSchema,
-  agentResponseSchema,
-  type CreateAgentInput,
-  type UpdateAgentInput,
-  type MoveAgentInput,
-  type AgentResponse,
-  type AgentSummary,
-  type AgentTreeNode,
-} from './schemas/agent.schema';
+  createActorSchema,
+  updateActorSchema,
+  moveActorSchema,
+  actorResponseSchema,
+  type CreateActorInput,
+  type UpdateActorInput,
+  type MoveActorInput,
+  type ActorResponse,
+  type ActorSummary,
+  type ActorTreeNode,
+} from './schemas/actor.schema';
 
 export {
   paginationQuerySchema,
@@ -369,9 +369,9 @@ export {
 } from './helpers/snapshot.helpers';
 
 export {
-  agentSnapshotReferencesResponseSchema,
-  type AgentSnapshotReferencesResponse,
-} from './schemas/agent.schema';
+  actorSnapshotReferencesResponseSchema,
+  type ActorSnapshotReferencesResponse,
+} from './schemas/actor.schema';
 
 export {
   financialsFigureSchema,
@@ -385,20 +385,20 @@ export {
 } from './schemas/financials-figures.schema';
 
 export {
-  agentFinancialsQuerySchema,
-  agentFinancialsResponseSchema,
-  type AgentFinancialsQuery,
-  type AgentFinancialsResponse,
-} from './schemas/agent-financials.schema';
+  actorFinancialsQuerySchema,
+  actorFinancialsResponseSchema,
+  type ActorFinancialsQuery,
+  type ActorFinancialsResponse,
+} from './schemas/actor-financials.schema';
 
 export {
   MCP_TOOL_NAMES,
   MCP_TOOL_ERROR_CODES,
   mcpToolErrorSchema,
   mcpSearchMarketInputSchema,
-  mcpSearchAgentsInputSchema,
-  mcpGetAgentInputSchema,
-  mcpGetAgentFinancialsInputSchema,
+  mcpSearchActorsInputSchema,
+  mcpGetActorInputSchema,
+  mcpGetActorFinancialsInputSchema,
   mcpSearchInvoicesInputSchema,
   mcpGetInvoiceInputSchema,
   mcpSearchOrdersInputSchema,
@@ -410,9 +410,9 @@ export {
   type McpToolErrorCode,
   type McpToolError,
   type McpSearchMarketInput,
-  type McpSearchAgentsInput,
-  type McpGetAgentInput,
-  type McpGetAgentFinancialsInput,
+  type McpSearchActorsInput,
+  type McpGetActorInput,
+  type McpGetActorFinancialsInput,
   type McpSearchInvoicesInput,
   type McpGetInvoiceInput,
   type McpSearchOrdersInput,
@@ -426,7 +426,7 @@ export type {
   DomainEvent,
   DomainEventEnvelope,
   UserCreatedEvent, UserUpdatedEvent, UserDeletedEvent,
-  AgentCreatedEvent, AgentUpdatedEvent, AgentDeletedEvent,
+  ActorCreatedEvent, ActorUpdatedEvent, ActorDeletedEvent,
   TaxonomyCreatedEvent, TaxonomyUpdatedEvent, TaxonomyDeletedEvent,
   FileCreatedEvent, FileUpdatedEvent, FileDeletedEvent,
   ValueCreatedEvent, ValueUpdatedEvent, ValueDeletedEvent,

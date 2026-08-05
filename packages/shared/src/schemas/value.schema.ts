@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ValueType } from '../enums/value-type.enum';
 import { ValueParentType } from '../enums/value-parent-type.enum';
 import { ValueLifecycleStage } from '../enums/value-lifecycle-stage.enum';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { codeSchema } from './code.schema';
 
 const taxonomySummarySchema = z.object({
@@ -34,10 +34,10 @@ const parentSummarySchema = z.object({
   code: z.string(),
 });
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 const valueStreamSummarySchema = z.object({
@@ -56,7 +56,7 @@ export const createValueSchema = z.object({
   link: z.string().optional(),
   parentId: z.string().uuid().nullable().optional(),
   parentType: z.nativeEnum(ValueParentType).nullable().optional(),
-  agentId: z.string().uuid().nullable().optional(),
+  actorId: z.string().uuid().nullable().optional(),
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
   fileIds: z.array(z.string().uuid()).optional(),
@@ -74,7 +74,7 @@ export const updateValueSchema = z.object({
   link: z.string().optional(),
   parentId: z.string().uuid().nullable().optional(),
   parentType: z.nativeEnum(ValueParentType).nullable().optional(),
-  agentId: z.string().uuid().nullable().optional(),
+  actorId: z.string().uuid().nullable().optional(),
   mainTaxonomyId: z.string().uuid().nullable().optional(),
   taxonomyIds: z.array(z.string().uuid()).optional(),
   fileIds: z.array(z.string().uuid()).optional(),
@@ -96,7 +96,7 @@ export const valueResponseSchema = z.object({
   lifecycleStage: z.nativeEnum(ValueLifecycleStage).nullable(),
   parentType: z.nativeEnum(ValueParentType).nullable(),
   parent: parentSummarySchema.nullable(),
-  agent: agentSummarySchema.nullable(),
+  actor: actorSummarySchema.nullable(),
   valueStream: valueStreamSummarySchema.nullable(),
   mainTaxonomy: taxonomySummarySchema.nullable(),
   taxonomies: z.array(taxonomySummarySchema),

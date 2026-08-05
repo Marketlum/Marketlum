@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { codeSchema } from './code.schema';
 
 const valueSummarySchema = z.object({
@@ -8,10 +8,10 @@ const valueSummarySchema = z.object({
   code: z.string(),
 });
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 const fileSummarySchema = z.object({
@@ -31,8 +31,8 @@ export const createValueInstanceSchema = z.object({
   version: z.string().optional(),
   expiresAt: z.string().nullable().optional(),
   valueId: z.string().uuid(),
-  fromAgentId: z.string().uuid().nullable().optional(),
-  toAgentId: z.string().uuid().nullable().optional(),
+  fromActorId: z.string().uuid().nullable().optional(),
+  toActorId: z.string().uuid().nullable().optional(),
   imageId: z.string().uuid().nullable().optional(),
 });
 
@@ -44,8 +44,8 @@ export const updateValueInstanceSchema = z.object({
   version: z.string().optional(),
   expiresAt: z.string().nullable().optional(),
   valueId: z.string().uuid().optional(),
-  fromAgentId: z.string().uuid().nullable().optional(),
-  toAgentId: z.string().uuid().nullable().optional(),
+  fromActorId: z.string().uuid().nullable().optional(),
+  toActorId: z.string().uuid().nullable().optional(),
   imageId: z.string().uuid().nullable().optional(),
 });
 
@@ -59,8 +59,8 @@ export const valueInstanceResponseSchema = z.object({
   version: z.string().nullable(),
   expiresAt: z.string().nullable(),
   value: valueSummarySchema,
-  fromAgent: agentSummarySchema.nullable(),
-  toAgent: agentSummarySchema.nullable(),
+  fromActor: actorSummarySchema.nullable(),
+  toActor: actorSummarySchema.nullable(),
   image: fileSummarySchema.nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),

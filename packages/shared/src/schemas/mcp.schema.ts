@@ -1,21 +1,21 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { paginationQuerySchema } from './pagination.schema';
 import { searchQuerySchema } from './search.schema';
-import { agentFinancialsQuerySchema } from './agent-financials.schema';
+import { actorFinancialsQuerySchema } from './actor-financials.schema';
 import { dashboardQuerySchema } from './dashboard.schema';
 import { exchangeRateLookupQuerySchema } from './exchange-rate.schema';
 
 // Spec 023: the MCP tool surface. Input schemas derive from the existing REST
 // query schemas so the MCP contract cannot drift from API validation. List
 // tools reuse the REST pagination params but cap `limit` at 100 (default 20)
-// to keep tool results context-friendly for agents.
+// to keep tool results context-friendly for actors.
 
 export const MCP_TOOL_NAMES = [
   'search_market',
-  'search_agents',
-  'get_agent',
-  'get_agent_financials',
+  'search_actors',
+  'get_actor',
+  'get_actor_financials',
   'search_invoices',
   'get_invoice',
   'search_orders',
@@ -47,26 +47,26 @@ const mcpPaginationSchema = paginationQuerySchema.extend({
 export const mcpSearchMarketInputSchema = searchQuerySchema;
 export type McpSearchMarketInput = z.infer<typeof mcpSearchMarketInputSchema>;
 
-export const mcpSearchAgentsInputSchema = mcpPaginationSchema.extend({
-  type: z.nativeEnum(AgentType).optional(),
+export const mcpSearchActorsInputSchema = mcpPaginationSchema.extend({
+  type: z.nativeEnum(ActorType).optional(),
   taxonomyId: z.string().uuid().optional(),
 });
-export type McpSearchAgentsInput = z.infer<typeof mcpSearchAgentsInputSchema>;
+export type McpSearchActorsInput = z.infer<typeof mcpSearchActorsInputSchema>;
 
-export const mcpGetAgentInputSchema = z.object({
+export const mcpGetActorInputSchema = z.object({
   id: z.string().uuid(),
 });
-export type McpGetAgentInput = z.infer<typeof mcpGetAgentInputSchema>;
+export type McpGetActorInput = z.infer<typeof mcpGetActorInputSchema>;
 
-export const mcpGetAgentFinancialsInputSchema = agentFinancialsQuerySchema.extend({
-  agentId: z.string().uuid(),
+export const mcpGetActorFinancialsInputSchema = actorFinancialsQuerySchema.extend({
+  actorId: z.string().uuid(),
 });
-export type McpGetAgentFinancialsInput = z.infer<typeof mcpGetAgentFinancialsInputSchema>;
+export type McpGetActorFinancialsInput = z.infer<typeof mcpGetActorFinancialsInputSchema>;
 
 export const mcpSearchInvoicesInputSchema = mcpPaginationSchema.extend({
-  agentId: z.string().uuid().optional(),
-  fromAgentId: z.string().uuid().optional(),
-  toAgentId: z.string().uuid().optional(),
+  actorId: z.string().uuid().optional(),
+  fromActorId: z.string().uuid().optional(),
+  toActorId: z.string().uuid().optional(),
   channelId: z.string().uuid().optional(),
   currencyId: z.string().uuid().optional(),
   orderId: z.string().uuid().optional(),
@@ -82,9 +82,9 @@ export type McpGetInvoiceInput = z.infer<typeof mcpGetInvoiceInputSchema>;
 
 export const mcpSearchOrdersInputSchema = mcpPaginationSchema.extend({
   state: z.string().optional(),
-  agentId: z.string().uuid().optional(),
-  fromAgentId: z.string().uuid().optional(),
-  toAgentId: z.string().uuid().optional(),
+  actorId: z.string().uuid().optional(),
+  fromActorId: z.string().uuid().optional(),
+  toActorId: z.string().uuid().optional(),
   channelId: z.string().uuid().optional(),
   pipelineId: z.string().uuid().optional(),
   currencyId: z.string().uuid().optional(),

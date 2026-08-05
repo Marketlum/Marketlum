@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const dashboardQuerySchema = z.object({
-  agentId: z.string().uuid().optional(),
+  actorId: z.string().uuid().optional(),
   channelId: z.string().uuid().optional(),
   fromDate: z.string().optional(),
   toDate: z.string().optional(),

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 
 const fileSummarySchema = z.object({
   id: z.string().uuid(),
@@ -12,7 +12,7 @@ const fileSummarySchema = z.object({
 const partySummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 const valueStreamSummarySchema = z.object({
@@ -76,7 +76,7 @@ export interface AgreementTreeNode {
   link: string | null;
   level: number;
   file: { id: string; originalName: string; storedName: string; mimeType: string; size: number } | null;
-  parties: { id: string; name: string; type: AgentType }[];
+  parties: { id: string; name: string; type: ActorType }[];
   valueStream: { id: string; name: string; code: string } | null;
   createdAt: string;
   updatedAt: string;

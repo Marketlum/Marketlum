@@ -1,4 +1,4 @@
-export enum AgentType {
+export enum ActorType {
   ORGANIZATION = 'organization',
   INDIVIDUAL = 'individual',
   VIRTUAL = 'virtual',

@@ -8,8 +8,8 @@ export const claudeInvoiceExtractionSchema = z.object({
   number: z.string().nullable(),
   issuedAt: isoDate.nullable(),
   dueAt: isoDate.nullable(),
-  fromAgent: z.object({ name: z.string() }),
-  toAgent: z.object({ name: z.string() }),
+  fromActor: z.object({ name: z.string() }),
+  toActor: z.object({ name: z.string() }),
   currency: z.object({ name: z.string() }),
   items: z.array(
     z.object({
@@ -34,8 +34,8 @@ export const invoiceImportResponseSchema = z.object({
     number: z.string().nullable(),
     issuedAt: z.string().nullable(),
     dueAt: z.string().nullable(),
-    fromAgent: namedRefSchema,
-    toAgent: namedRefSchema,
+    fromActor: namedRefSchema,
+    toActor: namedRefSchema,
     currency: namedRefSchema,
     items: z.array(
       z.object({

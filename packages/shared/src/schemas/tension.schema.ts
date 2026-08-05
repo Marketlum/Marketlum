@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { TensionState } from '../enums/tension-state.enum';
 import { TensionTransitionAction } from '../enums/tension-transition-action.enum';
 
@@ -11,10 +11,10 @@ const fileSummarySchema = z.object({
   size: z.number(),
 });
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
   image: fileSummarySchema.nullable(),
 });
 
@@ -27,7 +27,7 @@ export const createTensionSchema = z.object({
   name: z.string().min(1),
   currentContext: z.string().nullable().optional(),
   potentialFuture: z.string().nullable().optional(),
-  agentId: z.string().uuid(),
+  actorId: z.string().uuid(),
   leadUserId: z.string().uuid().nullable().optional(),
   score: z.number().int().min(1).max(10).default(5).optional(),
 });
@@ -36,7 +36,7 @@ export const updateTensionSchema = z.object({
   name: z.string().min(1).optional(),
   currentContext: z.string().nullable().optional(),
   potentialFuture: z.string().nullable().optional(),
-  agentId: z.string().uuid().optional(),
+  actorId: z.string().uuid().optional(),
   leadUserId: z.string().uuid().nullable().optional(),
   score: z.number().int().min(1).max(10).optional(),
 });
@@ -52,7 +52,7 @@ export const tensionResponseSchema = z.object({
   potentialFuture: z.string().nullable(),
   score: z.number().int(),
   state: z.nativeEnum(TensionState),
-  agent: agentSummarySchema,
+  actor: actorSummarySchema,
   lead: userSummarySchema.nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),

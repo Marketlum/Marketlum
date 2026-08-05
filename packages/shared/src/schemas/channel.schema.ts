@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { codeSchema } from './code.schema';
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 export const createChannelSchema = z.object({
@@ -13,7 +13,7 @@ export const createChannelSchema = z.object({
   name: z.string().min(1),
   purpose: z.string().optional(),
   color: z.string().min(1),
-  agentId: z.string().uuid().nullable().optional(),
+  actorId: z.string().uuid().nullable().optional(),
   parentId: z.string().uuid().optional(),
 });
 
@@ -21,7 +21,7 @@ export const updateChannelSchema = z.object({
   name: z.string().min(1).optional(),
   purpose: z.string().nullable().optional(),
   color: z.string().min(1).optional(),
-  agentId: z.string().uuid().nullable().optional(),
+  actorId: z.string().uuid().nullable().optional(),
 });
 
 export const moveChannelSchema = z.object({
@@ -35,7 +35,7 @@ export const channelResponseSchema = z.object({
   purpose: z.string().nullable(),
   color: z.string(),
   level: z.number(),
-  agent: agentSummarySchema.nullable(),
+  actor: actorSummarySchema.nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -52,7 +52,7 @@ export interface ChannelTreeNode {
   purpose: string | null;
   color: string;
   level: number;
-  agent: { id: string; name: string; type: AgentType } | null;
+  actor: { id: string; name: string; type: ActorType } | null;
   createdAt: string;
   updatedAt: string;
   children: ChannelTreeNode[];

@@ -15,7 +15,7 @@ export const updateAddressSchema = createAddressSchema.partial();
 
 export const addressResponseSchema = z.object({
   id: z.string().uuid(),
-  agentId: z.string().uuid(),
+  actorId: z.string().uuid(),
   label: z.string().nullable(),
   line1: z.string(),
   line2: z.string().nullable(),

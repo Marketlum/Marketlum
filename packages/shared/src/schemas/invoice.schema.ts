@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { AgentType } from '../enums/agent-type.enum';
+import { ActorType } from '../enums/actor-type.enum';
 import { InvoiceMarket } from '../enums/invoice-market.enum';
 
-const agentSummarySchema = z.object({
+const actorSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.nativeEnum(AgentType),
+  type: z.nativeEnum(ActorType),
 });
 
 const valueSummarySchema = z.object({
@@ -38,13 +38,13 @@ export const createInvoiceItemSchema = z.object({
 
 export const createInvoiceSchema = z.object({
   number: z.string().min(1),
-  fromAgentId: z.string().uuid(),
-  toAgentId: z.string().uuid(),
+  fromActorId: z.string().uuid(),
+  toActorId: z.string().uuid(),
   issuedAt: z.string(),
   dueAt: z.string(),
   currencyId: z.string().uuid(),
   market: z.nativeEnum(InvoiceMarket).default(InvoiceMarket.EXTERNAL),
-  onBehalfOfAgentId: z.string().uuid().nullable().optional(),
+  onBehalfOfActorId: z.string().uuid().nullable().optional(),
   paid: z.boolean().default(false),
   link: z.string().optional(),
   fileId: z.string().uuid().nullable().optional(),
@@ -55,13 +55,13 @@ export const createInvoiceSchema = z.object({
 
 export const updateInvoiceSchema = z.object({
   number: z.string().min(1).optional(),
-  fromAgentId: z.string().uuid().optional(),
-  toAgentId: z.string().uuid().optional(),
+  fromActorId: z.string().uuid().optional(),
+  toActorId: z.string().uuid().optional(),
   issuedAt: z.string().optional(),
   dueAt: z.string().optional(),
   currencyId: z.string().uuid().optional(),
   market: z.nativeEnum(InvoiceMarket).optional(),
-  onBehalfOfAgentId: z.string().uuid().nullable().optional(),
+  onBehalfOfActorId: z.string().uuid().nullable().optional(),
   paid: z.boolean().optional(),
   link: z.string().nullable().optional(),
   fileId: z.string().uuid().nullable().optional(),
@@ -79,22 +79,22 @@ export const invoiceItemResponseSchema = z.object({
   total: z.string(),
   presentationRate: z.string().nullable(),
   presentationAmount: z.string().nullable(),
-  fromAgentRate: z.string().nullable(),
-  fromAgentAmount: z.string().nullable(),
-  toAgentRate: z.string().nullable(),
-  toAgentAmount: z.string().nullable(),
+  fromActorRate: z.string().nullable(),
+  fromActorAmount: z.string().nullable(),
+  toActorRate: z.string().nullable(),
+  toActorAmount: z.string().nullable(),
 });
 
 export const invoiceResponseSchema = z.object({
   id: z.string().uuid(),
   number: z.string(),
-  fromAgent: agentSummarySchema,
-  toAgent: agentSummarySchema,
+  fromActor: actorSummarySchema,
+  toActor: actorSummarySchema,
   issuedAt: z.string(),
   dueAt: z.string(),
   currency: valueSummarySchema,
   market: z.nativeEnum(InvoiceMarket),
-  onBehalfOfAgent: agentSummarySchema.nullable(),
+  onBehalfOfActor: actorSummarySchema.nullable(),
   mirrorInvoice: z
     .object({ id: z.string().uuid(), number: z.string() })
     .nullable(),
@@ -102,7 +102,7 @@ export const invoiceResponseSchema = z.object({
     .object({
       id: z.string().uuid(),
       number: z.string(),
-      fromAgent: z.object({ id: z.string().uuid(), name: z.string() }),
+      fromActor: z.object({ id: z.string().uuid(), name: z.string() }),
     })
     .nullable(),
   paid: z.boolean(),
@@ -113,8 +113,8 @@ export const invoiceResponseSchema = z.object({
   items: z.array(invoiceItemResponseSchema),
   total: z.string(),
   presentationTotal: z.string().nullable(),
-  fromAgentTotal: z.string().nullable(),
-  toAgentTotal: z.string().nullable(),
+  fromActorTotal: z.string().nullable(),
+  toActorTotal: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

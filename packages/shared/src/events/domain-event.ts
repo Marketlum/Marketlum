@@ -12,9 +12,9 @@ export type UserCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.user.
 export type UserUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.user.updated', T>;
 export type UserDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.user.deleted', T>;
 
-export type AgentCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.agent.created', T>;
-export type AgentUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.agent.updated', T>;
-export type AgentDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.agent.deleted', T>;
+export type ActorCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.actor.created', T>;
+export type ActorUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.actor.updated', T>;
+export type ActorDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.actor.deleted', T>;
 
 export type TaxonomyCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.taxonomy.created', T>;
 export type TaxonomyUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.taxonomy.updated', T>;
@@ -116,7 +116,7 @@ export type RoleDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.role.
 
 export type DomainEvent =
   | UserCreatedEvent | UserUpdatedEvent | UserDeletedEvent
-  | AgentCreatedEvent | AgentUpdatedEvent | AgentDeletedEvent
+  | ActorCreatedEvent | ActorUpdatedEvent | ActorDeletedEvent
   | TaxonomyCreatedEvent | TaxonomyUpdatedEvent | TaxonomyDeletedEvent
   | FileCreatedEvent | FileUpdatedEvent | FileDeletedEvent
   | ValueCreatedEvent | ValueUpdatedEvent | ValueDeletedEvent
