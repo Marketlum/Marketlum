@@ -8,10 +8,10 @@ interface ActorDeps {
   functionalCurrencyByActorName?: Record<string, string>;
 }
 
-// Parents must appear before their children: the seeder resolves parentName
-// against actors created earlier in this list (spec 015 sample hierarchy).
-// The first six names are load-bearing — exchange/tension/value/value-instance
-// seeders and the functional-currency map look them up by name.
+// Creation order is randomized at seed time (so lists don't display grouped
+// by type); parentName is still resolved parent-first via creationOrder().
+// The root-organization names are load-bearing — exchange/tension/value/
+// value-instance seeders and the functional-currency map look them up by name.
 const ACTORS: Array<{
   name: string;
   type: ActorType;
@@ -127,6 +127,35 @@ const ADDRESSES: Record<string, AddressSeed[]> = {
   ],
 };
 
+function shuffled<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+// Random order, except a child never comes before its parent: walk the
+// shuffled list repeatedly, emitting each actor once its parent is placed.
+function creationOrder(items: typeof ACTORS): typeof ACTORS {
+  const remaining = shuffled(items);
+  const order: typeof ACTORS = [];
+  const placed = new Set<string>();
+  while (remaining.length > 0) {
+    const index = remaining.findIndex(
+      (a) => !a.parentName || placed.has(a.parentName),
+    );
+    if (index === -1) {
+      throw new Error('Actor seed contains a parentName that never resolves');
+    }
+    const [next] = remaining.splice(index, 1);
+    order.push(next);
+    placed.add(next.name);
+  }
+  return order;
+}
+
 export async function seedActors(
   service: ActorsService,
   addressesService: AddressesService,
@@ -143,8 +172,9 @@ export async function seedActors(
     if (code) countryIdByCode[code] = c.id;
   }
 
-  for (let i = 0; i < ACTORS.length; i++) {
-    const actorData = ACTORS[i];
+  const orderedActors = creationOrder(ACTORS);
+  for (let i = 0; i < orderedActors.length; i++) {
+    const actorData = orderedActors[i];
     const taxonomy = deps.taxonomies.all[i % deps.taxonomies.all.length];
 
     const parentId = actorData.parentName
