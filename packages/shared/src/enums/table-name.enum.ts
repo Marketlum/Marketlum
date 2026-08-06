@@ -12,4 +12,9 @@ export enum TableName {
   INVOICES = 'invoices',
   AGREEMENTS = 'agreements',
   GEOGRAPHIES = 'geographies',
+  TENSIONS = 'tensions',
+  PIPELINES = 'pipelines',
+  ARCHETYPES = 'archetypes',
+  ORDERS = 'orders',
+  AGREEMENT_TEMPLATES = 'agreement_templates',
 }

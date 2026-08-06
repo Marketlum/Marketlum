@@ -30,6 +30,30 @@ Feature: Manage Perspectives
     Then the response status should be 201
     And the perspective "First Default" should no longer be default
 
+  Scenario: Perspectives can be saved for every admin table
+    Given I am authenticated as "admin@marketlum.com"
+    When I create a perspective for each admin table:
+      | table               |
+      | values              |
+      | value_instances     |
+      | value_streams       |
+      | actors              |
+      | users               |
+      | accounts            |
+      | transactions        |
+      | offerings           |
+      | exchanges           |
+      | channels            |
+      | invoices            |
+      | agreements          |
+      | geographies         |
+      | tensions            |
+      | pipelines           |
+      | archetypes          |
+      | orders              |
+      | agreement_templates |
+    Then every perspective creation should succeed
+
   Scenario: Creating a perspective with invalid data fails
     Given I am authenticated as "admin@marketlum.com"
     When I create a perspective with:

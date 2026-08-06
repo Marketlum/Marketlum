@@ -166,6 +166,30 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('Perspectives can be saved for every admin table', ({ given, when, then }) => {
+    let creationResults: Array<{ table: string; status: number }> = [];
+
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      'I create a perspective for each admin table:',
+      async (rows: { table: string }[]) => {
+        creationResults = [];
+        for (const row of rows) {
+          const res = await createPerspective(`View for ${row.table}`, row.table, authCookie);
+          creationResults.push({ table: row.table, status: res.status });
+        }
+      },
+    );
+
+    then('every perspective creation should succeed', () => {
+      const failed = creationResults.filter((r) => r.status !== 201);
+      expect(failed).toEqual([]);
+    });
+  });
+
   test('Creating a perspective with invalid data fails', ({ given, when, then }) => {
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
