@@ -60,6 +60,7 @@ import { AddRoles1700000000058 } from './1700000000058-AddRoles';
 import { AddOnBehalfInvoicing1700000000059 } from './1700000000059-AddOnBehalfInvoicing';
 import { RenameAgentsToActors1700000000060 } from './1700000000060-RenameAgentsToActors';
 import { AddAgentActorType1700000000061 } from './1700000000061-AddAgentActorType';
+import { AddEquityValueType1700000000062 } from './1700000000062-AddEquityValueType';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -124,4 +125,5 @@ export const ALL_MIGRATIONS = [
   AddOnBehalfInvoicing1700000000059,
   RenameAgentsToActors1700000000060,
   AddAgentActorType1700000000061,
+  AddEquityValueType1700000000062,
 ];

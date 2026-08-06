@@ -1,6 +1,6 @@
 'use client';
 
-import { Package, Wrench, Heart, Scale, Coins } from 'lucide-react';
+import { Package, Wrench, Heart, Scale, Coins, PieChart } from 'lucide-react';
 import { Badge } from '../ui/badge';
 
 const valueTypeConfig: Record<string, { icon: typeof Package; className: string }> = {
@@ -23,6 +23,10 @@ const valueTypeConfig: Record<string, { icon: typeof Package; className: string 
   currency: {
     icon: Coins,
     className: 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300',
+  },
+  equity: {
+    icon: PieChart,
+    className: 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-300',
   },
 };
 

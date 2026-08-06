@@ -4,4 +4,5 @@ export enum ValueType {
   RELATIONSHIP = 'relationship',
   RIGHT = 'right',
   CURRENCY = 'currency',
+  EQUITY = 'equity',
 }

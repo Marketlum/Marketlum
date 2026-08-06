@@ -272,6 +272,7 @@
     "typeRelationship": "Relacja",
     "typeRight": "Prawo",
     "typeCurrency": "Waluta",
+    "typeEquity": "Udziały",
     "parent": "Rodzic",
     "selectParent": "Wybierz rodzica",
     "parentType": "Typ relacji",

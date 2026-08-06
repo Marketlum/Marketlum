@@ -18,6 +18,15 @@ Feature: Create Value
     And the response should contain a value with name "USD"
     And the response should contain a value with type "currency"
 
+  Scenario: Successfully create an equity value
+    Given I am authenticated as "admin@marketlum.com"
+    When I create a value with:
+      | name          | type   | purpose                      |
+      | Founder Stock | equity | Ownership stake in a venture |
+    Then the response status should be 201
+    And the response should contain a value with name "Founder Stock"
+    And the response should contain a value with type "equity"
+
   Scenario: Creating a value with invalid data fails
     Given I am authenticated as "admin@marketlum.com"
     When I create a value with:

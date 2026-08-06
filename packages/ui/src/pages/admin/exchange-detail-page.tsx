@@ -53,6 +53,7 @@ export function ExchangeDetailPage() {
     relationship: tv('typeRelationship'),
     right: tv('typeRight'),
     currency: tv('typeCurrency'),
+    equity: tv('typeEquity'),
   };
 
   const [exchange, setExchange] = useState<ExchangeResponse | null>(null);

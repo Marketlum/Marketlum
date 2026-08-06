@@ -273,6 +273,7 @@
     "typeRelationship": "Relationship",
     "typeRight": "Right",
     "typeCurrency": "Currency",
+    "typeEquity": "Equity",
     "parent": "Parent",
     "selectParent": "Select parent",
     "parentType": "Parent Type",

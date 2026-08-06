@@ -187,6 +187,7 @@ export function ValueInstancesDataTable() {
     [ValueType.RELATIONSHIP]: tv('typeRelationship'),
     [ValueType.RIGHT]: tv('typeRight'),
     [ValueType.CURRENCY]: tv('typeCurrency'),
+    [ValueType.EQUITY]: tv('typeEquity'),
   };
 
   const allColumns = getValueInstanceColumns({
