@@ -4,6 +4,23 @@ Breaking changes between Marketlum releases, newest first. Each section lists
 what an existing scaffolded project must do after updating its `@marketlum/*`
 dependencies.
 
+## Unreleased — ActorValuesTable removed from @marketlum/ui
+
+The actor detail page's Values tab now renders the full `ValuesDataTable`
+(search, filters, perspectives, export, and the Add value button) scoped via
+its new optional `actorId` prop. The stripped-down `ActorValuesTable`
+component is gone. If you imported it, replace:
+
+```tsx
+<ActorValuesTable actorId={actor.id} />
+```
+
+with:
+
+```tsx
+<ValuesDataTable actorId={actor.id} />
+```
+
 ## Spec 024 — Agents renamed to Actors
 
 The core `Agent` concept is now `Actor` across the whole stack. This is a

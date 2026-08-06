@@ -87,7 +87,6 @@ export { getAccountColumns } from './components/accounts/columns';
 // actors
 export { ActorFormDialog } from './components/actors/actor-form-dialog';
 export { ActorTypeBadge } from './components/actors/actor-type-badge';
-export { ActorValuesTable } from './components/actors/actor-values-table';
 export { ActorsDataTable } from './components/actors/actors-data-table';
 export { getActorColumns } from './components/actors/columns';
 export { ImageLibraryDialog as ActorImageLibraryDialog } from './components/actors/image-library-dialog';

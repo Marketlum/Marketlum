@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { FileImagePreview } from '../../components/shared/file-image-preview';
 import { ActorFormDialog } from '../../components/actors/actor-form-dialog';
 import { ActorTypeBadge } from '../../components/actors/actor-type-badge';
-import { ActorValuesTable } from '../../components/actors/actor-values-table';
+import { ValuesDataTable } from '../../components/values/values-data-table';
 import { AddressesList } from '../../components/actors/addresses-list';
 import { SubActorsTable } from '../../components/actors/sub-actors-table';
 import { ActorFinancialsTab } from '../../components/actors/actor-financials-tab';
@@ -329,7 +329,7 @@ export function ActorDetailPage() {
           <SubActorsTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="values">
-          <ActorValuesTable actorId={actor.id} />
+          <ValuesDataTable actorId={actor.id} />
         </TabsContent>
         <TabsContent value="offerings">
           <OfferingsDataTable actorId={actor.id} />

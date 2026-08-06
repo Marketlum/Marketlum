@@ -63,9 +63,13 @@ const lifecycleTranslationKeys: Record<string, string> = {
 
 interface ValuesDataTableProps {
   valueStreamId?: string;
+  actorId?: string;
 }
 
-export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDataTableProps = {}) {
+export function ValuesDataTable({
+  valueStreamId: scopedValueStreamId,
+  actorId: scopedActorId,
+}: ValuesDataTableProps = {}) {
   const router = useRouter();
   const pagination = usePagination();
   const debouncedSearch = useDebounce(pagination.search, 300);
@@ -80,6 +84,9 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
   const { valueStreams } = useValueStreams();
   const scopedStream = scopedValueStreamId
     ? valueStreams.find((vs) => vs.id === scopedValueStreamId) ?? null
+    : null;
+  const scopedActor = scopedActorId
+    ? actors.find((a) => a.id === scopedActorId) ?? null
     : null;
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [taxonomyFilter, setTaxonomyFilter] = useState<string>('all');
@@ -156,7 +163,9 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       if (taxonomyFilter && taxonomyFilter !== 'all') {
         qs += `&taxonomyId=${taxonomyFilter}`;
       }
-      if (actorFilter && actorFilter !== 'all') {
+      if (scopedActorId) {
+        qs += `&actorId=${scopedActorId}`;
+      } else if (actorFilter && actorFilter !== 'all') {
         qs += `&actorId=${actorFilter}`;
       }
       if (scopedValueStreamId) {
@@ -174,7 +183,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter, scopedValueStreamId]);
+  }, [pagination.toQueryString, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter, scopedValueStreamId, scopedActorId]);
 
   useEffect(() => {
     fetchData();
@@ -337,17 +346,20 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
     if (pagination.sortBy) qs += `&sortBy=${pagination.sortBy}&sortOrder=${pagination.sortOrder}`;
     if (typeFilter && typeFilter !== 'all') qs += `&type=${typeFilter}`;
     if (taxonomyFilter && taxonomyFilter !== 'all') qs += `&taxonomyId=${taxonomyFilter}`;
-    if (actorFilter && actorFilter !== 'all') qs += `&actorId=${actorFilter}`;
-    if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
+    if (scopedActorId) qs += `&actorId=${scopedActorId}`;
+    else if (actorFilter && actorFilter !== 'all') qs += `&actorId=${actorFilter}`;
+    if (scopedValueStreamId) qs += `&valueStreamId=${scopedValueStreamId}`;
+    else if (valueStreamFilter && valueStreamFilter !== 'all') qs += `&valueStreamId=${valueStreamFilter}`;
     if (lifecycleStageFilter && lifecycleStageFilter !== 'all') qs += `&lifecycleStage=${lifecycleStageFilter}`;
     const result = await api.get<PaginatedResponse<ValueResponse>>(`/values?${qs}`);
     return result.data as unknown as Record<string, unknown>[];
-  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter]);
+  }, [pagination.search, pagination.sortBy, pagination.sortOrder, typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter, scopedValueStreamId, scopedActorId]);
 
   const mobileVisibility = getMobileColumnVisibility(columns, isMobile);
   const mergedVisibility = {
     ...mergeColumnVisibility(columnVisibility, mobileVisibility),
     ...(scopedValueStreamId ? { valueStream: false } : {}),
+    ...(scopedActorId ? { actor: false } : {}),
   };
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
@@ -369,7 +381,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
         onClear: () => setTaxonomyFilter('all'),
       });
     }
-    if (actorFilter !== 'all') {
+    if (!scopedActorId && actorFilter !== 'all') {
       const actor = actors.find((a) => a.id === actorFilter);
       filters.push({
         key: 'actor',
@@ -396,7 +408,7 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
       });
     }
     return filters;
-  }, [typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, tc, t, tree, actors, valueStreams]);
+  }, [typeFilter, taxonomyFilter, actorFilter, valueStreamFilter, lifecycleStageFilter, tc, t, tree, actors, valueStreams, scopedActorId]);
 
   const activeFilterCount = activeFilters.length;
 
@@ -492,22 +504,24 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
             noneLabel={t('allTaxonomies')}
           />
         </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">{t('actor')}</label>
-          <Select value={actorFilter} onValueChange={setActorFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder={t('allActors')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allActors')}</SelectItem>
-              {actors.map((actor) => (
-                <SelectItem key={actor.id} value={actor.id}>
-                  {actor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!scopedActorId && (
+          <div className="space-y-1">
+            <label className="text-sm font-medium">{t('actor')}</label>
+            <Select value={actorFilter} onValueChange={setActorFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('allActors')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allActors')}</SelectItem>
+                {actors.map((actor) => (
+                  <SelectItem key={actor.id} value={actor.id}>
+                    {actor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="space-y-1">
           <label className="text-sm font-medium">{t('valueStream')}</label>
           <Select value={valueStreamFilter} onValueChange={setValueStreamFilter}>
@@ -565,8 +579,11 @@ export function ValuesDataTable({ valueStreamId: scopedValueStreamId }: ValuesDa
         onOpenChange={setFormOpen}
         onSubmit={handleCreate}
         initialData={
-          scopedStream
-            ? ({ valueStream: { id: scopedStream.id, name: scopedStream.name } } as unknown as ValueResponse)
+          scopedStream || scopedActor
+            ? ({
+                ...(scopedStream ? { valueStream: { id: scopedStream.id, name: scopedStream.name } } : {}),
+                ...(scopedActor ? { actor: { id: scopedActor.id, name: scopedActor.name } } : {}),
+              } as unknown as ValueResponse)
             : null
         }
         isSubmitting={isSubmitting}
