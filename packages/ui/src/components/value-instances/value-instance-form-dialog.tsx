@@ -35,7 +35,7 @@ import {
 import { ValueCombobox } from '../shared/value-combobox';
 import { useValues } from '../../hooks/use-values';
 import { useActors } from '../../hooks/use-actors';
-import { ImageLibraryDialog } from '../actors/image-library-dialog';
+import { ImageLibraryDialog } from '../shared/image-library-dialog';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { api } from '../../lib/api-client';
 
@@ -295,7 +295,7 @@ export function ValueInstanceFormDialog({
                     </label>
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={() => setImageLibraryOpen(true)}>
-                    {t('selectFromLibrary')}
+                    {tc('selectFromLibrary')}
                   </Button>
                 </div>
                 {selectedImage && (

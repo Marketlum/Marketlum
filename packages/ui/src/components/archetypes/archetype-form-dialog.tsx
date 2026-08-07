@@ -29,7 +29,7 @@ import { useTaxonomies } from '../../hooks/use-taxonomies';
 import { MarkdownEditor } from '../shared/markdown-editor';
 import { TaxonomyMultiCombobox } from '../shared/taxonomy-multi-combobox';
 import { FileImagePreview } from '../shared/file-image-preview';
-import { ImageLibraryDialog } from './image-library-dialog';
+import { ImageLibraryDialog } from '../shared/image-library-dialog';
 import { api } from '../../lib/api-client';
 
 interface ArchetypeFormDialogProps {
@@ -234,7 +234,7 @@ export function ArchetypeFormDialog({
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={() => setLibraryOpen(true)}>
                     <Library className="mr-1.5 h-3.5 w-3.5" />
-                    {t('selectFromLibrary')}
+                    {tc('selectFromLibrary')}
                   </Button>
                   {imagePreview && (
                     <Button type="button" variant="ghost" size="sm" onClick={handleRemoveImage}>

@@ -26,7 +26,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { useActors } from '../../hooks/use-actors';
 import { useAgreementTemplates } from '../../hooks/use-agreement-templates';
-import { ImageLibraryDialog } from '../actors/image-library-dialog';
+import { ImageLibraryDialog } from '../shared/image-library-dialog';
 import { FileImagePreview } from '../shared/file-image-preview';
 import {
   Select,
@@ -222,7 +222,7 @@ export function AgreementFormDialog({
                 </div>
               )}
               <Button type="button" variant="outline" size="sm" onClick={() => setFileLibraryOpen(true)}>
-                {t('selectFromLibrary')}
+                {tc('selectFromLibrary')}
               </Button>
             </div>
           </div>

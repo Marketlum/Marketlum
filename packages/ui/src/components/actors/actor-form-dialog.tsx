@@ -42,7 +42,7 @@ import { useValues } from '../../hooks/use-values';
 import { useActors } from '../../hooks/use-actors';
 import { api } from '../../lib/api-client';
 import { usePermissions } from '../../permissions/permissions-context';
-import { ImageLibraryDialog } from './image-library-dialog';
+import { ImageLibraryDialog } from '../shared/image-library-dialog';
 
 const typeTranslationKeys: Record<string, string> = {
   [ActorType.ORGANIZATION]: 'typeOrganization',
@@ -367,7 +367,7 @@ export function ActorFormDialog({
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={() => setLibraryOpen(true)}>
                     <Library className="mr-1.5 h-3.5 w-3.5" />
-                    {t('selectFromLibrary')}
+                    {tc('selectFromLibrary')}
                   </Button>
                   {imagePreview && (
                     <Button type="button" variant="ghost" size="sm" onClick={handleRemoveImage}>

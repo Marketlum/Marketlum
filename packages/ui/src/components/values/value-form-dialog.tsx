@@ -44,7 +44,7 @@ import { useActors } from '../../hooks/use-actors';
 import { useValues } from '../../hooks/use-values';
 import { useValueStreams } from '../../hooks/use-value-streams';
 import { api } from '../../lib/api-client';
-import { ImageLibraryDialog } from '../actors/image-library-dialog';
+import { ImageLibraryDialog } from '../shared/image-library-dialog';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { Badge } from '../ui/badge';
 
