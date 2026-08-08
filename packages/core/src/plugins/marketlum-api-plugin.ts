@@ -2,8 +2,13 @@ import type { Type } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
 import type { PluginManifest, PluginSettingsContract } from '@marketlum/shared';
 
+// TypeORM's own APIs (metadata targets, EntitySubscriber events) surface entity
+// and migration classes as bare `Function`, so these aliases must stay
+// assignment-compatible with it rather than use a construct signature.
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 export type EntityClass = Function;
 export type MigrationClass = Function;
+/* eslint-enable @typescript-eslint/no-unsafe-function-type */
 
 /**
  * The backend half of a Marketlum plugin. The downstream app passes an array of

@@ -67,6 +67,5 @@ export function FileImagePreview({ fileId, mimeType, alt, iconClassName, imgClas
     return <Icon className={iconClassName ?? 'h-12 w-12 text-muted-foreground/50'} />;
   }
 
-  // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt={alt} className={imgClassName ?? 'h-full w-full object-cover'} />;
 }

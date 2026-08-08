@@ -1,3 +1,4 @@
+import type { EntityClass } from '../plugins/marketlum-api-plugin';
 import { User } from '../users/entities/user.entity';
 import { Actor } from '../actors/entities/actor.entity';
 import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
@@ -26,7 +27,7 @@ import { ApiKey } from '../api-keys/entities/api-key.entity';
 import { Role } from '../roles/entities/role.entity';
 
 export interface PrimaryEntityDescriptor {
-  cls: Function;
+  cls: EntityClass;
   snakeName: string;
   // Redacts secrets from event payloads before they reach subscribers.
   sanitize?: (entity: unknown) => unknown;
@@ -66,12 +67,12 @@ export const PRIMARY_ENTITIES: PrimaryEntityDescriptor[] = [
   { cls: Role, snakeName: 'role' },
 ];
 
-const byCls = new Map<Function, PrimaryEntityDescriptor>(
+const byCls = new Map<EntityClass, PrimaryEntityDescriptor>(
   PRIMARY_ENTITIES.map((d) => [d.cls, d]),
 );
 
 export function primaryEntityDescriptor(
-  target: Function | string,
+  target: EntityClass | string,
 ): PrimaryEntityDescriptor | undefined {
   if (typeof target === 'function') {
     return byCls.get(target);
@@ -79,6 +80,6 @@ export function primaryEntityDescriptor(
   return PRIMARY_ENTITIES.find((d) => d.snakeName === target);
 }
 
-export function primaryEntitySnakeName(target: Function | string): string | undefined {
+export function primaryEntitySnakeName(target: EntityClass | string): string | undefined {
   return primaryEntityDescriptor(target)?.snakeName;
 }

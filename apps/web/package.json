@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build --webpack",
-    "start": "next start"
+    "start": "next start",
+    "lint": "eslint 'src/**/*.{ts,tsx}'"
   },
   "dependencies": {
     "@marketlum/plugin-nbp": "workspace:*",

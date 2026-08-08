@@ -15,7 +15,7 @@ import { McpToolRegistry } from './mcp-tool.registry';
 import { AnyMcpTool } from './mcp-tool.interface';
 import { User } from '../users/entities/user.entity';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const corePackage = require('../../package.json') as { version: string };
 
 function toolError(code: McpToolErrorCode, message: string): CallToolResult {

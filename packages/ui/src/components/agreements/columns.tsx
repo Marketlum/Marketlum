@@ -65,7 +65,6 @@ export function getAgreementColumns({
         const link = row.original.link;
         if (!link) return '-';
         return (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
           <div onClick={(e) => e.stopPropagation()}>
             <a href={link} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground" />
@@ -134,7 +133,6 @@ export function getAgreementColumns({
       cell: ({ row }) => {
         const agreement = row.original;
         return (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
           <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

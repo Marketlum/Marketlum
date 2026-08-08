@@ -91,7 +91,6 @@ export function getPipelineColumns({ onEdit, onDelete, onDuplicate, onSort, tran
       cell: ({ row }) => {
         const pipeline = row.original;
         return (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
           <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

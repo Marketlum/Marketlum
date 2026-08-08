@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nest build",
+    "lint": "eslint 'src/**/*.ts'",
     "dev": "nest start --watch",
     "start": "node dist/main",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",

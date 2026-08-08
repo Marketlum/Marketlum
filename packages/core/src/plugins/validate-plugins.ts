@@ -1,6 +1,6 @@
 import { getMetadataArgsStorage } from 'typeorm';
 import { pluginIdSchema, pluginTablePrefix } from '@marketlum/shared';
-import { MarketlumApiPlugin } from './marketlum-api-plugin';
+import { EntityClass, MarketlumApiPlugin } from './marketlum-api-plugin';
 import { toSnakeCase } from './snake-case';
 import { MARKETLUM_CORE_VERSION, satisfiesCoreVersion } from './version-compat';
 
@@ -46,7 +46,7 @@ export function validatePlugins(plugins: MarketlumApiPlugin[]): void {
     const prefix = pluginTablePrefix(id);
     for (const entity of plugin.entities ?? []) {
       const tableArg = getMetadataArgsStorage().tables.find((t) => t.target === entity);
-      const tableName = tableArg?.name ?? toSnakeCase((entity as Function).name);
+      const tableName = tableArg?.name ?? toSnakeCase((entity as EntityClass).name);
       if (!tableName.startsWith(prefix)) {
         throw new Error(
           `Plugin "${id}" entity table "${tableName}" must start with the required table prefix "${prefix}".`,

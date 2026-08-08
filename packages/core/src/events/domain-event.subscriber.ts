@@ -12,6 +12,7 @@ import {
 import { DomainEventBus } from './domain-event-bus.service';
 import { primaryEntityDescriptor } from './primary-entities';
 import { pluginPrimaryEntityBase } from './plugin-primary-entities';
+import type { EntityClass } from '../plugins/marketlum-api-plugin';
 
 type Pending = { name: string; id: string; code?: string; entity: unknown };
 
@@ -56,7 +57,7 @@ export class DomainEventSubscriber implements EntitySubscriberInterface {
   }
 
   private handle(
-    target: Function | string,
+    target: EntityClass | string,
     entity: unknown,
     verb: 'created' | 'updated' | 'deleted',
     queryRunner: QueryRunner | undefined,

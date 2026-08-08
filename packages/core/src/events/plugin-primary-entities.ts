@@ -1,4 +1,5 @@
 import { toSnakeCase } from '../plugins/snake-case';
+import type { EntityClass } from '../plugins/marketlum-api-plugin';
 
 /**
  * Registry mapping a plugin's primary entity classes to their event base
@@ -6,14 +7,14 @@ import { toSnakeCase } from '../plugins/snake-case';
  * consulted by the DomainEventSubscriber so plugin entities emit
  * `marketlum.plugin.<id>.<entity_snake>.<verb>` alongside core events.
  */
-const registry = new Map<Function, string>();
+const registry = new Map<EntityClass, string>();
 
-export function registerPluginPrimaryEntities(pluginId: string, entities: Function[]): void {
+export function registerPluginPrimaryEntities(pluginId: string, entities: EntityClass[]): void {
   for (const entity of entities) {
     registry.set(entity, `plugin.${pluginId}.${toSnakeCase(entity.name)}`);
   }
 }
 
-export function pluginPrimaryEntityBase(target: Function): string | undefined {
+export function pluginPrimaryEntityBase(target: EntityClass): string | undefined {
   return registry.get(target);
 }

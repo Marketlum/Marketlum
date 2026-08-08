@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "lint": "eslint 'src/**/*.ts'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

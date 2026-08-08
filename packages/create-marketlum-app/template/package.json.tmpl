@@ -4,14 +4,28 @@
   "scripts": {
     "dev": "pnpm --parallel -r run dev",
     "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
     "migration:run": "pnpm --filter api run migration:run",
     "migration:revert": "pnpm --filter api run migration:revert",
     "seed:admin": "pnpm --filter api run seed:admin",
     "seed:sample": "pnpm --filter api run seed:sample"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@nestjs/core", "bcrypt", "puppeteer", "unrs-resolver"]
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "bcrypt",
+      "puppeteer",
+      "unrs-resolver"
+    ]
   },
-  "engines": { "node": ">=20.9.0" },
-  "packageManager": "pnpm@10.6.2"
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "packageManager": "pnpm@10.6.2",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^10.1.8"
+  }
 }

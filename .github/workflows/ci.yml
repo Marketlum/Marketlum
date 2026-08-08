@@ -69,9 +69,7 @@ jobs:
           pnpm --filter @marketlum/plugin-rdhy build
 
       - name: Lint
-        run: |
-          pnpm --filter @marketlum/shared run lint
-          pnpm --filter @marketlum/api run lint
+        run: pnpm lint
 
       - name: Build web
         run: pnpm --filter @marketlum/web build
