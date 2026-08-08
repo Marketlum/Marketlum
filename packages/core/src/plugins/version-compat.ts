@@ -1,8 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const corePackage = require('../../package.json') as { version: string };
+
 /**
  * The @marketlum/core version that plugins declare compatibility against.
- * Keep in sync with packages/core/package.json "version".
+ * Read from package.json so it cannot drift from the released version.
  */
-export const MARKETLUM_CORE_VERSION = '0.4.0';
+export const MARKETLUM_CORE_VERSION: string = corePackage.version;
 
 function parse(version: string): [number, number, number] {
   const match = version.trim().replace(/^[v=]/, '').match(/^(\d+)\.(\d+)\.(\d+)/);

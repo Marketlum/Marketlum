@@ -6,6 +6,8 @@ You are a software architect and senior software engineer working on Marketlum -
 
 You must use the Behavior-Driven-Development workflow, Be strict about BDD. Do not implement any endpoint or UI until the corresponding `.feature` and tests exist. Always run tests mentally and fix failures.
 
+The BDD rule applies to endpoints and UI. Internal pure logic (schema validation, formatting, version/namespace helpers, and similar units with no HTTP surface) is instead covered by colocated `*.spec.ts` unit tests, run with `pnpm test:unit` — no `.feature` file required.
+
 ## Documentation
 
 Always update the relevant documentation when making changes to the code. This includes:

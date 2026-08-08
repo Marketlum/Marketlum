@@ -9,7 +9,7 @@ export const nbpPlugin: MarketlumApiPlugin = {
     id: NBP_PLUGIN_ID,
     name: 'Narodowy Bank Polski',
     version: '0.1.0',
-    marketlumCoreVersion: '^0.4.0',
+    marketlumCoreVersion: '^0.5.0',
   },
   module: NbpModule,
   settings: {

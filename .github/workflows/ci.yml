@@ -71,6 +71,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Run unit tests
+        run: pnpm -r run test
+
       - name: Build web
         run: pnpm --filter @marketlum/web build
 

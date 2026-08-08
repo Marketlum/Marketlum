@@ -4,7 +4,19 @@ sidebar_position: 5
 
 # Testing
 
-The Marketlum test suite is the BDD scenarios in `packages/bdd/features/` wired up to `jest-cucumber` step definitions in `apps/api/test/`. There are 600+ scenarios spanning 20+ feature areas.
+The Marketlum test suite is the BDD scenarios in `packages/bdd/features/` wired up to `jest-cucumber` step definitions in `apps/api/test/`. There are 600+ scenarios spanning 20+ feature areas. Alongside them, internal pure logic is covered by unit tests.
+
+## Unit tests
+
+Pure logic with no HTTP surface — Zod schemas in `@marketlum/shared`, version/namespace helpers and plugin validation in `@marketlum/core`, UI helpers in `@marketlum/ui` — is tested with colocated `*.spec.ts` files run by Jest via `ts-jest`:
+
+```bash
+pnpm test:unit
+```
+
+This builds `@marketlum/shared` first (core's tests import its compiled output), then runs every package's `test` script. No database is needed, so it is much faster than the e2e suite — use it as the tight feedback loop while working on schemas or helpers.
+
+Unit tests do not need a `.feature` file; the BDD workflow applies to endpoints and UI. Spec files are excluded from package builds (`tsconfig.json` `exclude`), so they never ship in `dist/`.
 
 ## Running the suite
 
@@ -117,5 +129,6 @@ await request(getApp().getHttpServer())
 
 ## What we don&apos;t test (yet)
 
+- **No mocked-service unit tests.** NestJS services and controllers are covered by the BDD suite against a real database, not by unit tests with mocked repositories — that duplication calcifies refactoring without adding confidence.
 - **No browser UI tests.** Web-side behavior is covered by BDD scenarios against the underlying API. Visual regressions are caught at PR review.
 - **No load / performance tests.** Add `EXPLAIN ANALYZE` notes in PR descriptions if a change touches a hot query path.
