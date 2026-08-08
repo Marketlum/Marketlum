@@ -13,7 +13,7 @@
     "@marketlum/plugin-rdhy": "workspace:*",
     "@marketlum/shared": "workspace:*",
     "@marketlum/ui": "workspace:*",
-    "next": "^16.2.6",
+    "next": "^16.2.11",
     "next-intl": "^4.8.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
