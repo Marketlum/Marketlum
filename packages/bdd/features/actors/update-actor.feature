@@ -7,6 +7,22 @@ Feature: Update Actor
     Then the response status should be 200
     And the response should contain an actor with name "Actor Updated"
 
+  Scenario: Successfully set an actor's contact details
+    Given I am authenticated as "admin@marketlum.com"
+    And an actor exists with name "Actor One" and type "organization"
+    When I update the actor's email to "team@one.example" and website to "https://one.example"
+    Then the response status should be 200
+    And the response should contain an actor with email "team@one.example"
+    And the response should contain an actor with website "https://one.example"
+
+  Scenario: Successfully clear an actor's contact details
+    Given I am authenticated as "admin@marketlum.com"
+    And an actor exists with name "Actor One" and type "organization"
+    When I update the actor's email to "team@one.example" and website to "https://one.example"
+    And I clear the actor's contact details
+    Then the response status should be 200
+    And the response should contain an actor with no contact details
+
   Scenario: Update a non-existent actor returns 404
     Given I am authenticated as "admin@marketlum.com"
     When I update the actor with ID "00000000-0000-0000-0000-000000000000" with name "Test"

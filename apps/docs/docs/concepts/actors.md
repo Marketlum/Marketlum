@@ -19,6 +19,8 @@ Actors are the participants in your market. Every entity that creates, exchanges
 
 - **Name** &mdash; the actor's display name
 - **Purpose** &mdash; what this actor does in the market
+- **Email** &mdash; optional contact email address
+- **Website** &mdash; optional website URL
 - **Taxonomies** &mdash; classification categories (main taxonomy + additional)
 - **Image** &mdash; optional visual identifier
 

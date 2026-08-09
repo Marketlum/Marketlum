@@ -61,6 +61,7 @@ import { AddOnBehalfInvoicing1700000000059 } from './1700000000059-AddOnBehalfIn
 import { RenameAgentsToActors1700000000060 } from './1700000000060-RenameAgentsToActors';
 import { AddAgentActorType1700000000061 } from './1700000000061-AddAgentActorType';
 import { AddEquityValueType1700000000062 } from './1700000000062-AddEquityValueType';
+import { AddActorContactFields1700000000063 } from './1700000000063-AddActorContactFields';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -126,4 +127,5 @@ export const ALL_MIGRATIONS = [
   RenameAgentsToActors1700000000060,
   AddAgentActorType1700000000061,
   AddEquityValueType1700000000062,
+  AddActorContactFields1700000000063,
 ];
