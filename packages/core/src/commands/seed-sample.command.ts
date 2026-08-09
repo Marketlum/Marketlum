@@ -31,7 +31,7 @@ import { ExchangeFlowsService } from '../exchanges/exchange-flows.service';
 import { seedLocales } from './seeders/locale.seeder';
 import { seedTaxonomies } from './seeders/taxonomy.seeder';
 import { seedGeographies } from './seeders/geography.seeder';
-import { seedUsers } from './seeders/user.seeder';
+import { seedUsers, seedAgentUser } from './seeders/user.seeder';
 import { seedActors } from './seeders/actor.seeder';
 import { seedChannels } from './seeders/channel.seeder';
 import { seedArchetypes } from './seeders/archetype.seeder';
@@ -146,6 +146,11 @@ export class SeedSampleCommand extends CommandRunner {
       countries: geographies.countries,
     });
     this.logger.log(`  Created ${actors.length} actors`);
+
+    // Spec 025: the agent user links to a seeded actor, so it seeds after actors.
+    this.logger.log('Seeding agent user...');
+    await seedAgentUser(this.usersService, this.rolesService, actors);
+    this.logger.log('  Created 1 agent user');
 
     this.logger.log('Seeding channels...');
     const channels = await seedChannels(this.channelsService, { actors });

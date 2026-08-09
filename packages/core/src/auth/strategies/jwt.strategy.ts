@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
+import { UserType } from '@marketlum/shared';
 import { UsersService } from '../../users/users.service';
 
 function extractJwtFromCookie(req: Request): string | null {
@@ -22,10 +23,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: string; email: string }) {
+    let user;
     try {
-      return await this.usersService.findOne(payload.sub);
+      user = await this.usersService.findOne(payload.sub);
     } catch {
       throw new UnauthorizedException();
     }
+    // Spec 025: agent users can never hold sessions — even a validly signed
+    // cookie for an agent is rejected.
+    if (user.type === UserType.AGENT) {
+      throw new UnauthorizedException();
+    }
+    return user;
   }
 }
