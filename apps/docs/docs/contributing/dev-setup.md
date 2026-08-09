@@ -8,7 +8,7 @@ Get the Marketlum monorepo running locally.
 
 ## Prerequisites
 
-- **Node.js** >= 20.9.0
+- **Node.js** >= 24
 - **pnpm** >= 10.6
 - **Docker** (for PostgreSQL) &mdash; or a local PostgreSQL 16 install
 

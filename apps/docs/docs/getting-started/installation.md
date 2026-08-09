@@ -6,7 +6,7 @@ sidebar_position: 1
 
 ## Prerequisites
 
-- **Node.js** >= 20.9.0
+- **Node.js** >= 24
 - **pnpm** >= 10.6
 - **PostgreSQL** >= 16 (or Docker)
 
