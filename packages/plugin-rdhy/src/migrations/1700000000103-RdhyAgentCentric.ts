@@ -6,6 +6,11 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * memberships and VAM/EMC agreements referenced value streams, which have no
  * derivable agent mapping — those rows are cleared (the seed hook recreates
  * sample data).
+ *
+ * FKs reference "actors": on a fresh database this migration replays after
+ * core's RenameAgentsToActors1700000000060, so "agents" no longer exists.
+ * Databases migrated before the rename got the same FK via the rename's
+ * automatic retargeting, so both paths converge on an identical schema.
  */
 export class RdhyAgentCentric1700000000103 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -22,7 +27,7 @@ export class RdhyAgentCentric1700000000103 implements MigrationInterface {
         CONSTRAINT "FK_plugin_rdhy_platform_agent_platform" FOREIGN KEY ("platformId")
           REFERENCES "plugin_rdhy_platforms"("id") ON DELETE CASCADE,
         CONSTRAINT "FK_plugin_rdhy_platform_agent_agent" FOREIGN KEY ("agentId")
-          REFERENCES "agents"("id") ON DELETE CASCADE
+          REFERENCES "actors"("id") ON DELETE CASCADE
       )
     `);
     await queryRunner.query(
@@ -42,7 +47,7 @@ export class RdhyAgentCentric1700000000103 implements MigrationInterface {
     await queryRunner.query(`
       ALTER TABLE "plugin_rdhy_vam_agreements"
         ADD CONSTRAINT "FK_plugin_rdhy_vam_agr_agent"
-        FOREIGN KEY ("agentId") REFERENCES "agents"("id") ON DELETE CASCADE
+        FOREIGN KEY ("agentId") REFERENCES "actors"("id") ON DELETE CASCADE
     `);
     await queryRunner.query(
       `CREATE INDEX "IDX_plugin_rdhy_vam_agr_agent" ON "plugin_rdhy_vam_agreements" ("agentId")`,
@@ -67,7 +72,7 @@ export class RdhyAgentCentric1700000000103 implements MigrationInterface {
     await queryRunner.query(`
       ALTER TABLE "plugin_rdhy_emc_nodes"
         ADD CONSTRAINT "FK_plugin_rdhy_emc_node_agent"
-        FOREIGN KEY ("agentId") REFERENCES "agents"("id") ON DELETE CASCADE
+        FOREIGN KEY ("agentId") REFERENCES "actors"("id") ON DELETE CASCADE
     `);
     await queryRunner.query(
       `CREATE INDEX "IDX_plugin_rdhy_emc_node_agent" ON "plugin_rdhy_emc_nodes" ("agentId")`,
