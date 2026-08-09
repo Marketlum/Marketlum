@@ -19,6 +19,14 @@ import { getMobileColumnVisibility, mergeColumnVisibility } from '../../lib/colu
 import { usePermissions } from '../../permissions/permissions-context';
 import { UserFormDialog } from './user-form-dialog';
 import { ChangePasswordDialog } from './change-password-dialog';
+import { AgentApiKeysDialog } from './agent-api-keys-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import { ManageRolesDialog } from './manage-roles-dialog';
 import { getUserColumns } from './columns';
 import { ExportDropdown } from '../shared/export-dropdown';
@@ -40,6 +48,8 @@ export function UsersDataTable() {
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
   const [passwordUser, setPasswordUser] = useState<UserResponse | null>(null);
   const [rolesUser, setRolesUser] = useState<UserResponse | null>(null);
+  const [apiKeysUser, setApiKeysUser] = useState<UserResponse | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [deleteUser, setDeleteUser] = useState<UserResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -85,7 +95,8 @@ export function UsersDataTable() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const qs = pagination.toQueryString();
+      let qs = pagination.toQueryString();
+      if (typeFilter !== 'all') qs += `&type=${typeFilter}`;
       const result = await api.get<PaginatedResponse<UserResponse>>(`/users?${qs}`);
       setData(result);
     } catch {
@@ -93,11 +104,11 @@ export function UsersDataTable() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.toQueryString]);
+  }, [pagination.toQueryString, typeFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, fetchData]);
+  }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, typeFilter, fetchData]);
 
   const handleCreate = async (input: CreateUserInput) => {
     setIsSubmitting(true);
@@ -121,6 +132,7 @@ export function UsersDataTable() {
       if (input.name) body.name = input.name;
       if (input.email) body.email = input.email;
       if (input.avatarId !== undefined) body.avatarId = input.avatarId;
+      if (editingUser.type === 'agent' && input.actorId !== undefined) body.actorId = input.actorId;
       await api.patch(`/users/${editingUser.id}`, body);
       toast.success(t('updated'));
       setEditingUser(null);
@@ -164,6 +176,7 @@ export function UsersDataTable() {
   const allColumns = getUserColumns({
     onEdit: (user) => setEditingUser(user),
     onChangePassword: (user) => setPasswordUser(user),
+    onManageApiKeys: (user) => setApiKeysUser(user),
     onManageRoles: (user) => setRolesUser(user),
     onDelete: (user) => setDeleteUser(user),
     onSort: pagination.setSort,
@@ -171,6 +184,10 @@ export function UsersDataTable() {
       avatar: t('avatar'),
       name: tc('name'),
       email: tc('email'),
+      type: t('type'),
+      typeHuman: t('typeHuman'),
+      typeAgent: t('typeAgent'),
+      apiKeys: t('apiKeys'),
       roles: t('rolesColumn'),
       noRoles: t('noRoles'),
       created: tc('created'),
@@ -185,6 +202,7 @@ export function UsersDataTable() {
   const columnMeta = [
     { id: 'avatar', label: t('avatar') },
     { id: 'name', label: tc('name') },
+    { id: 'type', label: t('type') },
     { id: 'email', label: tc('email') },
     { id: 'roles', label: t('rolesColumn') },
     { id: 'createdAt', label: tc('created') },
@@ -220,6 +238,16 @@ export function UsersDataTable() {
         onCreateClick={canWrite ? () => setFormOpen(true) : undefined}
         createLabel={canWrite ? t('createUser') : undefined}
       >
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('allTypes')}</SelectItem>
+            <SelectItem value="human">{t('typeHuman')}</SelectItem>
+            <SelectItem value="agent">{t('typeAgent')}</SelectItem>
+          </SelectContent>
+        </Select>
         <ColumnVisibilityDropdown
           columns={columnMeta}
           visibility={columnVisibility}
@@ -304,6 +332,12 @@ export function UsersDataTable() {
         onOpenChange={(open) => !open && setRolesUser(null)}
         user={rolesUser}
         onSaved={fetchData}
+      />
+
+      <AgentApiKeysDialog
+        open={!!apiKeysUser}
+        onOpenChange={(open) => !open && setApiKeysUser(null)}
+        user={apiKeysUser}
       />
 
       <ConfirmDeleteDialog

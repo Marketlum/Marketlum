@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown, User } from 'lucide-react';
+import { UserTypeBadge } from './user-type-badge';
 import type { UserResponse } from '@marketlum/shared';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -17,6 +18,10 @@ interface UserColumnsTranslations {
   avatar: string;
   name: string;
   email: string;
+  type: string;
+  typeHuman: string;
+  typeAgent: string;
+  apiKeys: string;
   roles: string;
   noRoles: string;
   created: string;
@@ -29,13 +34,14 @@ interface UserColumnsTranslations {
 interface UserColumnsOptions {
   onEdit: (user: UserResponse) => void;
   onChangePassword: (user: UserResponse) => void;
+  onManageApiKeys: (user: UserResponse) => void;
   onManageRoles: (user: UserResponse) => void;
   onDelete: (user: UserResponse) => void;
   onSort: (column: string) => void;
   translations: UserColumnsTranslations;
 }
 
-export function getUserColumns({ onEdit, onChangePassword, onManageRoles, onDelete, onSort, translations }: UserColumnsOptions): ColumnDef<UserResponse>[] {
+export function getUserColumns({ onEdit, onChangePassword, onManageApiKeys, onManageRoles, onDelete, onSort, translations }: UserColumnsOptions): ColumnDef<UserResponse>[] {
   return [
     {
       id: 'avatar',
@@ -66,6 +72,19 @@ export function getUserColumns({ onEdit, onChangePassword, onManageRoles, onDele
           {translations.name} <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+    },
+    {
+      accessorKey: 'type',
+      header: translations.type,
+      cell: ({ row }) => {
+        const type = row.original.type;
+        return (
+          <UserTypeBadge
+            type={type}
+            label={type === 'agent' ? translations.typeAgent : translations.typeHuman}
+          />
+        );
+      },
     },
     {
       accessorKey: 'email',
@@ -115,9 +134,15 @@ export function getUserColumns({ onEdit, onChangePassword, onManageRoles, onDele
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(user)}>{translations.edit}</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChangePassword(user)}>
-                {translations.changePassword}
-              </DropdownMenuItem>
+              {user.type === 'agent' ? (
+                <DropdownMenuItem onClick={() => onManageApiKeys(user)}>
+                  {translations.apiKeys}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => onChangePassword(user)}>
+                  {translations.changePassword}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => onManageRoles(user)}>
                 {translations.manageRoles}
               </DropdownMenuItem>

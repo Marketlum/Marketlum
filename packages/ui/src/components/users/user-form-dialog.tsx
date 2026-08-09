@@ -6,7 +6,16 @@ import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { Upload, User, Library, X } from 'lucide-react';
-import { createUserSchema, updateUserSchema, type CreateUserInput, type UserResponse, type FileResponse } from '@marketlum/shared';
+import {
+  createUserSchema,
+  updateUserSchema,
+  UserType,
+  type ActorResponse,
+  type CreateUserInput,
+  type PaginatedResponse,
+  type UserResponse,
+  type FileResponse,
+} from '@marketlum/shared';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +27,14 @@ import {
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { UserTypeBadge } from './user-type-badge';
 import { FileImagePreview } from '../shared/file-image-preview';
 import { ImageLibraryDialog } from '../shared/image-library-dialog';
 import { api } from '../../lib/api-client';
@@ -50,10 +67,37 @@ export function UserFormDialog({
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateUserInput>({
     resolver: zodResolver(schema),
   });
+
+  const typeValue = watch('type');
+  const isAgent = (user ? user.type : typeValue) === UserType.AGENT;
+  const [agentActors, setAgentActors] = useState<ActorResponse[]>([]);
+
+  useEffect(() => {
+    if (open && isAgent) {
+      api
+        .get<PaginatedResponse<ActorResponse>>('/actors?type=agent&limit=100')
+        .then((result) => setAgentActors(result.data))
+        .catch(() => setAgentActors([]));
+    }
+  }, [open, isAgent]);
+
+  const actorIdValue = watch('actorId');
+
+  const handleTypeChange = (value: string) => {
+    setValue('type', value as CreateUserInput['type']);
+    if (value === UserType.AGENT) {
+      // The schema forbids a password for agents — drop any typed value.
+      setValue('password', undefined);
+    } else {
+      setValue('password', '');
+      setValue('actorId', undefined);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -62,6 +106,7 @@ export function UserFormDialog({
           name: user.name,
           email: user.email,
           avatarId: user.avatar?.id ?? null,
+          ...(user.type === UserType.AGENT ? { actorId: user.actorId ?? null } : {}),
         });
         setImagePreview(
           user.avatar
@@ -69,7 +114,7 @@ export function UserFormDialog({
             : null,
         );
       } else {
-        reset({ name: '', email: '', password: '', avatarId: null });
+        reset({ name: '', email: '', password: '', avatarId: null, type: UserType.HUMAN });
         setImagePreview(null);
       }
     }
@@ -124,12 +169,57 @@ export function UserFormDialog({
             <Input id="email" type="email" {...register('email')} />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
-          {!isEditing && (
+          <div className="space-y-2">
+            <Label>{t('type')}</Label>
+            {isEditing ? (
+              <div>
+                <UserTypeBadge
+                  type={user?.type ?? 'human'}
+                  label={user?.type === 'agent' ? t('typeAgent') : t('typeHuman')}
+                />
+              </div>
+            ) : (
+              <Select value={typeValue ?? UserType.HUMAN} onValueChange={handleTypeChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UserType.HUMAN}>{t('typeHuman')}</SelectItem>
+                  <SelectItem value={UserType.AGENT}>{t('typeAgent')}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          {!isEditing && !isAgent && (
             <div className="space-y-2">
               <Label htmlFor="password">{t('passwordLabel')}</Label>
               <Input id="password" type="password" {...register('password')} />
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
+            </div>
+          )}
+          {isAgent && (
+            <div className="space-y-2">
+              <Label>{t('operatesAs')}</Label>
+              <Select
+                value={actorIdValue ?? '__none__'}
+                onValueChange={(v) => setValue('actorId', v === '__none__' ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('operatesAsNone')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('operatesAsNone')}</SelectItem>
+                  {agentActors.map((actor) => (
+                    <SelectItem key={actor.id} value={actor.id}>
+                      {actor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.actorId && (
+                <p className="text-sm text-destructive">{errors.actorId.message}</p>
               )}
             </div>
           )}
