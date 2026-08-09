@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike, In } from 'typeorm';
@@ -9,8 +10,15 @@ import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { File } from '../files/entities/file.entity';
 import { Role } from '../roles/entities/role.entity';
+import { Actor } from '../actors/entities/actor.entity';
 import { PermissionsService } from '../roles/permissions.service';
-import { CreateUserInput, UpdateUserInput, PaginationQuery } from '@marketlum/shared';
+import {
+  ActorType,
+  CreateUserInput,
+  UpdateUserInput,
+  PaginationQuery,
+  UserType,
+} from '@marketlum/shared';
 
 @Injectable()
 export class UsersService {
@@ -21,11 +29,13 @@ export class UsersService {
     private readonly fileRepository: Repository<File>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Actor)
+    private readonly actorRepository: Repository<Actor>,
     private readonly permissionsService: PermissionsService,
   ) {}
 
-  async create(input: CreateUserInput): Promise<User> {
-    const { avatarId, ...rest } = input;
+  async create(input: Omit<CreateUserInput, 'type'> & { type?: UserType }): Promise<User> {
+    const { avatarId, actorId, ...rest } = input;
 
     const existing = await this.usersRepository.findOne({
       where: { email: rest.email },
@@ -34,11 +44,18 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(rest.password, 10);
+    // Spec 025: agents have no password; the schema guarantees password is
+    // present for humans and absent for agents.
     const user = this.usersRepository.create({
       ...rest,
-      password: hashedPassword,
+      password:
+        rest.type === UserType.AGENT ? null : await bcrypt.hash(rest.password as string, 10),
     });
+
+    if (actorId) {
+      await this.assertAgentActor(actorId);
+      user.actorId = actorId;
+    }
 
     if (avatarId) {
       const file = await this.fileRepository.findOne({ where: { id: avatarId } });
@@ -53,14 +70,17 @@ export class UsersService {
     return this.findOne(saved.id);
   }
 
-  async findAll(query: PaginationQuery) {
-    const { page, limit, search, sortBy, sortOrder } = query;
+  async findAll(query: PaginationQuery & { type?: UserType }) {
+    const { page, limit, search, sortBy, sortOrder, type } = query;
     const skip = (page - 1) * limit;
 
+    const base: Record<string, unknown> = type ? { type } : {};
     const where: Record<string, unknown>[] = [];
     if (search) {
-      where.push({ name: ILike(`%${search}%`) });
-      where.push({ email: ILike(`%${search}%`) });
+      where.push({ ...base, name: ILike(`%${search}%`) });
+      where.push({ ...base, email: ILike(`%${search}%`) });
+    } else if (type) {
+      where.push(base);
     }
 
     const order: Record<string, 'ASC' | 'DESC'> = {};
@@ -72,7 +92,7 @@ export class UsersService {
 
     const [data, total] = await this.usersRepository.findAndCount({
       where: where.length > 0 ? where : undefined,
-      relations: ['avatar', 'roles'],
+      relations: ['avatar', 'roles', 'actor'],
       order,
       skip,
       take: limit,
@@ -92,7 +112,7 @@ export class UsersService {
   async findOne(id: string): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['avatar'],
+      relations: ['avatar', 'actor'],
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -107,7 +127,7 @@ export class UsersService {
   async findOneWithRoles(id: string): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['avatar', 'roles'],
+      relations: ['avatar', 'roles', 'actor'],
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -155,9 +175,23 @@ export class UsersService {
 
   async update(id: string, input: UpdateUserInput): Promise<User> {
     const user = await this.findOne(id);
-    const { avatarId, ...rest } = input;
+    const { avatarId, actorId, ...rest } = input;
 
     Object.assign(user, rest);
+
+    if (actorId !== undefined) {
+      if (user.type !== UserType.AGENT) {
+        throw new BadRequestException('Only agent users can link to an actor');
+      }
+      if (actorId === null) {
+        user.actor = null;
+        user.actorId = null;
+      } else {
+        await this.assertAgentActor(actorId);
+        user.actor = null;
+        user.actorId = actorId;
+      }
+    }
 
     if (avatarId !== undefined) {
       if (avatarId === null) {
@@ -179,6 +213,9 @@ export class UsersService {
 
   async changePassword(id: string, password: string): Promise<User> {
     const user = await this.findOne(id);
+    if (user.type === UserType.AGENT) {
+      throw new BadRequestException('Agent users have no password');
+    }
     user.password = await bcrypt.hash(password, 10);
     await this.usersRepository.save(user);
     return this.findOne(id);
@@ -193,10 +230,25 @@ export class UsersService {
     const user = await this.findByEmail(email);
     if (!user) return null;
 
+    // Spec 025: agents can never hold sessions — explicit rejection, not just
+    // a NULL-password mismatch.
+    if (user.type === UserType.AGENT || user.password === null) return null;
+
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return null;
 
     return user;
+  }
+
+  // Spec 025 Q10: the linked actor must be an agent-type market actor.
+  private async assertAgentActor(actorId: string): Promise<void> {
+    const actor = await this.actorRepository.findOne({ where: { id: actorId } });
+    if (!actor) {
+      throw new NotFoundException('Actor not found');
+    }
+    if (actor.type !== ActorType.AGENT) {
+      throw new BadRequestException('Actor is not an agent-type actor');
+    }
   }
 
   stripPassword(user: User): Omit<User, 'password'> {

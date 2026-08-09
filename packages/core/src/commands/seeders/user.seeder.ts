@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { UserType } from '@marketlum/shared';
 import { UsersService } from '../../users/users.service';
 import { RolesService } from '../../roles/roles.service';
 
@@ -27,4 +28,36 @@ export async function seedUsers(service: UsersService, rolesService: RolesServic
   }
 
   return users;
+}
+
+/**
+ * Spec 025: one agent user operating as the seeded "Acme Pricing Agent" actor.
+ * Runs after seedActors (the link needs the actor id). No API key is seeded —
+ * plaintext keys in seed output would rot in docs; admins provision real ones.
+ */
+export async function seedAgentUser(
+  service: UsersService,
+  rolesService: RolesService,
+  actors: Array<{ id: string; name: string }>,
+) {
+  const pricingActor = actors.find((a) => a.name === 'Acme Pricing Agent');
+
+  const existingRole = await rolesService.findByCode('agent_reader');
+  const role =
+    existingRole ??
+    (await rolesService.create({
+      name: 'Agent Reader',
+      code: 'agent_reader',
+      parentId: null,
+      permissions: ['actors:read', 'dashboard:read', 'search:read'],
+    }));
+
+  const agent = await service.create({
+    name: 'Acme Pricing Agent',
+    email: 'pricing-agent@acme.example',
+    type: UserType.AGENT,
+    actorId: pricingActor?.id ?? null,
+  });
+  await service.assignRoles(agent.id, [role.id]);
+  return agent;
 }

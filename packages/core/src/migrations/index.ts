@@ -62,6 +62,7 @@ import { RenameAgentsToActors1700000000060 } from './1700000000060-RenameAgentsT
 import { AddAgentActorType1700000000061 } from './1700000000061-AddAgentActorType';
 import { AddEquityValueType1700000000062 } from './1700000000062-AddEquityValueType';
 import { AddActorContactFields1700000000063 } from './1700000000063-AddActorContactFields';
+import { AddUserTypes1700000000064 } from './1700000000064-AddUserTypes';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -128,4 +129,5 @@ export const ALL_MIGRATIONS = [
   AddAgentActorType1700000000061,
   AddEquityValueType1700000000062,
   AddActorContactFields1700000000063,
+  AddUserTypes1700000000064,
 ];

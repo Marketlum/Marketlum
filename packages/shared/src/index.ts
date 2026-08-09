@@ -1,4 +1,5 @@
 export { ActorType } from './enums/actor-type.enum';
+export { UserType } from './enums/user-type.enum';
 export { InvoiceMarket } from './enums/invoice-market.enum';
 export { ValueType } from './enums/value-type.enum';
 export { ValueParentType } from './enums/value-parent-type.enum';
@@ -23,11 +24,13 @@ export {
   createUserSchema,
   updateUserSchema,
   changeUserPasswordSchema,
+  usersListQuerySchema,
   userResponseSchema,
   authMeResponseSchema,
   type CreateUserInput,
   type UpdateUserInput,
   type ChangeUserPasswordInput,
+  type UsersListQuery,
   type UserResponse,
   type AuthMeResponse,
 } from './schemas/user.schema';

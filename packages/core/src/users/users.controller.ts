@@ -11,6 +11,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -29,6 +30,7 @@ import {
   ApiExtraModels,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
+import { ApiKeysService } from '../api-keys/api-keys.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ApiPaginatedResponse } from '../common/swagger/api-paginated-response.decorator';
@@ -36,11 +38,15 @@ import {
   createUserSchema,
   updateUserSchema,
   changeUserPasswordSchema,
+  createApiKeySchema,
+  usersListQuerySchema,
   assignUserRolesSchema,
   paginationQuerySchema,
   CreateUserInput,
   UpdateUserInput,
   ChangeUserPasswordInput,
+  CreateApiKeyInput,
+  UsersListQuery,
   AssignUserRolesInput,
   PaginationQuery,
 } from '@marketlum/shared';
@@ -57,7 +63,55 @@ import {
 @ApiExtraModels(UserResponseDto)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly apiKeysService: ApiKeysService,
+  ) {}
+
+  // Spec 025: agents cannot log in, so their API keys are provisioned by
+  // admins here rather than through the self-service /api-keys routes.
+  @Post(':id/api-keys')
+  @UseGuards(AdminGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create an API key for an agent user; plaintext returned only once" })
+  @ApiParam({ name: 'id', type: String })
+  @ApiBadRequestResponse({ description: 'Target user is not an agent' })
+  async createAgentApiKey(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(createApiKeySchema)) body: CreateApiKeyInput,
+  ) {
+    await this.assertAgentTarget(id);
+    return this.apiKeysService.create(id, body);
+  }
+
+  @Get(':id/api-keys')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: "List an agent user's API keys (metadata only)" })
+  @ApiParam({ name: 'id', type: String })
+  @ApiBadRequestResponse({ description: 'Target user is not an agent' })
+  async listAgentApiKeys(@Param('id') id: string) {
+    await this.assertAgentTarget(id);
+    return this.apiKeysService.findAllForUser(id);
+  }
+
+  @Delete(':id/api-keys/:keyId')
+  @UseGuards(AdminGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Revoke an agent user's API key" })
+  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'keyId', type: String })
+  @ApiNoContentResponse({ description: 'API key revoked' })
+  async revokeAgentApiKey(@Param('id') id: string, @Param('keyId') keyId: string) {
+    await this.assertAgentTarget(id);
+    await this.apiKeysService.remove(id, keyId);
+  }
+
+  private async assertAgentTarget(id: string): Promise<void> {
+    const user = await this.usersService.findOne(id);
+    if (user.type !== 'agent') {
+      throw new BadRequestException('API keys can only be managed for agent users');
+    }
+  }
 
   @Post()
   @UseGuards(AdminGuard)
@@ -80,9 +134,13 @@ export class UsersController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
+  @ApiQuery({ name: 'type', required: false, enum: ['human', 'agent'] })
   @ApiPaginatedResponse(UserResponseDto)
-  async findAll(@Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery) {
-    return this.usersService.findAll(query);
+  async findAll(
+    @Query(new ZodValidationPipe(paginationQuerySchema)) query: PaginationQuery,
+    @Query(new ZodValidationPipe(usersListQuerySchema)) typeQuery: UsersListQuery,
+  ) {
+    return this.usersService.findAll({ ...query, ...typeQuery });
   }
 
   @Get(':id')
