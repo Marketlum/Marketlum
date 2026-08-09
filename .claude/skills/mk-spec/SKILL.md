@@ -1,9 +1,9 @@
 ---
-description: Run a multi-round brainstorming session for a new feature and produce a complete specification document. Invoked as `/spec <feature description>`.
+description: Run a multi-round brainstorming session for a new feature and produce a complete specification document. Invoked as `/mk-spec <feature description>`.
 arguments: description
 ---
 
-You are running the **/spec** workflow for: **$description**
+You are running the **/mk-spec** workflow for: **$description**
 
 (If `$description` is empty, ask the user one short question to capture the feature description, then proceed.)
 

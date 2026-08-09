@@ -1,9 +1,9 @@
 ---
-description: Implement a task on a dedicated branch and open a Pull Request for it. Invoked as `/pr <task description>`.
+description: Implement a task on a dedicated branch and open a Pull Request for it. Invoked as `/mk-pr <task description>`.
 argument-hint: <task description>
 ---
 
-You are running the **/pr** workflow for: **$ARGUMENTS**
+You are running the **/mk-pr** workflow for: **$ARGUMENTS**
 
 (If `$ARGUMENTS` is empty, take the task from the `<command-args>` of the invocation; if that is empty too, ask the user one short question to capture the task, then proceed.)
 
@@ -58,4 +58,4 @@ Run, in order, and fix failures before proceeding:
 
 - Never commit or push to `master` from this skill — everything goes through the branch and PR.
 - Never `git push --force` on a shared branch; use `--force-with-lease` only on the PR's own branch after a rebase.
-- If the task turns out to need a spec-level discussion (new entity, cross-cutting rename, breaking API change), stop and suggest running `/spec` first instead of pushing ahead.
+- If the task turns out to need a spec-level discussion (new entity, cross-cutting rename, breaking API change), stop and suggest running `/mk-spec` first instead of pushing ahead.
