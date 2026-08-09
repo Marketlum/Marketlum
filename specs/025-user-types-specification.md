@@ -105,7 +105,7 @@ CREATE INDEX "IDX_users_type" ON "users" ("type");
 - **`users/columns.tsx`**: type badge column.
 - **`users-page.tsx`**: Human/Agent filter dropdown beside search (drives `?type=`).
 - **`user-form-dialog.tsx`**: type selector (radio/select) at top — `human` → password field; `agent` → optional agent-actor select (options = actors with `type='agent'`). Edit mode: type displayed read-only.
-- **Agent keys section**: expandable area on agent rows of the users table — create key (plaintext-once dialog, reuse the pattern from `api-keys-page.tsx`), metadata list, revoke with confirm. Rendered only for `type = 'agent'` and gated by `Can` (users:write for mutations).
+- **Agent keys section**: expandable area on agent rows of the users table — create key (plaintext-once dialog, reuse the pattern from `api-keys-page.tsx`), metadata list, revoke with confirm. Rendered only for `type = 'agent'` and gated by `Can` (users:write for mutations). *(Implementation note: shipped as an `AgentApiKeysDialog` opened from the row actions menu — the users table has no row-expansion infrastructure, and the dialog matches the established ManageRolesDialog pattern; it replaces the change-password action for agent rows.)*
 - **`change-password-dialog`**: hidden for agent users.
 - Messages: EN + PL — `users.typeHuman`, `users.typeAgent`, `users.type`, `users.operatesAs`, `users.agentKeys.*` (section title, create, revoke, plaintext-once warning, empty state).
 
@@ -133,12 +133,12 @@ Feature files in `packages/bdd/features/`, steps in `apps/api/test/` (shared-app
 | `users/agent-api-keys.feature` | 5 | admin creates key (plaintext once) 201; human target 400; list metadata; revoke; non-admin 403 |
 | `mcp/agent-key-works.feature` | 1 | MCP tool call with an agent's key succeeds under the agent's role grants |
 
-**Total: 16 scenarios.**
+**Total: 16 scenarios.** *(Implementation note: shipped as 17 — `users/user-types.feature` gained "Changing an agent user's password fails", guarding the change-password route so an admin cannot hand an agent a password and undermine the no-password invariant.)*
 
 ## Documentation (Q19)
 
 - `apps/docs/docs/concepts/users.md` (or the closest existing page): the Human/Agent distinction, the users-vs-actors clarification, agent lifecycle (create → provision key → operate).
-- API-keys and MCP docs pages: the admin-provisioned agent key flow.
+- API-keys and MCP docs pages: the admin-provisioned agent key flow. *(Implementation note: no users, API-keys, or MCP pages existed in apps/docs — a new `concepts/users.md` was created covering all of it; dedicated API-keys/MCP pages remain future docs work.)*
 - No `UPGRADE.md` entry — strictly additive.
 
 ## Out of scope (with decision references)
