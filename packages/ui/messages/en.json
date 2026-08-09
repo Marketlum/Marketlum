@@ -140,6 +140,8 @@
     "createDescription": "Fill in the details to create a new actor.",
     "editDescription": "Update actor details below.",
     "purpose": "Purpose",
+    "email": "Email",
+    "website": "Website",
     "selectType": "Select type",
     "allTypes": "All types",
     "typeOrganization": "Organization",

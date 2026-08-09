@@ -41,6 +41,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # pnpm's side-effects cache can skip puppeteer's postinstall on warm
+      # cache hits, leaving the runner without Chrome — install explicitly.
+      - name: Install Puppeteer Chrome
+        run: pnpm --filter @marketlum/core exec puppeteer browsers install chrome
+
       - name: Enable uuid-ossp extension
         run: psql -h localhost -U marketlum -d marketlum_test -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
         env:

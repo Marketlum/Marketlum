@@ -139,6 +139,8 @@
     "createDescription": "Wypełnij dane, aby utworzyć nowego aktora.",
     "editDescription": "Zaktualizuj dane aktora poniżej.",
     "purpose": "Cel",
+    "email": "E-mail",
+    "website": "Strona internetowa",
     "selectType": "Wybierz typ",
     "allTypes": "Wszystkie typy",
     "typeOrganization": "Organizacja",

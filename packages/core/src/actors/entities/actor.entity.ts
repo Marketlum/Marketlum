@@ -53,6 +53,12 @@ export class Actor {
   @Column({ type: 'text', nullable: true })
   purpose: string | null;
 
+  @Column({ type: 'varchar', nullable: true })
+  email: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  website: string | null;
+
   @ManyToOne(() => Taxonomy, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'mainTaxonomyId' })
   mainTaxonomy: Taxonomy | null;

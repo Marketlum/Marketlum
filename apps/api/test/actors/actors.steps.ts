@@ -131,6 +131,77 @@ defineFeature(createFeature, (test) => {
     });
   });
 
+  test('Successfully create an actor with contact details', ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create an actor with email "(.*)" and website "(.*)"$/,
+      async (email: string, website: string) => {
+        response = await request(getApp().getHttpServer())
+          .post('/actors')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: 'Contact Corp', type: 'organization', email, website });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an actor with email "(.*)"$/, (email: string) => {
+      expect(response.body.email).toBe(email);
+    });
+
+    and(/^the response should contain an actor with website "(.*)"$/, (website: string) => {
+      expect(response.body.website).toBe(website);
+    });
+  });
+
+  test('Creating an actor with an invalid email fails', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create an actor with email "(.*)" and website "(.*)"$/,
+      async (email: string, website: string) => {
+        response = await request(getApp().getHttpServer())
+          .post('/actors')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: 'Bad Email Corp', type: 'organization', email, website });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test('Creating an actor with an invalid website fails', ({ given, when, then }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    when(
+      /^I create an actor with email "(.*)" and website "(.*)"$/,
+      async (email: string, website: string) => {
+        response = await request(getApp().getHttpServer())
+          .post('/actors')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name: 'Bad Site Corp', type: 'organization', email, website });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+  });
+
   test('Unauthenticated request is rejected', ({ when, then }) => {
     when(
       'I create an actor with:',
@@ -640,6 +711,93 @@ defineFeature(updateFeature, (test) => {
 
     then(/^the response status should be (\d+)$/, (status: string) => {
       expect(response.status).toBe(parseInt(status));
+    });
+  });
+
+  test("Successfully set an actor's contact details", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/actors')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type });
+        createdActorId = res.body.id;
+      },
+    );
+
+    when(
+      /^I update the actor's email to "(.*)" and website to "(.*)"$/,
+      async (email: string, website: string) => {
+        response = await request(getApp().getHttpServer())
+          .patch(`/actors/${createdActorId}`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ email, website });
+      },
+    );
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and(/^the response should contain an actor with email "(.*)"$/, (email: string) => {
+      expect(response.body.email).toBe(email);
+    });
+
+    and(/^the response should contain an actor with website "(.*)"$/, (website: string) => {
+      expect(response.body.website).toBe(website);
+    });
+  });
+
+  test("Successfully clear an actor's contact details", ({ given, when, then, and }) => {
+    given(/^I am authenticated as "(.*)"$/, async (email: string) => {
+      authCookie = await createAuthenticatedUser(email, 'password123');
+    });
+
+    and(
+      /^an actor exists with name "(.*)" and type "(.*)"$/,
+      async (name: string, type: string) => {
+        const res = await request(getApp().getHttpServer())
+          .post('/actors')
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ name, type });
+        createdActorId = res.body.id;
+      },
+    );
+
+    when(
+      /^I update the actor's email to "(.*)" and website to "(.*)"$/,
+      async (email: string, website: string) => {
+        response = await request(getApp().getHttpServer())
+          .patch(`/actors/${createdActorId}`)
+          .set('Cookie', [authCookie])
+          .set('X-CSRF-Protection', '1')
+          .send({ email, website });
+      },
+    );
+
+    and("I clear the actor's contact details", async () => {
+      response = await request(getApp().getHttpServer())
+        .patch(`/actors/${createdActorId}`)
+        .set('Cookie', [authCookie])
+        .set('X-CSRF-Protection', '1')
+        .send({ email: null, website: null });
+    });
+
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+
+    and('the response should contain an actor with no contact details', () => {
+      expect(response.body.email).toBeNull();
+      expect(response.body.website).toBeNull();
     });
   });
 

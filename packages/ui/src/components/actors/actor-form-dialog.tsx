@@ -147,6 +147,8 @@ export function ActorFormDialog({
           name: actor.name,
           type: actor.type,
           purpose: actor.purpose ?? '',
+          email: actor.email ?? null,
+          website: actor.website ?? null,
           mainTaxonomyId: actor.mainTaxonomy?.id ?? null,
           taxonomyIds: actor.taxonomies?.map((t) => t.id) ?? [],
           imageId: actor.image?.id ?? null,
@@ -162,6 +164,8 @@ export function ActorFormDialog({
           name: defaultName ?? '',
           type: ActorType.ORGANIZATION,
           purpose: '',
+          email: null,
+          website: null,
           mainTaxonomyId: null,
           taxonomyIds: [],
           imageId: null,
@@ -253,6 +257,26 @@ export function ActorFormDialog({
             <Input id="purpose" {...register('purpose')} />
             {errors.purpose && (
               <p className="text-sm text-destructive">{errors.purpose.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('email')}</Label>
+            <Input
+              id="email"
+              type="email"
+              {...register('email', { setValueAs: (v) => (v === '' ? null : v) })}
+            />
+            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="website">{t('website')}</Label>
+            <Input
+              id="website"
+              placeholder="https://"
+              {...register('website', { setValueAs: (v) => (v === '' ? null : v) })}
+            />
+            {errors.website && (
+              <p className="text-sm text-destructive">{errors.website.message}</p>
             )}
           </div>
           <div className="space-y-2">

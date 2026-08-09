@@ -283,6 +283,35 @@ export function ActorDetailPage() {
                   <p>{actor.purpose || '-'}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">{t('email')}</p>
+                  <p>
+                    {actor.email ? (
+                      <a href={`mailto:${actor.email}`} className="underline underline-offset-2">
+                        {actor.email}
+                      </a>
+                    ) : (
+                      '-'
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('website')}</p>
+                  <p>
+                    {actor.website ? (
+                      <a
+                        href={actor.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        {actor.website}
+                      </a>
+                    ) : (
+                      '-'
+                    )}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">{tc('created')}</p>
                   <p>{new Date(actor.createdAt).toLocaleDateString()}</p>
                 </div>
