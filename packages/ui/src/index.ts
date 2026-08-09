@@ -66,6 +66,7 @@ export { DataTablePagination } from './components/shared/data-table-pagination';
 export { DataTableToolbar } from './components/shared/data-table-toolbar';
 export { ExportDropdown } from './components/shared/export-dropdown';
 export { isImageMimeType, getFileIcon, FileImagePreview } from './components/shared/file-image-preview';
+export { ImageLibraryDialog } from './components/shared/image-library-dialog';
 export { LocaleSwitcher } from './components/shared/locale-switcher';
 export { MarkdownEditor, MarkdownContent } from './components/shared/markdown-editor';
 export { PerspectiveSelector } from './components/shared/perspective-selector';
@@ -89,7 +90,6 @@ export { ActorFormDialog } from './components/actors/actor-form-dialog';
 export { ActorTypeBadge } from './components/actors/actor-type-badge';
 export { ActorsDataTable } from './components/actors/actors-data-table';
 export { getActorColumns } from './components/actors/columns';
-export { ImageLibraryDialog as ActorImageLibraryDialog } from './components/actors/image-library-dialog';
 
 // agreement-templates
 export { AgreementTemplateFormDialog } from './components/agreement-templates/agreement-template-form-dialog';
@@ -109,7 +109,6 @@ export { getAgreementColumns } from './components/agreements/columns';
 export { ArchetypeFormDialog } from './components/archetypes/archetype-form-dialog';
 export { ArchetypesDataTable } from './components/archetypes/archetypes-data-table';
 export { getArchetypeColumns } from './components/archetypes/columns';
-export { ImageLibraryDialog as ArchetypeImageLibraryDialog } from './components/archetypes/image-library-dialog';
 
 // auth
 export { LoginForm } from './components/auth/login-form';

@@ -14,7 +14,7 @@ import {
 } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { FileImagePreview } from '../shared/file-image-preview';
+import { FileImagePreview } from './file-image-preview';
 
 interface ImageLibraryDialogProps {
   open: boolean;
@@ -23,8 +23,7 @@ interface ImageLibraryDialogProps {
 }
 
 export function ImageLibraryDialog({ open, onOpenChange, onSelect }: ImageLibraryDialogProps) {
-  const t = useTranslations('actors');
-  const tc = useTranslations('common');
+  const t = useTranslations('common');
   const [files, setFiles] = useState<FileResponse[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -71,18 +70,18 @@ export function ImageLibraryDialog({ open, onOpenChange, onSelect }: ImageLibrar
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={tc('search')}
+            placeholder={t('search')}
             className="pl-8"
           />
         </div>
 
         {loading ? (
           <div className="flex h-48 items-center justify-center text-muted-foreground">
-            {tc('loading')}
+            {t('loading')}
           </div>
         ) : files.length === 0 ? (
           <div className="flex h-48 items-center justify-center text-muted-foreground">
-            {tc('noResults')}
+            {t('noResults')}
           </div>
         ) : (
           <>
@@ -118,7 +117,7 @@ export function ImageLibraryDialog({ open, onOpenChange, onSelect }: ImageLibrar
                   &lt;
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  {tc('pageOf', { page, totalPages })}
+                  {t('pageOf', { page, totalPages })}
                 </span>
                 <Button
                   variant="outline"

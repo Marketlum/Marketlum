@@ -19,7 +19,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { FileImagePreview } from '../shared/file-image-preview';
-import { ImageLibraryDialog } from '../actors/image-library-dialog';
+import { ImageLibraryDialog } from '../shared/image-library-dialog';
 import { api } from '../../lib/api-client';
 
 interface UserFormDialogProps {
@@ -166,7 +166,7 @@ export function UserFormDialog({
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={() => setLibraryOpen(true)}>
                     <Library className="mr-1.5 h-3.5 w-3.5" />
-                    {t('selectFromLibrary')}
+                    {tc('selectFromLibrary')}
                   </Button>
                   {imagePreview && (
                     <Button type="button" variant="ghost" size="sm" onClick={handleRemoveImage}>
