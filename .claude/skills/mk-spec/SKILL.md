@@ -86,17 +86,25 @@ When all rounds are complete:
 2. The spec must be unambiguous enough that a developer can start implementing without re-running the brainstorm.
 3. Cross-reference the brainstorming file as the decision trail.
 
-### 6. Commit and stop
+### 6. Open a Pull Request and stop
 
-1. `git add specs/` and create one commit covering both files. Use a message like:
+The spec ships as a PR — never as a direct commit to `master`.
+
+1. Create a branch from the base: `git checkout -b spec/{nr}-{slug}-spec origin/master`. (The `-spec` suffix keeps the name free for `/mk-implement-spec`'s `spec/{nr}-{slug}` implementation branch.) The brainstorming rounds happened as uncommitted files, so they travel to the branch with the checkout.
+2. `git add specs/` and create one commit covering both files. Use a message like:
    ```
    Add brainstorming and specification for <feature>
 
    <one-paragraph summary of what was decided>
    ```
    Follow the project&apos;s commit conventions (see recent `git log` &mdash; sentence-case, no Conventional Commits prefixes, end with the `Co-Authored-By` line per the harness defaults).
-2. Tell the user where the spec lives and that the brainstorm is committed.
-3. **Do NOT start implementation.** The user will trigger that separately (or in a follow-up PR).
+3. Push the branch and open the PR: `gh pr create --base master` with title `Add the <feature> specification (spec {nr})` and a body containing a `## Summary` of the headline decisions (3&ndash;5 bullets), a link-style pointer to the brainstorming file as the decision trail, and the standard footer:
+   ```
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   ```
+4. Return to `master` (`git checkout master`) so the session ends where it started.
+5. Tell the user: the PR URL, where the two files live, and that the spec must be **merged before** running `/mk-implement-spec {nr}` (which branches from `origin/master` and reads `specs/` there). Suggest `/mk-merge <pr>` for landing it.
+6. **Do NOT start implementation.** The user will trigger that separately.
 
 ---
 
@@ -110,4 +118,4 @@ When all rounds are complete:
 - **Default validation** to Zod schemas in `@marketlum/shared` (single source of truth, already the project pattern).
 - **Default tests** to full BDD coverage (`packages/bdd/features/` + `apps/api/test/`) per the project&apos;s strict BDD rule.
 - **Template sync**: if the spec touches `apps/api/` or `apps/web/`, the spec must call out the mirror to `packages/create-marketlum-app/template/`.
-- **One commit at the end.** Do not commit the brainstorming file in pieces between rounds.
+- **One commit at the end, delivered as a PR.** Do not commit the brainstorming file in pieces between rounds, and never commit or push spec files to `master` directly &mdash; the spec lands via its own `spec/{nr}-{slug}-spec` branch and `/mk-merge`.
