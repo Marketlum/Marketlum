@@ -12,6 +12,7 @@ export const PERMISSION_RESOURCES = [
   'agreement-templates',
   'agreements',
   'archetypes',
+  'audit',
   'channels',
   'dashboard',
   'exchange-rates',

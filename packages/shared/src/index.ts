@@ -1,5 +1,7 @@
 export { ActorType } from './enums/actor-type.enum';
 export { UserType } from './enums/user-type.enum';
+export { AuditCategory } from './enums/audit-category.enum';
+export { AuditActorKind } from './enums/audit-actor-kind.enum';
 export { InvoiceMarket } from './enums/invoice-market.enum';
 export { ValueType } from './enums/value-type.enum';
 export { ValueParentType } from './enums/value-parent-type.enum';
@@ -503,3 +505,9 @@ export {
   PLUGIN_EVENT_GLOB,
 } from './plugins';
 export type { PluginManifest, PluginSettingsContract } from './plugins';
+export {
+  auditLogResponseSchema,
+  auditLogsQuerySchema,
+  type AuditLogResponse,
+  type AuditLogsQuery,
+} from './schemas/audit-log.schema';
