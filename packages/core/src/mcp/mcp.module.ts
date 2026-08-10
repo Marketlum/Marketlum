@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuditModule } from '../audit/audit.module';
 import { PermissionsModule } from '../roles/permissions.module';
 import { SearchModule } from '../search/search.module';
 import { ActorsModule } from '../actors/actors.module';
@@ -42,6 +43,7 @@ const TOOL_CLASSES = [
 
 @Module({
   imports: [
+    AuditModule,
     PermissionsModule,
     SearchModule,
     ActorsModule,

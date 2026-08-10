@@ -21,6 +21,8 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditCategory } from '@marketlum/shared';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -35,6 +37,7 @@ import { LoginDto, UserResponseDto } from './auth.dto';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly auditService: AuditService,
     private readonly usersService: UsersService,
     private readonly permissionsService: PermissionsService,
   ) {}
@@ -62,6 +65,11 @@ export class AuthController {
       ...(cookieDomain && { domain: cookieDomain }),
     });
 
+    await this.auditService.record(AuditCategory.AUTH, {
+      action: 'login_success',
+      user: req.user,
+    });
+
     return this.usersService.stripPassword(req.user);
   }
 
@@ -73,7 +81,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Clear session cookie' })
   @ApiNoContentResponse({ description: 'Logged out' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid auth cookie' })
-  async logout(@Res({ passthrough: true }) res: Response) {
+  async logout(@Req() req: { user: User }, @Res({ passthrough: true }) res: Response) {
     const cookieDomain = process.env.COOKIE_DOMAIN;
 
     res.clearCookie('token', {
@@ -82,6 +90,11 @@ export class AuthController {
       secure: !!cookieDomain,
       path: '/',
       ...(cookieDomain && { domain: cookieDomain }),
+    });
+
+    await this.auditService.record(AuditCategory.AUTH, {
+      action: 'logout',
+      user: req.user,
     });
   }
 

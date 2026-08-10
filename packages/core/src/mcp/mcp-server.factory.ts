@@ -12,11 +12,22 @@ import type { ZodTypeAny } from 'zod';
 import { McpToolError, McpToolErrorCode } from '@marketlum/shared';
 import { PermissionsService } from '../roles/permissions.service';
 import { McpToolRegistry } from './mcp-tool.registry';
+import { AuditService } from '../audit/audit.service';
 import { AnyMcpTool } from './mcp-tool.interface';
 import { User } from '../users/entities/user.entity';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const corePackage = require('../../package.json') as { version: string };
+
+/** Best-effort extraction of the McpToolErrorCode from an error result. */
+function extractToolErrorCode(result: CallToolResult): string | undefined {
+  try {
+    const text = (result.content?.[0] as { text?: string } | undefined)?.text;
+    return text ? (JSON.parse(text) as { code?: string }).code : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function toolError(code: McpToolErrorCode, message: string): CallToolResult {
   const payload: McpToolError = { code, message };
@@ -44,6 +55,7 @@ export class McpServerFactory {
   constructor(
     private readonly registry: McpToolRegistry,
     private readonly permissionsService: PermissionsService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(user: User): Promise<Server> {
@@ -75,6 +87,12 @@ export class McpServerFactory {
       }
       const startedAt = Date.now();
       const result = await this.callTool(tool, request.params.arguments ?? {}, user, permitted);
+      await this.auditService.recordMcpCall(
+        name,
+        (request.params.arguments ?? {}) as Record<string, unknown>,
+        result.isError === true ? 'error' : 'ok',
+        result.isError === true ? extractToolErrorCode(result) : undefined,
+      );
       this.logger.log(
         JSON.stringify({
           tool: name,
