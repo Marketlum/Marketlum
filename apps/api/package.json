@@ -12,7 +12,8 @@
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
     "seed:admin": "ts-node src/cli.ts seed:admin",
-    "seed:sample": "ts-node src/cli.ts seed:sample"
+    "seed:sample": "ts-node src/cli.ts seed:sample",
+    "audit:prune": "ts-node src/cli.ts audit:prune"
   },
   "dependencies": {
     "@marketlum/core": "workspace:*",

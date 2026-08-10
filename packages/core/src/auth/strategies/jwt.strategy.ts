@@ -4,6 +4,7 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
 import { UserType } from '@marketlum/shared';
 import { UsersService } from '../../users/users.service';
+import { AuditContext } from '../../audit/audit-context';
 
 function extractJwtFromCookie(req: Request): string | null {
   if (req?.cookies?.token) {
@@ -34,6 +35,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (user.type === UserType.AGENT) {
       throw new UnauthorizedException();
     }
+    AuditContext.merge({
+      userId: user.id,
+      userEmail: user.email,
+      userName: user.name,
+      userType: user.type,
+    });
     return user;
   }
 }

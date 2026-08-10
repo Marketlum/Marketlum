@@ -33,7 +33,10 @@ import { OrderItem } from './orders/entities/order-item.entity';
 import { ApiKey } from './api-keys/entities/api-key.entity';
 import { Role, RolePermission } from './roles/entities/role.entity';
 
+import { AuditLog } from './audit/entities/audit-log.entity';
+
 export const ALL_ENTITIES = [
+  AuditLog,
   User,
   Actor,
   Taxonomy,

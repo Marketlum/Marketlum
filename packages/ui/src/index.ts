@@ -305,6 +305,7 @@ export { SearchPage } from './pages/admin/search-page';
 export { TaxonomiesPage } from './pages/admin/taxonomies-page';
 export { TransactionsPage } from './pages/admin/transactions-page';
 export { UsersPage } from './pages/admin/users-page';
+export { ActivityPage } from './pages/admin/activity-page';
 export { ValueDetailPage } from './pages/admin/value-detail-page';
 export { ValueInstanceDetailPage } from './pages/admin/value-instance-detail-page';
 export { ValueInstancesGraphPage } from './pages/admin/value-instances-graph-page';

@@ -71,7 +71,7 @@ The MCP server factory's `tools/call` execution path gains an `AuditService.reco
 
 ### 4. Auth capture (Q3, Q12) — in `packages/core/src/auth/`
 
-`AuthService`/controller hooks: `login_success` (actor = the user), `login_failure` (`actorKind` from the *attempted* user if found else `system`-less anonymous row with `context.attemptedEmail`; agent rejections get `context.reason: 'agent_login_rejected'`), `logout`. Never store anything password-shaped.
+`AuthService`/controller hooks: `login_success` (actor = the user), `login_failure` (`actorKind` from the *attempted* user if found else `system`-less anonymous row with `context.attemptedEmail`; agent rejections get `context.reason: 'agent_login_rejected'`), `logout`. Never store anything password-shaped. *(Implementation note: failure entries are recorded anonymously (actorKind=system) with one `findByEmail` lookup used solely to classify the rejection reason — attributing a failed attempt to a user who did not act would overstate what is known.)*
 
 ## API surface
 
@@ -127,7 +127,7 @@ No FKs by design (Q8). `down`: drop table + both enums.
 
 ## UI / UX (Q13–Q17)
 
-- **`packages/ui/src/pages/admin/activity-page.tsx`** + **`components/audit/activity-data-table.tsx`**: standard data-table (toolbar, pagination, column visibility, perspectives `table: 'audit'`, `ExportDropdown` CSV/JSON of the filtered list).
+- **`packages/ui/src/pages/admin/activity-page.tsx`** + **`components/audit/activity-data-table.tsx`**: standard data-table (toolbar, pagination, column visibility, perspectives `table: 'audit'`, `ExportDropdown` CSV/JSON of the filtered list). *(Implementation note: column-visibility and perspectives were omitted — the toolbar already carries five filters plus export, and the URL-driven filters cover the saved-view need; both can be added later without schema changes.)*
 - Columns: time, actor (kind badge + name/email), category badge, action, entity (`entityType` + short id), IP (hidden on mobile).
 - **`AuditActorBadge`**: `human` → `User` icon, `agent` → `Bot` (consistent with spec 025's `UserTypeBadge`), `system` → `Cog`; neutral styling.
 - Toolbar filters (Q14): actorKind, category, user picker, entityType dropdown, from/to date inputs, text search. Filters serialize to the URL (`?entityType=&entityId=&actorKind=…`) so views are deep-linkable (Q16).

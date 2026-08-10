@@ -65,6 +65,11 @@ export class ApiKeysService {
   }
 
   async verify(token: string): Promise<User | null> {
+    return (await this.verifyDetailed(token))?.user ?? null;
+  }
+
+  /** Like verify(), but also returns the key — audit attribution (spec 026). */
+  async verifyDetailed(token: string): Promise<{ user: User; apiKey: ApiKey } | null> {
     if (!token.startsWith(API_KEY_TOKEN_PREFIX)) return null;
 
     const apiKey = await this.apiKeyRepository.findOne({
@@ -75,7 +80,7 @@ export class ApiKeysService {
     if (apiKey.expiresAt && apiKey.expiresAt.getTime() <= Date.now()) return null;
 
     this.touchLastUsed(apiKey);
-    return apiKey.user;
+    return { user: apiKey.user, apiKey };
   }
 
   // Fire-and-forget, at most once per minute per key; a failed touch must

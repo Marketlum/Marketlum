@@ -63,6 +63,7 @@ import { AddAgentActorType1700000000061 } from './1700000000061-AddAgentActorTyp
 import { AddEquityValueType1700000000062 } from './1700000000062-AddEquityValueType';
 import { AddActorContactFields1700000000063 } from './1700000000063-AddActorContactFields';
 import { AddUserTypes1700000000064 } from './1700000000064-AddUserTypes';
+import { AddAuditTrail1700000000065 } from './1700000000065-AddAuditTrail';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -130,4 +131,5 @@ export const ALL_MIGRATIONS = [
   AddEquityValueType1700000000062,
   AddActorContactFields1700000000063,
   AddUserTypes1700000000064,
+  AddAuditTrail1700000000065,
 ];

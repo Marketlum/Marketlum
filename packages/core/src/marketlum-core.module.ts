@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -37,11 +37,14 @@ import { AiModule } from './ai/ai.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
 import { McpModule } from './mcp/mcp.module';
 import { EventsModule } from './events/events.module';
+import { AuditModule } from './audit/audit.module';
+import { auditContextMiddleware } from './audit/audit-context';
 import { PluginsModule } from './plugins/plugins.module';
 import { validatePlugins } from './plugins/validate-plugins';
 import { MarketlumApiPlugin, MarketlumCoreOptions } from './plugins/marketlum-api-plugin';
 
 const CORE_FEATURE_MODULES = [
+  AuditModule,
   PermissionsModule,
   AuthModule,
   ApiKeysModule,
@@ -77,6 +80,7 @@ const CORE_FEATURE_MODULES = [
 ];
 
 const CORE_EXPORTED_MODULES = [
+  AuditModule,
   PermissionsModule,
   AuthModule,
   ApiKeysModule,
@@ -108,7 +112,13 @@ const CORE_EXPORTED_MODULES = [
 ];
 
 @Module({})
-export class MarketlumCoreModule {
+export class MarketlumCoreModule implements NestModule {
+  // Spec 026: every request runs inside an AuditContext so audit entries can
+  // attribute the acting user without threading it through service calls.
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(auditContextMiddleware).forRoutes('*');
+  }
+
   static forRoot(options: MarketlumCoreOptions = {}): DynamicModule {
     const plugins: MarketlumApiPlugin[] = options.plugins ?? [];
     validatePlugins(plugins);

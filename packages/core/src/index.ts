@@ -9,6 +9,7 @@ export { S3StorageProvider } from './files/storage';
 // Commands
 export { SeedAdminCommand } from './commands/seed-admin.command';
 export { SeedSampleCommand } from './commands/seed-sample.command';
+export { AuditPruneCommand } from './commands/audit-prune.command';
 
 // Config
 export { databaseConfig } from './config/database.config';
@@ -135,3 +136,9 @@ export { DomainEventBus, type EmitArgs } from './events/domain-event-bus.service
 // MCP (spec 023)
 export { McpModule } from './mcp/mcp.module';
 export { type McpTool, type AnyMcpTool, MCP_TOOLS } from './mcp/mcp-tool.interface';
+
+// Audit trail (spec 026)
+export { AuditModule } from './audit/audit.module';
+export { AuditService } from './audit/audit.service';
+export { AuditContext } from './audit/audit-context';
+export { AuditLog } from './audit/entities/audit-log.entity';
