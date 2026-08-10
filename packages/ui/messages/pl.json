@@ -77,7 +77,8 @@
     "plugins": "Wtyczki",
     "orders": "Zamówienia",
     "apiKeys": "Klucze API",
-    "roles": "Role"
+    "roles": "Role",
+    "activity": "Aktywność"
   },
   "plugins": {
     "title": "Wtyczki",
@@ -1329,5 +1330,34 @@
     "failedToCreate": "Nie udało się utworzyć roli",
     "failedToUpdate": "Nie udało się zaktualizować roli",
     "failedToDelete": "Nie udało się usunąć roli"
+  },
+  "audit": {
+    "title": "Aktywność",
+    "description": "Przeglądaj aktywność ludzi i agentów AI na platformie.",
+    "when": "Kiedy",
+    "actor": "Aktor",
+    "category": "Kategoria",
+    "action": "Akcja",
+    "entity": "Encja",
+    "apiKey": "Klucz API",
+    "ipAddress": "Adres IP",
+    "userAgentHeader": "Przeglądarka",
+    "context": "Szczegóły",
+    "copyContext": "Kopiuj JSON",
+    "contextCopied": "Szczegóły skopiowane do schowka",
+    "entryTitle": "Wpis audytu",
+    "actorSystem": "System",
+    "from": "Od",
+    "to": "Do",
+    "allKinds": "Wszyscy aktorzy",
+    "allCategories": "Wszystkie kategorie",
+    "allEntities": "Wszystkie encje",
+    "kind_human": "Człowiek",
+    "kind_agent": "Agent",
+    "kind_system": "System",
+    "category_mutation": "Zmiana",
+    "category_mcp_call": "Wywołanie MCP",
+    "category_auth": "Logowanie",
+    "failedToLoad": "Nie udało się wczytać aktywności"
   }
 }

@@ -78,7 +78,8 @@
     "plugins": "Plugins",
     "orders": "Orders",
     "apiKeys": "API Keys",
-    "roles": "Roles"
+    "roles": "Roles",
+    "activity": "Activity"
   },
   "plugins": {
     "title": "Plugins",
@@ -1330,5 +1331,34 @@
     "failedToCreate": "Failed to create role",
     "failedToUpdate": "Failed to update role",
     "failedToDelete": "Failed to delete role"
+  },
+  "audit": {
+    "title": "Activity",
+    "description": "Review human and AI agent activity across the platform.",
+    "when": "When",
+    "actor": "Actor",
+    "category": "Category",
+    "action": "Action",
+    "entity": "Entity",
+    "apiKey": "API key",
+    "ipAddress": "IP address",
+    "userAgentHeader": "User agent",
+    "context": "Details",
+    "copyContext": "Copy JSON",
+    "contextCopied": "Details copied to clipboard",
+    "entryTitle": "Audit entry",
+    "actorSystem": "System",
+    "from": "From",
+    "to": "To",
+    "allKinds": "All actors",
+    "allCategories": "All categories",
+    "allEntities": "All entities",
+    "kind_human": "Human",
+    "kind_agent": "Agent",
+    "kind_system": "System",
+    "category_mutation": "Change",
+    "category_mcp_call": "MCP call",
+    "category_auth": "Auth",
+    "failedToLoad": "Failed to load activity"
   }
 }

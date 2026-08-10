@@ -16,7 +16,8 @@
     "docs:dev": "pnpm --filter @marketlum/docs run dev",
     "docs:build": "pnpm --filter @marketlum/docs run build",
     "seed:admin": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run seed:admin",
-    "seed:sample": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run seed:sample"
+    "seed:sample": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run seed:sample",
+    "audit:prune": "pnpm --filter @marketlum/core run build && pnpm --filter @marketlum/api run audit:prune"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

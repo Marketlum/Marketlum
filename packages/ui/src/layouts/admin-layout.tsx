@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Drama, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart, KeyRound, ShieldCheck } from 'lucide-react';
+import { Users, Drama, Gem, FolderTree, FileIcon, FileText, Layers, Workflow, Wallet, ArrowLeftRight, ArrowRightLeft, Handshake, Hash, Package, LogOut, PanelLeftClose, PanelLeftOpen, Menu, User, Search, LayoutDashboard, Globe, Shapes, Languages, ClipboardList, GitBranch, Flame, Puzzle, ShoppingCart, KeyRound, ShieldCheck, History } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { canPermission, type AuthMeResponse } from '@marketlum/shared';
 import { getMe, logout } from '../lib/auth';
@@ -110,6 +110,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       { href: '/admin/transactions', label: t('transactions'), icon: ArrowLeftRight, resource: 'transactions' },
     ]},
     { key: 'system', label: t('groupSystem'), items: [
+      { href: '/admin/activity', label: t('activity'), icon: History, resource: 'audit' },
       { href: '/admin/users', label: t('users'), icon: Users, resource: 'users' },
       { href: '/admin/roles', label: t('roles'), icon: ShieldCheck, resource: 'roles' },
       { href: '/admin/taxonomies', label: t('taxonomies'), icon: FolderTree, resource: 'taxonomies' },
