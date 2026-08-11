@@ -4,7 +4,28 @@ Breaking changes between Marketlum releases, newest first. Each section lists
 what an existing scaffolded project must do after updating its `@marketlum/*`
 dependencies.
 
-## Unreleased — ActorValuesTable removed from @marketlum/ui
+## v0.6.0 — Node 24 required
+
+The framework now requires **Node.js >= 24** (`engines` in the root and
+scaffolded `package.json`). Update your runtime before upgrading.
+
+## v0.6.0 — ImageLibraryDialog exports consolidated in @marketlum/ui
+
+The duplicated actor and archetype image-library dialogs were replaced by a
+single shared component. The two old exports are gone:
+
+```tsx
+import { ActorImageLibraryDialog } from '@marketlum/ui';     // removed
+import { ArchetypeImageLibraryDialog } from '@marketlum/ui'; // removed
+```
+
+Use the single export instead:
+
+```tsx
+import { ImageLibraryDialog } from '@marketlum/ui';
+```
+
+## v0.6.0 — ActorValuesTable removed from @marketlum/ui
 
 The actor detail page's Values tab now renders the full `ValuesDataTable`
 (search, filters, perspectives, export, and the Add value button) scoped via

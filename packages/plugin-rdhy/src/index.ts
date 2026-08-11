@@ -31,7 +31,7 @@ export const rdhyPlugin: MarketlumApiPlugin = {
     id: RDHY_PLUGIN_ID,
     name: 'RenDanHeYi',
     version: '0.4.0',
-    marketlumCoreVersion: '^0.5.0',
+    marketlumCoreVersion: '^0.6.0',
   },
   module: RdhyModule,
   entities: [
