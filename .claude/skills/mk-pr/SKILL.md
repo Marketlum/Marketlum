@@ -36,6 +36,7 @@ Run, in order, and fix failures before proceeding:
 2. `pnpm test:unit` — all unit tests green.
 3. Builds for whatever was touched: `pnpm --filter @marketlum/shared build`, `core`, `ui`, `pnpm --filter @marketlum/web build`, `pnpm --filter @marketlum/api build` as applicable.
 4. Targeted e2e for the affected feature area if the change has an API surface: `pnpm test:e2e -- --testPathPattern=<area>`. Do not run the full e2e suite locally — CI does that.
+5. **Browser verification** — if the change touches `packages/ui` or `apps/web`, run the `/mk-browser-verify` workflow against the affected pages before opening the PR: drive the real app, screenshot each state (desktop + mobile), read the screenshots, and fix what they reveal. Summarize what was verified (and any deliberately unfixed findings) in the PR's test plan.
 
 ### 4. Commit and push
 

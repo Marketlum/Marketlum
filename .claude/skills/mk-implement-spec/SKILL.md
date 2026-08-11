@@ -47,7 +47,8 @@ When reality contradicts the spec (an API changed, a referenced feature was remo
 1. `pnpm lint` (0 errors), `pnpm test:unit`, builds for every touched package.
 2. Targeted e2e for the spec's feature areas; every scenario from the spec's BDD table must exist and pass. Run adjacent areas the spec touches (e.g. dashboard, search) too.
 3. If a migration was added: fresh-database replay check.
-4. Do not run the full e2e suite locally — CI owns that.
+4. **Browser verification of every new or changed screen** — run the `/mk-browser-verify` workflow: seed data through the UI/API, exercise each page, dialog, and filter the spec describes, screenshot desktop + mobile, and read the screenshots. The spec's UI section is the checklist; a screen that was never rendered in a browser is not done. Fix what the screenshots reveal before delivering.
+5. Do not run the full e2e suite locally — CI owns that.
 
 ### 6. Deliver
 
