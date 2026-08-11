@@ -344,7 +344,21 @@ defineFeature(toolListingFeature, (test) => {
     });
   });
 
-  test('A user with no read permissions sees no tools', ({ given, and, when, then }) => {
+  test('A write grant surfaces only the write tools', ({ given, and, when, then }) => {
+    given(/^a user "(.*)" with a role granting "(.*)"$/, async (email: string, perms: string) => {
+      await createScopedUserWithKey(email, perms);
+    });
+    and(/^that user has created an API key named "(.*)"$/, async (name: string) => {
+      ctx.apiKey = await createOwnApiKey(ctx.scopedCookie!, name);
+    });
+    listTools(when);
+    then(/^the MCP tool list should be exactly "(.*)"$/, (names: string) => {
+      expect(ctx.response.status).toBe(200);
+      expect(toolNames()).toEqual(names.split(',').map((n) => n.trim()));
+    });
+  });
+
+  test('A user with no MCP-covered permissions sees no tools', ({ given, and, when, then }) => {
     given(/^a user "(.*)" with a role granting "(.*)"$/, async (email: string, perms: string) => {
       await createScopedUserWithKey(email, perms);
     });
