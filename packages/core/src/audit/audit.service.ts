@@ -119,6 +119,17 @@ export class AuditService {
     };
   }
 
+  /** Distinct entity types present in the trail — feeds the UI filter (incl. plugin entities). */
+  async entityTypes(): Promise<string[]> {
+    const rows: { entityType: string }[] = await this.auditRepository
+      .createQueryBuilder('log')
+      .select('DISTINCT log."entityType"', 'entityType')
+      .where('log."entityType" IS NOT NULL')
+      .orderBy('"entityType"', 'ASC')
+      .getRawMany();
+    return rows.map((r) => r.entityType);
+  }
+
   async findOne(id: string): Promise<AuditLog | null> {
     return this.auditRepository.findOne({ where: { id } });
   }

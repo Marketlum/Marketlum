@@ -8,6 +8,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import type { AuditLogResponse, PaginatedResponse } from '@marketlum/shared';
 import { api } from '../../lib/api-client';
 import { usePagination } from '../../hooks/use-pagination';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { getMobileColumnVisibility } from '../../lib/column-visibility';
 import { useDebounce } from '../../hooks/use-debounce';
 import { DataTable } from '../shared/data-table';
 import { DataTablePagination } from '../shared/data-table-pagination';
@@ -22,16 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { formatAuditEntityType } from '../../lib/format-audit-entity';
 import { AuditActorBadge } from './audit-actor-badge';
 import { AuditEntryDialog } from './audit-entry-dialog';
-
-const ENTITY_TYPES = [
-  'actor', 'user', 'value', 'value_instance', 'value_stream', 'taxonomy', 'file',
-  'perspective', 'account', 'transaction', 'agreement', 'agreement_template',
-  'channel', 'offering', 'invoice', 'order', 'exchange', 'exchange_rate',
-  'geography', 'archetype', 'locale', 'pipeline', 'tension', 'system_setting',
-  'api_key', 'role',
-];
 
 /** Reads initial filters from the URL and writes changes back (deep-linkable views). */
 function useUrlFilter(key: string, fallback: string) {
@@ -56,9 +51,18 @@ export function ActivityDataTable() {
   const debouncedSearch = useDebounce(pagination.search, 300);
   const t = useTranslations('audit');
   const tc = useTranslations('common');
+  const isMobile = useIsMobile();
   const [data, setData] = useState<PaginatedResponse<AuditLogResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<AuditLogResponse | null>(null);
+  const [entityTypes, setEntityTypes] = useState<string[]>([]);
+
+  useEffect(() => {
+    api
+      .get<string[]>('/audit-logs/entity-types')
+      .then(setEntityTypes)
+      .catch(() => setEntityTypes([]));
+  }, []);
 
   const [actorKind, setActorKind] = useUrlFilter('actorKind', 'all');
   const [category, setCategory] = useUrlFilter('category', 'all');
@@ -111,7 +115,9 @@ export function ActivityDataTable() {
             kind={row.original.actorKind}
             label={t(`kind_${row.original.actorKind}`)}
           />
-          <span className="truncate text-sm">{row.original.userEmail ?? '-'}</span>
+          <span className="hidden max-w-[220px] truncate text-sm sm:inline">
+            {row.original.userEmail ?? '-'}
+          </span>
         </div>
       ),
     },
@@ -133,7 +139,7 @@ export function ActivityDataTable() {
       cell: ({ row }) =>
         row.original.entityType ? (
           <span className="text-xs text-muted-foreground">
-            {row.original.entityType} · {row.original.entityId?.slice(0, 8) ?? ''}
+            {formatAuditEntityType(row.original.entityType)} · {row.original.entityId?.slice(0, 8) ?? ''}
           </span>
         ) : (
           '-'
@@ -191,27 +197,33 @@ export function ActivityDataTable() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('allEntities')}</SelectItem>
-            {ENTITY_TYPES.map((type) => (
+            {entityTypes.map((type) => (
               <SelectItem key={type} value={type}>
-                {type}
+                {formatAuditEntityType(type)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Input
-          type="date"
-          className="w-[150px]"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          aria-label={t('from')}
-        />
-        <Input
-          type="date"
-          className="w-[150px]"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          aria-label={t('to')}
-        />
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm text-muted-foreground">{t('from')}</span>
+          <Input
+            type="date"
+            className="w-[150px]"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            aria-label={t('from')}
+          />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm text-muted-foreground">{t('to')}</span>
+          <Input
+            type="date"
+            className="w-[150px]"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            aria-label={t('to')}
+          />
+        </div>
         <ExportDropdown
           visibleData={(data?.data ?? []) as unknown as Record<string, unknown>[]}
           fetchAllData={fetchAllData}
@@ -226,7 +238,12 @@ export function ActivityDataTable() {
           {tc('loading')}
         </div>
       ) : (
-        <DataTable columns={columns} data={data?.data ?? []} onRowClick={(row) => setSelected(row)} />
+        <DataTable
+          columns={columns}
+          data={data?.data ?? []}
+          columnVisibility={getMobileColumnVisibility(columns, isMobile)}
+          onRowClick={(row) => setSelected(row)}
+        />
       )}
 
       <DataTablePagination
