@@ -38,6 +38,15 @@ export class AuditController {
     return this.auditService.findAll({ ...pagination, ...filters });
   }
 
+  // Declared before :id so "entity-types" is not captured as an id param.
+  @Get('entity-types')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Distinct entity types present in the trail (audit:read)' })
+  @ApiOkResponse({ type: [String] })
+  async entityTypes() {
+    return this.auditService.entityTypes();
+  }
+
   @Get(':id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Fetch a single audit entry (audit:read)' })

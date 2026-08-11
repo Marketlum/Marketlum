@@ -36,7 +36,8 @@
     "accessDeniedDescription": "Nie masz uprawnień do wyświetlenia tej strony. Wymagane uprawnienie:",
     "goBack": "Wróć",
     "selectFromLibrary": "Biblioteka",
-    "selectImageDescription": "Wybierz obraz z biblioteki plików."
+    "selectImageDescription": "Wybierz obraz z biblioteki plików.",
+    "close": "Zamknij"
   },
   "nav": {
     "users": "Użytkownicy",

@@ -80,7 +80,7 @@ export function AuditEntryDialog({ open, onOpenChange, entry }: AuditEntryDialog
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            {tc('cancel')}
+            {tc('close')}
           </Button>
         </DialogFooter>
       </DialogContent>

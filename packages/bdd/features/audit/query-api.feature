@@ -25,3 +25,10 @@ Feature: Audit trail query API
     Given a user without audit permissions is authenticated
     When I list audit entries
     Then the response status should be 403
+
+  Scenario: List the distinct entity types present in the trail
+    Given I am authenticated as "admin@marketlum.com"
+    And an actor exists with name "Type Source" and type "organization"
+    When I list the audit entity types
+    Then the response status should be 200
+    And the entity type list contains "actor"

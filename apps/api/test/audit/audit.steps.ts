@@ -497,6 +497,22 @@ defineFeature(queryFeature, (test) => {
     });
   });
 
+  test('List the distinct entity types present in the trail', ({ given, and, when, then }) => {
+    givenAdmin(given);
+    andActor(and);
+    when('I list the audit entity types', async () => {
+      response = await request(getApp().getHttpServer())
+        .get('/audit-logs/entity-types')
+        .set('Cookie', [authCookie]);
+    });
+    then(/^the response status should be (\d+)$/, (status: string) => {
+      expect(response.status).toBe(parseInt(status));
+    });
+    and(/^the entity type list contains "(.*)"$/, (entityType: string) => {
+      expect(response.body).toContain(entityType);
+    });
+  });
+
   test('Reading the audit trail requires the audit permission', ({ given, when, then }) => {
     given('a user without audit permissions is authenticated', async () => {
       const { cookie } = await createUserWithRoles('limited@marketlum.com', 'password123', [

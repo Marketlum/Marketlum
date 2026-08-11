@@ -37,7 +37,8 @@
     "accessDeniedDescription": "You do not have permission to view this page. Required permission:",
     "goBack": "Go back",
     "selectFromLibrary": "Library",
-    "selectImageDescription": "Select an image from your file library."
+    "selectImageDescription": "Select an image from your file library.",
+    "close": "Close"
   },
   "nav": {
     "users": "Users",
