@@ -36,13 +36,14 @@ Navigate to [http://localhost:3000/login](http://localhost:3000/login) and log i
 
 | Page | What you'll find |
 |------|-----------------|
-| **Value Streams** | Hierarchical view of value flows, with circle packing visualization |
-| **Actors** | Market participants (organizations, individuals, virtual actors) |
+| **Actors** | Market participants (organizations, individuals, virtual and AI agents), with hierarchy and financials |
 | **Values** | Products, services, rights, and relationships with parent-child hierarchies |
 | **Exchanges** | Transactions between actors with flow graphs |
 | **Offerings** | Bundled values with pricing components |
 | **Invoices** | Financial documents between actors |
 | **Agreements** | Governance documents with templates |
+| **Value Streams** | Grouping of values and activity into flows, with circle packing visualization |
+| **Activity** | Audit trail of human and AI agent actions |
 
 ## API Documentation
 
@@ -51,4 +52,4 @@ The API exposes a Swagger UI at [http://localhost:3001/api/docs](http://localhos
 ## What's Next?
 
 - Understand the [project structure](/getting-started/project-structure)
-- Learn about [value streams](/concepts/value-streams) and other core concepts
+- Learn about [actors](/concepts/actors) and other core concepts

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # Exchanges
@@ -37,7 +37,7 @@ A typical exchange has at least two flows: one in each direction (e.g., product 
 
 Exchanges can be linked to:
 
-- A **value stream** they belong to
+- Optionally, a **value stream** grouping them
 - A **channel** through which they occur
 - A **pipeline** stage for tracking progress
 - A **tension** they address
