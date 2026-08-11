@@ -11,10 +11,10 @@ The audit trail is an append-only record of platform activity, reviewable by adm
 | Category | Source | Example entries |
 |---|---|---|
 | **Change** (`mutation`) | Every domain event — an entity was created, updated, or deleted (core and plugin entities) | "agent Pricing Bot created actor Bot Made Corp" |
-| **MCP call** (`mcp_call`) | Every MCP `tools/call` invocation, with the tool name, its arguments, and the outcome (`ok` or an error code) | "agent Pricing Bot searched actors for 'Acme'" |
+| **MCP call** (`mcp_call`) | Every MCP `tools/call` invocation — read or write — with the tool name, its arguments, and the outcome (`ok` or an error code) | "agent Pricing Bot searched actors for 'Acme'" |
 | **Auth** (`auth`) | Login success, login failure (attempted email only — never anything password-shaped), logout | "failed login for nobody@example.com" |
 
-REST *reads* are not audited — of the read-only surfaces only MCP calls are recorded, because agent activity would otherwise be invisible.
+REST *reads* are not audited; MCP tool calls are always recorded — reads and writes alike — because agent activity would otherwise be invisible. MCP writes additionally produce the normal mutation entries.
 
 ## Who is recorded
 

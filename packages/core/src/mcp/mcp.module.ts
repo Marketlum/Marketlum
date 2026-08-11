@@ -24,6 +24,31 @@ import { GetOrderTool } from './tools/get-order.tool';
 import { ListValueStreamsTool } from './tools/list-value-streams.tool';
 import { GetDashboardSummaryTool } from './tools/get-dashboard-summary.tool';
 import { GetExchangeRateTool } from './tools/get-exchange-rate.tool';
+import { SearchValuesTool } from './tools/search-values.tool';
+import { GetValueTool } from './tools/get-value.tool';
+import { CreateValueTool } from './tools/create-value.tool';
+import { UpdateValueTool } from './tools/update-value.tool';
+import { SearchTensionsTool } from './tools/search-tensions.tool';
+import { GetTensionTool } from './tools/get-tension.tool';
+import { CreateTensionTool } from './tools/create-tension.tool';
+import { UpdateTensionTool } from './tools/update-tension.tool';
+import { SearchAgreementsTool } from './tools/search-agreements.tool';
+import { GetAgreementTool } from './tools/get-agreement.tool';
+import { CreateAgreementTool } from './tools/create-agreement.tool';
+import { UpdateAgreementTool } from './tools/update-agreement.tool';
+import { SearchOfferingsTool } from './tools/search-offerings.tool';
+import { GetOfferingTool } from './tools/get-offering.tool';
+import { CreateOfferingTool } from './tools/create-offering.tool';
+import { UpdateOfferingTool } from './tools/update-offering.tool';
+import { SearchTaxonomiesTool } from './tools/search-taxonomies.tool';
+import { GetTaxonomyTool } from './tools/get-taxonomy.tool';
+import { CreateTaxonomyTool } from './tools/create-taxonomy.tool';
+import { UpdateTaxonomyTool } from './tools/update-taxonomy.tool';
+import { ValuesModule } from '../values/values.module';
+import { TensionsModule } from '../tensions/tensions.module';
+import { AgreementsModule } from '../agreements/agreements.module';
+import { OfferingsModule } from '../offerings/offerings.module';
+import { TaxonomiesModule } from '../taxonomies/taxonomies.module';
 
 // Registry order is also tools/list order — keep it in the MCP_TOOL_NAMES
 // order from @marketlum/shared.
@@ -39,6 +64,26 @@ const TOOL_CLASSES = [
   ListValueStreamsTool,
   GetDashboardSummaryTool,
   GetExchangeRateTool,
+  SearchValuesTool,
+  GetValueTool,
+  CreateValueTool,
+  UpdateValueTool,
+  SearchTensionsTool,
+  GetTensionTool,
+  CreateTensionTool,
+  UpdateTensionTool,
+  SearchAgreementsTool,
+  GetAgreementTool,
+  CreateAgreementTool,
+  UpdateAgreementTool,
+  SearchOfferingsTool,
+  GetOfferingTool,
+  CreateOfferingTool,
+  UpdateOfferingTool,
+  SearchTaxonomiesTool,
+  GetTaxonomyTool,
+  CreateTaxonomyTool,
+  UpdateTaxonomyTool,
 ];
 
 @Module({
@@ -52,6 +97,11 @@ const TOOL_CLASSES = [
     ValueStreamsModule,
     DashboardModule,
     ExchangeRatesModule,
+    ValuesModule,
+    TensionsModule,
+    AgreementsModule,
+    OfferingsModule,
+    TaxonomiesModule,
   ],
   controllers: [McpController],
   providers: [
