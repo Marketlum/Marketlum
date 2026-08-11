@@ -1,23 +1,25 @@
 ---
-sidebar_position: 1
+sidebar_position: 7
 ---
 
 # Value Streams
 
-Value streams are the backbone of a Marketlum market. They represent the end-to-end flows through which value is created and delivered to market participants.
+Value streams are a **grouping mechanism**: they organize related values, exchanges, offerings, and pipelines into named flows so a large market stays navigable. They add structure and reporting lenses on top of the actor-centric domain — the activity itself belongs to [actors](actors.md); a value stream is how you choose to group it.
 
 ## Overview
 
-A value stream answers the question: *"How does value flow from creation to consumption in this market?"*
+A value stream answers the question: *"Which flow of work does this activity belong to?"*
 
 Examples:
-- **Product Development** &mdash; from ideation to delivery
+- **Product Development** &mdash; grouping the values and exchanges from ideation to delivery
 - **Customer Acquisition** &mdash; from lead generation to conversion
 - **Order Fulfillment** &mdash; from order placement to delivery
 
+Membership is optional — an exchange or value can exist without any stream; assigning one is an organizational choice, not a requirement.
+
 ## Hierarchy
 
-Value streams are hierarchical. A root stream can contain child streams, allowing you to model both high-level flows and their detailed sub-processes:
+Value streams are hierarchical. A root stream can contain child streams, allowing you to group at both a high level and in detail:
 
 ```
 General Company Stream
@@ -31,12 +33,10 @@ General Company Stream
 
 ## Relationships
 
-Value streams connect to many other entities:
-
 - **Lead** &mdash; a user responsible for the stream
-- **Values** &mdash; the products, services, and rights flowing through
-- **Exchanges** &mdash; transactions that occur within the stream
-- **Offerings** &mdash; packaged bundles sold through the stream
+- **Values** &mdash; values grouped into the stream
+- **Exchanges** &mdash; transactions optionally assigned to the stream
+- **Offerings** &mdash; bundles sold within the stream
 - **Pipelines** &mdash; sales stages tracking deals in the stream
 
 ## Visualization

@@ -39,5 +39,5 @@ The framework also maintains a hard separation between user-owned code (`apps/ap
 ## Getting help
 
 - **Bug or feature request:** [open an issue](https://github.com/Marketlum/Marketlum/issues)
-- **Questions about how something works:** start with the [Concepts](/concepts/value-streams) section, then ask in an issue
+- **Questions about how something works:** start with the [Concepts](/concepts/actors) section, then ask in an issue
 - **Security report:** please disclose privately, not in a public issue
