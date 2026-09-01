@@ -11,7 +11,8 @@
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
     "seed:admin": "ts-node src/cli.ts seed:admin",
     "seed:sample": "ts-node src/cli.ts seed:sample",
-    "audit:prune": "ts-node src/cli.ts audit:prune"
+    "audit:prune": "ts-node src/cli.ts audit:prune",
+    "tension:rebuild": "ts-node src/cli.ts tension:rebuild"
   },
   "dependencies": {
     "@marketlum/core": "{{MARKETLUM_VERSION}}",
@@ -19,6 +20,7 @@
     "@nestjs/common": "^10.4.0",
     "@nestjs/config": "^3.2.0",
     "@nestjs/core": "^10.4.0",
+    "@nestjs/cqrs": "^10.2.8",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.4.0",

@@ -12,7 +12,6 @@ export { ExchangeTransitionAction } from './enums/exchange-transition-action.enu
 export { OrderState } from './enums/order-state.enum';
 export { OrderTransitionAction } from './enums/order-transition-action.enum';
 export { TensionState } from './enums/tension-state.enum';
-export { TensionTransitionAction } from './enums/tension-transition-action.enum';
 export { GeographyType } from './enums/geography-type.enum';
 export { AgreementTemplateType } from './enums/agreement-template-type.enum';
 export { ValueLifecycleStage } from './enums/value-lifecycle-stage.enum';
@@ -305,15 +304,51 @@ export {
 export {
   createTensionSchema,
   updateTensionSchema,
-  transitionTensionSchema,
+  renameTensionSchema,
+  rescoreTensionSchema,
+  reviseTensionContextSchema,
+  assignTensionLeadSchema,
+  reassignTensionSchema,
   tensionResponseSchema,
+  tensionHistoryActorSchema,
+  tensionHistoryEntrySchema,
   type CreateTensionInput,
   type UpdateTensionInput,
-  type TransitionTensionInput,
+  type RenameTensionInput,
+  type RescoreTensionInput,
+  type ReviseTensionContextInput,
+  type AssignTensionLeadInput,
+  type ReassignTensionInput,
   type TensionResponse,
+  type TensionHistoryEntry,
 } from './schemas/tension.schema';
 
-export { tensionMachine } from './machines/tension.machine';
+export {
+  TensionEventType,
+  TENSION_AGGREGATE_TYPE,
+  TENSION_EVENT_SCHEMA_VERSION,
+  TENSION_EVENT_VERBS,
+  TENSION_EVENT_TYPES,
+  TENSION_BUS_VERBS,
+  tensionSensedPayloadSchema,
+  tensionRenamedPayloadSchema,
+  tensionRescoredPayloadSchema,
+  tensionContextRevisedPayloadSchema,
+  tensionLeadAssignedPayloadSchema,
+  tensionLeadUnassignedPayloadSchema,
+  tensionReassignedPayloadSchema,
+  emptyTensionPayloadSchema,
+  tensionEventSchema,
+  tensionEventBusName,
+  type TensionEvent,
+  type TensionSensedPayload,
+  type TensionRenamedPayload,
+  type TensionRescoredPayload,
+  type TensionContextRevisedPayload,
+  type TensionLeadAssignedPayload,
+  type TensionLeadUnassignedPayload,
+  type TensionReassignedPayload,
+} from './events/tension-events';
 
 export {
   SUPPORTED_LOCALE_CODES,
@@ -491,7 +526,10 @@ export type {
   LocaleCreatedEvent, LocaleUpdatedEvent, LocaleDeletedEvent,
   AgreementTemplateCreatedEvent, AgreementTemplateUpdatedEvent, AgreementTemplateDeletedEvent,
   PipelineCreatedEvent, PipelineUpdatedEvent, PipelineDeletedEvent,
-  TensionCreatedEvent, TensionUpdatedEvent, TensionDeletedEvent,
+  TensionSensedEvent, TensionRenamedEvent, TensionRescoredEvent,
+  TensionContextRevisedEvent, TensionLeadAssignedEvent, TensionLeadUnassignedEvent,
+  TensionReassignedEvent, TensionResolvedEvent, TensionDroppedEvent,
+  TensionReopenedEvent, TensionRevivedEvent, TensionDiscardedEvent,
   ExchangeRateCreatedEvent, ExchangeRateUpdatedEvent, ExchangeRateDeletedEvent,
   SystemSettingCreatedEvent, SystemSettingUpdatedEvent, SystemSettingDeletedEvent,
   ApiKeyCreatedEvent, ApiKeyDeletedEvent,
