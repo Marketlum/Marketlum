@@ -64,6 +64,7 @@ import { AddEquityValueType1700000000062 } from './1700000000062-AddEquityValueT
 import { AddActorContactFields1700000000063 } from './1700000000063-AddActorContactFields';
 import { AddUserTypes1700000000064 } from './1700000000064-AddUserTypes';
 import { AddAuditTrail1700000000065 } from './1700000000065-AddAuditTrail';
+import { AddEventSourcedTensions1700000000066 } from './1700000000066-AddEventSourcedTensions';
 
 export const ALL_MIGRATIONS = [
   InitSchema1700000000000,
@@ -132,4 +133,5 @@ export const ALL_MIGRATIONS = [
   AddActorContactFields1700000000063,
   AddUserTypes1700000000064,
   AddAuditTrail1700000000065,
+  AddEventSourcedTensions1700000000066,
 ];
