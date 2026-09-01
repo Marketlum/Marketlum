@@ -11,6 +11,8 @@ import { ActorsService } from './actors.service';
 import { AddressesService } from './addresses/addresses.service';
 import { ActorsController } from './actors.controller';
 import { GeocodingModule } from '../geocoding/geocoding.module';
+import { Tension } from '../tensions/entities/tension.entity';
+import { TensionsModule } from '../tensions/tensions.module';
 
 @Module({
   imports: [
@@ -22,8 +24,12 @@ import { GeocodingModule } from '../geocoding/geocoding.module';
       Geography,
       Value,
       InvoiceItem,
+      Tension,
     ]),
     GeocodingModule,
+    // Deleting an actor must discard its tensions through the command path
+    // rather than a database cascade (spec 027 Q7).
+    TensionsModule,
   ],
   controllers: [ActorsController],
   providers: [ActorsService, AddressesService],

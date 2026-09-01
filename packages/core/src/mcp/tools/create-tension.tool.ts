@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { mcpCreateTensionInputSchema, McpCreateTensionInput } from '@marketlum/shared';
 import { TensionsService } from '../../tensions/tensions.service';
+import { SenseTensionCommand } from '../../tensions/commands';
 import { McpTool } from '../mcp-tool.interface';
 
 @Injectable()
@@ -13,9 +15,15 @@ export class CreateTensionTool implements McpTool<McpCreateTensionInput> {
   readonly permission = 'tensions:write';
   readonly inputSchema = mcpCreateTensionInputSchema;
 
-  constructor(private readonly tensionsService: TensionsService) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly tensionsService: TensionsService,
+  ) {}
 
-  execute(input: McpCreateTensionInput): Promise<unknown> {
-    return this.tensionsService.create(input);
+  async execute(input: McpCreateTensionInput): Promise<unknown> {
+    const id = await this.commandBus.execute<SenseTensionCommand, string>(
+      new SenseTensionCommand(input),
+    );
+    return this.tensionsService.findOne(id);
   }
 }

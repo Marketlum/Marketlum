@@ -1,3 +1,4 @@
+import { CommandBus } from '@nestjs/cqrs';
 import { Command, CommandRunner, Option } from 'nest-commander';
 import { Inject, Logger, Optional } from '@nestjs/common';
 import { DataSource } from 'typeorm';
@@ -62,6 +63,7 @@ export class SeedSampleCommand extends CommandRunner {
 
   constructor(
     private readonly dataSource: DataSource,
+    private readonly commandBus: CommandBus,
     private readonly localesService: LocalesService,
     private readonly taxonomiesService: TaxonomiesService,
     private readonly geographiesService: GeographiesService,
@@ -223,7 +225,7 @@ export class SeedSampleCommand extends CommandRunner {
     this.logger.log(`  Created ${pipelines.length} pipelines`);
 
     this.logger.log('Seeding tensions...');
-    const tensions = await seedTensions(this.tensionsService, { actors, users });
+    const tensions = await seedTensions(this.tensionsService, this.commandBus, { actors, users });
     this.logger.log(`  Created ${tensions.length} tensions`);
 
     this.logger.log('Seeding accounts...');

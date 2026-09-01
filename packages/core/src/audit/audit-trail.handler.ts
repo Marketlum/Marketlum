@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { AuditCategory, DomainEventEnvelope } from '@marketlum/shared';
+import { AuditCategory, DomainEventEnvelope, TENSION_BUS_VERBS } from '@marketlum/shared';
 import { AuditService } from './audit.service';
 
-const VERBS = new Set(['created', 'updated', 'deleted']);
+// created/updated/deleted come from the TypeORM-derived subscriber; the tension
+// verbs come from the event store, which carries intent (spec 027 Q13).
+const VERBS = new Set(['created', 'updated', 'deleted', ...TENSION_BUS_VERBS]);
 
 /**
  * Persists every domain event as a mutation audit entry (spec 026 Q1).
