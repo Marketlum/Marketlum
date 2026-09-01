@@ -112,6 +112,8 @@ export interface TensionState {
 
 export function applyTensionEvent(state: TensionState | null, event: TensionEvent): TensionState | null;
 export function reconstitute(events: TensionEvent[]): TensionState | null;
+// (Implemented as `TensionAggregateState`, to avoid colliding with the
+//  `TensionState` lifecycle enum exported from @marketlum/shared.)
 ```
 
 Command handlers call `reconstitute()` to load current state and guard; the projector calls
@@ -219,7 +221,7 @@ pnpm tension:rebuild              # dry-run: reports the diff, writes nothing
 pnpm tension:rebuild --execute    # applies it
 ```
 
-**Refinement of Q18:** the brainstorm said "add `--dry-run`". The implementation inverts it to match
+**Refinement of Q18** (applied): the brainstorm said "add `--dry-run`". The implementation inverts it to match
 the `audit:prune` precedent — dry by default, `--execute` to write. A destructive full-table
 operation should require deliberate typing.
 
@@ -273,7 +275,7 @@ user · `409` concurrent write · `403` missing permission.
 }
 ```
 
-**Refinement of Q15:** the brainstorm specified a server-rendered `summary`. The app is
+**Refinement of Q15** (applied): the brainstorm specified a server-rendered `summary`. The app is
 `next-intl`-localised (including Polish), so a server-rendered English string alone would be
 untranslatable. The endpoint therefore returns `summary` (English, always present, usable by API and
 MCP consumers) **plus** `summaryKey` + `summaryParams` so the UI can localise. The UI stays dumb in
@@ -338,7 +340,9 @@ packages/core/src/audit/audit-trail.handler.ts          EDIT  # widen VERBS (Q13
 `@OnEvent('marketlum.actor.deleted')` handler dispatches `DiscardTension` for every tension belonging
 to that actor, ahead of the actor row being removed.
 
-> **Implementation note.** `marketlum.actor.deleted` fires *post-commit*, by which time a `RESTRICT`
+> **Implementation note** (confirmed during implementation — the discard runs inside
+> `ActorsService.remove()`'s transaction via `TensionCommandRunner.amendWithin`).
+> `marketlum.actor.deleted` fires *post-commit*, by which time a `RESTRICT`
 > FK would already have rejected the actor delete. The discard must therefore happen **before** the
 > actor row is removed. Implement it in `ActorsService.remove()`: dispatch `DiscardTension` for each
 > of the actor's tensions inside the same transaction as the actor delete, sharing one
@@ -489,6 +493,10 @@ Feature files in `packages/bdd/features/tensions/`, step definitions in `apps/ap
 | `tension-rebuild.feature` | **new** — projection matches after replay; discarded rows stay deleted; exchange links survive | 4 |
 | `tension-actor-deletion.feature` | **new** — deleting an actor discards its tensions and writes events | 3 |
 | | **total** | **~61** |
+
+*(Implemented: 67 scenarios. `sense-tension` kept all 9 scenarios from the feature it replaces
+rather than the estimated 6 — trimming would have dropped real coverage; `amend-tension` landed at
+16 and `transition-tension` at 12, both including the 404/401 cases the estimate omitted.)*
 
 Each `.feature` file is written **before** its implementation slice, per the BDD rule in `AGENTS.md`.
 `tension-rebuild.feature` drives the CLI through the same Nest application context the other suites
