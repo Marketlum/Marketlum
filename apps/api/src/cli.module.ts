@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AuditPruneCommand, MarketlumCoreModule, SeedAdminCommand, SeedSampleCommand } from '@marketlum/core';
+import { AuditPruneCommand, MarketlumCoreModule, SeedAdminCommand, SeedSampleCommand, TensionRebuildCommand } from '@marketlum/core';
 import { plugins } from './plugins';
 
 @Module({
@@ -11,6 +11,6 @@ import { plugins } from './plugins';
     }),
     MarketlumCoreModule.forRoot({ plugins }),
   ],
-  providers: [SeedAdminCommand, SeedSampleCommand, AuditPruneCommand],
+  providers: [SeedAdminCommand, SeedSampleCommand, AuditPruneCommand, TensionRebuildCommand],
 })
 export class CliModule {}

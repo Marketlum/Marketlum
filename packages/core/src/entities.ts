@@ -34,9 +34,11 @@ import { ApiKey } from './api-keys/entities/api-key.entity';
 import { Role, RolePermission } from './roles/entities/role.entity';
 
 import { AuditLog } from './audit/entities/audit-log.entity';
+import { DomainEvent } from './events/store/domain-event.entity';
 
 export const ALL_ENTITIES = [
   AuditLog,
+  DomainEvent,
   User,
   Actor,
   Taxonomy,

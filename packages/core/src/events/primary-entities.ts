@@ -20,7 +20,6 @@ import { Archetype } from '../archetypes/entities/archetype.entity';
 import { Locale } from '../locales/locale.entity';
 import { AgreementTemplate } from '../agreement-templates/entities/agreement-template.entity';
 import { Pipeline } from '../pipelines/entities/pipeline.entity';
-import { Tension } from '../tensions/entities/tension.entity';
 import { ExchangeRate } from '../exchange-rates/entities/exchange-rate.entity';
 import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 import { ApiKey } from '../api-keys/entities/api-key.entity';
@@ -60,7 +59,9 @@ export const PRIMARY_ENTITIES: PrimaryEntityDescriptor[] = [
   { cls: Locale, snakeName: 'locale' },
   { cls: AgreementTemplate, snakeName: 'agreement_template' },
   { cls: Pipeline, snakeName: 'pipeline' },
-  { cls: Tension, snakeName: 'tension' },
+  // Tension is absent on purpose: it is event-sourced (spec 027 Q13), so its
+  // bus events come from the event store with intent-carrying verbs rather
+  // than being derived from TypeORM hooks as created/updated/deleted.
   { cls: ExchangeRate, snakeName: 'exchange_rate' },
   { cls: SystemSetting, snakeName: 'system_setting' },
   { cls: ApiKey, snakeName: 'api_key', sanitize: stripKeyHash },

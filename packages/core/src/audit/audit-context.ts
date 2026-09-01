@@ -16,6 +16,9 @@ export interface AuditRequestContext {
   apiKeyName?: string;
   ip?: string;
   userAgent?: string;
+  /** Minted on the first event-store append in a request (spec 027 Q10);
+   *  groups every event produced by one unit of work. */
+  correlationId?: string;
 }
 
 const storage = new AsyncLocalStorage<AuditRequestContext>();

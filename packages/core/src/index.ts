@@ -10,6 +10,9 @@ export { S3StorageProvider } from './files/storage';
 export { SeedAdminCommand } from './commands/seed-admin.command';
 export { SeedSampleCommand } from './commands/seed-sample.command';
 export { AuditPruneCommand } from './commands/audit-prune.command';
+export { TensionRebuildCommand } from './commands/tension-rebuild.command';
+export { TensionRebuildService } from './tensions/tension-rebuild.service';
+export type { TensionRebuildReport } from './tensions/tension-rebuild.service';
 
 // Config
 export { databaseConfig } from './config/database.config';

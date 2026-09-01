@@ -71,6 +71,7 @@ API docs (Swagger) are available at `http://localhost:3001/api/docs`.
 | `pnpm migration:run`   | Run database migrations            |
 | `pnpm migration:revert`| Revert last migration              |
 | `pnpm audit:prune`     | Prune old audit-trail entries      |
+| `pnpm tension:rebuild` | Rebuild the tensions projection    |
 | `pnpm db:up`           | Start PostgreSQL via Docker        |
 | `pnpm db:down`         | Stop PostgreSQL                    |
 | `pnpm docs:dev`        | Run the documentation site         |

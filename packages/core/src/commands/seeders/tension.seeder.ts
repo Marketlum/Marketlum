@@ -1,4 +1,6 @@
+import { CommandBus } from '@nestjs/cqrs';
 import { TensionsService } from '../../tensions/tensions.service';
+import { SenseTensionCommand } from '../../tensions/commands';
 
 interface TensionDeps {
   actors: Array<{ id: string; name: string }>;
@@ -128,7 +130,13 @@ const TENSIONS: TensionSeed[] = [
   },
 ];
 
-export async function seedTensions(service: TensionsService, deps: TensionDeps) {
+// Seeded tensions go through the command bus like any other caller (spec 027
+// Q26), so they carry genuine streams from version 1 and survive a rebuild.
+export async function seedTensions(
+  service: TensionsService,
+  commandBus: CommandBus,
+  deps: TensionDeps,
+) {
   const actorsByName = new Map(deps.actors.map((a) => [a.name, a]));
   const tensions: Array<{ id: string; name: string }> = [];
 
@@ -138,14 +146,17 @@ export async function seedTensions(service: TensionsService, deps: TensionDeps) 
     if (!actor) throw new Error(`Tension seeder: missing actor "${data.actor}"`);
     const user = deps.users[i % deps.users.length];
 
-    const tension = await service.create({
-      name: data.name,
-      currentContext: data.currentContext,
-      potentialFuture: data.potentialFuture,
-      score: data.score,
-      actorId: actor.id,
-      leadUserId: user.id,
-    });
+    const id = await commandBus.execute<SenseTensionCommand, string>(
+      new SenseTensionCommand({
+        name: data.name,
+        currentContext: data.currentContext,
+        potentialFuture: data.potentialFuture,
+        score: data.score,
+        actorId: actor.id,
+        leadUserId: user.id,
+      }),
+    );
+    const tension = await service.findOne(id);
     tensions.push({ id: tension.id, name: tension.name });
   }
 

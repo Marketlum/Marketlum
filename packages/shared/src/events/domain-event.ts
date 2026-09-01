@@ -92,9 +92,20 @@ export type PipelineCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.p
 export type PipelineUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.pipeline.updated', T>;
 export type PipelineDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.pipeline.deleted', T>;
 
-export type TensionCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.created', T>;
-export type TensionUpdatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.updated', T>;
-export type TensionDeletedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.deleted', T>;
+// Tensions are event-sourced (spec 027): the store emits one intent-carrying
+// verb per domain event instead of the created/updated/deleted triplet.
+export type TensionSensedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.sensed', T>;
+export type TensionRenamedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.renamed', T>;
+export type TensionRescoredEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.rescored', T>;
+export type TensionContextRevisedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.context_revised', T>;
+export type TensionLeadAssignedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.lead_assigned', T>;
+export type TensionLeadUnassignedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.lead_unassigned', T>;
+export type TensionReassignedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.reassigned', T>;
+export type TensionResolvedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.resolved', T>;
+export type TensionDroppedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.dropped', T>;
+export type TensionReopenedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.reopened', T>;
+export type TensionRevivedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.revived', T>;
+export type TensionDiscardedEvent<T = unknown> = DomainEventEnvelope<'marketlum.tension.discarded', T>;
 
 
 export type ExchangeRateCreatedEvent<T = unknown> = DomainEventEnvelope<'marketlum.exchange_rate.created', T>;
@@ -136,7 +147,10 @@ export type DomainEvent =
   | LocaleCreatedEvent | LocaleUpdatedEvent | LocaleDeletedEvent
   | AgreementTemplateCreatedEvent | AgreementTemplateUpdatedEvent | AgreementTemplateDeletedEvent
   | PipelineCreatedEvent | PipelineUpdatedEvent | PipelineDeletedEvent
-  | TensionCreatedEvent | TensionUpdatedEvent | TensionDeletedEvent
+  | TensionSensedEvent | TensionRenamedEvent | TensionRescoredEvent
+  | TensionContextRevisedEvent | TensionLeadAssignedEvent | TensionLeadUnassignedEvent
+  | TensionReassignedEvent | TensionResolvedEvent | TensionDroppedEvent
+  | TensionReopenedEvent | TensionRevivedEvent | TensionDiscardedEvent
   | ExchangeRateCreatedEvent | ExchangeRateUpdatedEvent | ExchangeRateDeletedEvent
   | SystemSettingCreatedEvent | SystemSettingUpdatedEvent | SystemSettingDeletedEvent
   | ApiKeyCreatedEvent | ApiKeyDeletedEvent

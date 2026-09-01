@@ -37,7 +37,8 @@
     "goBack": "Wróć",
     "selectFromLibrary": "Biblioteka",
     "selectImageDescription": "Wybierz obraz z biblioteki plików.",
-    "close": "Zamknij"
+    "close": "Zamknij",
+    "none": "Brak"
   },
   "nav": {
     "users": "Użytkownicy",
@@ -1018,10 +1019,8 @@
     "title": "Napięcia",
     "description": "Identyfikuj i śledź luki między bieżącą rzeczywistością a potencjalną przyszłością.",
     "createTension": "Utwórz napięcie",
-    "editTension": "Edytuj napięcie",
     "deleteTension": "Usuń napięcie",
     "createDescription": "Wypełnij dane, aby utworzyć nowe napięcie.",
-    "editDescription": "Zaktualizuj dane napięcia poniżej.",
     "actor": "Aktor",
     "selectActor": "Wybierz aktora",
     "allActors": "Wszyscy aktorzy",
@@ -1054,7 +1053,33 @@
     "details": "Szczegóły",
     "notFound": "Nie znaleziono napięcia",
     "notFoundDescription": "Szukane napięcie nie istnieje.",
-    "backToTensions": "Powrót do napięć"
+    "backToTensions": "Powrót do napięć",
+    "history": {
+      "title": "Historia",
+      "empty": "Brak historii",
+      "loadMore": "Wczytaj więcej",
+      "system": "System",
+      "sensed": "Napięcie zauważone",
+      "renamed": "Zmieniono nazwę z „{from}” na „{to}”",
+      "rescored": {
+        "raised": "Podniesiono ocenę z {from} na {to}",
+        "lowered": "Obniżono ocenę z {from} na {to}"
+      },
+      "contextRevised": {
+        "current": "Zmieniono obecny kontekst",
+        "future": "Zmieniono potencjalną przyszłość",
+        "both": "Zmieniono obecny kontekst i potencjalną przyszłość"
+      },
+      "leadAssigned": "Przypisano prowadzącego",
+      "leadUnassigned": "Usunięto prowadzącego",
+      "reassigned": "Przypisano do innego aktora",
+      "resolved": "Rozwiązano",
+      "dropped": "Odrzucono jako nieaktualne",
+      "reopened": "Otwarto ponownie",
+      "revived": "Przywrócono",
+      "discarded": "Usunięto"
+    },
+    "changedElsewhere": "Zmieniono w innym miejscu — przeładowywanie"
   },
   "dashboard": {
     "title": "Pulpit",

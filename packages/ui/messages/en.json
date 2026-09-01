@@ -1019,10 +1019,8 @@
     "title": "Tensions",
     "description": "Identify and track gaps between current reality and potential futures.",
     "createTension": "Create Tension",
-    "editTension": "Edit Tension",
     "deleteTension": "Delete Tension",
     "createDescription": "Fill in the details to create a new tension.",
-    "editDescription": "Update tension details below.",
     "actor": "Actor",
     "selectActor": "Select actor",
     "allActors": "All actors",
@@ -1055,7 +1053,33 @@
     "details": "Details",
     "notFound": "Tension not found",
     "notFoundDescription": "The tension you are looking for does not exist.",
-    "backToTensions": "Back to tensions"
+    "backToTensions": "Back to tensions",
+    "history": {
+      "title": "History",
+      "empty": "No history yet",
+      "loadMore": "Load more",
+      "system": "System",
+      "sensed": "Tension sensed",
+      "renamed": "Renamed from “{from}” to “{to}”",
+      "rescored": {
+        "raised": "Score raised from {from} to {to}",
+        "lowered": "Score lowered from {from} to {to}"
+      },
+      "contextRevised": {
+        "current": "Revised current context",
+        "future": "Revised potential future",
+        "both": "Revised current context and potential future"
+      },
+      "leadAssigned": "Lead assigned",
+      "leadUnassigned": "Lead unassigned",
+      "reassigned": "Reassigned to a different actor",
+      "resolved": "Resolved",
+      "dropped": "Dropped as stale",
+      "reopened": "Reopened",
+      "revived": "Revived",
+      "discarded": "Discarded"
+    },
+    "changedElsewhere": "Changed elsewhere — reloading"
   },
   "dashboard": {
     "title": "Dashboard",

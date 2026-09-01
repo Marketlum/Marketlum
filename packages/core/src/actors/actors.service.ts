@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, TreeRepository, In, IsNull } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository, TreeRepository, In, IsNull } from 'typeorm';
 import { Actor } from './entities/actor.entity';
 import { Address } from './addresses/entities/address.entity';
 import { AddressesService } from './addresses/addresses.service';
@@ -13,6 +13,10 @@ import { Taxonomy } from '../taxonomies/entities/taxonomy.entity';
 import { File } from '../files/entities/file.entity';
 import { Value } from '../values/entities/value.entity';
 import { InvoiceItem } from '../invoices/entities/invoice-item.entity';
+import { Tension } from '../tensions/entities/tension.entity';
+import { TensionCommandRunner } from '../tensions/tension-command.runner';
+import type { DomainEvent } from '../events/store/domain-event.entity';
+import { TensionEventType } from '@marketlum/shared';
 import {
   CreateActorInput,
   UpdateActorInput,
@@ -38,6 +42,10 @@ export class ActorsService {
     @InjectRepository(InvoiceItem)
     private readonly invoiceItemRepository: Repository<InvoiceItem>,
     private readonly addressesService: AddressesService,
+    @InjectRepository(Tension)
+    private readonly tensionRepository: Repository<Tension>,
+    private readonly tensionCommandRunner: TensionCommandRunner,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async create(input: CreateActorInput): Promise<Actor> {
@@ -336,6 +344,17 @@ export class ActorsService {
     return this.findOne(id);
   }
 
+  /**
+   * Deleting an actor discards its tensions through the command path first
+   * (spec 027 Q7). `tensions.actorId` is ON DELETE RESTRICT since spec 027, so
+   * the database can no longer remove them behind the event store's back — a
+   * rebuild would otherwise resurrect tensions the user deleted.
+   *
+   * This cannot be an `@OnEvent('marketlum.actor.deleted')` handler as the
+   * brainstorm assumed: that event fires post-commit, by which point the
+   * RESTRICT FK has already rejected the delete. So the discards and the actor
+   * removal share one transaction, and one correlationId (spec 027 §7.1).
+   */
   async remove(id: string): Promise<void> {
     const actor = await this.findOne(id);
     const childCount = await this.actorsRepository.count({ where: { parentId: id } });
@@ -344,7 +363,29 @@ export class ActorsService {
         'Actor has sub-actors. Move or delete them before deleting this actor.',
       );
     }
-    await this.actorsRepository.remove(actor);
+
+    const discarded: Array<{ tensionId: string; events: DomainEvent[] }> = [];
+
+    await this.dataSource.transaction(async (manager) => {
+      const tensions = await manager.find(Tension, {
+        where: { actorId: id },
+        select: { id: true },
+      });
+
+      for (const tension of tensions) {
+        const events = await this.tensionCommandRunner.amendWithin(manager, tension.id, () => [
+          { type: TensionEventType.DISCARDED, payload: {} },
+        ]);
+        discarded.push({ tensionId: tension.id, events });
+      }
+
+      await manager.remove(Actor, actor);
+    });
+
+    // Post-commit, so a failed actor delete never announces phantom discards.
+    for (const { tensionId, events } of discarded) {
+      this.tensionCommandRunner.publish(tensionId, events);
+    }
   }
 
   async getSnapshotReferences(id: string): Promise<{ invoiceItems: number }> {

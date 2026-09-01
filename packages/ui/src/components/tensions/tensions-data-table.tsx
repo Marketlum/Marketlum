@@ -56,7 +56,6 @@ export function TensionsDataTable() {
   const [data, setData] = useState<PaginatedResponse<TensionResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [editingTension, setEditingTension] = useState<TensionResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TensionResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -128,35 +127,24 @@ export function TensionsDataTable() {
   }, [debouncedSearch, pagination.page, pagination.sortBy, pagination.sortOrder, pagination.limit, actorFilter, leadFilter, stateFilter, fetchData]);
 
   const handleOpenCreate = () => {
-    setEditingTension(null);
     setFormOpen(true);
   };
 
-  const handleOpenEdit = async (tension: TensionResponse) => {
-    try {
-      const full = await api.get<TensionResponse>(`/tensions/${tension.id}`);
-      setEditingTension(full);
-      setFormOpen(true);
-    } catch {
-      toast.error(t('failedToLoad'));
-    }
+  // Editing lives on the detail page as per-field commands (spec 027 Q20/Q27);
+  // a row-level dialog would have to replicate six of them.
+  const handleOpenEdit = (tension: TensionResponse) => {
+    router.push(`/admin/tensions/${tension.id}`);
   };
 
   const handleFormSubmit = async (input: CreateTensionInput) => {
     setIsSubmitting(true);
     try {
-      if (editingTension) {
-        await api.patch(`/tensions/${editingTension.id}`, input);
-        toast.success(t('updated'));
-      } else {
-        await api.post('/tensions', input);
-        toast.success(t('created'));
-      }
+      await api.post('/tensions', input);
+      toast.success(t('created'));
       setFormOpen(false);
-      setEditingTension(null);
       fetchData();
     } catch {
-      toast.error(editingTension ? t('failedToUpdate') : t('failedToCreate'));
+      toast.error(t('failedToCreate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -405,20 +393,9 @@ export function TensionsDataTable() {
       )}
 
       <TensionFormDialog
-        open={formOpen && !editingTension}
+        open={formOpen}
         onOpenChange={setFormOpen}
         onSubmit={handleFormSubmit}
-        isSubmitting={isSubmitting}
-        actors={actors}
-        users={users}
-        onActorsRefresh={refreshActors}
-      />
-
-      <TensionFormDialog
-        open={!!editingTension}
-        onOpenChange={(open) => { if (!open) { setEditingTension(null); setFormOpen(false); } }}
-        onSubmit={handleFormSubmit}
-        tension={editingTension}
         isSubmitting={isSubmitting}
         actors={actors}
         users={users}

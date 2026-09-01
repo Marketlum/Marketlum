@@ -1,4 +1,4 @@
-Feature: Create Tension
+Feature: Sense Tension
 
   Scenario: Create tension with all fields
     Given I am authenticated as "admin@marketlum.com"
@@ -12,6 +12,7 @@ Feature: Create Tension
     And the response should contain a tension with score 8
     And the response should contain an actor with name "Acme Corp"
     And the response should contain a lead with name "Jane Lead"
+    And the response should contain a tension with version 1
 
   Scenario: Create tension with minimal fields defaults score to 5
     Given I am authenticated as "admin@marketlum.com"
