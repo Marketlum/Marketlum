@@ -1,6 +1,10 @@
 Feature: Transition Tension
 
-  Scenario: Newly created tension is alive
+  Spec 027 replaced POST /tensions/:id/transitions with one endpoint per
+  lifecycle command. Legality is enforced by the aggregate guards, which
+  replaced the xstate machine for this aggregate.
+
+  Scenario: Newly sensed tension is alive
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     When I create a tension with name "Onboarding gap" and actor "Org A"
@@ -11,15 +15,16 @@ Feature: Transition Tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap"
-    When I transition the tension with action "resolve"
+    When I resolve the tension "Onboarding gap"
     Then the response status should be 200
     And the response should contain a tension with state "resolved"
+    And the response should contain a tension with version 2
 
   Scenario: Drop an alive tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap"
-    When I transition the tension with action "drop"
+    When I drop the tension "Onboarding gap"
     Then the response status should be 200
     And the response should contain a tension with state "stale"
 
@@ -27,7 +32,7 @@ Feature: Transition Tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap" and state "resolved"
-    When I transition the tension with action "reopen"
+    When I reopen the tension "Onboarding gap"
     Then the response status should be 200
     And the response should contain a tension with state "alive"
 
@@ -35,7 +40,7 @@ Feature: Transition Tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap" and state "stale"
-    When I transition the tension with action "revive"
+    When I revive the tension "Onboarding gap"
     Then the response status should be 200
     And the response should contain a tension with state "alive"
 
@@ -43,42 +48,42 @@ Feature: Transition Tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap" and state "resolved"
-    When I transition the tension with action "resolve"
+    When I resolve the tension "Onboarding gap"
     Then the response status should be 400
 
   Scenario: Reject dropping a stale tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap" and state "stale"
-    When I transition the tension with action "drop"
+    When I drop the tension "Onboarding gap"
     Then the response status should be 400
 
-  Scenario: Reject revive on a resolved tension
+  Scenario: Reject reviving a resolved tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap" and state "resolved"
-    When I transition the tension with action "revive"
+    When I revive the tension "Onboarding gap"
     Then the response status should be 400
 
-  Scenario: Reject reopen on a stale tension
+  Scenario: Reject reopening a stale tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap" and state "stale"
-    When I transition the tension with action "reopen"
+    When I reopen the tension "Onboarding gap"
     Then the response status should be 400
 
-  Scenario: Reject resolve directly to stale via drop while resolved
+  Scenario: Reject dropping a resolved tension
     Given I am authenticated as "admin@marketlum.com"
     And an actor exists with name "Org A"
     And a tension exists with name "Onboarding gap" and state "resolved"
-    When I transition the tension with action "drop"
+    When I drop the tension "Onboarding gap"
     Then the response status should be 400
 
-  Scenario: Non-existent tension returns 404
+  Scenario: Transitioning a non-existent tension returns 404
     Given I am authenticated as "admin@marketlum.com"
-    When I transition the tension with ID "00000000-0000-0000-0000-000000000000" with action "resolve"
+    When I resolve the tension with ID "00000000-0000-0000-0000-000000000000"
     Then the response status should be 404
 
-  Scenario: Unauthenticated request is rejected
-    When I transition the tension with ID "00000000-0000-0000-0000-000000000000" with action "resolve"
+  Scenario: Unauthenticated transition is rejected
+    When I resolve the tension with ID "00000000-0000-0000-0000-000000000000"
     Then the response status should be 401

@@ -1,19 +1,16 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { getNextSnapshot } from 'xstate';
 import { Tension } from './entities/tension.entity';
 import { Actor } from '../actors/entities/actor.entity';
-import { User } from '../users/entities/user.entity';
-import {
-  CreateTensionInput,
-  UpdateTensionInput,
-  PaginationQuery,
-  TensionState,
-  TensionTransitionAction,
-  tensionMachine,
-} from '@marketlum/shared';
+import { PaginationQuery } from '@marketlum/shared';
 
+/**
+ * Read side of the event-sourced Tension aggregate (spec 027).
+ *
+ * All writes go through the command bus — `create`, `update`, `transition` and
+ * `remove` were removed in spec 027. This service only reads the projection.
+ */
 @Injectable()
 export class TensionsService {
   constructor(
@@ -21,33 +18,7 @@ export class TensionsService {
     private readonly tensionRepository: Repository<Tension>,
     @InjectRepository(Actor)
     private readonly actorRepository: Repository<Actor>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
   ) {}
-
-  async create(input: CreateTensionInput): Promise<Tension> {
-    const { actorId, leadUserId, ...rest } = input;
-
-    const actor = await this.actorRepository.findOne({ where: { id: actorId } });
-    if (!actor) throw new NotFoundException('Actor not found');
-
-    if (leadUserId) {
-      const user = await this.userRepository.findOne({ where: { id: leadUserId } });
-      if (!user) throw new NotFoundException('Lead user not found');
-    }
-
-    const tension = this.tensionRepository.create({
-      ...rest,
-      currentContext: rest.currentContext ?? null,
-      potentialFuture: rest.potentialFuture ?? null,
-      score: rest.score ?? 5,
-      actorId,
-      leadUserId: leadUserId ?? null,
-    });
-
-    const saved = await this.tensionRepository.save(tension);
-    return this.findOne(saved.id);
-  }
 
   async findOne(id: string): Promise<Tension> {
     const tension = await this.tensionRepository.findOne({
@@ -97,10 +68,7 @@ export class TensionsService {
     }
 
     if (search) {
-      qb.andWhere(
-        `tension.search_vector @@ plainto_tsquery('english', :search)`,
-        { search },
-      );
+      qb.andWhere(`tension.search_vector @@ plainto_tsquery('english', :search)`, { search });
     }
 
     if (sortBy) {
@@ -141,10 +109,7 @@ export class TensionsService {
       countQb.andWhere('tension.state = :state', { state });
     }
     if (search) {
-      countQb.andWhere(
-        `tension.search_vector @@ plainto_tsquery('english', :search)`,
-        { search },
-      );
+      countQb.andWhere(`tension.search_vector @@ plainto_tsquery('english', :search)`, { search });
     }
 
     const total = await countQb.getCount();
@@ -160,70 +125,12 @@ export class TensionsService {
     };
   }
 
-  async update(id: string, input: UpdateTensionInput): Promise<Tension> {
-    const tension = await this.findOne(id);
-    const { actorId, leadUserId, ...rest } = input;
-
-    if (rest.name !== undefined) tension.name = rest.name;
-    if (rest.currentContext !== undefined) tension.currentContext = rest.currentContext ?? null;
-    if (rest.potentialFuture !== undefined) tension.potentialFuture = rest.potentialFuture ?? null;
-    if (rest.score !== undefined) tension.score = rest.score;
-
-    if (actorId !== undefined) {
-      const actor = await this.actorRepository.findOne({ where: { id: actorId } });
-      if (!actor) throw new NotFoundException('Actor not found');
-      tension.actorId = actorId;
-    }
-
-    if (leadUserId !== undefined) {
-      if (leadUserId === null) {
-        tension.lead = null;
-        tension.leadUserId = null;
-      } else {
-        const user = await this.userRepository.findOne({ where: { id: leadUserId } });
-        if (!user) throw new NotFoundException('Lead user not found');
-        tension.leadUserId = leadUserId;
-      }
-    }
-
-    delete (tension as any).actor;
-    delete (tension as any).lead;
-    delete (tension as any).exchanges;
-    await this.tensionRepository.save(tension);
-
-    return this.findOne(id);
-  }
-
-  async transition(id: string, action: TensionTransitionAction): Promise<Tension> {
-    const tension = await this.findOne(id);
-
-    const nextSnapshot = getNextSnapshot(
-      tensionMachine,
-      tensionMachine.resolveState({ value: tension.state, context: {} }),
-      { type: action },
-    );
-
-    if (nextSnapshot.value === tension.state) {
-      throw new BadRequestException(
-        `Cannot transition from ${tension.state} using action "${action}"`,
-      );
-    }
-
-    tension.state = nextSnapshot.value as TensionState;
-
-    delete (tension as any).actor;
-    delete (tension as any).lead;
-    delete (tension as any).exchanges;
-    await this.tensionRepository.save(tension);
-
-    return this.findOne(id);
-  }
-
-  async remove(id: string): Promise<void> {
-    const tension = await this.tensionRepository.findOne({ where: { id } });
-    if (!tension) {
-      throw new NotFoundException('Tension not found');
-    }
-    await this.tensionRepository.remove(tension);
+  /** Ids of every tension owned by an actor — drives the deletion cascade (Q7). */
+  async findIdsByActor(actorId: string): Promise<string[]> {
+    const rows = await this.tensionRepository.find({
+      where: { actorId },
+      select: { id: true },
+    });
+    return rows.map((r) => r.id);
   }
 }
