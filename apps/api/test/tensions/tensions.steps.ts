@@ -945,7 +945,7 @@ defineFeature(amendFeature, (test) => {
     await teardownApp();
   });
 
-  const auth = (given: jest.Mock | any) =>
+  const auth = (given: any) =>
     given(/^I am authenticated as "(.*)"$/, async (email: string) => {
       authCookie = await createAuthenticatedUser(email, 'password123');
     });

@@ -4,6 +4,91 @@ Breaking changes between Marketlum releases, newest first. Each section lists
 what an existing scaffolded project must do after updating its `@marketlum/*`
 dependencies.
 
+## Unreleased — Tensions are event-sourced
+
+Tensions moved from CRUD to event sourcing (spec 027). The `tensions` table is
+now a projection of an append-only `domain_events` store. Six things change for
+an existing project.
+
+### 1. `PATCH /tensions/:id` is gone
+
+Editing is now one endpoint per command, each appending a single event:
+
+```
+POST /tensions/:id/rename     { "name": "…" }
+POST /tensions/:id/rescore    { "score": 8 }
+POST /tensions/:id/revise     { "currentContext": "…", "potentialFuture": "…" }
+POST /tensions/:id/lead       { "leadUserId": "…" | null }
+POST /tensions/:id/reassign   { "actorId": "…" }
+```
+
+A command that changes nothing returns `200` and appends no event. Concurrent
+writers now receive `409 Conflict` — reload and retry.
+
+### 2. `POST /tensions/:id/transitions` is gone
+
+Replace `{ "action": "resolve" }` with the dedicated endpoints:
+
+```
+POST /tensions/:id/resolve
+POST /tensions/:id/drop
+POST /tensions/:id/reopen
+POST /tensions/:id/revive
+```
+
+### 3. Tension domain events carry intent
+
+`marketlum.tension.created` / `.updated` / `.deleted` no longer fire. Twelve
+intent-carrying verbs replace them:
+
+```
+marketlum.tension.sensed            marketlum.tension.resolved
+marketlum.tension.renamed           marketlum.tension.dropped
+marketlum.tension.rescored          marketlum.tension.reopened
+marketlum.tension.context_revised   marketlum.tension.revived
+marketlum.tension.lead_assigned     marketlum.tension.discarded
+marketlum.tension.lead_unassigned
+marketlum.tension.reassigned
+```
+
+Plugins subscribing to the old names must be updated.
+
+### 4. Removed exports from `@marketlum/shared`
+
+```ts
+import { tensionMachine } from '@marketlum/shared';            // removed
+import { TensionTransitionAction } from '@marketlum/shared';   // removed
+import { transitionTensionSchema } from '@marketlum/shared';   // removed
+```
+
+Transition legality now lives in the aggregate guards on the server. The new
+event vocabulary is exported as `TensionEventType`, `tensionEventSchema` and the
+per-event payload schemas.
+
+### 5. `tensions.actorId` is `ON DELETE RESTRICT`
+
+Deleting an actor discards its tensions through the command path first, in the
+same transaction, so every deletion is recorded. The previous database cascade
+removed them silently, which a projection rebuild would have undone.
+
+### 6. New dependency: `@nestjs/cqrs`
+
+Add it to your API app alongside `@marketlum/core`:
+
+```json
+"@nestjs/cqrs": "^10.2.8"
+```
+
+Register `TensionRebuildCommand` in your `CliModule` providers to get
+`pnpm tension:rebuild`, and add the script:
+
+```json
+"tension:rebuild": "ts-node src/cli.ts tension:rebuild"
+```
+
+Run `pnpm migration:run` to create `domain_events` and backfill a genesis stream
+for existing tensions.
+
 ## v0.6.0 — Node 24 required
 
 The framework now requires **Node.js >= 24** (`engines` in the root and

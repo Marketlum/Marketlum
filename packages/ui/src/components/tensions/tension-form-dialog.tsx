@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import type { TensionResponse, CreateTensionInput, ActorResponse, UserResponse, CreateActorInput } from '@marketlum/shared';
+import type { CreateTensionInput, ActorResponse, UserResponse, CreateActorInput } from '@marketlum/shared';
 import {
   Dialog,
   DialogContent,
@@ -22,11 +22,14 @@ import { ActorFormDialog } from '../actors/actor-form-dialog';
 import { api } from '../../lib/api-client';
 import { Can } from '../../permissions/can';
 
+/**
+ * Create-only since spec 027 (Q20): existing tensions are edited field by field
+ * on the detail page, each field dispatching its own command.
+ */
 interface TensionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (input: CreateTensionInput) => void;
-  tension?: TensionResponse | null;
   isSubmitting: boolean;
   actors: ActorResponse[];
   users: UserResponse[];
@@ -37,7 +40,6 @@ export function TensionFormDialog({
   open,
   onOpenChange,
   onSubmit,
-  tension,
   isSubmitting,
   actors,
   users,
@@ -58,23 +60,14 @@ export function TensionFormDialog({
 
   useEffect(() => {
     if (open) {
-      if (tension) {
-        setName(tension.name);
-        setCurrentContext(tension.currentContext ?? '');
-        setPotentialFuture(tension.potentialFuture ?? '');
-        setActorId(tension.actor?.id ?? '');
-        setLeadUserId(tension.lead?.id ?? 'none');
-        setScore(tension.score);
-      } else {
-        setName('');
-        setCurrentContext('');
-        setPotentialFuture('');
-        setActorId('');
-        setLeadUserId('none');
-        setScore(5);
-      }
+      setName('');
+      setCurrentContext('');
+      setPotentialFuture('');
+      setActorId('');
+      setLeadUserId('none');
+      setScore(5);
     }
-  }, [open, tension]);
+  }, [open]);
 
   const handleCreateActor = async (data: CreateActorInput) => {
     setIsCreatingActor(true);
@@ -103,15 +96,13 @@ export function TensionFormDialog({
     onSubmit(input);
   };
 
-  const isEditing = !!tension;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? t('editTension') : t('createTension')}</DialogTitle>
+          <DialogTitle>{t('createTension')}</DialogTitle>
           <DialogDescription>
-            {isEditing ? t('editDescription') : t('createDescription')}
+            {t('createDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -193,7 +184,7 @@ export function TensionFormDialog({
             {tc('cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting || !name || !actorId}>
-            {isSubmitting ? tc('saving') : isEditing ? tc('update') : tc('create')}
+            {isSubmitting ? tc('saving') : tc('create')}
           </Button>
         </DialogFooter>
       </DialogContent>

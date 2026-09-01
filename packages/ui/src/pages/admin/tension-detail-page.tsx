@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Pencil, Trash2, ArrowLeft, Flame } from 'lucide-react';
-import type { TensionResponse, CreateTensionInput } from '@marketlum/shared';
+import { Trash2, ArrowLeft, Flame } from 'lucide-react';
+import type { TensionResponse } from '@marketlum/shared';
 import { api, ApiError } from '../../lib/api-client';
 import { toast } from 'sonner';
-import { TensionFormDialog } from '../../components/tensions/tension-form-dialog';
+import { TensionInlineField } from '../../components/tensions/tension-inline-field';
+import { TensionHistory } from '../../components/tensions/tension-history';
 import { ConfirmDeleteDialog } from '../../components/shared/confirm-delete-dialog';
 import { Can } from '../../permissions/can';
 import { MarkdownContent } from '../../components/shared/markdown-editor';
@@ -50,7 +51,6 @@ export function TensionDetailPage() {
   const [tension, setTension] = useState<TensionResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -76,7 +76,7 @@ export function TensionDetailPage() {
   const handleTransition = async (action: string) => {
     if (!tension) return;
     try {
-      await api.post(`/tensions/${tension.id}/transitions`, { action });
+      await api.post(`/tensions/${tension.id}/${action}`);
       toast.success(t('stateChanged'));
       fetchTension();
     } catch {
@@ -84,16 +84,25 @@ export function TensionDetailPage() {
     }
   };
 
-  const handleEdit = async (input: CreateTensionInput) => {
+  /**
+   * Each inline field saves through its own command endpoint (spec 027 Q20).
+   * A 409 means someone else advanced the stream, so we reload rather than
+   * retry blindly.
+   */
+  const runCommand = async (action: string, body: unknown) => {
     if (!tension) return;
     setIsSubmitting(true);
     try {
-      await api.patch(`/tensions/${tension.id}`, input);
+      await api.post(`/tensions/${tension.id}/${action}`, body);
       toast.success(t('updated'));
-      setEditOpen(false);
-      fetchTension();
-    } catch {
-      toast.error(t('failedToUpdate'));
+      await fetchTension();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        toast.error(t('changedElsewhere'));
+        await fetchTension();
+      } else {
+        toast.error(t('failedToUpdate'));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -205,10 +214,6 @@ export function TensionDetailPage() {
                   {t('revive')}
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-                <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                {tc('edit')}
-              </Button>
               <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                 {tc('delete')}
@@ -224,24 +229,48 @@ export function TensionDetailPage() {
             <CardTitle>{t('details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground">{t('actor')}</p>
-              {tension.actor ? (
-                <Link href={`/admin/actors/${tension.actor.id}`} className="text-primary hover:underline">
-                  {tension.actor.name}
-                </Link>
-              ) : (
-                <p>-</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('lead')}</p>
-              <p>{tension.lead?.name ?? '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('score')}</p>
-              <p>{tension.score}</p>
-            </div>
+            <TensionInlineField
+              label={tc('name')}
+              value={tension.name}
+              type="text"
+              onSave={(value) => runCommand('rename', { name: String(value ?? '') })}
+            />
+            <TensionInlineField
+              label={t('actor')}
+              value={tension.actor?.id ?? null}
+              type="select"
+              options={actors.map((a) => ({ value: a.id, label: a.name }))}
+              display={
+                tension.actor ? (
+                  <Link
+                    href={`/admin/actors/${tension.actor.id}`}
+                    className="text-primary hover:underline"
+                  >
+                    {tension.actor.name}
+                  </Link>
+                ) : (
+                  <p>-</p>
+                )
+              }
+              onSave={(value) => runCommand('reassign', { actorId: value })}
+            />
+            <TensionInlineField
+              label={t('lead')}
+              value={tension.lead?.id ?? null}
+              type="select"
+              nullable
+              options={users.map((u) => ({ value: u.id, label: u.name }))}
+              display={<p>{tension.lead?.name ?? '-'}</p>}
+              onSave={(value) => runCommand('lead', { leadUserId: value })}
+            />
+            <TensionInlineField
+              label={t('score')}
+              value={tension.score}
+              type="number"
+              min={1}
+              max={10}
+              onSave={(value) => runCommand('rescore', { score: Number(value) })}
+            />
             <div>
               <p className="text-sm text-muted-foreground">{tc('created')}</p>
               <p>{new Date(tension.createdAt).toLocaleDateString()}</p>
@@ -254,27 +283,41 @@ export function TensionDetailPage() {
         </Card>
 
         <div className="space-y-4">
-          {tension.currentContext && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('currentContext')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MarkdownContent content={tension.currentContext} />
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardContent className="pt-6">
+              <TensionInlineField
+                label={t('currentContext')}
+                value={tension.currentContext}
+                type="markdown"
+                display={
+                  tension.currentContext ? (
+                    <MarkdownContent content={tension.currentContext} />
+                  ) : (
+                    <p className="text-muted-foreground">-</p>
+                  )
+                }
+                onSave={(value) => runCommand('revise', { currentContext: value || null })}
+              />
+            </CardContent>
+          </Card>
 
-          {tension.potentialFuture && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('potentialFuture')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MarkdownContent content={tension.potentialFuture} />
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardContent className="pt-6">
+              <TensionInlineField
+                label={t('potentialFuture')}
+                value={tension.potentialFuture}
+                type="markdown"
+                display={
+                  tension.potentialFuture ? (
+                    <MarkdownContent content={tension.potentialFuture} />
+                  ) : (
+                    <p className="text-muted-foreground">-</p>
+                  )
+                }
+                onSave={(value) => runCommand('revise', { potentialFuture: value || null })}
+              />
+            </CardContent>
+          </Card>
 
           {(tension as any).exchanges?.length > 0 && (
             <Card>
@@ -303,18 +346,9 @@ export function TensionDetailPage() {
               </CardContent>
             </Card>
           )}
+          <TensionHistory tensionId={tension.id} />
         </div>
       </div>
-
-      <TensionFormDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        onSubmit={handleEdit}
-        tension={tension}
-        isSubmitting={isSubmitting}
-        actors={actors}
-        users={users}
-      />
 
       <ConfirmDeleteDialog
         open={deleteOpen}

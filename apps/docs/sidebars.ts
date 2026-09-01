@@ -39,6 +39,7 @@ const sidebars: SidebarsConfig = {
         'customization/domain-events',
         'customization/extending-web',
         'customization/taxonomies-archetypes',
+        'customization/event-sourcing',
       ],
     },
     {

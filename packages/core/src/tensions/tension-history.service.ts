@@ -106,14 +106,16 @@ export class TensionHistoryService {
       }
 
       case TensionEventType.CONTEXT_REVISED: {
-        const fields: string[] = [];
-        if ('currentContext' in payload) fields.push('current context');
-        if ('potentialFuture' in payload) fields.push('potential future');
-        const list = fields.join(' and ');
+        const current = 'currentContext' in payload;
+        const future = 'potentialFuture' in payload;
+        // Three discrete keys rather than an interpolated field list, so the
+        // localised UI never has to render an English fragment.
+        const which = current && future ? 'both' : current ? 'current' : 'future';
+        const label = { both: 'current context and potential future', current: 'current context', future: 'potential future' }[which];
         return {
-          summary: `Revised ${list}`,
-          summaryKey: 'history.contextRevised',
-          summaryParams: { fields: list, count: fields.length },
+          summary: `Revised ${label}`,
+          summaryKey: `history.contextRevised.${which}`,
+          summaryParams: {},
         };
       }
 
